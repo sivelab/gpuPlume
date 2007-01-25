@@ -37,7 +37,7 @@ float randVal() { return drand48(); }
 // BEGIN -----> QUIC PLUME FORTRAN REFERENCES
 // //////////////////////////////////////
 
-#define USE_PLUME_DATA
+// #define USE_PLUME_DATA
 
 #ifdef USE_PLUME_DATA
 
@@ -88,12 +88,12 @@ bool show_particle_visuals = true;
 int winid;
 float eye_z = 5.0;
 
-int winwidth = 512, winheight = 512;
+int winwidth = 1024, winheight = 1024;
 
 //
 // The values here determine the number of particles
 //
-int twidth = 128, theight = 128;
+int twidth = 1024, theight = 1024;
 
 static bool rotate_sphere = false;
 static bool rotate_object = false;
@@ -213,11 +213,11 @@ void init(void)
 {
   glEnable(GL_DEPTH_TEST);
 
-  nx = __datamodule__nx; //domain in the x direction
-  ny = __datamodule__nz; //domain in the y direction(our orientation is y for up)
-  nz = __datamodule__ny; //domain in the z direction
+  nx = 60;//__datamodule__nx; //domain in the x direction
+  ny = 20;//__datamodule__nz; //domain in the y direction(our orientation is y for up)
+  nz = 60;//__datamodule__ny; //domain in the z direction
 
-  pc = new ParticleControl(nx, ny, nz, __datamodule__u, __datamodule__v, __datamodule__w, texType);
+  pc = new ParticleControl(nx, ny, nz, 0,0,0, texType);
   dc = new DisplayControl(nx, ny, nz, texType);
 
   eye_pos[0] = 0;

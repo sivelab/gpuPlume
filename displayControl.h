@@ -1,5 +1,6 @@
-#include <GL/glew.h>
 #include <iostream>
+#include <GL/glew.h>
+
 
 class DisplayControl{
 
@@ -16,9 +17,9 @@ class DisplayControl{
   int nx;
   int ny;
   int nz;
-
+#if 0
   struct timeval startframe, endframe, diff;
-  
+#endif
   GLenum texType;
 
 };

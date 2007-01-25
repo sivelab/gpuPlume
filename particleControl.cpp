@@ -1,6 +1,7 @@
-#include "particleControl.h"
+
 #include <iostream>
 #include <math.h>
+#include "particleControl.h"
 using namespace std;
 
 #ifdef WIN32
@@ -96,8 +97,8 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
   // Create wind data texture
   data3d = new wind[nx*ny*nz];
   //test1();
-  //test2();
-  test3();
+  test2();
+  //test3();
 
   //Get width and height for wind texture
   int total = nx*ny*nz;

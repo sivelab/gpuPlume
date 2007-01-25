@@ -183,6 +183,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\displayControl.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\framebufferObject.cpp"
 				>
 			</File>
@@ -196,6 +200,10 @@
 			</File>
 			<File
 				RelativePath="..\GLSL.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\particleControl.cpp"
 				>
 			</File>
 			<File
@@ -213,6 +221,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\displayControl.h"
+				>
+			</File>
+			<File
 				RelativePath="..\framebufferObject.h"
 				>
 			</File>
@@ -222,6 +234,10 @@
 			</File>
 			<File
 				RelativePath="..\GLSL.h"
+				>
+			</File>
+			<File
+				RelativePath="..\particleControl.h"
 				>
 			</File>
 			<File
