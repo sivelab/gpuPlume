@@ -113,7 +113,7 @@ void DisplayControl::drawFrameRate(int twidth, int theight)
   graphics_time[1] = clock_timer->tic();
 
   float avg_frame_rate = 1.0/( clock_timer->deltas( graphics_time[0], graphics_time[1] ) );
-  sprintf(text_buffer, "%d particles, %0d fps", twidth*theight, (int)round(avg_frame_rate));
+  sprintf(text_buffer, "%d particles, %0d fps", twidth*theight, (int)(avg_frame_rate+0.5));
   OpenGLText(5, 5, text_buffer);
 
   // record start clock time
