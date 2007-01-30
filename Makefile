@@ -1,7 +1,7 @@
-EXEC	= gl_vbo_particle
+EXEC	= gpuPlume
 
 CC	= g++ -g -O2 -Wall -DNDEBUG
-CSRC 	= gl_vbo_particle.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp displayControl.cpp
+CSRC 	= gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp displayControl.cpp
 COBJS   = $(CSRC:.cpp=.o)
 
 PLUME_DIR = Modular_QUICPLUME

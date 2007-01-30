@@ -1,6 +1,7 @@
 //uniform samplerRect render_texunit;
 
-void main(void){
+void main(void)
+{
 	/*	
 	vec4 pos = vec4(textureRect(render_texunit, gl_TexCoord[0].st));
 	

@@ -77,7 +77,7 @@ static float eye_gaze[3];
 
 GLuint texid[6];
 GLint  uniform_postex, uniform_wind, uniform_timeStep;
-GLSLObject pass1_shader, init_shader,  render_shader;
+GLSLObject init_shader, pass1_shader, render_shader;
 GLuint vertex_buffer;
 
 GLenum texType = GL_TEXTURE_RECTANGLE_ARB;
@@ -247,8 +247,8 @@ void init(void)
 
   // Load up the shader programs
   //This shader is used to move the particles
-  pass1_shader.addShader("particle_vp.glsl", GLSLObject::VERTEX_SHADER);
-  pass1_shader.addShader("pass1.glsl", GLSLObject::FRAGMENT_SHADER);
+  pass1_shader.addShader("Shaders/plumeAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
+  pass1_shader.addShader("Shaders/plumeAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   pass1_shader.createProgram();
 
   // Get location of the sampler uniform
@@ -268,13 +268,13 @@ void init(void)
   pass1_shader.deactivate();
 
   //This shader is used to initialize the particle positions
-  init_shader.addShader("init_vp.glsl", GLSLObject::VERTEX_SHADER);
-  init_shader.addShader("init_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  init_shader.addShader("Shaders/initialize_vp.glsl", GLSLObject::VERTEX_SHADER);
+  init_shader.addShader("Shaders/initialize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   init_shader.createProgram();
 
   //This shader is used to make final changes before rendering to the screen
-  render_shader.addShader("render_vp.glsl", GLSLObject::VERTEX_SHADER);
-  render_shader.addShader("render_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
+  render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   render_shader.createProgram();
 
   // ///////////////////////////////////////////// 
