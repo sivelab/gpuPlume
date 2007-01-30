@@ -33,34 +33,6 @@ float randVal() { return (float)(rand()/(float)RAND_MAX); }
 float randVal() { return drand48(); }
 #endif
 
-// //////////////////////////////////////
-// BEGIN -----> QUIC PLUME FORTRAN REFERENCES
-// //////////////////////////////////////
-
-// #define USE_PLUME_DATA
-
-#ifdef USE_PLUME_DATA
-
-extern "C"
-{
-  void readfiles_();
-}
-
-// Domain size stored in nx, ny, and nz
-extern "C" int __datamodule__nx;
-extern "C" int __datamodule__ny;
-extern "C" int __datamodule__nz;
-
-// UVW contains the wind field
-extern "C" double* __datamodule__u;
-extern "C" double* __datamodule__v;
-extern "C" double* __datamodule__w;
-
-#endif
-// //////////////////////////////////////
-// END ----> QUIC PLUME FORTRAN REFERENCES
-// //////////////////////////////////////
-
 int nx;
 int ny;
 int nz;
@@ -88,12 +60,12 @@ bool show_particle_visuals = true;
 int winid;
 float eye_z = 5.0;
 
-int winwidth = 1024, winheight = 1024;
+int winwidth = 512, winheight = 512;
 
 //
 // The values here determine the number of particles
 //
-int twidth = 1024, theight = 1024;
+int twidth = 128, theight = 128;
 
 static bool rotate_sphere = false;
 static bool rotate_object = false;
@@ -152,17 +124,7 @@ int main(int argc, char** argv)
       std::cout << "GL_ARB_vertex_buffer_object is NOT available!  Exiting!" << std::endl;
       exit(-1);
     }
-
-#ifdef USE_PLUME_DATA
-  // Call the PLUME code to read in the data files.
-  std::cout << "Reading data using PLUME code..." << std::endl;
-  readfiles_();
-  std::cout << "QUIC PLUME domain size: " 
-	    << __datamodule__nx << " (in X) by " 
-	    << __datamodule__ny << " (in Y) by " 
-	    << __datamodule__nz << " (in Z)" << std::endl;
-#endif
-
+ 
   init();
 
   glutMainLoop();
@@ -213,11 +175,9 @@ void init(void)
 {
   glEnable(GL_DEPTH_TEST);
 
-  nx = 60;//__datamodule__nx; //domain in the x direction
-  ny = 20;//__datamodule__nz; //domain in the y direction(our orientation is y for up)
-  nz = 60;//__datamodule__ny; //domain in the z direction
+  pc = new ParticleControl(texType);
+  pc->getDomain(&nx,&ny,&nz);
 
-  pc = new ParticleControl(nx, ny, nz, 0,0,0, texType);
   dc = new DisplayControl(nx, ny, nz, texType);
 
   eye_pos[0] = 0;
