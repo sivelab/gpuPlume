@@ -10,26 +10,63 @@ float randomVal() { return (float)(rand()/(float)RAND_MAX); }
 float randomVal(){ return drand48();}
 #endif
 
-ParticleControl::ParticleControl(int x, int y, int z, double* u, double* v, double* w, GLenum type){
-  nx = x;
-  ny = y;
-  nz = z;
-  data_u = u;
-  data_v = v;
-  data_w = w;
-  texType = type;
-  
+// //////////////////////////////////////
+// BEGIN -----> QUIC PLUME FORTRAN REFERENCES
+// //////////////////////////////////////
+
+#define USE_PLUME_DATA
+
+#ifdef USE_PLUME_DATA
+
+extern "C"
+{
+  void readfiles_();
 }
 
-void ParticleControl::setDomain(int x, int y, int z){
-  nx = x;
-  ny = y;
-  nz = z;
+// Domain size stored in nx, ny, and nz
+extern "C" int __datamodule__nx;
+extern "C" int __datamodule__ny;
+extern "C" int __datamodule__nz;
+
+// UVW contains the wind field
+extern "C" double* __datamodule__u;
+extern "C" double* __datamodule__v;
+extern "C" double* __datamodule__w;
+
+#endif
+// //////////////////////////////////////
+// END ----> QUIC PLUME FORTRAN REFERENCES
+// //////////////////////////////////////
+
+
+ParticleControl::ParticleControl(GLenum type){
+
+  texType = type;
+
+#ifdef USE_PLUME_DATA
+  // Call the PLUME code to read in the data files.
+  std::cout << "Reading data using PLUME code..." << std::endl;
+  readfiles_();
+  std::cout << "QUIC PLUME domain size: " 
+	    << __datamodule__nx << " (in X) by " 
+	    << __datamodule__ny << " (in Y) by " 
+	    << __datamodule__nz << " (in Z)" << std::endl;
+
+  nx = __datamodule__nx; //domain in the x direction
+  ny = __datamodule__nz; //domain in the y direction(our orientation is y for up)
+  nz = __datamodule__ny; //domain in the z direction
+#else
+  nx = 60;
+  ny = 20;
+  nz = 60;
+#endif
+
 }
-void ParticleControl::setWind(double* u, double* v, double* w){
-  data_u = u;
-  data_v = v;
-  data_w = w;
+
+void ParticleControl::getDomain(int* x, int* y, int* z){
+  *x = nx;
+  *y = ny;
+  *z = nz;
 }
 void ParticleControl::dumpContents(int w, int h){
    buffer_mem = new GLfloat[ w * h * 4 ];
@@ -97,22 +134,31 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
   // Create wind data texture
   data3d = new wind[nx*ny*nz];
   //test1();
+
+#ifdef USE_PLUME_DATA
+  test3();
+#else
   test2();
-  //test3();
+#endif
 
   //Get width and height for wind texture
   int total = nx*ny*nz;
   int width = (int)sqrt((float)total);
-  width = width - (width%nz);
+  
+  int scaler;
+  if(nx > nz) scaler = nx;
+  else scaler = nz;
+
+  width = width - (width%scaler);
   
   bool done = false;
   while(!done){ 
-    int num = width/nz;
+    int num = width/scaler;
     if((num*num) >= ny){
       done = true;
     }
     else{
-      width = width+nz;
+      width = width+scaler;
     }
   }
   if(width%2 != 0) width++;
@@ -134,7 +180,7 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
 	  row = qk / (*numInRow);
 	  texidx = row * width * nx * 4 +
 	  qi * width * 4 +
-	  qk % (*numInRow) * nx * 4 +
+	  qk % (*numInRow) * nz * 4 +
 	  qj * 4;
 	  
 	  dataTwo[texidx] = data3d[p2idx].u;
@@ -152,7 +198,7 @@ void ParticleControl::test1(){
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){
       for(int j = 0; j < nz; j++){
-	int p2idx = k*nx*nz + j*nz + i;
+	int p2idx = k*nx*nz + i*nz + j;
   	if(i%2 == 0){
 	  data3d[p2idx].u = 0;
 	  data3d[p2idx].v = 1.0;
@@ -171,7 +217,7 @@ void ParticleControl::test2(){
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){
       for(int j = 0; j < nz; j++){
-	int p2idx = k*nx*nz + j*nz + i;
+	int p2idx = k*nx*nz + i*nz + j;
 	//
 	// Randomly generate a vector within the unit sphere
 	// 	
@@ -182,16 +228,17 @@ void ParticleControl::test2(){
     }
   }
 }
-
+#ifdef USE_PLUME_DATA
 void ParticleControl::test3(){
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){
       for(int j = 0; j < nz; j++){
-	int p2idx = k*nx*nz + j*nz + i;
-	data3d[p2idx].u = data_u[p2idx];
-	data3d[p2idx].v = data_w[p2idx];
-	data3d[p2idx].w = data_v[p2idx];
+	int p2idx = k*nx*nz + i*nz + j;
+	data3d[p2idx].u = __datamodule__u[p2idx];
+	data3d[p2idx].v = __datamodule__w[p2idx];
+	data3d[p2idx].w = __datamodule__v[p2idx];
       }
     }
   }
 }
+#endif
