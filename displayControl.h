@@ -1,6 +1,7 @@
 #include <iostream>
 #include <GL/glew.h>
 
+#include "Timer.h"
 
 class DisplayControl{
 
@@ -18,7 +19,8 @@ class DisplayControl{
   int ny;
   int nz;
 
-  struct timeval startframe, endframe, diff;
+  Timer clock_timer;
+  Timer_t graphics_time[2];
 
   GLenum texType;
 

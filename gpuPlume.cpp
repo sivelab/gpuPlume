@@ -1,17 +1,7 @@
 #include <iostream>
 #include <math.h>
 
-#ifdef WIN32
-#include <windows.h>
-
-// stick in windows timing functionality here
-
-#else
-#include <sys/time.h>
-#endif
-
 #include <GL/glew.h>
-// Hi Eric looked at software
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
@@ -24,7 +14,6 @@
 #include "renderbuffer.h"
 #include "GLSL.h"
 #include "glErrorUtil.h"
-
 
 #ifdef WIN32
 // Rand functions
@@ -65,7 +54,7 @@ int winwidth = 512, winheight = 512;
 //
 // The values here determine the number of particles
 //
-int twidth = 128, theight = 128;
+int twidth = 512, theight = 512;
 
 static bool rotate_sphere = false;
 static bool rotate_object = false;
@@ -339,87 +328,103 @@ void display(void)
   //Switches the frame buffer and binding texture
   odd = !odd;
 
+  // We only need to do PASS 2 (copy to VBO) and PASS 3 (visualize) if
+  // we actually want to render to the screen.  Rendering to the
+  // screen will make the simulation run more slowly. This feature is
+  // mainly included to allow some idea of how much faster the
+  // simulation can run if left to run on the GPU.
   if (show_particle_visuals)
     {
+      
+      // //////////////////////////////////////////////////////////////
+      // PASS 2 - copy the contents of the 2nd texture (the new positions)
+      // into the vertex buffer
+      // //////////////////////////////////////////////////////////////
 
-  // //////////////////////////////////////////////////////////////
-  // PASS 2 - copy the contents of the 2nd texture (the new positions)
-  // into the vertex buffer
-      if (dump_contents){
-           pc->dumpContents(twidth, theight);
-	   dump_contents = false;
-      }
+      // In some circumstances, we may want to dump the contents of
+      // the FBO to a file.
+      if (dump_contents)
+	{
+	  pc->dumpContents(twidth, theight);
+	  dump_contents = false;
+	}
+      
+      glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
+      glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
+      glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
+      CheckErrorsGL("after glReadPixels");
+      
+      // Disable the framebuffer object
+      FramebufferObject::Disable();
+      glDrawBuffer(draw_buffer); // send it to the original buffer
+      CheckErrorsGL("END : after 2nd pass");
 
-  glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
-  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
-  glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
-  CheckErrorsGL("after glReadPixels");
+      // //////////////////////////////////////////////////////////////
+      // PASS 3 - draw the vertices; This represents the visualization
+      // of the PLUME particle field.
+      // //////////////////////////////////////////////////////////////
+
+      // clear the color and depth buffer before drawing the scene, and
+      // set the viewport to the window dimensions
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+      
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      gluPerspective(60.0, 1.0, 1.0, 250.0);
+      
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+      gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
+		 eye_gaze[0], eye_gaze[1], eye_gaze[2],
+		 0, 1, 0 );
+
+      if (!rotate_sphere)
+	{
+	  // allow rotation of this object
+	  glRotatef(elevation, 1,0,0);
+	  glRotatef(azimuth, 0,1,0);
+	  // glTranslatef(0,0,5.0);
+	}
+
+      // render the vertices in the VBO (the particle positions) as points in the domain
+      glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
+      glEnableClientState(GL_VERTEX_ARRAY);
+      glColor3f(1.0, 1.0, 1.0);
+      glVertexPointer(4, GL_FLOAT, 0, 0);
+      glPointSize(2.0);
+      render_shader.activate();
+      glDrawArrays(GL_POINTS, 0, twidth*theight); 
+      render_shader.deactivate();
   
-  // //////////////////////////////////////////////////////////////
-
-  // Disable the framebuffer object
-  FramebufferObject::Disable();
-  glDrawBuffer(draw_buffer); // send it to the original buffer
-
-  // //////////////////////////////////////////////////////////////
-  // PASS 3 - draw the vertices
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-  
-  CheckErrorsGL("END : QUICURB_GPU::update()");
-
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(60.0, 1.0, 1.0, 250.0);
-  
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
-	     eye_gaze[0], eye_gaze[1], eye_gaze[2],
-	     0, 1, 0 );
-
-  if (!rotate_sphere)
-    {
-      // allow rotation of this object
-      glRotatef(elevation, 1,0,0);
-      glRotatef(azimuth, 0,1,0);
-      glTranslatef(0,0,5.0);
-    }
-
-  // then to render
-  glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glColor3f(1.0, 1.0, 1.0);
-  glVertexPointer(4, GL_FLOAT, 0, 0);
-  glPointSize(2.0);
-  render_shader.activate();
-  glDrawArrays(GL_POINTS, 0, twidth*theight); 
-  render_shader.deactivate();
-  
-  glDisable(texType);
-  CheckErrorsGL("END : QUICURB_GPU::display()");
-  
-  // Draw axes that represent the domain dimension
-  dc->drawAxes();
-  // Draw the wind texture layer
-  dc->drawLayers(visual_layer, texid[3], numInRow);
-  
-  /* spit out frame rate. */
+      glDisable(texType);
+      CheckErrorsGL("END : visualization");
+      
+      // Draw axes that represent the domain dimension
+      dc->drawAxes();
+      
+      // Draw the wind texture layer if necessary
+      dc->drawLayers(visual_layer, texid[3], numInRow);
+      
 #ifndef WIN32
-  if (frame_rate){
-     dc->drawFrameRate(twidth, theight);
-  }
+      // spit out frame rate
+      if (frame_rate){
+	dc->drawFrameRate(twidth, theight);
+      }
 #endif
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluOrtho2D(-1, 1, -1, 1);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-  glutSwapBuffers();
+      // If we've chose to display the 3D particle domain, we need to
+      // set the projection and modelview matrices back to what is
+      // needed for the particle advection step
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      gluOrtho2D(-1, 1, -1, 1);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+      
+      // Finally, swap the front and back buffers to display the
+      // particle field to the monitor
+      glutSwapBuffers();
     }
 }
 

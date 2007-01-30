@@ -2,7 +2,7 @@
 #include <iostream>
 #include <math.h>
 #include <GL/glut.h>
-#include <sys/time.h>
+
 using namespace std;
 
 static char text_buffer[128];
@@ -79,7 +79,7 @@ void DisplayControl::drawLayers(int layer, GLuint texId, int numInRow){
       t = (int)(floor(layer/(float)numInRow) * nx);
 
       // Create a quad at this layer with 50% transparency
-      glColor4f(1.0, 1.0, 1.0, 0.5);
+      glColor4f(1.0, 1.0, 1.0, 0.8);
       glBegin(GL_QUADS);
       {
 	glNormal3f(0.0, 1.0, 0.0);
@@ -98,20 +98,24 @@ void DisplayControl::drawLayers(int layer, GLuint texId, int numInRow){
       glDisable(GL_LIGHTING);
     }
 }
+
 //text: draws a string of text with an 18 point helvetica bitmap font
 // at position (x,y) in window space(bottom left corner is (0,0).
-void DisplayControl::drawFrameRate(int twidth, int theight){
+void DisplayControl::drawFrameRate(int twidth, int theight)
+{
+  // record end clock time
+  graphics_time[1] = clock_timer.tic();
 
-   gettimeofday(&endframe, 0); 
-   timersub(&endframe, &startframe, &diff);
-   float avg_frame_rate = 1.0 / (diff.tv_sec + diff.tv_usec/1.0e6);
-   sprintf(text_buffer, "%d particles, %0d fps", twidth*theight, (int)round(avg_frame_rate));
+  float avg_frame_rate = 1.0/( clock_timer.deltas( graphics_time[0], graphics_time[1] ) );
+  sprintf(text_buffer, "%d particles, %0d fps", twidth*theight, (int)round(avg_frame_rate));
+  OpenGLText(5, 5, text_buffer);
 
-   OpenGLText(5, 5, text_buffer);
-   gettimeofday(&startframe, 0); 
-
+  // record start clock time
+  graphics_time[0] = clock_timer.tic();
 }
-void DisplayControl::OpenGLText(int x, int y, char* s){
+
+void DisplayControl::OpenGLText(int x, int y, char* s)
+{
   int lines;
   char* p;
 
