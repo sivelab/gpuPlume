@@ -8,7 +8,7 @@ class ParticleControl{
 
  public:
  
-  ParticleControl(int, int, int, double*, double*, double*, GLenum);
+  ParticleControl(GLenum);
 
   void createTexture(GLuint texId, GLenum format,  int w, int h, GLfloat* data); 
  
@@ -18,8 +18,7 @@ class ParticleControl{
 
   void dumpContents(int w, int h);
 
-  void setDomain(int x, int y, int z);
-  void setWind(double* u, double* v, double* w);
+  void getDomain(int* , int*, int*);
   void test1();
   void test2();
   void test3();  
@@ -36,10 +35,6 @@ class ParticleControl{
   int nx;
   int ny;
   int nz;
-
-  double* data_u;
-  double* data_v;
-  double* data_w;
 
   GLenum texType;
   GLfloat* buffer_mem;
