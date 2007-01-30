@@ -16,6 +16,10 @@
 #include "glErrorUtil.h"
 
 #ifdef WIN32
+#include <windows.h>
+#include <conio.h>
+#include <tchar.h>
+
 // Rand functions
 float randVal() { return (float)(rand()/(float)RAND_MAX); } 
 #else
@@ -81,6 +85,27 @@ int main(int argc, char** argv)
       theight = twidth;
     }
 
+#ifdef WIN32
+  TCHAR buffer[MAX_PATH];
+  DWORD dwRet;
+
+  dwRet = GetCurrentDirectory(MAX_PATH, buffer);
+  std::cout << "cwd: " << buffer << std::endl;
+  system("pause");
+
+  // Set the current working directory back a level so shader access is uniform across platforms
+  if (!SetCurrentDirectory(".."))
+  {
+	  std::cerr << "SetCurrentDirectory failed (" << GetLastError() << ")" << std::endl;
+  }
+  else 
+  {
+	   dwRet = GetCurrentDirectory(MAX_PATH, buffer);
+	   std::cout << "Current directory set to " << buffer << std::endl;
+	   system("pause");
+  }
+#endif
+
 #ifndef WIN32
   srand48( time(0) % getpid() );
 #else
@@ -113,9 +138,9 @@ int main(int argc, char** argv)
       std::cout << "GL_ARB_vertex_buffer_object is NOT available!  Exiting!" << std::endl;
       exit(-1);
     }
- 
+ system("pause");
   init();
-
+system("pause");
   glutMainLoop();
   return 0;
 }
@@ -234,11 +259,13 @@ void init(void)
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+  system("pause");
   // Load up the shader programs
   //This shader is used to move the particles
   pass1_shader.addShader("Shaders/plumeAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
   pass1_shader.addShader("Shaders/plumeAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   pass1_shader.createProgram();
+system("pause");
 
   // Get location of the sampler uniform
   uniform_postex = pass1_shader.createUniform("pos_texunit");

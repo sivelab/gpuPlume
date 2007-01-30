@@ -179,19 +179,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\Modular_QUICPLUME\DataModule.f90"
-				>
-			</File>
-			<File
 				RelativePath="..\displayControl.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\framebufferObject.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\gl_vbo_particle.cpp"
 				>
 			</File>
 			<File
@@ -203,15 +195,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\gpuPlume.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\particleControl.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\Modular_QUICPLUME\ReadFiles.f90"
+				RelativePath="..\renderbuffer.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\renderbuffer.cpp"
+				RelativePath="..\Timer.cpp"
 				>
 			</File>
 		</Filter>
@@ -244,6 +240,10 @@
 				RelativePath="..\renderbuffer.h"
 				>
 			</File>
+			<File
+				RelativePath="..\Timer.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -251,22 +251,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\init_fp.glsl"
-			>
-		</File>
-		<File
-			RelativePath=".\init_vp.glsl"
-			>
-		</File>
-		<File
-			RelativePath=".\particle_vp.glsl"
-			>
-		</File>
-		<File
-			RelativePath=".\pass1.glsl"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
