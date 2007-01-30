@@ -19,7 +19,7 @@ class DisplayControl{
   int ny;
   int nz;
 
-  Timer clock_timer;
+  Timer *clock_timer;
   Timer_t graphics_time[2];
 
   GLenum texType;

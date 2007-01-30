@@ -7,12 +7,18 @@ using namespace std;
 
 static char text_buffer[128];
 
-DisplayControl::DisplayControl(int x, int y, int z, GLenum type){
+DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
+{
   nx = x;
   ny = y;
   nz = z;
   texType = type;
 
+  
+  // Create a high resolution clock timer - only works on Linux, x86
+  // systems.  The basic timer works on Windows.  Setting the argument
+  // to true will have no affect on windows implementations.
+  clock_timer = new Timer(true);
 }
 void DisplayControl::drawAxes(){
   // query the current line width so we can set it back at the end of
@@ -104,14 +110,14 @@ void DisplayControl::drawLayers(int layer, GLuint texId, int numInRow){
 void DisplayControl::drawFrameRate(int twidth, int theight)
 {
   // record end clock time
-  graphics_time[1] = clock_timer.tic();
+  graphics_time[1] = clock_timer->tic();
 
-  float avg_frame_rate = 1.0/( clock_timer.deltas( graphics_time[0], graphics_time[1] ) );
+  float avg_frame_rate = 1.0/( clock_timer->deltas( graphics_time[0], graphics_time[1] ) );
   sprintf(text_buffer, "%d particles, %0d fps", twidth*theight, (int)round(avg_frame_rate));
   OpenGLText(5, 5, text_buffer);
 
   // record start clock time
-  graphics_time[0] = clock_timer.tic();
+  graphics_time[0] = clock_timer->tic();
 }
 
 void DisplayControl::OpenGLText(int x, int y, char* s)

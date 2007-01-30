@@ -23,7 +23,7 @@ class Timer {
   
  public:
     
-  Timer();
+  Timer(bool enable_high_res_timer=false);
   ~Timer() {}
     
   Timer_t tic() const;
@@ -37,7 +37,7 @@ class Timer {
   
   private :
       double                  _secsPerTic;
-      bool                    _useStandardClock;
+      bool                    _use_high_res_timer;
 };
 
 #endif
