@@ -2,7 +2,7 @@
 #include <iostream>
 #include <math.h>
 #include <GL/glut.h>
-//#include <sys/time.h>
+#include <sys/time.h>
 using namespace std;
 
 static char text_buffer[128];
@@ -101,7 +101,7 @@ void DisplayControl::drawLayers(int layer, GLuint texId, int numInRow){
 //text: draws a string of text with an 18 point helvetica bitmap font
 // at position (x,y) in window space(bottom left corner is (0,0).
 void DisplayControl::drawFrameRate(int twidth, int theight){
-#if 0
+
    gettimeofday(&endframe, 0); 
    timersub(&endframe, &startframe, &diff);
    float avg_frame_rate = 1.0 / (diff.tv_sec + diff.tv_usec/1.0e6);
@@ -109,7 +109,7 @@ void DisplayControl::drawFrameRate(int twidth, int theight){
 
    OpenGLText(5, 5, text_buffer);
    gettimeofday(&startframe, 0); 
-#endif
+
 }
 void DisplayControl::OpenGLText(int x, int y, char* s){
   int lines;
