@@ -1,3 +1,9 @@
+///////////////////////////////////////////////////////////
+// This class takes care of drawing the axes for the domain,
+// displaying the layers of the wind field, and drawing the
+// frame rate to the screen.
+///////////////////////////////////////////////////////////
+
 #include <iostream>
 #include <GL/glew.h>
 
