@@ -1,3 +1,9 @@
+//////////////////////////////////////////////////
+// This class takes care of the represenation of
+// the particle positions and wind field on the GPU.
+// It also loads the Quic PLume Fortran References.
+//////////////////////////////////////////////////
+
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <iostream>
@@ -10,12 +16,21 @@ class ParticleControl{
  
   ParticleControl(GLenum);
 
+  //This function puts the values held in the variable, data, into a 2D texture 
+  //on the GPU. 
   void createTexture(GLuint texId, GLenum format,  int w, int h, GLfloat* data); 
  
+  //This function maps the 3D wind field into a 2D texture that can be
+  //stored on the GPU.
   void initWindTex(GLuint texId, int* numInRow);
 
+  //This function is used to initialize the particle positions.
+  //It was needed when we weren't able to directly put 32-bit floating point
+  //values directly into a texture. The help of a shader program was needed
+  //to do that.  Thanks to a driver update, we don't have to do this anymore.
   void initParticlePositions(FramebufferObject*, int, int, GLSLObject, GLuint);
 
+  //This will output the values of the current texture being read.
   void dumpContents(int w, int h);
 
   void getDomain(int* , int*, int*);
