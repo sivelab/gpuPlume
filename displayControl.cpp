@@ -70,18 +70,22 @@ void DisplayControl::drawLayers(int layer, GLuint texId, int numInRow){
       // The texture we use here is the packed texture containing all
       // cells of the 3D uvw wind field data.  It is packed because we
       // flatten the 3D structure into a series of discrete 2D
-      // elements.
+      // elements. The variable numInRow is the number of these
+      // discrete 2D layers that can fit in each row the texture. 
 
       // The coordinate frame we use is with Y up, so X and Z (at Y=0)
       // forms the ground plane.
       //
 
       // s (or the value in the x dimension of the texture) can be
-      // determined with a mod of the layer by the number of elements
-      // in a row. [ COMPLETE DESCRIPTION ]
+      // determined with a mod of the layer by the number of layers
+      // that can be held in each row of the texutre. [ COMPLETE DESCRIPTION ]
       s = (layer % numInRow) * nz;
 
-      // t (or ...) can be calculated by 
+      // t (or the value in the y dimension of the texture) can be 
+      // calculated by the floor of the layer to be visualized divided
+      // by the number of layers that can be held in each row of
+      // the texture. 
       t = (int)(floor(layer/(float)numInRow) * nx);
 
       // Create a quad at this layer with 50% transparency
@@ -127,7 +131,6 @@ void DisplayControl::OpenGLText(int x, int y, char* s)
 
   // glDisable(GL_LIGHTING);
   glDisable(texType);
-  //glDisable(GL_TEXTURE_2D);
   glDisable(GL_DEPTH_TEST);
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
@@ -160,7 +163,6 @@ void DisplayControl::OpenGLText(int x, int y, char* s)
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
   glEnable(GL_DEPTH_TEST);
-  //glEnable(GL_TEXTURE_2D);
   glEnable(texType);
   // glEnable(GL_LIGHTING);
 
