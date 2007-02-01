@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <math.h>
 #include "particleControl.h"
@@ -140,8 +139,12 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
 #else
   test2();
 #endif
-
-  //Get width and height for wind texture
+  /////////////////////////////////////////////////////////
+  //Calculate width and height for wind texture
+  //
+  //This tries to minimize the width and height values
+  //to try and fit the wind field into a 2D texture without
+  //wasting too much space.  
   int total = nx*ny*nz;
   int width = (int)sqrt((float)total);
   
@@ -163,8 +166,13 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
   }
   if(width%2 != 0) width++;
   int height = width;
- 
+  /////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////
   //Convert this to data array for a texture
+  //
+  //This will directly put the 3D data into an array
+  //that is used to make the 2D texture.
   (*numInRow) = (width - (width % nz))/nz;
   int qi, qj, qk;
   int p2idx = 0, texidx = 0;
@@ -213,6 +221,7 @@ void ParticleControl::test1(){
     }
   }
 }
+//Creates a random value wind field.
 void ParticleControl::test2(){
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){
@@ -228,6 +237,7 @@ void ParticleControl::test2(){
     }
   }
 }
+//Uses the QUIC_PLUME data for the wind field.
 #ifdef USE_PLUME_DATA
 void ParticleControl::test3(){
   for(int k = 0; k < ny; k++){   
