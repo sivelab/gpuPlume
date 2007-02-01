@@ -9,15 +9,22 @@ uniform float time_step;
 
 void main(void)
 {
+
+   //This gets the position of the particle in 3D space.
    vec2 texCoord = gl_TexCoord[0].xy;
    vec4 pos = vec4(textureRect(pos_texunit, texCoord));
     
+   //The floor of the position in 3D space is needed to find the index into
+   //the 2D Texture.
    float i = floor(pos.x);
    float j = floor(pos.z);
    float k = floor(pos.y);
 	
+
+   //This statement doesn't allow particles to move outside the domain.
    if((i < nx) && (j < nz) && (k < ny) && (i >= 0) && (j >= 0) && (k >=0)){
 
+	//This is the initial lookup into the 2D texture that holds the wind field.
  	vec2 index;
    	index.s = j + mod(k,numInRow)*nz;
    	index.t = i + floor(k/numInRow)*nx;
@@ -26,21 +33,23 @@ void main(void)
 	vec3 wind2;
    	vec3 wind = vec3(textureRect(wind_texunit, index));
 
-	//Calculates distances to the edges of a cell
-	float dr = pos.z - mod(s,nz);
-	float dl = 1 - dr;
-	float da = pos.x - mod(t,nx);
-	float db = 1 - da;
-	float dk = pos.y - k;
-	float dd = 1- dk;
+	//Calculates distances to the edges of the surrounding cells.
+	float dr = pos.z - mod(s,nz); 	//distance to the left edge.
+	float dl = 1 - dr; 		//distance to the right edge.
+	float da = pos.x - mod(t,nx); 	//distance to the edge below(in the same layer).
+	float db = 1 - da; 		//distance to the edge above(in the same layer).
+	float dk = pos.y - k; 		//distance to the layer below.
+	float dd = 1 - dk; 		//distance to the layer above.
 
+	//Perform lookups into the 2D Texture of the surrounding cells.
+	//Then accumulate the weighted values.
+ 
 	//To the Left
 	if(mod(s,nz) != 0){
 		index.s = s-1;
 		index.t = t;
 		wind2 = vec3(textureRect(wind_texunit, index));
 		wind = wind + dl*wind2;
-		//wind = normalize(wind + wind2);
 	}
 	//To the Right
 	if(mod(s,nz) != nz-1){
@@ -48,7 +57,6 @@ void main(void)
 		index.t = t;
 		wind2 = vec3(textureRect(wind_texunit, index));
 		wind = wind+ dr*wind2;
-		//wind = normalize(wind + wind2);
 	}
 	//Right Above
 	if(mod(t,nx) != nx-1){
@@ -56,7 +64,6 @@ void main(void)
 		index.t = t+1;
 		wind2 = vec3(textureRect(wind_texunit, index));
 		wind = wind+ wind2*da;
-		//wind = normalize(wind + wind2);
 	}
 	//Right Below
 	if(mod(t,nx) != 0){
@@ -64,7 +71,6 @@ void main(void)
 		index.t = t-1;
 		wind2 = vec3(textureRect(wind_texunit, index));
 		wind = wind+ wind2*db;
-		//wind = normalize(wind + wind2);
 	}	
 	//K level up
 	if(k != ny-1){
@@ -72,7 +78,6 @@ void main(void)
 		index.t = t + nx;
 		wind2 = vec3(textureRect(wind_texunit, index));
 		wind = wind+ wind2*dk;
-		//wind = normalize(wind + wind2);
 	}
 	//K level down
 	if(k != 0){
@@ -80,10 +85,9 @@ void main(void)
 		index.t = t-nx;
 		wind2 = vec3(textureRect(wind_texunit, index));
 		wind = wind+ wind2*dd;
-		//wind = normalize(wind + wind2);
 	}		
 
-	//wind = normalize(wind);
+	//Now move the particle by adding the direction.
    	pos = pos + vec4(wind,0.0)*time_step;  
 
    }
