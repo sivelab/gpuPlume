@@ -17,6 +17,7 @@
 
 #ifdef WIN32
 #include <windows.h>
+#include <stdio.h>
 #include <conio.h>
 #include <tchar.h>
 
@@ -89,12 +90,10 @@ int main(int argc, char** argv)
   TCHAR buffer[MAX_PATH];
   DWORD dwRet;
 
-  dwRet = GetCurrentDirectory(MAX_PATH, buffer);
-  std::cout << "cwd: " << buffer << std::endl;
-  system("pause");
+  // dwRet = GetCurrentDirectory(MAX_PATH, buffer);
 
   // Set the current working directory back a level so shader access is uniform across platforms
-  if (!SetCurrentDirectory(".."))
+  if (!SetCurrentDirectory(_T("..")))
   {
 	  std::cerr << "SetCurrentDirectory failed (" << GetLastError() << ")" << std::endl;
   }
@@ -104,6 +103,7 @@ int main(int argc, char** argv)
 	   std::cout << "Current directory set to " << buffer << std::endl;
 	   system("pause");
   }
+
 #endif
 
 #ifndef WIN32
@@ -115,7 +115,7 @@ int main(int argc, char** argv)
   glutInitDisplayMode( GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE );
   glutInit(&argc, argv);
   glutInitWindowSize(winwidth, winheight);
-  winid = glutCreateWindow("GL_ARB_vertex_buffer_object POINTS Test");
+  winid = glutCreateWindow("gpuPLUME");
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
   glutIdleFunc(idle);
