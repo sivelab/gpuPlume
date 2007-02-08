@@ -1,5 +1,7 @@
 #include <iostream>
 #include <math.h>
+#include <stdlib.h>
+#include <list>
 
 #include <GL/glew.h>
 #ifdef __APPLE__
@@ -27,10 +29,13 @@ float randVal() { return (float)(rand()/(float)RAND_MAX); }
 float randVal() { return drand48(); }
 #endif
 
+//These values hold the domain of the 3D area
 int nx;
-int ny;
+int ny; //This is up for our orientation
 int nz;
-float time_step = 0.0012;
+float time_step = 0.0012; //This is the time step for the movement of particles
+
+std::list<int> indices;
 
 ParticleControl* pc;
 DisplayControl* dc;
@@ -59,7 +64,7 @@ int winwidth = 512, winheight = 512;
 //
 // The values here determine the number of particles
 //
-int twidth = 512, theight = 512;
+int twidth = 128, theight = 128;
 
 static bool rotate_sphere = false;
 static bool rotate_object = false;
@@ -71,7 +76,7 @@ static float eye_gaze[3];
 
 GLuint texid[6];
 GLint  uniform_postex, uniform_wind, uniform_timeStep;
-GLSLObject init_shader, pass1_shader, render_shader;
+GLSLObject init_shader, pass1_shader, render_shader, emit_shader;
 GLuint vertex_buffer;
 
 GLenum texType = GL_TEXTURE_RECTANGLE_ARB;
@@ -194,6 +199,9 @@ void init(void)
 
   dc = new DisplayControl(nx, ny, nz, texType);
 
+  for(int i = twidth*theight-1; i >= 0; i--)
+    indices.push_back(i);
+
   eye_pos[0] = 0;
   eye_pos[1] = 0;
   eye_pos[2] = 0;
@@ -229,23 +237,23 @@ void init(void)
       }
   pc->createTexture(texid[2], int_format_init, twidth, theight, data);
 
-  // Creates wind data texture
+  // Creates wind field data texture
   pc->initWindTex(texid[3], &numInRow);
   
   for (int j=0; j<theight; j++)
     for (int i=0; i<twidth; i++)
       {
 	int idx = j*twidth*sz + i*sz;
-	data[idx] = data[idx] * (nx-1);
-	data[idx+1] = data[idx+1] * ny;
-	data[idx+2] = data[idx+2] * (nz-1);
+	data[idx] = data[idx] * (nx-1) + 100;
+	data[idx+1] = data[idx+1] * ny + 100;
+	data[idx+2] = data[idx+2] * (nz-1) + 100;
       }
   
   // create the base texture with inital vertex positions
   pc->createTexture(texid[0], int_format, twidth, theight, data);
 
   // create a second texture to double buffer the vertex positions
-  pc->createTexture(texid[1], int_format, twidth, theight, data);
+  pc->createTexture(texid[1], int_format, twidth, theight, NULL);
 
   delete [] data;
 
@@ -291,6 +299,11 @@ void init(void)
   render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   render_shader.createProgram();
 
+  //This shader is used to emmit particles
+  emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
+  emit_shader.addShader("Shaders/emitParticle_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  emit_shader.createProgram();
+
   // ///////////////////////////////////////////// 
   initFBO(); //Sets up the framebuffer object  
 
@@ -298,11 +311,14 @@ void init(void)
   //We don't need to do this anymore since we now can initialize data values
   //past 0-1 range in a RGBA32F texture without a shader.
   //pc->initParticlePositions(fbo, twidth, theight, init_shader, texid[2]); 
+  
 
   CheckErrorsGL("END of init");
 }
 
 bool odd = true;
+int p_index;
+int numToEmit = 10; //Number of particles to emit in each pass
 
 void display(void)
 {
@@ -312,6 +328,52 @@ void display(void)
   // bind the framebuffer object so we can render to the 2nd texture
   fbo->Bind();
 
+  ////////////////////////////////////////////////////////////
+  // Emmit Particles
+  ///////////////////////////////////////////////////////////
+
+  //Make sure there are available indices to emit particles.
+  if(!indices.empty()){
+    if(odd)
+      glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+    else 
+      glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+    //Do this for each particle that is being emitted.
+    for(int i = 0; i < numToEmit; i++){
+      if(!indices.empty()){
+ 
+	//First get available index
+	p_index = indices.back();
+	//std::cout << p_index <<std::endl;
+	indices.pop_back();
+
+	emit_shader.activate();
+	glViewport(0,0, twidth, theight);
+
+	//Determine the coordinates into the position texture
+	//Then scale and translate into view
+	float s = p_index%twidth;
+	float t = floor(p_index/theight);
+	s = s*(2.0/(float)twidth) - 1;
+	t = t*(2.0/(float)theight) - 1;
+	//std::cout << s << " " << t << std::endl;
+
+	glBegin(GL_POINTS);
+	{
+	  glColor4f(10.0, 10.0, 10.0, 1.0);
+	  glVertex2f(s, t);
+	}
+	glEnd();
+
+	emit_shader.deactivate();
+      }
+    }
+  }
+  
+  ////////////////////////////////////////////////////////////
+  // Update Particle Positions 
+  ///////////////////////////////////////////////////////////
   if (odd)
     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
   else 
