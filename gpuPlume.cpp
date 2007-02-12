@@ -44,6 +44,7 @@ int visual_layer = -1;    // the layer we're visualizing in the display (if == -
 
 bool frame_rate = true;
 bool dump_contents = false;
+bool emit = false;
 
 void init(void);
 void initFBO(void);
@@ -318,7 +319,9 @@ void init(void)
 
 bool odd = true;
 int p_index;
-int numToEmit = 10; //Number of particles to emit in each pass
+int numToEmit = 1; //Number of particles to emit in each pass
+int n = 0;
+int offset = 0;
 
 void display(void)
 {
@@ -328,40 +331,49 @@ void display(void)
   // bind the framebuffer object so we can render to the 2nd texture
   fbo->Bind();
 
+ if(emit){
   ////////////////////////////////////////////////////////////
-  // Emmit Particles
+  // Emit Particles
   ///////////////////////////////////////////////////////////
-
+  //if(n < 3){
   //Make sure there are available indices to emit particles.
   if(!indices.empty()){
+    
     if(odd)
       glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     else 
       glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+    glViewport(0,0, twidth, theight);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, twidth, 0, theight);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     //Do this for each particle that is being emitted.
     for(int i = 0; i < numToEmit; i++){
       if(!indices.empty()){
- 
+	
 	//First get available index
 	p_index = indices.back();
-	//std::cout << p_index <<std::endl;
+	std::cout << p_index <<std::endl;
 	indices.pop_back();
 
-	emit_shader.activate();
-	glViewport(0,0, twidth, theight);
+	emit_shader.activate();	
 
 	//Determine the coordinates into the position texture
 	//Then scale and translate into view
-	float s = p_index%twidth;
-	float t = floor(p_index/theight);
-	s = s*(2.0/(float)twidth) - 1;
-	t = t*(2.0/(float)theight) - 1;
-	//std::cout << s << " " << t << std::endl;
+	float s = p_index%twidth + 1.0;
+	float t = p_index/theight + 1.0;
+	
+	//s = (s*(2.0/(float)(twidth-1)) - 1.0); //+ (1.0/(float)twidth);
+	//t = (t*(2.0/(float)(theight-1)) - 1.0);// + (1.0/(float)theight);
+	std::cout << s << " " << t << " " << offset <<std::endl;
 
 	glBegin(GL_POINTS);
 	{
-	  glColor4f(10.0, 10.0, 10.0, 1.0);
+	  glColor4f(10.0, 10.0, 10.0+offset, 1.0);
 	  glVertex2f(s, t);
 	}
 	glEnd();
@@ -369,8 +381,18 @@ void display(void)
 	emit_shader.deactivate();
       }
     }
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-1, 1, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
   }
-  
+  offset++;
+  //n++;
+
+  //}
+ }
+ emit = false;
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
   ///////////////////////////////////////////////////////////
@@ -551,6 +573,8 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if (key == 'r')
     dump_contents = true;
+  else if( key == 'e')
+    emit = true;
 
   glutPostRedisplay();
 }
