@@ -320,7 +320,6 @@ void init(void)
 bool odd = true;
 int p_index;
 int numToEmit = 1; //Number of particles to emit in each pass
-int n = 0;
 int offset = 0;
 
 void display(void)
@@ -331,68 +330,77 @@ void display(void)
   // bind the framebuffer object so we can render to the 2nd texture
   fbo->Bind();
 
- if(emit){
   ////////////////////////////////////////////////////////////
   // Emit Particles
   ///////////////////////////////////////////////////////////
-  //if(n < 3){
-  //Make sure there are available indices to emit particles.
-  if(!indices.empty()){
-    
-    if(odd)
-      glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-    else 
-      glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
-    glViewport(0,0, twidth, theight);
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, twidth, 0, theight);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+  if(emit){
 
-    //Do this for each particle that is being emitted.
-    for(int i = 0; i < numToEmit; i++){
-      if(!indices.empty()){
+    //Make sure there are available indices to emit particles.
+    if(!indices.empty()){
+
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      gluOrtho2D(0, twidth, 0, theight);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+  
+      if(odd)
+	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+      else 
+	glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+      
+      //Do this for each particle that is being emitted.
+      for(int i = 0; i < numToEmit; i++){
+	if(!indices.empty()){
 	
-	//First get available index
-	p_index = indices.back();
-	std::cout << p_index <<std::endl;
-	indices.pop_back();
+	  //First get available index
+	  p_index = indices.back();
+	  std::cout << p_index <<std::endl;
+	  indices.pop_back();
 
-	emit_shader.activate();	
+	  emit_shader.activate();	
 
-	//Determine the coordinates into the position texture
-	//Then scale and translate into view
-	float s = p_index%twidth + 1.0;
-	float t = p_index/theight + 1.0;
-	
-	//s = (s*(2.0/(float)(twidth-1)) - 1.0); //+ (1.0/(float)twidth);
-	//t = (t*(2.0/(float)(theight-1)) - 1.0);// + (1.0/(float)theight);
-	std::cout << s << " " << t << " " << offset <<std::endl;
+	  //Determine the coordinates into the position texture
+	  int s = (p_index%twidth);
+	  int t = (p_index/twidth);
+	  //s = (s*(2.0/(float)twidth) - 1.0);
+	  //t = (t*(2.0/(float)theight) - 1.0);
+	  std::cout << s << " " << t << " " << offset <<std::endl;
+	  glViewport(s,t,1,1);
+       
+	  glBegin(GL_POINTS);
+	  {
+	    glColor4f(10.0, 10.0, 10.0, 1.0);
+	    glVertex2f(s, t);
+	  }
+	  glEnd();
 
-	glBegin(GL_POINTS);
-	{
-	  glColor4f(10.0, 10.0, 10.0+offset, 1.0);
-	  glVertex2f(s, t);
+	  emit_shader.deactivate();
 	}
-	glEnd();
-
-	emit_shader.deactivate();
       }
-    }
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-1, 1, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-  }
-  offset++;
-  //n++;
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      gluOrtho2D(-1, 1, -1, 1);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
 
-  //}
- }
- emit = false;
+      //offset++;
+    }
+    /*if(offset == (twidth*theight)){     
+      if(odd)
+	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+      else 
+	glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+      pc->dumpContents(twidth, theight);
+      //emit = false;
+      offset++;
+      }*/
+  
+  }
+  emit = false;
+  
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
   ///////////////////////////////////////////////////////////
@@ -401,8 +409,9 @@ void display(void)
   else 
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
-  glViewport(0, 0, twidth, theight);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, twidth, theight);
+  
   
   glEnable(texType);
   pass1_shader.activate();
@@ -429,11 +438,11 @@ void display(void)
   glEnd();
   
   pass1_shader.deactivate();
-
+ 
   glBindTexture(texType, 0);
 
   CheckErrorsGL("END : after 1st pass");
-
+  
   //Switches the frame buffer and binding texture
   odd = !odd;
 
