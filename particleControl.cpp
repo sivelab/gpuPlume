@@ -13,8 +13,7 @@ float randomVal(){ return drand48();}
 // BEGIN -----> QUIC PLUME FORTRAN REFERENCES
 // //////////////////////////////////////
 
-// #define USE_PLUME_DATA
-
+#define USE_PLUME_DATA
 #ifdef USE_PLUME_DATA
 
 extern "C"
@@ -26,6 +25,10 @@ extern "C"
 extern "C" int __datamodule__nx;
 extern "C" int __datamodule__ny;
 extern "C" int __datamodule__nz;
+
+extern "C" double __datamodule__dx;
+extern "C" double __datamodule__dy;
+extern "C" double __datamodule__dz;
 
 // UVW contains the wind field
 extern "C" double* __datamodule__u;
@@ -46,14 +49,17 @@ ParticleControl::ParticleControl(GLenum type){
   // Call the PLUME code to read in the data files.
   std::cout << "Reading data using PLUME code..." << std::endl;
   readfiles_();
-  std::cout << "QUIC PLUME domain size: " 
-	    << __datamodule__nx << " (in X) by " 
-	    << __datamodule__ny << " (in Y) by " 
-	    << __datamodule__nz << " (in Z)" << std::endl;
 
   nx = __datamodule__nx; //domain in the x direction
   ny = __datamodule__nz; //domain in the y direction(our orientation is y for up)
   nz = __datamodule__ny; //domain in the z direction
+
+  // nx = (__datamodule__nx - 1) * __datamodule__dx; //domain in the x direction
+  // ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction(our orientation is y for up)
+  // nz = (__datamodule__ny - 1) * __datamodule__dy; //domain in the z direction
+
+  std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
+
 #else
   nx = 60;
   ny = 20;

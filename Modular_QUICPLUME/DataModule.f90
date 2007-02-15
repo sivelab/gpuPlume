@@ -20,7 +20,14 @@
           real, dimension(:,:,:),allocatable:: u,v,w,disBotSurf,disTopSurf,disNegXSurf,disPosXSurf,disNegYSurf,disPosYSurf
           real, dimension(:,:,:),allocatable:: sigU,sigV,sigW
 
-          
+          real*8 x_subdomain_start,x_subdomain_end,y_subdomain_start,y_subdomain_end
+          real*8 zo
+          integer inumbuild
+          integer, allocatable :: bldnum(:),bldtype(:)
+          integer, allocatable :: group_id(:)
+          real*8, allocatable :: Ht(:),Wti(:),Lti(:),aa(:),bb(:)
+          real*8, allocatable :: xfo(:),yfo(:),zfo(:),gamma(:)
+          real*8, allocatable :: atten(:)
           
        end module
 

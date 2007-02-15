@@ -17,6 +17,7 @@ class DisplayControl{
   
   void drawAxes();
   void drawLayers(int, GLuint, int);
+  void drawFeatures(void);
   void drawFrameRate(int, int);
   void OpenGLText(int, int, char*);
 

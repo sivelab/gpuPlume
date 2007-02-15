@@ -521,6 +521,9 @@ void display(void)
       // Draw axes that represent the domain dimension
       dc->drawAxes();
       
+      // Draw the buildings or other prominent features in the domain
+      dc->drawFeatures();
+
       // Draw the wind texture layer if necessary
       dc->drawLayers(visual_layer, texid[3], numInRow);
       

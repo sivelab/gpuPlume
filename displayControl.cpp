@@ -7,6 +7,19 @@ using namespace std;
 
 static char text_buffer[128];
 
+// Information about buildings in QUICURB/QUICPLUME.  We need to come
+// up with a better place and way to store the references to these
+// variables.
+extern "C" int __datamodule__inumbuild;   // integer number of buildings
+extern "C" double* __datamodule__xfo;
+extern "C" double* __datamodule__yfo;
+extern "C" double* __datamodule__zfo; 
+extern "C" double* __datamodule__ht;
+extern "C" double* __datamodule__wti;
+extern "C" double* __datamodule__lti; 
+
+
+
 DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 {
   nx = x;
@@ -55,8 +68,8 @@ void DisplayControl::drawLayers(int layer, GLuint texId, int numInRow){
 
       glEnable(texType);
       glBindTexture(texType, texId);
-      glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
       // The s and t parameters reference pixels on the UVW texture
@@ -106,6 +119,33 @@ void DisplayControl::drawLayers(int layer, GLuint texId, int numInRow){
       glDisable(GL_COLOR_MATERIAL);
       glDisable(GL_LIGHT0);
       glDisable(GL_LIGHTING);
+    }
+}
+
+void instanceCube()
+{
+}
+
+void DisplayControl::drawFeatures(void)
+{
+  float grid_scale = 1.0;  // currently, just 1 but likely needs to come from QUICPLUME
+
+  // Draw the building
+  for (int qi=0; qi<__datamodule__inumbuild; qi++) 
+    {
+      glPushMatrix();
+      glColor3f(0.5, 0.5, 0.5);
+
+      glTranslatef(__datamodule__xfo[qi]*grid_scale,
+		   __datamodule__zfo[qi]*grid_scale + (__datamodule__ht[qi]*grid_scale)/2.0,
+		   __datamodule__yfo[qi]*grid_scale);
+
+      glScalef(__datamodule__wti[qi]*grid_scale,
+	       __datamodule__ht[qi]*grid_scale,
+	       __datamodule__lti[qi]*grid_scale);
+
+      glutSolidCube(1.0);
+      glPopMatrix();
     }
 }
 

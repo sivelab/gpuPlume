@@ -43,6 +43,60 @@
               enddo
            enddo
         enddo
+
+        !input from QU_buildings.inp
+        read(3,*)x_subdomain_start	! Subdomain coordinates
+        read(3,*)y_subdomain_start	!
+        read(3,*)x_subdomain_end	!
+        read(3,*)y_subdomain_end	!
+        read(3,*)zo	! MAN 8-19-2005 Updated input output file structures
+
+        ! MAN 7/27/2005 var dz subdomain changed into meters
+        x_subdomain_start = x_subdomain_start*dx
+        y_subdomain_start = y_subdomain_start*dy
+        x_subdomain_end = x_subdomain_end*dx
+        y_subdomain_end = y_subdomain_end*dy
+        !end MAN 7/27/2005
+
+        read(3,*)inumbuild	!number of buildings
+        read(3,*)
+
+        allocate(xfo(inumbuild),yfo(inumbuild),zfo(inumbuild))
+        allocate(gamma(inumbuild))
+        allocate(aa(inumbuild),bb(inumbuild))
+        allocate(Ht(inumbuild),Wti(inumbuild),Lti(inumbuild))
+        allocate(bldnum(inumbuild),bldtype(inumbuild),group_id(inumbuild))
+        allocate(atten(inumbuild))
+
+        ! Read in the building number, type, height, width, length ,xfo,yfo,zfo,gamma and atten
+        ! atten - attenuation coefficient for vegetation
+        !erp 1/31/2003
+        ! note that for now if the building is cylindrical, enter Lti = 0.
+
+        do i=1,inumbuild
+           read(3,*)bldnum(i),group_id(i),bldtype(i),Ht(i),Wti(i),Lti(i),xfo(i),yfo(i),zfo(i),gamma(i),atten(i)
+
+           Ht(i)=Ht(i)*dz	!convert back to real world unit, TZ 10/29/04
+           Wti(i)=Wti(i)*dy	!convert back to real world unit, TZ 10/29/04
+           Lti(i)=Lti(i)*dx	!convert back to real world unit, TZ 10/29/04
+           xfo(i)=xfo(i)*dx	!convert back to real world unit, TZ 10/29/04
+           yfo(i)=yfo(i)*dy	!convert back to real world unit, TZ 10/29/04
+           zfo(i)=zfo(i)*dz	!convert back to real world unit, TZ 10/29/04
+
+           Ht(i)=Ht(i)+zfo(i)			!erp 7/25/03
+           !erp	    zfo(i)=zfo(i)+2				!erp 7/23/03
+           if(bldtype(i).eq.2)then		!if the building is a cylinder/ellipse
+              bb(i)=Wti(i)/2.			!set minor axis to input Width
+              aa(i)=Lti(i)/2.			!set major axis to input Lenth
+           endif
+
+           !erp 10/22/04 Pentagon addition
+           if(bldtype(i).eq.3)then		!if the building is a Pentagon
+              bb(i)=Wti(i)/2.				!Radius Pentagon is inscribed in
+              xfo(i)=xfo(i)-bb(i)
+           endif
+        enddo
+        
         close(1)
         close(2)
         close(3)
