@@ -76,8 +76,7 @@ static float eye_pos[3];
 static float eye_gaze[3];
 
 GLuint texid[6];
-GLint  uniform_postex, uniform_wind, uniform_timeStep;
-GLSLObject init_shader, pass1_shader, render_shader, emit_shader;
+GLSLObject  render_shader, emit_shader;
 GLuint vertex_buffer;
 
 GLenum texType = GL_TEXTURE_RECTANGLE_ARB;
@@ -195,7 +194,7 @@ void init(void)
 {
   glEnable(GL_DEPTH_TEST);
 
-  pc = new ParticleControl(texType);
+  pc = new ParticleControl(texType,twidth,theight);
   pc->getDomain(&nx,&ny,&nz);
 
   dc = new DisplayControl(nx, ny, nz, texType);
@@ -267,33 +266,10 @@ void init(void)
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+  
   // Load up the shader programs
-  //This shader is used to move the particles
-  pass1_shader.addShader("Shaders/plumeAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
-  pass1_shader.addShader("Shaders/plumeAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
-  pass1_shader.createProgram();
-
-  // Get location of the sampler uniform
-  uniform_postex = pass1_shader.createUniform("pos_texunit");
-  uniform_wind = pass1_shader.createUniform("wind_texunit");
-  uniform_timeStep = pass1_shader.createUniform("time_step");
-  GLint unx = pass1_shader.createUniform("nx");
-  GLint uny = pass1_shader.createUniform("ny");
-  GLint unz = pass1_shader.createUniform("nz");
-  GLint uNumInRow = pass1_shader.createUniform("numInRow");
-  pass1_shader.activate();
-  glUniform1fARB(unx, nx);
-  glUniform1fARB(uny, ny);
-  glUniform1fARB(unz, nz);
-  glUniform1fARB(uNumInRow, numInRow);
-  glUniform1fARB(uniform_timeStep, time_step);
-  pass1_shader.deactivate();
-
-  //This shader is used to initialize the particle positions
-  init_shader.addShader("Shaders/initialize_vp.glsl", GLSLObject::VERTEX_SHADER);
-  init_shader.addShader("Shaders/initialize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
-  init_shader.createProgram();
+  //This shader is used to advect the particles using the windfield
+  pc->setupAdvectShader(&time_step, &numInRow);
 
   //This shader is used to make final changes before rendering to the screen
   render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -311,7 +287,7 @@ void init(void)
   //Initializes the particle positions in the domain
   //We don't need to do this anymore since we now can initialize data values
   //past 0-1 range in a RGBA32F texture without a shader.
-  //pc->initParticlePositions(fbo, twidth, theight, init_shader, texid[2]); 
+  //pc->initParticlePositions(fbo, texid[2]); 
   
 
   CheckErrorsGL("END of init");
@@ -400,46 +376,13 @@ void display(void)
   
   }
   emit = false;
-  
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
-  ///////////////////////////////////////////////////////////
-  if (odd)
-    glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
-  else 
-    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+  ////////////////////////////////////////////////////////////
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glViewport(0, 0, twidth, theight);
-  
-  
-  glEnable(texType);
-  pass1_shader.activate();
-  
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(texType, texid[3]);
-  glUniform1iARB(uniform_wind, 1);
-  
-  glActiveTexture(GL_TEXTURE0);
-  glUniform1iARB(uniform_postex, 0);
+  pc->advect(fbo, odd, texid[3], texid[0], texid[1]);
 
-  if (odd)
-    glBindTexture(texType, texid[0]);  // read from texture 0
-  else 
-    glBindTexture(texType, texid[1]);  // read from texture 1
-
-  glBegin(GL_QUADS);
-  {
-    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
-    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
-  }
-  glEnd();
-  
-  pass1_shader.deactivate();
- 
-  glBindTexture(texType, 0);
+  ////////////////////////////////////////////////////////////
 
   CheckErrorsGL("END : after 1st pass");
   
@@ -463,7 +406,7 @@ void display(void)
       // the FBO to a file.
       if (dump_contents)
 	{
-	  pc->dumpContents(twidth, theight);
+	  pc->dumpContents();
 	  dump_contents = false;
 	}
       
