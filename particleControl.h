@@ -14,7 +14,9 @@ class ParticleControl{
 
  public:
  
-  ParticleControl(GLenum);
+  ParticleControl(GLenum,int,int);
+
+  void setupAdvectShader(float*,int*);
 
   //This function puts the values held in the variable, data, into a 2D texture 
   //on the GPU. 
@@ -28,17 +30,24 @@ class ParticleControl{
   //It was needed when we weren't able to directly put 32-bit floating point
   //values directly into a texture. The help of a shader program was needed
   //to do that.  Thanks to a driver update, we don't have to do this anymore.
-  void initParticlePositions(FramebufferObject*, int, int, GLSLObject, GLuint);
+  void initParticlePositions(FramebufferObject*, GLuint);
 
   //This will output the values of the current texture being read.
-  void dumpContents(int w, int h);
+  void dumpContents();
+
+  //Advects particle positions using the windfield.
+  //First GLuint is the windfield texture.
+  //Second and third GLuint are the two position textures. 
+  void advect(FramebufferObject*,bool,GLuint,GLuint,GLuint);
 
   void getDomain(int* , int*, int*);
+  
+  
+ private:
+
   void test1();
   void test2();
   void test3();  
-  
- private:
   
   typedef struct{
     float u;
@@ -50,6 +59,11 @@ class ParticleControl{
   int nx;
   int ny;
   int nz;
+
+  int twidth, theight;
+
+  GLSLObject init_shader, pass1_shader;
+  GLint uniform_postex, uniform_wind, uniform_timeStep;
 
   GLenum texType;
   GLfloat* buffer_mem;
