@@ -13,7 +13,9 @@ float randomVal(){ return drand48();}
 // BEGIN -----> QUIC PLUME FORTRAN REFERENCES
 // //////////////////////////////////////
 
+
 #define USE_PLUME_DATA
+
 #ifdef USE_PLUME_DATA
 
 extern "C"
@@ -41,7 +43,7 @@ extern "C" double* __datamodule__w;
 // //////////////////////////////////////
 
 
-ParticleControl::ParticleControl(GLenum type){
+ParticleControl::ParticleControl(GLenum type,int w,int h){
 
   texType = type;
 
@@ -58,7 +60,8 @@ ParticleControl::ParticleControl(GLenum type){
   // ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction(our orientation is y for up)
   // nz = (__datamodule__ny - 1) * __datamodule__dy; //domain in the z direction
 
-  std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
+  std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " 
+	    << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
 
 #else
   nx = 60;
@@ -66,47 +69,63 @@ ParticleControl::ParticleControl(GLenum type){
   nz = 60;
 #endif
 
+  twidth = w;
+  theight = h;
 }
+void ParticleControl::setupAdvectShader(float* time_step, int* numInRow){
 
-void ParticleControl::getDomain(int* x, int* y, int* z){
-  *x = nx;
-  *y = ny;
-  *z = nz;
+  //This shader is used to move the particles
+  pass1_shader.addShader("Shaders/plumeAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
+  pass1_shader.addShader("Shaders/plumeAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  pass1_shader.createProgram();
+
+  // Get location of the sampler uniform
+  uniform_postex = pass1_shader.createUniform("pos_texunit");
+  uniform_wind = pass1_shader.createUniform("wind_texunit");
+  uniform_timeStep = pass1_shader.createUniform("time_step");
+  GLint unx = pass1_shader.createUniform("nx");
+  GLint uny = pass1_shader.createUniform("ny");
+  GLint unz = pass1_shader.createUniform("nz");
+  GLint uNumInRow = pass1_shader.createUniform("numInRow");
+
+  pass1_shader.activate();
+
+  glUniform1fARB(unx, nx);
+  glUniform1fARB(uny, ny);
+  glUniform1fARB(unz, nz);
+  glUniform1fARB(uniform_timeStep, *time_step);
+  float numR= *numInRow;
+  glUniform1fARB(uNumInRow, numR);
+
+  pass1_shader.deactivate();
+
 }
-void ParticleControl::dumpContents(int w, int h){
-   buffer_mem = new GLfloat[ w * h * 4 ];
-   glReadPixels(0, 0, w, h, GL_RGBA, GL_FLOAT, buffer_mem);
-      for (int j=0; j<w; j++)
-	for (int i=0; i<h; i++){
-	  
-	    int idx = j*w*4 + i*4;
-	    std::cout << buffer_mem[idx] << " ";
-	    std::cout << buffer_mem[idx+1] << " ";
-	    std::cout << buffer_mem[idx+2] << " ";
-	    std::cout << buffer_mem[idx+3] << std::endl;
-	}
-      delete [] buffer_mem;
-}
-void ParticleControl::initParticlePositions(FramebufferObject* fbo, int twidth, int theight, GLSLObject init_shader, GLuint texId){
-  GLint vp[4];
-  glGetIntegerv(GL_VIEWPORT, vp);
-  GLint draw_buffer;
-  glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
-  fbo->Bind();
-  glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-  glViewport(0, 0, twidth, theight);
+void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint texid3,
+			     GLuint texid0, GLuint texid1){
+
+  if (odd)
+    glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+  else 
+    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, twidth, theight);
+  
+  
+  glEnable(texType);
+  pass1_shader.activate();
 
-  GLuint texture = init_shader.createUniform("texture");
-  GLuint u_nx = init_shader.createUniform("nx");
-  GLuint u_ny = init_shader.createUniform("ny");
-  GLuint u_nz = init_shader.createUniform("nz");
-  glBindTexture(texType, texId);
-  init_shader.activate();
-  glUniform1iARB(texture, 0);
-  glUniform1fARB(u_nx, nx);
-  glUniform1fARB(u_ny, ny);
-  glUniform1fARB(u_nz, nz);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(texType, texid3);
+  glUniform1iARB(uniform_wind, 1);
+    
+  glActiveTexture(GL_TEXTURE0);
+  glUniform1iARB(uniform_postex, 0);
+
+  if (odd)
+    glBindTexture(texType, texid0);  // read from texture 0
+  else 
+    glBindTexture(texType, texid1);  // read from texture 1
 
   glBegin(GL_QUADS);
   {
@@ -116,13 +135,32 @@ void ParticleControl::initParticlePositions(FramebufferObject* fbo, int twidth, 
     glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
+  
+  pass1_shader.deactivate();
+ 
+  glBindTexture(texType, 0);
 
-  init_shader.deactivate();
-  glDisable(texType);
-  FramebufferObject::Disable();
-  glViewport(vp[0], vp[1], vp[2], vp[3]);
-  glDrawBuffer(draw_buffer);
+}
 
+void ParticleControl::getDomain(int* x, int* y, int* z){
+  *x = nx;
+  *y = ny;
+  *z = nz;
+}
+
+void ParticleControl::dumpContents(){
+   buffer_mem = new GLfloat[ twidth * theight * 4 ];
+   glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
+      for (int j=0; j<theight; j++)
+	for (int i=0; i<twidth; i++){
+	  
+	    int idx = j*twidth*4 + i*4;
+	    std::cout << buffer_mem[idx] << " ";
+	    std::cout << buffer_mem[idx+1] << " ";
+	    std::cout << buffer_mem[idx+2] << " ";
+	    std::cout << buffer_mem[idx+3] << std::endl;
+	}
+      delete [] buffer_mem;
 }
 
 void ParticleControl::createTexture(GLuint texId, GLenum format, int w, int h, GLfloat* data){
@@ -135,6 +173,7 @@ void ParticleControl::createTexture(GLuint texId, GLenum format, int w, int h, G
   glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);
 
 }
+
 void ParticleControl::initWindTex(GLuint texId, int* numInRow){
   // Create wind data texture
   data3d = new wind[nx*ny*nz];
@@ -151,6 +190,7 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
   //This tries to minimize the width and height values
   //to try and fit the wind field into a 2D texture without
   //wasting too much space.  
+  /////////////////////////////////////////////////////////
   int total = nx*ny*nz;
   int width = (int)sqrt((float)total);
   
@@ -172,13 +212,13 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
   }
   if(width%2 != 0) width++;
   int height = width;
-  /////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////
   //Convert this to data array for a texture
   //
   //This will directly put the 3D data into an array
   //that is used to make the 2D texture.
+  ///////////////////////////////////////////////////////
   (*numInRow) = (width - (width % nz))/nz;
   int qi, qj, qk;
   int p2idx = 0, texidx = 0;
@@ -208,6 +248,7 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
   delete [] dataTwo;
   
 }
+
 void ParticleControl::test1(){
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){
@@ -258,3 +299,46 @@ void ParticleControl::test3(){
   }
 }
 #endif
+void ParticleControl::initParticlePositions(FramebufferObject* fbo, GLuint texId){
+  
+   //This shader is used to initialize the particle positions
+  init_shader.addShader("Shaders/initialize_vp.glsl", GLSLObject::VERTEX_SHADER);
+  init_shader.addShader("Shaders/initialize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  init_shader.createProgram();
+
+  GLint vp[4];
+  glGetIntegerv(GL_VIEWPORT, vp);
+  GLint draw_buffer;
+  glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
+  fbo->Bind();
+  glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+  glViewport(0, 0, twidth, theight);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  GLuint texture = init_shader.createUniform("texture");
+  GLuint u_nx = init_shader.createUniform("nx");
+  GLuint u_ny = init_shader.createUniform("ny");
+  GLuint u_nz = init_shader.createUniform("nz");
+  glBindTexture(texType, texId);
+  init_shader.activate();
+  glUniform1iARB(texture, 0);
+  glUniform1fARB(u_nx, nx);
+  glUniform1fARB(u_ny, ny);
+  glUniform1fARB(u_nz, nz);
+
+  glBegin(GL_QUADS);
+  {
+    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+  }
+  glEnd();
+
+  init_shader.deactivate();
+  glDisable(texType);
+  FramebufferObject::Disable();
+  glViewport(vp[0], vp[1], vp[2], vp[3]);
+  glDrawBuffer(draw_buffer);
+
+}
