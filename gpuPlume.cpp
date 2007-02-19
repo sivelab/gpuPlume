@@ -12,6 +12,7 @@
 
 #include "particleControl.h"
 #include "displayControl.h"
+#include "particleEmitter.h"
 #include "framebufferObject.h"
 #include "renderbuffer.h"
 #include "GLSL.h"
@@ -39,6 +40,8 @@ std::list<int> indices;
 
 ParticleControl* pc;
 DisplayControl* dc;
+ParticleEmitter* pe;
+
 int numInRow;   // represents the number of layers that are stored in one row in a 2D texture
 int visual_layer = -1;    // the layer we're visualizing in the display (if == -1, do not display)
 
@@ -199,6 +202,9 @@ void init(void)
 
   dc = new DisplayControl(nx, ny, nz, texType);
 
+  //Create a particleEmitter with position 10,10,10
+  pe = new ParticleEmitter(10.0, 10.0, 10.0, &twidth, &theight, &indices);
+
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
 
@@ -294,9 +300,7 @@ void init(void)
 }
 
 bool odd = true;
-int p_index;
-int numToEmit = 1; //Number of particles to emit in each pass
-int offset = 0;
+//int numToEmit = 1; //Number of particles to emit in each pass
 
 void display(void)
 {
@@ -311,68 +315,7 @@ void display(void)
   ///////////////////////////////////////////////////////////
   if(emit){
 
-    //Make sure there are available indices to emit particles.
-    if(!indices.empty()){
-
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      gluOrtho2D(0, twidth, 0, theight);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-  
-      if(odd)
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-      else 
-	glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
-
-      
-      //Do this for each particle that is being emitted.
-      for(int i = 0; i < numToEmit; i++){
-	if(!indices.empty()){
-	
-	  //First get available index
-	  p_index = indices.back();
-	  std::cout << p_index <<std::endl;
-	  indices.pop_back();
-
-	  emit_shader.activate();	
-
-	  //Determine the coordinates into the position texture
-	  int s = (p_index%twidth);
-	  int t = (p_index/twidth);
-	  //s = (s*(2.0/(float)twidth) - 1.0);
-	  //t = (t*(2.0/(float)theight) - 1.0);
-	  std::cout << s << " " << t << " " << offset <<std::endl;
-	  glViewport(s,t,1,1);
-       
-	  glBegin(GL_POINTS);
-	  {
-	    glColor4f(10.0, 10.0, 10.0, 1.0);
-	    glVertex2f(s, t);
-	  }
-	  glEnd();
-
-	  emit_shader.deactivate();
-	}
-      }
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      gluOrtho2D(-1, 1, -1, 1);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-
-      //offset++;
-    }
-    /*if(offset == (twidth*theight)){     
-      if(odd)
-	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-      else 
-	glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
-
-      pc->dumpContents(twidth, theight);
-      //emit = false;
-      offset++;
-      }*/
+      pe->EmitParticle(fbo, emit_shader, odd);
   
   }
   emit = false;
