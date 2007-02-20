@@ -43,11 +43,10 @@ DisplayControl* dc;
 ParticleEmitter* pe;
 
 int numInRow;   // represents the number of layers that are stored in one row in a 2D texture
-int visual_layer = -1;    // the layer we're visualizing in the display (if == -1, do not display)
 
-bool frame_rate = true;
 bool dump_contents = false;
 bool emit = false;
+bool show_particle_visuals = true;
 
 void init(void);
 void initFBO(void);
@@ -58,28 +57,16 @@ void keyboard_cb(unsigned char key, int x, int y);
 void mouse(int button, int state, int x, int y);
 void motion(int x, int y);
 
-bool show_particle_visuals = true;
-
 int winid;
-float eye_z = 5.0;
 
 int winwidth = 512, winheight = 512;
-
 //
 // The values here determine the number of particles
 //
 int twidth = 128, theight = 128;
 
-static bool rotate_sphere = false;
-static bool rotate_object = false;
-static bool translate_view = false;
-static GLfloat azimuth = 0.0;
-static GLfloat elevation = 0.0;
-static float eye_pos[3];
-static float eye_gaze[3];
-
 GLuint texid[6];
-GLSLObject  render_shader, emit_shader;
+GLSLObject emit_shader;
 GLuint vertex_buffer;
 
 GLenum texType = GL_TEXTURE_RECTANGLE_ARB;
@@ -208,14 +195,6 @@ void init(void)
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
 
-  eye_pos[0] = 0;
-  eye_pos[1] = 0;
-  eye_pos[2] = 0;
-  
-  eye_gaze[0] = 0;
-  eye_gaze[1] = 0;
-  eye_gaze[2] = -5;
-
   // load up textures to hold position
   CheckErrorsGL("BEGIN : Creating textures");
 
@@ -276,11 +255,6 @@ void init(void)
   // Load up the shader programs
   //This shader is used to advect the particles using the windfield
   pc->setupAdvectShader(&time_step, &numInRow);
-
-  //This shader is used to make final changes before rendering to the screen
-  render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
-  render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
-  render_shader.createProgram();
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -372,62 +346,11 @@ void display(void)
       // set the viewport to the window dimensions
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-      
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      gluPerspective(60.0, 1.0, 1.0, 250.0);
-      
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-      gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
-		 eye_gaze[0], eye_gaze[1], eye_gaze[2],
-		 0, 1, 0 );
 
-      if (!rotate_sphere)
-	{
-	  // allow rotation of this object
-	  glRotatef(elevation, 1,0,0);
-	  glRotatef(azimuth, 0,1,0);
-	  // glTranslatef(0,0,5.0);
-	}
-
-      // render the vertices in the VBO (the particle positions) as points in the domain
-      glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
-      glEnableClientState(GL_VERTEX_ARRAY);
-      glColor3f(1.0, 1.0, 1.0);
-      glVertexPointer(4, GL_FLOAT, 0, 0);
-      glPointSize(2.0);
-      render_shader.activate();
-      glDrawArrays(GL_POINTS, 0, twidth*theight); 
-      render_shader.deactivate();
-  
+      dc->drawVisuals(vertex_buffer, texid[3], numInRow, twidth, theight);
+        
       glDisable(texType);
       CheckErrorsGL("END : visualization");
-      
-      // Draw axes that represent the domain dimension
-      dc->drawAxes();
-      
-      // Draw the buildings or other prominent features in the domain
-      dc->drawFeatures();
-
-      // Draw the wind texture layer if necessary
-      dc->drawLayers(visual_layer, texid[3], numInRow);
-      
-#ifndef WIN32
-      // spit out frame rate
-      if (frame_rate){
-	dc->drawFrameRate(twidth, theight);
-      }
-#endif
-
-      // If we've chose to display the 3D particle domain, we need to
-      // set the projection and modelview matrices back to what is
-      // needed for the particle advection step
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      gluOrtho2D(-1, 1, -1, 1);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
       
       // Finally, swap the front and back buffers to display the
       // particle field to the monitor
@@ -442,20 +365,15 @@ void idle()
 
 void keyboard_cb(unsigned char key, int x, int y)
 {
-  if (key == 'z')
-    eye_z -= 0.5;
-  else if (key == 'Z')
-    eye_z += 0.5;
-
   if (key == 'k') 
     {
-      visual_layer--;
-      if (visual_layer < -1) visual_layer = -1;
+      dc->visual_layer--;
+      if (dc->visual_layer < -1) dc->visual_layer = -1;
     }
   else if (key == 'K')
     {
-      visual_layer++;
-      if (visual_layer > ny) visual_layer = ny;
+      dc->visual_layer++;
+      if (dc->visual_layer > ny) dc->visual_layer = ny;
     }
 
   else if (key == 'd')
@@ -484,14 +402,14 @@ void mouse(int button, int state, int x, int y)
   last_y = y;
 
   if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
-    rotate_object = true;
+    dc->rotate_object = true;
   else // state == GLUT_UP
-    rotate_object = false;
+    dc->rotate_object = false;
 
   if (state == GLUT_DOWN && button == GLUT_RIGHT_BUTTON)
-    translate_view = true;
+    dc->translate_view = true;
   else // state == GLUT_UP
-    translate_view = false;
+    dc->translate_view = false;
 
   glutPostRedisplay();
 }
@@ -499,16 +417,16 @@ void mouse(int button, int state, int x, int y)
 
 void motion(int x, int y)
 {
-  if (translate_view) 
+  if (dc->translate_view) 
     {
       // pan view around gaze center...
       // since y is up, move eye in z only to take it into and out of the screen
       float change = y - last_y;
-      eye_pos[2] = eye_pos[2] + change;
-      eye_gaze[2] = eye_pos[2] - 5.0;
+      dc->setEyeValues(change);
+      
     }
 
-    if (rotate_object) 
+    if (dc->rotate_object) 
     {
 	// since y is up, move eye in z only to take it into and out of the screen
 	float change = x - last_x;
@@ -516,11 +434,11 @@ void motion(int x, int y)
 
 	change = x - last_x;
 	rate = 0.1;
-	azimuth = azimuth + change * rate;
+	dc->setAzimuth(change,rate);
 
 	change = y - last_y;
 	rate = 0.1;
-	elevation = elevation + change * rate;
+	dc->setElevation(change,rate);
     }
 
     last_x = x;
