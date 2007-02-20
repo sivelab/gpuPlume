@@ -27,11 +27,94 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   nz = z;
   texType = type;
 
+  eye_pos[0] = 0;
+  eye_pos[1] = 0;
+  eye_pos[2] = 0;
+  
+  eye_gaze[0] = 0;
+  eye_gaze[1] = 0;
+  eye_gaze[2] = -5;
+
+  rotate_sphere = false;
+  rotate_object = false;
+  translate_view = false;
+  azimuth = 0.0;
+  elevation = 0.0;
+
+  frame_rate = true;
+  visual_layer = -1;
+
+  //This shader is used to make final changes before rendering to the screen
+  render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
+  render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  render_shader.createProgram();
   
   // Create a high resolution clock timer - only works on Linux, x86
   // systems.  The basic timer works on Windows.  Setting the argument
   // to true will have no affect on windows implementations.
   clock_timer = new Timer(true);
+}
+void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRow, int twidth, int theight){
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(60.0, 1.0, 1.0, 250.0);
+      
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
+		 eye_gaze[0], eye_gaze[1], eye_gaze[2],
+		 0, 1, 0 );
+
+  if (!rotate_sphere)
+  {
+    // allow rotation of this object
+    glRotatef(elevation, 1,0,0);
+    glRotatef(azimuth, 0,1,0);
+    // glTranslatef(0,0,5.0);
+  }
+
+  // render the vertices in the VBO (the particle positions) as points in the domain
+  glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glColor3f(1.0, 1.0, 1.0);
+  glVertexPointer(4, GL_FLOAT, 0, 0);
+  glPointSize(2.0);
+  render_shader.activate();
+  glDrawArrays(GL_POINTS, 0, twidth*theight); 
+  render_shader.deactivate();
+
+  drawAxes();
+  drawFeatures();
+  drawLayers(texid3, numInRow);
+
+#ifndef WIN32
+  // spit out frame rate
+  if (frame_rate){
+    drawFrameRate(twidth, theight);
+  }
+#endif
+
+  // If we've chose to display the 3D particle domain, we need to
+  // set the projection and modelview matrices back to what is
+  // needed for the particle advection step
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluOrtho2D(-1, 1, -1, 1);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  
+}
+void DisplayControl::setEyeValues(float change){
+  eye_pos[2] = eye_pos[2] + change;
+  eye_gaze[2] = eye_pos[2] - 5.0;
+}
+void DisplayControl::setAzimuth(float change, float rate){
+  azimuth = azimuth + change*rate;
+}
+void DisplayControl::setElevation(float change, float rate){
+  elevation = elevation + change*rate;
 }
 void DisplayControl::drawAxes(){
   // query the current line width so we can set it back at the end of
@@ -57,8 +140,8 @@ void DisplayControl::drawAxes(){
   // set the line width back to what it was
   glLineWidth(lwidth);
 }
-void DisplayControl::drawLayers(int layer, GLuint texId, int numInRow){
-  if (layer >= 0 && layer < ny)
+void DisplayControl::drawLayers(GLuint texId, int numInRow){
+  if (visual_layer >= 0 && visual_layer < ny)
     {
       glEnable(GL_LIGHTING);
       glEnable(GL_LIGHT0);
@@ -93,23 +176,23 @@ void DisplayControl::drawLayers(int layer, GLuint texId, int numInRow){
       // s (or the value in the x dimension of the texture) can be
       // determined with a mod of the layer by the number of layers
       // that can be held in each row of the texutre. [ COMPLETE DESCRIPTION ]
-      s = (layer % numInRow) * nz;
+      s = (visual_layer % numInRow) * nz;
 
       // t (or the value in the y dimension of the texture) can be 
       // calculated by the floor of the layer to be visualized divided
       // by the number of layers that can be held in each row of
       // the texture. 
-      t = (int)(floor(layer/(float)numInRow) * nx);
+      t = (int)(floor(visual_layer/(float)numInRow) * nx);
 
       // Create a quad at this layer with 50% transparency
       glColor4f(1.0, 1.0, 1.0, 0.8);
       glBegin(GL_QUADS);
       {
 	glNormal3f(0.0, 1.0, 0.0);
-	glTexCoord2f(s, t);           glVertex3f(0, layer, 0);
-	glTexCoord2f(s+nz-1, t);      glVertex3f(nz, layer, 0);
-	glTexCoord2f(s+nz-1, t+nx-1); glVertex3f(nz, layer, nx);
-	glTexCoord2f(s, t+nx-1);      glVertex3f(0, layer, nx);
+	glTexCoord2f(s, t);           glVertex3f(0, visual_layer, 0);
+	glTexCoord2f(s+nz, t);      glVertex3f(nz, visual_layer, 0);
+	glTexCoord2f(s+nz, t+nx); glVertex3f(nz, visual_layer, nx);
+	glTexCoord2f(s, t+nx);      glVertex3f(0, visual_layer, nx);
       }
       glEnd();
       glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -136,9 +219,9 @@ void DisplayControl::drawFeatures(void)
       glPushMatrix();
       glColor3f(0.5, 0.5, 0.5);
 
-      glTranslatef(__datamodule__xfo[qi]*grid_scale,
+      glTranslatef(__datamodule__yfo[qi]*grid_scale,
 		   __datamodule__zfo[qi]*grid_scale + (__datamodule__ht[qi]*grid_scale)/2.0,
-		   __datamodule__yfo[qi]*grid_scale);
+		   __datamodule__xfo[qi]*grid_scale);
 
       glScalef(__datamodule__wti[qi]*grid_scale,
 	       __datamodule__ht[qi]*grid_scale,
