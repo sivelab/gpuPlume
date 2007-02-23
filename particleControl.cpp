@@ -52,13 +52,13 @@ ParticleControl::ParticleControl(GLenum type,int w,int h){
   std::cout << "Reading data using PLUME code..." << std::endl;
   readfiles_();
 
-  nx = __datamodule__nx; //domain in the x direction
+  nx = __datamodule__ny; //domain in the x direction
   ny = __datamodule__nz; //domain in the y direction(our orientation is y for up)
-  nz = __datamodule__ny; //domain in the z direction
+  nz = __datamodule__nx; //domain in the z direction
 
-  // nx = (__datamodule__nx - 1) * __datamodule__dx; //domain in the x direction
-  // ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction(our orientation is y for up)
-  // nz = (__datamodule__ny - 1) * __datamodule__dy; //domain in the z direction
+  //nx = (__datamodule__nx - 1);// * __datamodule__dx; //domain in the x direction
+  //ny = (__datamodule__nz - 1);// * __datamodule__dz; //domain in the y direction(our orientation is y for up)
+  //nz = (__datamodule__ny - 1);// * __datamodule__dy; //domain in the z direction
 
   std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " 
 	    << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
@@ -184,6 +184,7 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
 #else
   test2();
 #endif
+
   /////////////////////////////////////////////////////////
   //Calculate width and height for wind texture
   //
@@ -220,6 +221,8 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
   //that is used to make the 2D texture.
   ///////////////////////////////////////////////////////
   (*numInRow) = (width - (width % nz))/nz;
+  //std::cout << width << " " << *numInRow << std::endl;
+
   int qi, qj, qk;
   int p2idx = 0, texidx = 0;
   int row = 0;
@@ -229,7 +232,7 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow){
     for (qi=0; qi<nx; qi++)
       for (qj=0; qj<nz; qj++)
 	{
-	  p2idx = qk*nz*nx + qj*nz + qi;
+	  p2idx = qk*nz*nx + qi*nz + qj;
 	    
 	  row = qk / (*numInRow);
 	  texidx = row * width * nx * 4 +
@@ -290,10 +293,11 @@ void ParticleControl::test3(){
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){
       for(int j = 0; j < nz; j++){
-	int p2idx = k*nx*nz + i*nz + j;
-	data3d[p2idx].u = __datamodule__u[p2idx];
-	data3d[p2idx].v = __datamodule__w[p2idx];
-	data3d[p2idx].w = __datamodule__v[p2idx];
+	int p2idx = k*(nx)*(nz) + i*(nz) + j;
+	int idx = k*nx*nz + j*nz + i;
+	data3d[p2idx].u = __datamodule__v[idx+1];
+	data3d[p2idx].v = __datamodule__w[idx+1];
+	data3d[p2idx].w = __datamodule__u[idx+1];
       }
     }
   }
