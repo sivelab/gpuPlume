@@ -221,7 +221,7 @@ void DisplayControl::drawFeatures(void)
 
       glTranslatef(__datamodule__yfo[qi]*grid_scale,
 		   __datamodule__zfo[qi]*grid_scale + (__datamodule__ht[qi]*grid_scale)/2.0,
-		   __datamodule__xfo[qi]*grid_scale);
+		   __datamodule__xfo[qi]*grid_scale + __datamodule__lti[qi]*grid_scale/2.0);
 
       glScalef(__datamodule__wti[qi]*grid_scale,
 	       __datamodule__ht[qi]*grid_scale,
