@@ -45,7 +45,7 @@ void ParticleEmitter::EmitParticle(FramebufferObject* fbo, GLSLObject emit_shade
 	
 	  //First get available index
 	  p_index = indices->back();
-	  std::cout << p_index <<std::endl;
+	  //std::cout << p_index <<std::endl;
 	  indices->pop_back();
 
 	  emit_shader.activate();	
@@ -55,7 +55,7 @@ void ParticleEmitter::EmitParticle(FramebufferObject* fbo, GLSLObject emit_shade
 	  int t = (p_index/twidth);
 	  //s = (s*(2.0/(float)twidth) - 1.0);
 	  //t = (t*(2.0/(float)theight) - 1.0);
-	  std::cout << s << " " << t  <<std::endl;
+	  //std::cout << s << " " << t  <<std::endl;
 	  glViewport(s,t,1,1);
        
 	  glBegin(GL_POINTS);
