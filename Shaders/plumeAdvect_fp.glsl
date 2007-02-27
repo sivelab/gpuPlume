@@ -7,6 +7,7 @@ uniform float ny;
 uniform float nz;
 uniform float numInRow;
 uniform float time_step;
+uniform vec2 random_texCoordOffset;
 
 void main(void)
 {
@@ -18,8 +19,8 @@ void main(void)
    // the turbulence model.
    float turbulence_sigma = 0.5;
 
-   // random values are being generated between 0 and 2 so subtract 1 to center on zero for now
-   vec3 turbulence = vec3(textureRect(random_texunit, texCoord)) - vec3(1.0,1.0,1.0);
+   // random values are being generated between -1.0 and 1.0
+   vec3 turbulence = vec3(textureRect(random_texunit, texCoord));
 
    //The floor of the position in 3D space is needed to find the index into
    //the 2D Texture.

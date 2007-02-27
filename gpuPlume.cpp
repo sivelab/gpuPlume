@@ -253,12 +253,12 @@ void init(void)
 	// Need to pull classes from sim_fast that handle this... 
 	// For now, generate random values between -1 and 1.... shader subtracts 1.0
 	//
-	data[idx] = randVal()*2.0;
-	data[idx+1] = randVal()*2.0;
-	data[idx+2] = randVal()*2.0;
+	data[idx] = randVal() * 2.0 - 1.0;
+	data[idx+1] = randVal() * 2.0 - 1.0;
+	data[idx+2] = randVal() * 2.0 - 1.0;
 	data[idx+3] = 0.0;
       }
-  pc->createWrappedTexture(texid[4], int_format_init, twidth, theight, data);
+  pc->createWrappedTexture(texid[4], int_format, twidth, theight, data);
 
   delete [] data;
 
