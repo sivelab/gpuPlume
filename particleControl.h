@@ -21,6 +21,7 @@ class ParticleControl{
   //This function puts the values held in the variable, data, into a 2D texture 
   //on the GPU. 
   void createTexture(GLuint texId, GLenum format,  int w, int h, GLfloat* data); 
+  void createWrappedTexture(GLuint texId, GLenum format,  int w, int h, GLfloat* data); 
  
   //This function maps the 3D wind field into a 2D texture that can be
   //stored on the GPU.
@@ -38,7 +39,7 @@ class ParticleControl{
   //Advects particle positions using the windfield.
   //First GLuint is the windfield texture.
   //Second and third GLuint are the two position textures. 
-  void advect(FramebufferObject*,bool,GLuint,GLuint,GLuint);
+  void advect(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint);
 
   void getDomain(int* , int*, int*);
   
@@ -63,7 +64,7 @@ class ParticleControl{
   int twidth, theight;
 
   GLSLObject init_shader, pass1_shader;
-  GLint uniform_postex, uniform_wind, uniform_timeStep;
+  GLint uniform_postex, uniform_wind, uniform_randomTexture, uniform_timeStep;
 
   GLenum texType;
   GLfloat* buffer_mem;

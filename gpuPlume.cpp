@@ -65,7 +65,7 @@ int winwidth = 512, winheight = 512;
 //
 int twidth = 128, theight = 128;
 
-GLuint texid[6];
+GLuint texid[8];
 GLSLObject emit_shader;
 GLuint vertex_buffer;
 
@@ -199,7 +199,7 @@ void init(void)
   CheckErrorsGL("BEGIN : Creating textures");
 
   glEnable(texType);
-  glGenTextures(6, texid); // create (reference to) a new texture
+  glGenTextures(8, texid); // create (reference to) a new texture
   GLfloat *data = new GLfloat[ twidth * theight * sz];
   
   for (int j=0; j<theight; j++)
@@ -239,6 +239,26 @@ void init(void)
 
   // create a second texture to double buffer the vertex positions
   pc->createTexture(texid[1], int_format, twidth, theight, NULL);
+
+  //
+  // create random texture for use with particle simulation and turbulence
+  //
+  for (int j=0; j<theight; j++)
+    for (int i=0; i<twidth; i++)
+      {
+	int idx = j*twidth*sz + i*sz;
+	
+	//
+	// Generate random values should of normal distribution with zero mean and standard deviation of one.
+	// Need to pull classes from sim_fast that handle this... 
+	// For now, generate random values between -1 and 1.... shader subtracts 1.0
+	//
+	data[idx] = randVal()*2.0;
+	data[idx+1] = randVal()*2.0;
+	data[idx+2] = randVal()*2.0;
+	data[idx+3] = 0.0;
+      }
+  pc->createWrappedTexture(texid[4], int_format_init, twidth, theight, data);
 
   delete [] data;
 
@@ -297,7 +317,7 @@ void display(void)
   // Update Particle Positions 
   ////////////////////////////////////////////////////////////
 
-  pc->advect(fbo, odd, texid[3], texid[0], texid[1]);
+  pc->advect(fbo, odd, texid[4], texid[3], texid[0], texid[1]);
 
   ////////////////////////////////////////////////////////////
 

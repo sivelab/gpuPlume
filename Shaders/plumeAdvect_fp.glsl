@@ -1,6 +1,7 @@
 
 uniform samplerRect pos_texunit;
 uniform samplerRect wind_texunit;
+uniform samplerRect random_texunit;
 uniform float nx;
 uniform float ny;
 uniform float nz;
@@ -9,11 +10,17 @@ uniform float time_step;
 
 void main(void)
 {
-
    //This gets the position of the particle in 3D space.
    vec2 texCoord = gl_TexCoord[0].xy;
    vec4 pos = vec4(textureRect(pos_texunit, texCoord));
     
+   // Read out a random value based on the particle's texture coordinate for use with 
+   // the turbulence model.
+   float turbulence_sigma = 0.5;
+
+   // random values are being generated between 0 and 2 so subtract 1 to center on zero for now
+   vec3 turbulence = vec3(textureRect(random_texunit, texCoord)) - vec3(1.0,1.0,1.0);
+
    //The floor of the position in 3D space is needed to find the index into
    //the 2D Texture.
    float i = floor(pos.x);
@@ -88,7 +95,7 @@ void main(void)
 	}		
 
 	//Now move the particle by adding the direction.
-   	pos = pos + vec4(wind,0.0)*time_step;  
+   	pos = pos + vec4(wind,0.0)*time_step + vec4(turbulence,0.0)*time_step;
 
    }
 

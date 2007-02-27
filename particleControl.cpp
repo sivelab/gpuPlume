@@ -82,6 +82,7 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow){
   // Get location of the sampler uniform
   uniform_postex = pass1_shader.createUniform("pos_texunit");
   uniform_wind = pass1_shader.createUniform("wind_texunit");
+  uniform_randomTexture = pass1_shader.createUniform("random_texunit");
   uniform_timeStep = pass1_shader.createUniform("time_step");
   GLint unx = pass1_shader.createUniform("nx");
   GLint uny = pass1_shader.createUniform("ny");
@@ -100,9 +101,9 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow){
   pass1_shader.deactivate();
 
 }
-void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint texid3,
-			     GLuint texid0, GLuint texid1){
-
+void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint texid4, GLuint texid3,
+			     GLuint texid0, GLuint texid1)
+{
   if (odd)
     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
   else 
@@ -115,6 +116,12 @@ void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint texid3,
   glEnable(texType);
   pass1_shader.activate();
 
+  // Bind the random data field to TEXTURE UNIT 2
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(texType, texid4);
+  glUniform1iARB(uniform_randomTexture, 2);
+
+  // wind field can be stored here
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(texType, texid3);
   glUniform1iARB(uniform_wind, 1);
@@ -172,6 +179,16 @@ void ParticleControl::createTexture(GLuint texId, GLenum format, int w, int h, G
 
   glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);
 
+}
+
+void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, int h, GLfloat* data)
+{
+  glBindTexture(texType, texId);
+  glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);
 }
 
 void ParticleControl::initWindTex(GLuint texId, int* numInRow){
