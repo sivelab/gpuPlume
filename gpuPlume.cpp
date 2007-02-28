@@ -41,6 +41,8 @@ std::list<int> indices;
 ParticleControl* pc;
 DisplayControl* dc;
 ParticleEmitter* pe;
+ParticleEmitter* pe2;
+Timer * display_clock;
 
 int numInRow;   // represents the number of layers that are stored in one row in a 2D texture
 
@@ -184,13 +186,16 @@ void init(void)
 {
   glEnable(GL_DEPTH_TEST);
 
+  display_clock = new Timer(true);
+
   pc = new ParticleControl(texType,twidth,theight);
   pc->getDomain(&nx,&ny,&nz);
 
   dc = new DisplayControl(nx, ny, nz, texType);
 
-  //Create a particleEmitter with position 10,10,10
-  pe = new ParticleEmitter(10.0, 10.0, 10.0, &twidth, &theight, &indices);
+  //Create a particleEmitter with position and rate
+  pe = new ParticleEmitter(20.0, 10.0, 10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
+  pe2 = new ParticleEmitter(20.0, 15.0, 10.0, 5.0, &twidth, &theight, &indices, &emit_shader);
 
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
@@ -294,7 +299,7 @@ void init(void)
 }
 
 bool odd = true;
-//int numToEmit = 1; //Number of particles to emit in each pass
+Timer_t display_time[2];
 
 void display(void)
 {
@@ -307,12 +312,22 @@ void display(void)
   ////////////////////////////////////////////////////////////
   // Emit Particles
   ///////////////////////////////////////////////////////////
+  //record end time
+  //display_time[1] = display_clock->tic();
+  
   if(emit){
+    //float runtime = display_clock->deltas(display_time[0],display_time[1]);
+    //std::cout << runtime << std::endl;
+    if(pe->timeToEmit(time_step))
+       pe->EmitParticle(fbo, odd);
 
-      pe->EmitParticle(fbo, emit_shader, odd);
+    //if(pe2->timeToEmit(time_step))
+    // pe2->EmitParticle(fbo, odd);
   
   }
-  emit = false;
+  //record start time
+  //display_time[0] = display_clock->tic();
+  //emit = false;
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
   ////////////////////////////////////////////////////////////
@@ -376,6 +391,7 @@ void display(void)
       // particle field to the monitor
       glutSwapBuffers();
     }
+
 }
 
 void idle()
