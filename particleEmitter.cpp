@@ -1,27 +1,40 @@
 
 #include "particleEmitter.h"
+#include <math.h>
 
-ParticleEmitter::ParticleEmitter(float x,float y,float z, int* w, int* h, 
-				 std::list<int>* ind){
+ParticleEmitter::ParticleEmitter(float x,float y,float z,float rate, int* w, 
+		       int* h,std::list<int>* ind, GLSLObject* emit_shader){
 
   xpos = x;
   ypos = y;
   zpos = z;
 
+  pps = rate;
   numToEmit = 1;
 
   twidth = *w;
   theight = *h;
 
   indices = ind;
+  shader = emit_shader;
   
 }
-void ParticleEmitter::setNumToEmit(int num){
-  numToEmit = num;
-  
+bool ParticleEmitter::timeToEmit(float time_step){
+  emitTime += time_step*pps;
+
+  if(emitTime >= 1.0){
+    remTime += emitTime - floor(emitTime);
+
+    if(remTime >= 1.0){
+      numToEmit += (int)floor(remTime);
+      remTime -= floor(remTime);
+    }
+    emitTime = 0;
+    return true;
+  }
+  else return false;
 }
-void ParticleEmitter::EmitParticle(FramebufferObject* fbo, GLSLObject emit_shader,
-				   bool odd){
+void ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
  
   int p_index;
   //Make sure there are available indices to emit particles.
@@ -48,7 +61,7 @@ void ParticleEmitter::EmitParticle(FramebufferObject* fbo, GLSLObject emit_shade
 	  //std::cout << p_index <<std::endl;
 	  indices->pop_back();
 
-	  emit_shader.activate();	
+	  shader->activate();	
 
 	  //Determine the coordinates into the position texture
 	  int s = (p_index%twidth);
@@ -65,7 +78,7 @@ void ParticleEmitter::EmitParticle(FramebufferObject* fbo, GLSLObject emit_shade
 	  }
 	  glEnd();
 
-	  emit_shader.deactivate();
+	  shader->deactivate();
 	}
       }
       glMatrixMode(GL_PROJECTION);
@@ -75,4 +88,5 @@ void ParticleEmitter::EmitParticle(FramebufferObject* fbo, GLSLObject emit_shade
       glLoadIdentity();
 
     }
+    numToEmit = 1;
 }
