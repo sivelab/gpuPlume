@@ -23,7 +23,7 @@ PlumeControl::PlumeControl(int w, int h, int t){
   time_step = 0.0012;
   odd = true;
   dump_contents = false;
-  emit = false;
+  emit = true;
   show_particle_visuals = true;
 
   texType = GL_TEXTURE_RECTANGLE_ARB;
