@@ -47,7 +47,7 @@ void PlumeControl::init(){
   }
   else{
     dc->draw_buildings = false;
-    pe = new ParticleEmitter(30.0, 10.0, 30.0, 10.0, &twidth, &theight, &indices, &emit_shader);
+    pe = new ParticleEmitter(30.0, 10.0, 30.0, 30.0, &twidth, &theight, &indices, &emit_shader);
   }
 
   glEnable(texType);

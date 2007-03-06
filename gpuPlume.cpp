@@ -38,7 +38,7 @@ int main(int argc, char** argv)
     {
       w = atoi(argv[1]);
       h = w;
-      t = 3;
+      t = 4;
     }
   else if(argc == 3)
     {
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
       h = w;
       t = atoi(argv[2]);
     }
-  else{ w = 128; h = 128; t = 3;}
+  else{ w = 128; h = 128; t = 4;}
 
   plume = new PlumeControl(w,h, t);
 
