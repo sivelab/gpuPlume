@@ -269,6 +269,42 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<Filter
+			Name="Shaders"
+			>
+			<File
+				RelativePath="..\Shaders\emitParticle_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\emitParticle_vp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\initialize_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\initialize_vp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\particleVisualize_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\particleVisualize_vp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\plumeAdvect_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\plumeAdvect_vp.glsl"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
