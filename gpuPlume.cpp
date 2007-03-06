@@ -1,7 +1,5 @@
 #include <iostream>
-#include <math.h>
 #include <stdlib.h>
-#include <list>
 
 #include <GL/glew.h>
 #ifdef __APPLE__
@@ -10,41 +8,14 @@
 #include <GL/glut.h>
 #endif
 
-#include "particleControl.h"
-#include "displayControl.h"
-#include "particleEmitter.h"
+#include "plumeControl.h"
 #include "framebufferObject.h"
 #include "renderbuffer.h"
 #include "GLSL.h"
 #include "glErrorUtil.h"
 
-#ifdef WIN32
-#include <windows.h>
-#include <stdio.h>
-#include <conio.h>
-#include <tchar.h>
-
-// Rand functions
-float randVal() { return (float)(rand()/(float)RAND_MAX); } 
-#else
-float randVal() { return drand48(); }
-#endif
-
-//These values hold the domain of the 3D area
-int nx;
-int ny; //This is up for our orientation
-int nz;
-float time_step = 0.0012; //This is the time step for the movement of particles
-
-std::list<int> indices;
-
-ParticleControl* pc;
-DisplayControl* dc;
-ParticleEmitter* pe;
-ParticleEmitter* pe2;
 Timer * display_clock;
-
-int numInRow;   // represents the number of layers that are stored in one row in a 2D texture
+PlumeControl* plume;
 
 bool dump_contents = false;
 bool emit = false;
@@ -62,26 +33,27 @@ void motion(int x, int y);
 int winid;
 
 int winwidth = 512, winheight = 512;
-//
-// The values here determine the number of particles
-//
-int twidth = 128, theight = 128;
 
-GLuint texid[8];
-GLSLObject emit_shader;
 GLuint vertex_buffer;
-
-GLenum texType = GL_TEXTURE_RECTANGLE_ARB;
-GLenum int_format = GL_RGBA32F_ARB;
-GLenum int_format_init = GL_RGBA;
 
 int main(int argc, char** argv)
 {
+  int w, h, t;
   if (argc == 2)
     {
-      twidth = atoi(argv[1]);
-      theight = twidth;
+      w = atoi(argv[1]);
+      h = w;
+      t = 3;
     }
+  else if(argc == 3)
+    {
+      w = atoi(argv[1]);
+      h = w;
+      t = atoi(argv[2]);
+    }
+  else{ w = 128; h = 128; t = 3;}
+
+  plume = new PlumeControl(w,h, t);
 
 #ifdef WIN32
   TCHAR buffer[MAX_PATH];
@@ -161,7 +133,6 @@ void reshape(int w, int h)
     glLoadIdentity();
 }
 
-int sz = 4;
 FramebufferObject *fbo;
 Renderbuffer *rb;
 
@@ -171,12 +142,12 @@ void initFBO(void){
   fbo->Bind();
       
   rb = new Renderbuffer();
-  rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);
+  rb->Set(GL_DEPTH_COMPONENT24, plume->twidth, plume->theight);
   fbo->AttachRenderBuffer(GL_DEPTH_ATTACHMENT_EXT, rb->GetId() );
 
   //Attach textures to framebuffer object
-  fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, texid[0]);
-  fbo->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, texid[1]);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, plume->texType, plume->texid[0]);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, plume->texType, plume->texid[1]);
 
   fbo->IsValid();
   FramebufferObject::Disable();
@@ -185,106 +156,18 @@ void initFBO(void){
 void init(void)
 {
   glEnable(GL_DEPTH_TEST);
+  
+  plume->init();
 
   display_clock = new Timer(true);
-
-  pc = new ParticleControl(texType,twidth,theight);
-  pc->getDomain(&nx,&ny,&nz);
-
-  dc = new DisplayControl(nx, ny, nz, texType);
-
-  //Create a particleEmitter with position and rate
-  pe = new ParticleEmitter(20.0, 10.0, 10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
-  pe2 = new ParticleEmitter(20.0, 15.0, 10.0, 5.0, &twidth, &theight, &indices, &emit_shader);
-
-  for(int i = twidth*theight-1; i >= 0; i--)
-    indices.push_back(i);
-
-  // load up textures to hold position
-  CheckErrorsGL("BEGIN : Creating textures");
-
-  glEnable(texType);
-  glGenTextures(8, texid); // create (reference to) a new texture
-  GLfloat *data = new GLfloat[ twidth * theight * sz];
-  
-  for (int j=0; j<theight; j++)
-    for (int i=0; i<twidth; i++)
-      {
-	int idx = j*twidth*sz + i*sz;
-	
-	//
-	// Generate random positions for the particles within the
-	// domain.  Currently, the domain is positive.
-	//
-	// With floating point textures, we have to create the inital
-	// values between 0 and 1 and then use an initial shader to
-	// transform the normalized coordinates to the correct domain.
-	
-	data[idx] = randVal();
-	data[idx+1] = randVal();
-	data[idx+2] = randVal();
-	data[idx+3] = randVal();
-      }
-  pc->createTexture(texid[2], int_format_init, twidth, theight, data);
-
-  // Creates wind field data texture
-  pc->initWindTex(texid[3], &numInRow);
-  
-  for (int j=0; j<theight; j++)
-    for (int i=0; i<twidth; i++)
-      {
-	int idx = j*twidth*sz + i*sz;
-	data[idx] = data[idx] * (nx-1) + 100;
-	data[idx+1] = data[idx+1] * ny + 100;
-	data[idx+2] = data[idx+2] * (nz-1) + 100;
-      }
-  
-  // create the base texture with inital vertex positions
-  pc->createTexture(texid[0], int_format, twidth, theight, data);
-
-  // create a second texture to double buffer the vertex positions
-  pc->createTexture(texid[1], int_format, twidth, theight, NULL);
-
-  //
-  // create random texture for use with particle simulation and turbulence
-  //
-  for (int j=0; j<theight; j++)
-    for (int i=0; i<twidth; i++)
-      {
-	int idx = j*twidth*sz + i*sz;
-	
-	//
-	// Generate random values should of normal distribution with zero mean and standard deviation of one.
-	// Need to pull classes from sim_fast that handle this... 
-	// For now, generate random values between -1 and 1.... shader subtracts 1.0
-	//
-	data[idx] = randVal() * 2.0 - 1.0;
-	data[idx+1] = randVal() * 2.0 - 1.0;
-	data[idx+2] = randVal() * 2.0 - 1.0;
-	data[idx+3] = 0.0;
-      }
-  pc->createWrappedTexture(texid[4], int_format, twidth, theight, data);
-
-  delete [] data;
-
-  CheckErrorsGL("END : Creating textures");
 
   //
   // set up vertex buffer
   // 
   glGenBuffersARB(1, &vertex_buffer);
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, plume->twidth*plume->theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-  
-  // Load up the shader programs
-  //This shader is used to advect the particles using the windfield
-  pc->setupAdvectShader(&time_step, &numInRow);
-
-  //This shader is used to emmit particles
-  emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
-  emit_shader.addShader("Shaders/emitParticle_fp.glsl", GLSLObject::FRAGMENT_SHADER);
-  emit_shader.createProgram();
 
   // ///////////////////////////////////////////// 
   initFBO(); //Sets up the framebuffer object  
@@ -292,7 +175,7 @@ void init(void)
   //Initializes the particle positions in the domain
   //We don't need to do this anymore since we now can initialize data values
   //past 0-1 range in a RGBA32F texture without a shader.
-  //pc->initParticlePositions(fbo, texid[2]); 
+  //plume->pc->initParticlePositions(fbo, plume->texid[2]); 
   
 
   CheckErrorsGL("END of init");
@@ -313,26 +196,22 @@ void display(void)
   // Emit Particles
   ///////////////////////////////////////////////////////////
   //record end time
-  //display_time[1] = display_clock->tic();
+  display_time[1] = display_clock->tic();
   
   if(emit){
-    //float runtime = display_clock->deltas(display_time[0],display_time[1]);
+    float runtime = display_clock->deltas(display_time[0],display_time[1]);
+    plume->time_step = runtime;
     //std::cout << runtime << std::endl;
-    if(pe->timeToEmit(time_step))
-       pe->EmitParticle(fbo, odd);
-
-    //if(pe2->timeToEmit(time_step))
-    // pe2->EmitParticle(fbo, odd);
+    plume->injectParticles(fbo, odd);
   
   }
   //record start time
-  //display_time[0] = display_clock->tic();
+  display_time[0] = display_clock->tic();
   //emit = false;
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
   ////////////////////////////////////////////////////////////
-
-  pc->advect(fbo, odd, texid[4], texid[3], texid[0], texid[1]);
+  plume->advectParticles(fbo,odd);
 
   ////////////////////////////////////////////////////////////
 
@@ -358,12 +237,12 @@ void display(void)
       // the FBO to a file.
       if (dump_contents)
 	{
-	  pc->dumpContents();
+	  plume->pc->dumpContents();
 	  dump_contents = false;
 	}
       
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
-      glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
+      glReadPixels(0, 0, plume->twidth, plume->theight, GL_RGBA, GL_FLOAT, 0);
       glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
       CheckErrorsGL("after glReadPixels");
       
@@ -382,9 +261,9 @@ void display(void)
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 
-      dc->drawVisuals(vertex_buffer, texid[3], numInRow, twidth, theight);
-        
-      glDisable(texType);
+      plume->displayVisual(vertex_buffer);
+     
+      glDisable(plume->texType);
       CheckErrorsGL("END : visualization");
       
       // Finally, swap the front and back buffers to display the
@@ -403,13 +282,11 @@ void keyboard_cb(unsigned char key, int x, int y)
 {
   if (key == 'k') 
     {
-      dc->visual_layer--;
-      if (dc->visual_layer < -1) dc->visual_layer = -1;
+      plume->dc->decreaseVisualLayer();
     }
   else if (key == 'K')
     {
-      dc->visual_layer++;
-      if (dc->visual_layer > ny) dc->visual_layer = ny;
+      plume->dc->increaseVisualLayer();
     }
 
   else if (key == 'd')
@@ -438,14 +315,14 @@ void mouse(int button, int state, int x, int y)
   last_y = y;
 
   if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
-    dc->rotate_object = true;
+    plume->dc->rotate_object = true;
   else // state == GLUT_UP
-    dc->rotate_object = false;
+    plume->dc->rotate_object = false;
 
   if (state == GLUT_DOWN && button == GLUT_RIGHT_BUTTON)
-    dc->translate_view = true;
+    plume->dc->translate_view = true;
   else // state == GLUT_UP
-    dc->translate_view = false;
+    plume->dc->translate_view = false;
 
   glutPostRedisplay();
 }
@@ -453,16 +330,16 @@ void mouse(int button, int state, int x, int y)
 
 void motion(int x, int y)
 {
-  if (dc->translate_view) 
+  if (plume->dc->translate_view) 
     {
       // pan view around gaze center...
       // since y is up, move eye in z only to take it into and out of the screen
       float change = y - last_y;
-      dc->setEyeValues(change);
+      plume->dc->setEyeValues(change);
       
     }
 
-    if (dc->rotate_object) 
+    if (plume->dc->rotate_object) 
     {
 	// since y is up, move eye in z only to take it into and out of the screen
 	float change = x - last_x;
@@ -470,11 +347,11 @@ void motion(int x, int y)
 
 	change = x - last_x;
 	rate = 0.1;
-	dc->setAzimuth(change,rate);
+	plume->dc->setAzimuth(change,rate);
 
 	change = y - last_y;
 	rate = 0.1;
-	dc->setElevation(change,rate);
+	plume->dc->setElevation(change,rate);
     }
 
     last_x = x;
