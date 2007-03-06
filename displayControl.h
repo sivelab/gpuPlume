@@ -22,12 +22,16 @@ class DisplayControl{
   void drawFeatures(void);
   void drawFrameRate(int, int);
   void OpenGLText(int, int, char*);
+  void increaseVisualLayer();
+  void decreaseVisualLayer();
   void setEyeValues(float);
   void setAzimuth(float, float);
   void setElevation(float, float);
 
   bool rotate_sphere, rotate_object, translate_view;
   bool frame_rate;
+
+  bool draw_buildings;
 
   int visual_layer;
 
