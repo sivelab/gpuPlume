@@ -64,10 +64,7 @@ int main(int argc, char** argv)
   else 
   {
 	   dwRet = GetCurrentDirectory(MAX_PATH, buffer);
-	   std::cout << "Current directory set to " << buffer << std::endl;
-	   system("pause");
   }
-
 #endif
 
 #ifndef WIN32

@@ -194,69 +194,76 @@ void PlumeControl::initFBO(void){
   FramebufferObject::Disable();
 }
 
-void PlumeControl::setupTextures(){
-  CheckErrorsGL("BEGIN : Creating textures");
+void PlumeControl::setupTextures()
+{
+	CheckErrorsGL("BEGIN : Creating textures");
 
-  int sz = 4;
-  GLfloat *data = new GLfloat[ twidth * theight * sz];
+	int sz = 4;
+	GLfloat *data = new GLfloat[ twidth * theight * sz];
   
-  
-  for (int j=0; j<theight; j++)
-    for (int i=0; i<twidth; i++)
-      {
-	int idx = j*twidth*sz + i*sz;
+	for (int j=0; j<theight; j++)
+		for (int i=0; i<twidth; i++)
+		{
+			int idx = j*twidth*sz + i*sz;
 	
-	//
-	// Generate random positions for the particles within the
-	// domain.  Currently, the domain is positive.
-	//
-	// With floating point textures, we have to create the inital
-	// values between 0 and 1 and then use an initial shader to
-	// transform the normalized coordinates to the correct domain.
+			//
+			// Generate random positions for the particles within the
+			// domain.  Currently, the domain is positive.
+			//
+			// With floating point textures, we have to create the inital
+			// values between 0 and 1 and then use an initial shader to
+			// transform the normalized coordinates to the correct domain.
       
-	data[idx] = randVal();
-	data[idx+1] = randVal();
-	data[idx+2] = randVal();
-	data[idx+3] = randVal();
-      }
-  pc->createTexture(texid[2], int_format_init, twidth, theight, data);
+			data[idx] = randVal();
+			data[idx+1] = randVal();
+			data[idx+2] = randVal();
+			data[idx+3] = randVal();
+		}
+	pc->createTexture(texid[2], int_format_init, twidth, theight, data);
 
-  // Creates wind field data texture
-  pc->initWindTex(texid[3], &numInRow, testcase);
-  
-  for (int j=0; j<theight; j++)
-    for (int i=0; i<twidth; i++)
-      {
-	int idx = j*twidth*sz + i*sz;
-	data[idx] = data[idx] +  100;
-	data[idx+1] = data[idx+1] + 100;
-	data[idx+2] = data[idx+2] + 100;
-      }
-  
-  // create the base texture with inital vertex positions
-  pc->createTexture(texid[0], int_format, twidth, theight, data);
+	CheckErrorsGL("\tcreated texid[2]...");
+		
+	// Creates wind field data texture
+	pc->initWindTex(texid[3], &numInRow, testcase);
+	CheckErrorsGL("\tcreated texid[3], the wind field texture...");
 
-  // create a second texture to double buffer the vertex positions
-  pc->createTexture(texid[1], int_format, twidth, theight, NULL);
-//
-  // create random texture for use with particle simulation and turbulence
-  //
-  for (int j=0; j<theight; j++)
-    for (int i=0; i<twidth; i++)
-      {
-	int idx = j*twidth*sz + i*sz;
+	for (int j=0; j<theight; j++)
+		for (int i=0; i<twidth; i++)
+		{
+			int idx = j*twidth*sz + i*sz;
+			data[idx] = data[idx] +  100;
+			data[idx+1] = data[idx+1] + 100;
+			data[idx+2] = data[idx+2] + 100;
+		}
+  
+	// create the base texture with inital vertex positions
+	pc->createTexture(texid[0], int_format, twidth, theight, data);
+	CheckErrorsGL("\tcreated texid[0], the position texture...");
+
+	// create a second texture to double buffer the vertex positions
+	pc->createTexture(texid[1], int_format, twidth, theight, NULL);
+	CheckErrorsGL("\tcreated texid[1], the position texture (double buffer)...");
+
+	//
+	// create random texture for use with particle simulation and turbulence
+	//
+	for (int j=0; j<theight; j++)
+		for (int i=0; i<twidth; i++)
+		{
+			int idx = j*twidth*sz + i*sz;
 	
-	//
-	// Generate random values should of normal distribution with zero mean and standard deviation of one.
-	// Need to pull classes from sim_fast that handle this... 
-	// For now, generate random values between -1 and 1.... shader subtracts 1.0
-	//
-	data[idx] = randVal() * 2.0 - 1.0;
-	data[idx+1] = randVal() * 2.0 - 1.0;
-	data[idx+2] = randVal() * 2.0 - 1.0;
-	data[idx+3] = 0.0;
-      }
-  pc->createWrappedTexture(texid[4], int_format, twidth, theight, data);
+			//
+			// Generate random values should of normal distribution with zero mean and standard deviation of one.
+			// Need to pull classes from sim_fast that handle this... 
+			// For now, generate random values between -1 and 1.... shader subtracts 1.0
+			//
+			data[idx] = randVal() * 2.0 - 1.0;
+			data[idx+1] = randVal() * 2.0 - 1.0;
+			data[idx+2] = randVal() * 2.0 - 1.0;
+			data[idx+3] = 0.0;
+		}
+	pc->createWrappedTexture(texid[4], int_format, twidth, theight, data);
+	CheckErrorsGL("\tcreated texid[4], the random number texture...");
 
   delete [] data;
 
