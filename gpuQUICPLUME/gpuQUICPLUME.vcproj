@@ -201,6 +201,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\particleEmitter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\plumeControl.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\renderbuffer.cpp"
 				>
 			</File>
@@ -231,7 +239,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\gpuPlume.h"
+				>
+			</File>
+			<File
 				RelativePath="..\particleControl.h"
+				>
+			</File>
+			<File
+				RelativePath="..\particleEmitter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\plumeControl.h"
 				>
 			</File>
 			<File
