@@ -56,9 +56,9 @@ ParticleControl::ParticleControl(GLenum type,int w,int h){
   ny = __datamodule__nz; //domain in the y direction(our orientation is y for up)
   nz = __datamodule__nx; //domain in the z direction
 
-  //nx = (__datamodule__nx - 1);// * __datamodule__dx; //domain in the x direction
-  //ny = (__datamodule__nz - 1);// * __datamodule__dz; //domain in the y direction(our orientation is y for up)
-  //nz = (__datamodule__ny - 1);// * __datamodule__dy; //domain in the z direction
+  //nx = (__datamodule__nx - 1) * __datamodule__dx; //domain in the x direction
+  //ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction(our orientation is y for up)
+  //nz = (__datamodule__ny - 1) * __datamodule__dy; //domain in the z direction
 
   std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " 
 	    << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
@@ -191,16 +191,25 @@ void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, i
   glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);
 }
 
-void ParticleControl::initWindTex(GLuint texId, int* numInRow){
+void ParticleControl::initWindTex(GLuint texId, int* numInRow, int dataSet){
   // Create wind data texture
   data3d = new wind[nx*ny*nz];
-  //test1();
+  switch(dataSet){
 
-#ifdef USE_PLUME_DATA
-  test3();
-#else
-  test2();
-#endif
+      case 1:
+	 test1();
+	 break;
+      case 2:
+	test2();
+	break;
+      case 3:
+	test3();
+	break;
+      case 4:
+	test4();
+	break;
+
+  }
 
   /////////////////////////////////////////////////////////
   //Calculate width and height for wind texture
@@ -320,6 +329,18 @@ void ParticleControl::test3(){
   }
 }
 #endif
+void ParticleControl::test4(){
+  for(int k = 0; k < ny; k++){   
+    for(int i = 0; i < nx; i++){
+      for(int j = 0; j < nz; j++){
+	int p2idx = k*nx*nz + i*nz + j;
+	data3d[p2idx].u = 0.0;
+	data3d[p2idx].v = 0.0;
+	data3d[p2idx].w = 1.0;
+      }
+    }
+  }
+}
 void ParticleControl::initParticlePositions(FramebufferObject* fbo, GLuint texId){
   
    //This shader is used to initialize the particle positions
