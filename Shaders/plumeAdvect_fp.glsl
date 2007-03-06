@@ -1,4 +1,3 @@
-
 uniform samplerRect pos_texunit;
 uniform samplerRect wind_texunit;
 uniform samplerRect random_texunit;
