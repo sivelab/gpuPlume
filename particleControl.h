@@ -25,7 +25,7 @@ class ParticleControl{
  
   //This function maps the 3D wind field into a 2D texture that can be
   //stored on the GPU.
-  void initWindTex(GLuint texId, int* numInRow);
+  void initWindTex(GLuint texId, int* numInRow, int dataSet);
 
   //This function is used to initialize the particle positions.
   //It was needed when we weren't able to directly put 32-bit floating point
@@ -49,6 +49,7 @@ class ParticleControl{
   void test1();
   void test2();
   void test3();  
+  void test4();
   
   typedef struct{
     float u;
