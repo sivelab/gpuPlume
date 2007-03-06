@@ -9,20 +9,10 @@
 #endif
 
 #include "plumeControl.h"
-#include "framebufferObject.h"
-#include "renderbuffer.h"
-#include "GLSL.h"
-#include "glErrorUtil.h"
 
-Timer * display_clock;
 PlumeControl* plume;
 
-bool dump_contents = false;
-bool emit = false;
-bool show_particle_visuals = true;
-
 void init(void);
-void initFBO(void);
 void idle();
 void reshape(int w, int h);
 void display(void);
@@ -33,8 +23,6 @@ void motion(int x, int y);
 int winid;
 
 int winwidth = 512, winheight = 512;
-
-GLuint vertex_buffer;
 
 int main(int argc, char** argv)
 {
@@ -133,144 +121,18 @@ void reshape(int w, int h)
     glLoadIdentity();
 }
 
-FramebufferObject *fbo;
-Renderbuffer *rb;
-
-void initFBO(void){
-  // Get the Framebuffer Object ready
-  fbo = new FramebufferObject();
-  fbo->Bind();
-      
-  rb = new Renderbuffer();
-  rb->Set(GL_DEPTH_COMPONENT24, plume->twidth, plume->theight);
-  fbo->AttachRenderBuffer(GL_DEPTH_ATTACHMENT_EXT, rb->GetId() );
-
-  //Attach textures to framebuffer object
-  fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, plume->texType, plume->texid[0]);
-  fbo->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, plume->texType, plume->texid[1]);
-
-  fbo->IsValid();
-  FramebufferObject::Disable();
-}
-
 void init(void)
 {
   glEnable(GL_DEPTH_TEST);
   
-  plume->init();
-
-  display_clock = new Timer(true);
-
-  //
-  // set up vertex buffer
-  // 
-  glGenBuffersARB(1, &vertex_buffer);
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, plume->twidth*plume->theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  // ///////////////////////////////////////////// 
-  initFBO(); //Sets up the framebuffer object  
-
-  //Initializes the particle positions in the domain
-  //We don't need to do this anymore since we now can initialize data values
-  //past 0-1 range in a RGBA32F texture without a shader.
-  //plume->pc->initParticlePositions(fbo, plume->texid[2]); 
-  
-
-  CheckErrorsGL("END of init");
+  plume->init(); 
+ 
 }
-
-bool odd = true;
-Timer_t display_time[2];
 
 void display(void)
 {
-  GLint draw_buffer;
-  glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
-  
-  // bind the framebuffer object so we can render to the 2nd texture
-  fbo->Bind();
-
-  ////////////////////////////////////////////////////////////
-  // Emit Particles
-  ///////////////////////////////////////////////////////////
-  //record end time
-  display_time[1] = display_clock->tic();
-  
-  if(emit){
-    float runtime = display_clock->deltas(display_time[0],display_time[1]);
-    plume->time_step = runtime;
-    //std::cout << runtime << std::endl;
-    plume->injectParticles(fbo, odd);
-  
-  }
-  //record start time
-  display_time[0] = display_clock->tic();
-  //emit = false;
-  ////////////////////////////////////////////////////////////
-  // Update Particle Positions 
-  ////////////////////////////////////////////////////////////
-  plume->advectParticles(fbo,odd);
-
-  ////////////////////////////////////////////////////////////
-
-  CheckErrorsGL("END : after 1st pass");
-  
-  //Switches the frame buffer and binding texture
-  odd = !odd;
-
-  // We only need to do PASS 2 (copy to VBO) and PASS 3 (visualize) if
-  // we actually want to render to the screen.  Rendering to the
-  // screen will make the simulation run more slowly. This feature is
-  // mainly included to allow some idea of how much faster the
-  // simulation can run if left to run on the GPU.
-  if (show_particle_visuals)
-    {
-      
-      // //////////////////////////////////////////////////////////////
-      // PASS 2 - copy the contents of the 2nd texture (the new positions)
-      // into the vertex buffer
-      // //////////////////////////////////////////////////////////////
-
-      // In some circumstances, we may want to dump the contents of
-      // the FBO to a file.
-      if (dump_contents)
-	{
-	  plume->pc->dumpContents();
-	  dump_contents = false;
-	}
-      
-      glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
-      glReadPixels(0, 0, plume->twidth, plume->theight, GL_RGBA, GL_FLOAT, 0);
-      glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
-      CheckErrorsGL("after glReadPixels");
-      
-      // Disable the framebuffer object
-      FramebufferObject::Disable();
-      glDrawBuffer(draw_buffer); // send it to the original buffer
-      CheckErrorsGL("END : after 2nd pass");
-
-      // //////////////////////////////////////////////////////////////
-      // PASS 3 - draw the vertices; This represents the visualization
-      // of the PLUME particle field.
-      // //////////////////////////////////////////////////////////////
-
-      // clear the color and depth buffer before drawing the scene, and
-      // set the viewport to the window dimensions
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-
-      plume->displayVisual(vertex_buffer);
-     
-      glDisable(plume->texType);
-      CheckErrorsGL("END : visualization");
-      
-      // Finally, swap the front and back buffers to display the
-      // particle field to the monitor
-      glutSwapBuffers();
-    }
-
+  plume->display();
+ 
 }
 
 void idle()
@@ -292,7 +154,7 @@ void keyboard_cb(unsigned char key, int x, int y)
   else if (key == 'd')
     {
       // toggle whether to display output
-      show_particle_visuals = !show_particle_visuals;
+      plume->show_particle_visuals = !plume->show_particle_visuals;
     }
 
   else if (key == 27)
@@ -301,9 +163,13 @@ void keyboard_cb(unsigned char key, int x, int y)
       exit(0);
     }
   else if (key == 'r')
-    dump_contents = true;
+    {
+      plume->dump_contents = true;
+    }
   else if( key == 'e')
-    emit = true;
+    {
+      plume->emit = true;
+    }
 
   glutPostRedisplay();
 }
