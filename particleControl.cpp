@@ -14,8 +14,6 @@ float randomVal(){ return drand48();}
 // //////////////////////////////////////
 
 
-// #define USE_PLUME_DATA
-
 #ifdef USE_PLUME_DATA
 
 extern "C"
@@ -314,8 +312,10 @@ void ParticleControl::test2(){
   }
 }
 //Uses the QUIC_PLUME data for the wind field.
+
+void ParticleControl::test3()
+{
 #ifdef USE_PLUME_DATA
-void ParticleControl::test3(){
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){
       for(int j = 0; j < nz; j++){
@@ -327,8 +327,9 @@ void ParticleControl::test3(){
       }
     }
   }
-}
 #endif
+}
+
 void ParticleControl::test4(){
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){

@@ -6,6 +6,8 @@
 
 #include <iostream>
 #include <GL/glew.h>
+#include <GL/glut.h>
+#include "gpuPlume.h"
 #include "GLSL.h"
 
 #include "Timer.h"

@@ -1,6 +1,6 @@
+#include <iostream>
 #include <GL/glew.h>
 #include <GL/glut.h>
-#include <iostream>
 #include "framebufferObject.h"
 #include "GLSL.h"
 

@@ -1,12 +1,12 @@
-#include "displayControl.h"
 #include <iostream>
 #include <math.h>
-#include <GL/glut.h>
+#include "displayControl.h"
 
 using namespace std;
 
 static char text_buffer[128];
 
+#ifdef USE_PLUME_DATA
 // Information about buildings in QUICURB/QUICPLUME.  We need to come
 // up with a better place and way to store the references to these
 // variables.
@@ -17,7 +17,7 @@ extern "C" double* __datamodule__zfo;
 extern "C" double* __datamodule__ht;
 extern "C" double* __datamodule__wti;
 extern "C" double* __datamodule__lti; 
-
+#endif
 
 
 DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
@@ -224,6 +224,7 @@ void DisplayControl::drawFeatures(void)
 {
   float grid_scale = 1.0;  // currently, just 1 but likely needs to come from QUICPLUME
 
+#ifdef USE_PLUME_DATA
   // Draw the building
   for (int qi=0; qi<__datamodule__inumbuild; qi++) 
     {
@@ -241,6 +242,7 @@ void DisplayControl::drawFeatures(void)
       glutSolidCube(1.0);
       glPopMatrix();
     }
+#endif
 }
 
 //text: draws a string of text with an 18 point helvetica bitmap font

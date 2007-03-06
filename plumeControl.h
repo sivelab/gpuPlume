@@ -6,6 +6,7 @@
 
 #include <GL/glew.h>
 #include <GL/glut.h>
+
 #include "particleControl.h"
 #include "displayControl.h"
 #include "particleEmitter.h"
@@ -14,8 +15,6 @@
 #include "GLSL.h"
 
 class PlumeControl{
-
-
  public:
   
   PlumeControl(int, int, int);
