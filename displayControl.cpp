@@ -86,7 +86,9 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   render_shader.deactivate();
 
   drawAxes();
-  drawFeatures();
+  if(draw_buildings){
+    drawFeatures();
+  }
   drawLayers(texid3, numInRow);
 
 #ifndef WIN32
@@ -105,6 +107,15 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   
+}
+void DisplayControl::increaseVisualLayer(){
+  visual_layer++;
+  if(visual_layer > ny) visual_layer = ny;
+
+}
+void DisplayControl::decreaseVisualLayer(){
+  visual_layer--;
+  if(visual_layer < -1) visual_layer = -1;
 }
 void DisplayControl::setEyeValues(float change){
   eye_pos[2] = eye_pos[2] + change;
