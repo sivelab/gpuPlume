@@ -1,7 +1,7 @@
 EXEC	= gpuPlume
 
 CC	= g++ -g -O2 -Wall -DNDEBUG
-CSRC 	= gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp displayControl.cpp Timer.cpp
+CSRC 	= gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp
 COBJS   = $(CSRC:.cpp=.o)
 
 PLUME_DIR = Modular_QUICPLUME
