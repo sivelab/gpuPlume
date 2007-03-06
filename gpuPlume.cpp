@@ -8,6 +8,13 @@
 #include <GL/glut.h>
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#include <stdio.h>
+#include <conio.h>
+#include <tchar.h>
+#endif
+
 #include "plumeControl.h"
 
 PlumeControl* plume;

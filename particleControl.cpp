@@ -14,7 +14,7 @@ float randomVal(){ return drand48();}
 // //////////////////////////////////////
 
 
-#define USE_PLUME_DATA
+// #define USE_PLUME_DATA
 
 #ifdef USE_PLUME_DATA
 

@@ -1,13 +1,17 @@
+#ifndef __PLUMECONTROL_H__
+#define __PLUMECONTROL_H__
+
+#include <iostream>
+#include <list>
+
 #include <GL/glew.h>
 #include <GL/glut.h>
-#include <iostream>
 #include "particleControl.h"
 #include "displayControl.h"
 #include "particleEmitter.h"
 #include "framebufferObject.h"
 #include "renderbuffer.h"
 #include "GLSL.h"
-#include <list>
 
 class PlumeControl{
 
@@ -63,6 +67,6 @@ class PlumeControl{
   GLenum int_format_init;
 
   GLint draw_buffer;
-  
-
 };
+
+#endif // __PLUMECONTROL_H__
