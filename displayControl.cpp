@@ -91,12 +91,11 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   }
   drawLayers(texid3, numInRow);
 
-#ifndef WIN32
+
   // spit out frame rate
   if (frame_rate){
     drawFrameRate(twidth, theight);
   }
-#endif
 
   // If we've chose to display the 3D particle domain, we need to
   // set the projection and modelview matrices back to what is
