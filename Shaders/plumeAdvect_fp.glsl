@@ -19,7 +19,7 @@ void main(void)
    float turbulence_sigma = 0.5;
 
    // random values are being generated between -1.0 and 1.0
-   vec3 turbulence = vec3(textureRect(random_texunit, texCoord));
+   vec3 turbulence = vec3(textureRect(random_texunit, texCoord)) * vec3(0.1, 0.1, 0.065);
 
    //The floor of the position in 3D space is needed to find the index into
    //the 2D Texture.

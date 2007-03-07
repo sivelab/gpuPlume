@@ -1,3 +1,4 @@
+#include <math.h>
 
 #include "plumeControl.h"
 #include "glErrorUtil.h"
@@ -261,6 +262,12 @@ void PlumeControl::setupTextures()
 			data[idx+1] = randVal() * 2.0 - 1.0;
 			data[idx+2] = randVal() * 2.0 - 1.0;
 			data[idx+3] = 0.0;
+
+			// normalize
+			float mag = sqrt(data[idx]*data[idx] + data[idx+1]*data[idx+1] + data[idx+2]*data[idx+2]);
+			data[idx] /= mag;
+			data[idx+1] /= mag;
+			data[idx+2] /= mag;
 		}
 	pc->createTexture(texid[4], int_format, twidth, theight, data);
 	CheckErrorsGL("\tcreated texid[4], the random number texture...");
