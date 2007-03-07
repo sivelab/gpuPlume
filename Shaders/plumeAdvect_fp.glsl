@@ -16,10 +16,10 @@ void main(void)
     
    // Read out a random value based on the particle's texture coordinate for use with 
    // the turbulence model.
-   float turbulence_sigma = 0.5;
+   vec3 turbulence_sigma = vec3(0.1, 0.1, 0.065);
 
    // random values are being generated between -1.0 and 1.0
-   vec3 turbulence = vec3(textureRect(random_texunit, texCoord)) * vec3(0.1, 0.1, 0.065);
+   vec3 turbulence = vec3(textureRect(random_texunit, texCoord)) * turbulence_sigma;
 
    //The floor of the position in 3D space is needed to find the index into
    //the 2D Texture.
