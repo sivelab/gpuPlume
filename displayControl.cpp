@@ -29,11 +29,11 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 
   eye_pos[0] = 0;
   eye_pos[1] = 0;
-  eye_pos[2] = 0;
+  eye_pos[2] = nz + 50;
   
   eye_gaze[0] = 0;
   eye_gaze[1] = 0;
-  eye_gaze[2] = -5;
+  eye_gaze[2] = eye_pos[2] - 5;
 
   rotate_sphere = false;
   rotate_object = false;
@@ -65,8 +65,8 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   glLoadIdentity();
 
   gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
-		 eye_gaze[0], eye_gaze[1], eye_gaze[2],
-		 0, 1, 0 );
+	     eye_gaze[0], eye_gaze[1], eye_gaze[2],
+	     0, 1, 0 );
 
   if (!rotate_sphere)
   {
