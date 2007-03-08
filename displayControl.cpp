@@ -54,11 +54,12 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   // to true will have no affect on windows implementations.
   clock_timer = new Timer(true);
 }
-void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRow, int twidth, int theight){
 
+void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRow, int twidth, int theight)
+{
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(60.0, 1.0, 1.0, 250.0);
+  gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
       
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
