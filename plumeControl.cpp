@@ -122,7 +122,7 @@ void PlumeControl::init(){
   }
   else{
     dc->draw_buildings = false;
-    pe = new SphereEmitter(30.0, 10.0, 30.0, 30.0, 4.0, &twidth, &theight, &indices, &emit_shader);
+	pe = new SphereEmitter(30.0, 10.0, 30.0, 30.0, 4.0, &twidth, &theight, &indices, &emit_shader);
   }
 
   glEnable(texType);
@@ -136,7 +136,7 @@ void PlumeControl::init(){
   /////////////////////////////
   setupTextures();
 
-  display_clock = new Timer(true);
+  display_clock = new Timer(false);
   //We need to initialize time 0;
   display_time[0] = display_clock->tic();
   //
@@ -240,12 +240,12 @@ void PlumeControl::display(){
       // set the viewport to the window dimensions
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-      
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
       gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
       glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
+      glLoadIdentity();		
+      
 
       //plume->displayVisual(vertex_buffer);
       dc->drawVisuals(vertex_buffer, texid[3], numInRow, twidth, theight);
