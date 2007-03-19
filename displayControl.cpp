@@ -2,23 +2,7 @@
 #include <math.h>
 #include "displayControl.h"
 
-using namespace std;
-
 static char text_buffer[128];
-
-#ifdef USE_PLUME_DATA
-// Information about buildings in QUICURB/QUICPLUME.  We need to come
-// up with a better place and way to store the references to these
-// variables.
-extern "C" int __datamodule__inumbuild;   // integer number of buildings
-extern "C" double* __datamodule__xfo;
-extern "C" double* __datamodule__yfo;
-extern "C" double* __datamodule__zfo; 
-extern "C" double* __datamodule__ht;
-extern "C" double* __datamodule__wti;
-extern "C" double* __datamodule__lti; 
-#endif
-
 
 DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 {
@@ -43,7 +27,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 
   frame_rate = true;
   visual_layer = -1;
-
+  
   //This shader is used to make final changes before rendering to the screen
   render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
   render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -53,29 +37,24 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   // systems.  The basic timer works on Windows.  Setting the argument
   // to true will have no affect on windows implementations.
   clock_timer = new Timer(true);
+  
 }
 
-void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRow, int twidth, int theight)
+void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRow, 
+				 int twidth, int theight)
 {
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
-      
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
   gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
 	     eye_gaze[0], eye_gaze[1], eye_gaze[2],
 	     0, 1, 0 );
 
-  if (!rotate_sphere)
+  if (!rotate_sphere) 
   {
     // allow rotation of this object
     glRotatef(elevation, 1,0,0);
     glRotatef(azimuth, 0,1,0);
     // glTranslatef(0,0,5.0);
   }
-
+  
   // render the vertices in the VBO (the particle positions) as points in the domain
   glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -85,27 +64,19 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   render_shader.activate();
   glDrawArrays(GL_POINTS, 0, twidth*theight); 
   render_shader.deactivate();
+  
 
   drawAxes();
   if(draw_buildings){
     drawFeatures();
   }
-  drawLayers(texid3, numInRow);
-
+  drawLayers(texid3, numInRow);  
 
   // spit out frame rate
   if (frame_rate){
     drawFrameRate(twidth, theight);
   }
-
-  // If we've chose to display the 3D particle domain, we need to
-  // set the projection and modelview matrices back to what is
-  // needed for the particle advection step
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluOrtho2D(-1, 1, -1, 1);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  
   
 }
 void DisplayControl::increaseVisualLayer(){
@@ -147,9 +118,32 @@ void DisplayControl::drawAxes(){
   glVertex3f(0.0, 0.0, 0.0);
   glVertex3f(0.0, 0.0, nz);
   glEnd();
+  //This draws a label for the axis by drawing a textured quad.
+  /*
+  glDisable(texType);
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, axisLabel[0]);
+  glPushMatrix();
+  glRotatef(180.0, 0.0, 0.0, 1.0);
+
+  glBegin(GL_QUADS);
+  {
+    glTexCoord2f(0, 0);      glVertex3f(-0.5, -0.5, nz+1.0);
+    glTexCoord2f(1, 0);      glVertex3f(0.5, -0.5, nz+1.0);
+    glTexCoord2f(1, 1);      glVertex3f(0.5, 0.5, nz+1.0);
+    glTexCoord2f(0, 1);      glVertex3f(-0.5, 0.5, nz+1.0);
+  }
+  
+
+  glEnd();
+
+  glPopMatrix();
+  glDisable(GL_TEXTURE_2D);
+  glEnable(texType);*/
 
   // set the line width back to what it was
   glLineWidth(lwidth);
+
 }
 void DisplayControl::drawLayers(GLuint texId, int numInRow){
   if (visual_layer >= 0 && visual_layer < ny)
@@ -200,9 +194,9 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       glBegin(GL_QUADS);
       {
 	glNormal3f(0.0, 1.0, 0.0);
-	glTexCoord2f(s, t);           glVertex3f(0, visual_layer, 0);
+	glTexCoord2f(s, t);         glVertex3f(0, visual_layer, 0);
 	glTexCoord2f(s+nz, t);      glVertex3f(nz, visual_layer, 0);
-	glTexCoord2f(s+nz, t+nx); glVertex3f(nz, visual_layer, nx);
+	glTexCoord2f(s+nz, t+nx);   glVertex3f(nz, visual_layer, nx);
 	glTexCoord2f(s, t+nx);      glVertex3f(0, visual_layer, nx);
       }
       glEnd();
@@ -219,30 +213,67 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
 void instanceCube()
 {
 }
+void DisplayControl::initVars(int nb,double* x, double* y, double* z,
+				    double* h, double* w, double* l)
+{
+  numBuild = nb;
+  xfo = x;
+  yfo = y;
+  zfo = z;
+  ht = h;
+  wti = w;
+  lti = l;
+  /*
+  glDisable(texType);
+  glEnable(GL_TEXTURE_2D);
+  glGenTextures(3, axisLabel);
+  initTex(axisLabel[0], "u.ppm");
+  
+  glDisable(GL_TEXTURE_2D);
+  glEnable(texType);*/
 
+}
+/*
+void DisplayControl::initTex(GLuint texture, char* filename){
+  GLubyte* testImage;
+  int w, h;
+
+  testImage = glmReadPPM(filename, &w, &h);
+  if(testImage == 0){
+    std::cout << "Didn't Load Texture File" << std::endl;
+  }
+  glBindTexture(GL_TEXTURE_2D, texture); 
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, testImage);
+}
+*/
 void DisplayControl::drawFeatures(void)
 {
   float grid_scale = 1.0;  // currently, just 1 but likely needs to come from QUICPLUME
 
-#ifdef USE_PLUME_DATA
+  //#ifdef USE_PLUME_DATA
   // Draw the building
-  for (int qi=0; qi<__datamodule__inumbuild; qi++) 
+  for (int qi=0; qi<numBuild; qi++) 
     {
       glPushMatrix();
       glColor3f(0.5, 0.5, 0.5);
 
-      glTranslatef(__datamodule__yfo[qi]*grid_scale,
-		   __datamodule__zfo[qi]*grid_scale + (__datamodule__ht[qi]*grid_scale)/2.0,
-		   __datamodule__xfo[qi]*grid_scale + (__datamodule__lti[qi]*grid_scale)/2.0);
+      glTranslatef(yfo[qi]*grid_scale,
+		   zfo[qi]*grid_scale + (ht[qi]*grid_scale)/2.0,
+		   xfo[qi]*grid_scale + (lti[qi]*grid_scale)/2.0);
 
-      glScalef(__datamodule__wti[qi]*grid_scale,
-	       __datamodule__ht[qi]*grid_scale,
-	       __datamodule__lti[qi]*grid_scale);
+      glScalef(wti[qi]*grid_scale,
+	       ht[qi]*grid_scale,
+	       lti[qi]*grid_scale);
 
       glutSolidCube(1.0);
       glPopMatrix();
     }
-#endif
+  //#endif
 }
 
 //text: draws a string of text with an 18 point helvetica bitmap font
