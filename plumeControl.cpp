@@ -1,3 +1,4 @@
+#include <iostream>
 #include <math.h>
 
 #include "plumeControl.h"
@@ -15,40 +16,113 @@ float randVal() { return (float)(rand()/(float)RAND_MAX); }
 float randVal() { return drand48(); }
 #endif
 
+// //////////////////////////////////////
+// BEGIN -----> QUIC PLUME FORTRAN REFERENCES
+// //////////////////////////////////////
 
-PlumeControl::PlumeControl(int w, int h, int t){
+#ifdef USE_PLUME_DATA
+
+extern "C"
+{
+  void readfiles_();
+}
+
+// Domain size stored in nx, ny, and nz
+extern "C" int __datamodule__nx;
+extern "C" int __datamodule__ny;
+extern "C" int __datamodule__nz;
+
+extern "C" double __datamodule__dx;
+extern "C" double __datamodule__dy;
+extern "C" double __datamodule__dz;
+
+// UVW contains the wind field
+extern "C" double* __datamodule__u;
+extern "C" double* __datamodule__v;
+extern "C" double* __datamodule__w;
+
+extern "C" int __datamodule__inumbuild;   // integer number of buildings
+extern "C" double* __datamodule__xfo;
+extern "C" double* __datamodule__yfo;
+extern "C" double* __datamodule__zfo; 
+extern "C" double* __datamodule__ht;
+extern "C" double* __datamodule__wti;
+extern "C" double* __datamodule__lti; 
+
+#endif
+// //////////////////////////////////////
+// END ----> QUIC PLUME FORTRAN REFERENCES
+// //////////////////////////////////////
+
+
+PlumeControl::PlumeControl(int width, int height, int t){
+ 
+#ifdef USE_PLUME_DATA
+  // Call the PLUME code to read in the data files.
+  std::cout << "Reading data using PLUME code..." << std::endl;
+  readfiles_();
+
+  nx = __datamodule__ny; //domain in the x direction
+  ny = __datamodule__nz; //domain in the y direction(our orientation is y for up)
+  nz = __datamodule__nx; //domain in the z direction
+
+  //nx = (__datamodule__nx - 1) * __datamodule__dx; //domain in the x direction
+  //ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction(our orientation is y for up)
+  //nz = (__datamodule__ny - 1) * __datamodule__dy; //domain in the z direction
+
+  std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " 
+	    << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
+
+  u = __datamodule__u;
+  v = __datamodule__v;
+  w = __datamodule__w;
+
+  numBuild = __datamodule__inumbuild;
+  xfo = __datamodule__xfo;
+  yfo = __datamodule__yfo;
+  zfo = __datamodule__zfo;
+  ht = __datamodule__ht;
+  wti = __datamodule__wti;
+  lti = __datamodule__lti;
+  
+#else
+  nx = 60;
+  ny = 20;
+  nz = 60;
+#endif
+
   //These valuse determine the number of particles
-  twidth = w;  theight = h;
-
-  testcase = t;
-  time_step = 0.0012;
-  odd = true;
-  dump_contents = false;
-  emit = true;
-  show_particle_visuals = true;
+  twidth = width;  theight = height;
 
   texType = GL_TEXTURE_RECTANGLE_ARB;
   int_format = GL_RGBA32F_ARB;
   int_format_init = GL_RGBA;
+
+  testcase = t;
+  time_step = 0.0012;
+  odd = true; 
+  dump_contents = false;
+  emit = true;
+  show_particle_visuals = true;
 
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
 
 }
 void PlumeControl::init(){
- 
-  pc = new ParticleControl(texType, twidth,theight);
-  int nx, ny, nz;
-  pc->getDomain(&nx,&ny,&nz);
+  
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,u,v,w);
+
   dc = new DisplayControl(nx,ny,nz, texType);
-  //pe = new ParticleEmitter(10.0,10.0, 10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
-  if(testcase == 3){
+  dc->initVars(numBuild,xfo,yfo,zfo,ht,wti,lti);
+
+  if(testcase == 3){   
     dc->draw_buildings = true;
-    pe = new ParticleEmitter(10.0,10.0, 10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
+    pe = new PointEmitter(10.0,10.0,10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
   }
   else{
     dc->draw_buildings = false;
-    pe = new ParticleEmitter(30.0, 10.0, 30.0, 30.0, &twidth, &theight, &indices, &emit_shader);
+    pe = new SphereEmitter(30.0, 10.0, 30.0, 30.0, 4.0, &twidth, &theight, &indices, &emit_shader);
   }
 
   glEnable(texType);
@@ -63,7 +137,8 @@ void PlumeControl::init(){
   setupTextures();
 
   display_clock = new Timer(true);
-
+  //We need to initialize time 0;
+  display_time[0] = display_clock->tic();
   //
   // set up vertex buffer
   // 
@@ -88,7 +163,8 @@ void PlumeControl::init(){
   //pc->initParticlePositions(fbo, texid[2]); 
   CheckErrorsGL("END of init");
 
-}
+} 
+
 void PlumeControl::display(){
   //GLint draw_buffer;
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
@@ -164,10 +240,26 @@ void PlumeControl::display(){
       // set the viewport to the window dimensions
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+      
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
 
       //plume->displayVisual(vertex_buffer);
       dc->drawVisuals(vertex_buffer, texid[3], numInRow, twidth, theight);
+      pe->Draw();
 
+      // If we've chose to display the 3D particle domain, we need to
+      // set the projection and modelview matrices back to what is
+      // needed for the particle advection step
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      gluOrtho2D(-1, 1, -1, 1);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+     
       glDisable(texType);
       CheckErrorsGL("END : visualization");
       
