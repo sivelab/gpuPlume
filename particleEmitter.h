@@ -1,6 +1,9 @@
-#include <iostream>
+#ifndef __PARTICLE_EMITTER_H__
+#define __PARTICLE_EMITTER_H__
+
 #include <GL/glew.h>
-#include <GL/glut.h>
+//#include <GL/glut.h>
+#include <math.h>
 #include "framebufferObject.h"
 #include "GLSL.h"
 
@@ -13,18 +16,23 @@ class ParticleEmitter{
   //The two int*'s are the width and height values(which are the two values
   //that determine the number of particles in the system).
   //The list pointer is the list that holds the available indices of particles
-  //that can be emitted.
-  ParticleEmitter(float,float,float,float,int*,int*,std::list<int>*, GLSLObject*);
+  //that can be emitted
+
+  //ParticleEmitter(float,float,float,float,int*,int*,std::list<int>*, GLSLObject*);
 
   //Emits numToEmit(number of particles to emit) particles by setting values in
   //the particle position textures to xpos,ypos,zpos.
-  void EmitParticle(FramebufferObject*, bool);
+  virtual void EmitParticle(FramebufferObject*, bool);
 
   //Uses the variables, emitTime and remTime, to emit particles based on the time step
   //and how many particles per second(pps). 
-  bool timeToEmit(float);
+  virtual bool timeToEmit(float);
 
- private:
+  virtual void Draw();
+
+  virtual ~ParticleEmitter();
+
+ protected:
 
   //The position of the particle emitter
   float xpos,ypos,zpos;
@@ -46,3 +54,5 @@ class ParticleEmitter{
   GLSLObject* shader;
 
 };
+
+#endif // __PARTICLE_EMITTER_H__
