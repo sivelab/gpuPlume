@@ -1,3 +1,4 @@
+#include <iostream>
 #include "sphereEmitter.h"
 
 #ifdef WIN32
@@ -19,6 +20,8 @@ SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
   radius = r;
 
   numToEmit = 1;
+ emitTime = 0;
+ remTime = 0;
 
   twidth = *w;
   theight = *h;
@@ -67,8 +70,7 @@ void SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
       else 
 	glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
-
-      
+	        
       //Do this for each particle that is being emitted.
       for(int i = 0; i < numToEmit; i++){
 	if(!indices->empty()){
@@ -97,7 +99,7 @@ void SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  glBegin(GL_POINTS);
 	  {
 	    glColor4f(xpos + offsetx, ypos + offsety, zpos + offsetz, 1.0);
-	    glVertex2f(s, t);
+		glVertex2f(s, t);
 	  }
 	  glEnd();
 
