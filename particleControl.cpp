@@ -1,7 +1,6 @@
 #include <iostream>
 #include <math.h>
 #include "particleControl.h"
-using namespace std;
 
 #ifdef WIN32
 float randomVal() { return (float)(rand()/(float)RAND_MAX); }
@@ -9,66 +8,20 @@ float randomVal() { return (float)(rand()/(float)RAND_MAX); }
 float randomVal(){ return drand48();}
 #endif
 
-// //////////////////////////////////////
-// BEGIN -----> QUIC PLUME FORTRAN REFERENCES
-// //////////////////////////////////////
 
-
-#ifdef USE_PLUME_DATA
-
-extern "C"
-{
-  void readfiles_();
-}
-
-// Domain size stored in nx, ny, and nz
-extern "C" int __datamodule__nx;
-extern "C" int __datamodule__ny;
-extern "C" int __datamodule__nz;
-
-extern "C" double __datamodule__dx;
-extern "C" double __datamodule__dy;
-extern "C" double __datamodule__dz;
-
-// UVW contains the wind field
-extern "C" double* __datamodule__u;
-extern "C" double* __datamodule__v;
-extern "C" double* __datamodule__w;
-
-#endif
-// //////////////////////////////////////
-// END ----> QUIC PLUME FORTRAN REFERENCES
-// //////////////////////////////////////
-
-
-ParticleControl::ParticleControl(GLenum type,int w,int h){
+ParticleControl::ParticleControl(GLenum type,int width,int height,
+				 int x, int y, int z,
+				 double* u, double* v, double* w){
 
   texType = type;
-
-#ifdef USE_PLUME_DATA
-  // Call the PLUME code to read in the data files.
-  std::cout << "Reading data using PLUME code..." << std::endl;
-  readfiles_();
-
-  nx = __datamodule__ny; //domain in the x direction
-  ny = __datamodule__nz; //domain in the y direction(our orientation is y for up)
-  nz = __datamodule__nx; //domain in the z direction
-
-  //nx = (__datamodule__nx - 1) * __datamodule__dx; //domain in the x direction
-  //ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction(our orientation is y for up)
-  //nz = (__datamodule__ny - 1) * __datamodule__dy; //domain in the z direction
-
-  std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " 
-	    << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
-
-#else
-  nx = 60;
-  ny = 20;
-  nz = 60;
-#endif
-
-  twidth = w;
-  theight = h;
+  twidth = width;
+  theight = height;
+  nx = x;
+  ny = y;
+  nz = z;
+  u_quicPlumeData = v;
+  v_quicPlumeData = w;
+  w_quicPlumeData = u;
 }
 void ParticleControl::setupAdvectShader(float* time_step, int* numInRow){
 
@@ -198,13 +151,13 @@ void ParticleControl::initWindTex(GLuint texId, int* numInRow, int dataSet){
 	 test1();
 	 break;
       case 2:
-	test2();
+	randomWindField();
 	break;
       case 3:
-	test3();
+	quicPlumeWindField();
 	break;
       case 4:
-	test4();
+	uniformUWindField();
 	break;
 
   }
@@ -296,7 +249,7 @@ void ParticleControl::test1(){
   }
 }
 //Creates a random value wind field.
-void ParticleControl::test2(){
+void ParticleControl::randomWindField(){
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){
       for(int j = 0; j < nz; j++){
@@ -313,24 +266,24 @@ void ParticleControl::test2(){
 }
 //Uses the QUIC_PLUME data for the wind field.
 
-void ParticleControl::test3()
+void ParticleControl::quicPlumeWindField()
 {
-#ifdef USE_PLUME_DATA
+  //#ifdef USE_PLUME_DATA
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){
       for(int j = 0; j < nz; j++){
 	int p2idx = k*(nx)*(nz) + i*(nz) + j;
 	int idx = k*nx*nz + j*nz + i;
-	data3d[p2idx].u = __datamodule__v[idx+1];
-	data3d[p2idx].v = __datamodule__w[idx+1];
-	data3d[p2idx].w = __datamodule__u[idx+1];
+	data3d[p2idx].u = u_quicPlumeData[idx+1];
+	data3d[p2idx].v = v_quicPlumeData[idx+1];
+	data3d[p2idx].w = w_quicPlumeData[idx+1];
       }
     }
   }
-#endif
+  //#endif
 }
 
-void ParticleControl::test4(){
+void ParticleControl::uniformUWindField(){
   for(int k = 0; k < ny; k++){   
     for(int i = 0; i < nx; i++){
       for(int j = 0; j < nz; j++){
