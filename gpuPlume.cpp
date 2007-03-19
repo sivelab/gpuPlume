@@ -172,7 +172,7 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if( key == 'e')
     {
-      plume->emit = true;
+      plume->emit = !plume->emit;
     }
 
   glutPostRedisplay();
