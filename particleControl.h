@@ -5,9 +5,8 @@
 //////////////////////////////////////////////////
 
 #include <GL/glew.h>
-#include <GL/glut.h>
-#include <iostream>
-#include "gpuPlume.h"
+//#include <GL/glut.h>
+//#include "gpuPlume.h"
 #include "framebufferObject.h"
 #include "GLSL.h"
 
@@ -15,7 +14,7 @@ class ParticleControl{
 
  public:
  
-  ParticleControl(GLenum,int,int);
+  ParticleControl(GLenum,int,int,int,int,int,double*,double*,double*);
 
   void setupAdvectShader(float*,int*);
 
@@ -48,9 +47,9 @@ class ParticleControl{
  private:
 
   void test1();
-  void test2();
-  void test3();  
-  void test4();
+  void randomWindField();
+  void quicPlumeWindField();  
+  void uniformUWindField();
   
   typedef struct{
     float u;
@@ -58,6 +57,10 @@ class ParticleControl{
     float w;
   }wind;
   wind* data3d;
+
+  double* u_quicPlumeData;
+  double* v_quicPlumeData;
+  double* w_quicPlumeData;
 
   int nx;
   int ny;
