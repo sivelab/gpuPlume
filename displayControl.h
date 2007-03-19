@@ -4,10 +4,10 @@
 // frame rate to the screen.
 ///////////////////////////////////////////////////////////
 
-#include <iostream>
 #include <GL/glew.h>
 #include <GL/glut.h>
-#include "gpuPlume.h"
+//#include <glm.h>
+//#include "gpuPlume.h"
 #include "GLSL.h"
 
 #include "Timer.h"
@@ -29,6 +29,8 @@ class DisplayControl{
   void setEyeValues(float);
   void setAzimuth(float, float);
   void setElevation(float, float);
+  void initVars(int,double*,double*,double*,
+		      double*,double*,double*);
 
   bool rotate_sphere, rotate_object, translate_view;
   bool frame_rate;
@@ -38,9 +40,22 @@ class DisplayControl{
   int visual_layer;
 
  private:
+  
+  //void initTex(GLuint, char*);
+  
   int nx;
   int ny;
   int nz;
+
+  //Feature Variables
+  int numBuild;
+  double* xfo;
+  double* yfo;
+  double* zfo;
+  double* ht;
+  double* wti;
+  double* lti;
+  
 
   GLSLObject render_shader;
 
@@ -50,10 +65,10 @@ class DisplayControl{
   GLfloat azimuth;
   GLfloat elevation;
   
+  //GLuint axisLabel[3];
   
   float eye_pos[3];
   float eye_gaze[3];
-
 
   GLenum texType;
 
