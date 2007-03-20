@@ -106,7 +106,13 @@ PlumeControl::PlumeControl(int width, int height, int t){
   //equals 3, it runs the quicplume data set.  When it equals
   //4 it runs the uniform u-direction windfield.  
   testcase = t;
+  
+  //This is the time step of the simulation.
+  //Set useRealTime to true for real-time simulation
+  //or false to use the value given to time_step.
   time_step = 0.0012;
+  useRealTime = true;
+
   odd = true; 
   dump_contents = false;
   emit = true;
@@ -145,9 +151,6 @@ void PlumeControl::init(){
   /////////////////////////////
   setupTextures();
 
-  display_clock = new Timer(true);
-  //We need to initialize time 0;
-  display_time[0] = display_clock->tic();
   //
   // set up vertex buffer
   // 
@@ -172,6 +175,12 @@ void PlumeControl::init(){
   //pc->initParticlePositions(fbo, texid[2]); 
   CheckErrorsGL("END of init");
 
+  if(useRealTime){
+    display_clock = new Timer(true);
+    //We need to initialize time 0;
+    display_time[0] = display_clock->tic();
+  }
+
 } 
 
 void PlumeControl::display(){
@@ -185,18 +194,22 @@ void PlumeControl::display(){
   // Emit Particles
   ///////////////////////////////////////////////////////////
   //record end time
-  display_time[1] = display_clock->tic();
+  if(useRealTime)
+    display_time[1] = display_clock->tic();
   
   if(emit){
-    float runtime = display_clock->deltas(display_time[0],display_time[1]);
-    time_step = runtime;
-    //std::cout << runtime << std::endl;
+    if(useRealTime){
+      float runtime = display_clock->deltas(display_time[0],display_time[1]);
+      time_step = runtime;
+      //std::cout << runtime << std::endl;
+    }
     if(pe->timeToEmit(time_step))
       pe->EmitParticle(fbo, odd);
   }
   //record start time
-  display_time[0] = display_clock->tic();
-  //emit = false;
+  if(useRealTime)
+    display_time[0] = display_clock->tic();
+ 
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
   ////////////////////////////////////////////////////////////
