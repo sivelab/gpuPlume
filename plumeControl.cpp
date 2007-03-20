@@ -62,6 +62,7 @@ PlumeControl::PlumeControl(int width, int height, int t){
   std::cout << "Reading data using PLUME code..." << std::endl;
   readfiles_();
 
+  //QuicPlume data for the domain
   nx = __datamodule__ny; //domain in the x direction
   ny = __datamodule__nz; //domain in the y direction(our orientation is y for up)
   nz = __datamodule__nx; //domain in the z direction
@@ -73,10 +74,12 @@ PlumeControl::PlumeControl(int width, int height, int t){
   std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " 
 	    << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
 
+  //QuicPlume data for the windfield
   u = __datamodule__u;
   v = __datamodule__v;
   w = __datamodule__w;
 
+  //QuicPlume data for the buildings
   numBuild = __datamodule__inumbuild;
   xfo = __datamodule__xfo;
   yfo = __datamodule__yfo;
@@ -98,6 +101,10 @@ PlumeControl::PlumeControl(int width, int height, int t){
   int_format = GL_RGBA32F_ARB;
   int_format_init = GL_RGBA;
 
+  //testcase determines which data set to use for the windfield.
+  //The value t is currently passed in from gpuPlume.  When it
+  //equals 3, it runs the quicplume data set.  When it equals
+  //4 it runs the uniform u-direction windfield.  
   testcase = t;
   time_step = 0.0012;
   odd = true; 
@@ -118,11 +125,13 @@ void PlumeControl::init(){
 
   if(testcase == 3){   
     dc->draw_buildings = true;
+    //Creates a point emitter with position(10,10,10) , emitting 10 particles per second
     pe = new PointEmitter(10.0,10.0,10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
   }
   else{
     dc->draw_buildings = false;
-	pe = new SphereEmitter(30.0, 10.0, 30.0, 30.0, 4.0, &twidth, &theight, &indices, &emit_shader);
+    //Creates a sphere emitter with position(30,10,10), emitting 10 pps, with a radius of 4
+    pe = new SphereEmitter(30.0, 10.0, 30.0, 30.0, 4.0, &twidth, &theight, &indices, &emit_shader);
   }
 
   glEnable(texType);
@@ -136,7 +145,7 @@ void PlumeControl::init(){
   /////////////////////////////
   setupTextures();
 
-  display_clock = new Timer(false);
+  display_clock = new Timer(true);
   //We need to initialize time 0;
   display_time[0] = display_clock->tic();
   //
@@ -191,7 +200,7 @@ void PlumeControl::display(){
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
   ////////////////////////////////////////////////////////////
-  pc->advect(fbo, odd, texid[4], texid[3], texid[0], texid[1]);
+  pc->advect(fbo, odd, texid[4], texid[3], texid[0], texid[1], time_step);
 
   ////////////////////////////////////////////////////////////
 
