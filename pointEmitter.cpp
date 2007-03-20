@@ -10,6 +10,9 @@ PointEmitter::PointEmitter(float x,float y,float z,float rate, int* w,
   pps = rate;
   numToEmit = 1;
 
+  emitTime = 0;
+  remTime = 0;
+
   twidth = *w;
   theight = *h;
 
