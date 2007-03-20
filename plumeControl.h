@@ -55,6 +55,7 @@ class PlumeControl{
   Timer_t display_time[2];
 
   bool odd;
+  bool useRealTime;
 
   int testcase;
   GLSLObject emit_shader;
