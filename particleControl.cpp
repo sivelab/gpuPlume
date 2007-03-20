@@ -53,7 +53,7 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow){
 
 }
 void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint texid4, GLuint texid3,
-			     GLuint texid0, GLuint texid1)
+			     GLuint texid0, GLuint texid1, float time_step)
 {
   if (odd)
     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
@@ -66,6 +66,7 @@ void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint texid4, GL
   
   glEnable(texType);
   pass1_shader.activate();
+  glUniform1fARB(uniform_timeStep, time_step);
 
   // Bind the random data field to TEXTURE UNIT 2
   glActiveTexture(GL_TEXTURE2);
