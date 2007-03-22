@@ -23,7 +23,7 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   v_quicPlumeData = w;
   w_quicPlumeData = u;
 }
-void ParticleControl::setupAdvectShader(float* time_step, int* numInRow){
+void ParticleControl::setupAdvectShader(float* time_step, int* numInRow, float life_time){
 
   //This shader is used to move the particles
   pass1_shader.addShader("Shaders/plumeAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -35,6 +35,7 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow){
   uniform_wind = pass1_shader.createUniform("wind_texunit");
   uniform_randomTexture = pass1_shader.createUniform("random_texunit");
   uniform_timeStep = pass1_shader.createUniform("time_step");
+  GLint ulifeTime = pass1_shader.createUniform("life_time");
   GLint unx = pass1_shader.createUniform("nx");
   GLint uny = pass1_shader.createUniform("ny");
   GLint unz = pass1_shader.createUniform("nz");
@@ -42,6 +43,7 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow){
 
   pass1_shader.activate();
 
+  glUniform1fARB(ulifeTime, life_time);
   glUniform1fARB(unx, nx);
   glUniform1fARB(uny, ny);
   glUniform1fARB(unz, nz);
