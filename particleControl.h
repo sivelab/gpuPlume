@@ -16,7 +16,7 @@ class ParticleControl{
  
   ParticleControl(GLenum,int,int,int,int,int,double*,double*,double*);
 
-  void setupAdvectShader(float*,int*);
+  void setupAdvectShader(float*,int*, float);
 
   //This function puts the values held in the variable, data, into a 2D texture 
   //on the GPU. 
