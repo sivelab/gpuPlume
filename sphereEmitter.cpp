@@ -9,24 +9,28 @@ float rVal() { return drand48(); }
 #endif
 
 SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
-	       int* w,int* h,std::list<int>* ind, GLSLObject* emit_shader){
+	       int* w,int* h,std::list<int>* ind, 
+	       GLSLObject* emit_shader){
 
   xpos = x;
   ypos = y;
   zpos = z;
 
+  reuse = false;
+  lifeTime = 1.0;
+
   pps = rate;
-  
   radius = r;
 
   numToEmit = 1;
- emitTime = 0;
- remTime = 0;
+  emitTime = 0;
+  remTime = 0;
 
   twidth = *w;
   theight = *h;
 
   indices = ind;
+ 
   shader = emit_shader;
 
 }
@@ -84,9 +88,16 @@ void SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  offsetz = (offsetz/d) * radius;
 	
 	  //First get available index
-	  p_index = indices->back();
-	 
+	  p_index = indices->back();	 
 	  indices->pop_back();
+
+	  if(reuse){
+	    pIndex newIndex;
+	    newIndex.id = p_index;
+	    newIndex.time = 0;
+	    indicesInUse->push_back(newIndex);
+	  
+	  }
 
 	  shader->activate();	
 
@@ -98,8 +109,8 @@ void SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
        
 	  glBegin(GL_POINTS);
 	  {
-	    glColor4f(xpos + offsetx, ypos + offsety, zpos + offsetz, 1.0);
-		glVertex2f(s, t);
+	    glColor4f(xpos + offsetx, ypos + offsety, zpos + offsetz, lifeTime);
+	    glVertex2f(s, t);
 	  }
 	  glEnd();
 
