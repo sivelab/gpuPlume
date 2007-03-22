@@ -17,7 +17,15 @@ void ParticleEmitter::Draw(){
   glEnd();
 
 }
+void ParticleEmitter::setParticleReuse(std::list<pIndex>* ind, float time){
+  indicesInUse = ind;
+ 
+  lifeTime = time;
+  reuse = true;
 
+}
+
+//Determines whether or not it is time to emit a particle
 bool ParticleEmitter::timeToEmit(float time_step){
   emitTime += time_step*pps;
 
