@@ -1,11 +1,17 @@
 #ifndef __PARTICLE_EMITTER_H__
 #define __PARTICLE_EMITTER_H__
-
+#include <list>
 #include <GL/glew.h>
 //#include <GL/glut.h>
 #include <math.h>
 #include "framebufferObject.h"
 #include "GLSL.h"
+
+typedef struct{
+    int id;
+    double time;
+
+}pIndex;
 
 class ParticleEmitter{
 
@@ -28,14 +34,24 @@ class ParticleEmitter{
   //and how many particles per second(pps). 
   virtual bool timeToEmit(float);
 
+  //The base function draws the particle emitter as a point
   virtual void Draw();
+
+  virtual void setParticleReuse(std::list<pIndex>*, float time);
 
   virtual ~ParticleEmitter();
 
+
  protected:
+
+  bool reuse;
 
   //The position of the particle emitter
   float xpos,ypos,zpos;
+
+  //Lifetime of particle
+  float lifeTime;
+
 
   //Number of particles is twidth*theight
   int twidth,theight;
@@ -47,10 +63,17 @@ class ParticleEmitter{
   //Number of particles to emit per second
   float pps;
 
+  //These valuse are used in the timeToEmit function,
+  //used to determine if it's time to emit a particle or not
   float emitTime, remTime;
 
+  //A list of available particles that have not yet been emitted
   std::list<int>* indices;
 
+  std::list<pIndex>* indicesInUse;
+
+  //A reference to the shader program used to set the initial
+  //starting point of the particle
   GLSLObject* shader;
 
 };
