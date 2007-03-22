@@ -118,10 +118,18 @@ PlumeControl::PlumeControl(int width, int height, int t){
   emit = true;
   show_particle_visuals = true;
 
+  //Set whether to reuse particles or not
+  reuseParticles = false;
+  frameCount = 0;
+  if(reuseParticles)
+    lifeTime = 30.0;
+  else lifeTime = 0.0;
+
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
 
 }
+
 void PlumeControl::init(){
   
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,u,v,w);
@@ -133,11 +141,17 @@ void PlumeControl::init(){
     dc->draw_buildings = true;
     //Creates a point emitter with position(10,10,10) , emitting 10 particles per second
     pe = new PointEmitter(10.0,10.0,10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
+    if(reuseParticles){
+      pe->setParticleReuse(&indicesInUse, lifeTime);
+    }
   }
   else{
     dc->draw_buildings = false;
     //Creates a sphere emitter with position(30,10,10), emitting 10 pps, with a radius of 4
     pe = new SphereEmitter(30.0, 10.0, 30.0, 30.0, 4.0, &twidth, &theight, &indices, &emit_shader);
+    if(reuseParticles){
+      pe->setParticleReuse(&indicesInUse, lifeTime);
+    }
   }
 
   glEnable(texType);
@@ -163,7 +177,7 @@ void PlumeControl::init(){
   initFBO();
 
   //This shader is used to advect the particles using the windfield
-  pc->setupAdvectShader(&time_step, &numInRow);
+  pc->setupAdvectShader(&time_step, &numInRow, lifeTime);
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
   emit_shader.addShader("Shaders/emitParticle_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -180,8 +194,9 @@ void PlumeControl::init(){
     //We need to initialize time 0;
     display_time[0] = display_clock->tic();
   }
+  reuse_clock = new Timer(true);
 
-} 
+}
 
 void PlumeControl::display(){
   //GLint draw_buffer;
@@ -189,7 +204,45 @@ void PlumeControl::display(){
   
   // bind the framebuffer object so we can render to the 2nd texture
   fbo->Bind();
+  
+  /////////////////////////////////////////////////////////////
+  //Reuse particles if their lifespan is up
+  /////////////////////////////////////////////////////////////
+  if(reuseParticles){
+    if(frameCount == 0)
+      if(useRealTime)
+	reuse_time[0] = reuse_clock->tic();
 
+    frameCount++;
+    if(frameCount == 10){
+      
+
+      if(useRealTime)
+	reuse_time[1] = reuse_clock->tic();
+      //Iterate list indicesInUse; add time difference; 
+      //if over lifetime; remove from list in indicesInUse
+      //add that index into list indices
+      iter = indicesInUse.begin();
+      bool exit = false;
+      while(iter != indicesInUse.end() && !exit){
+	pIndex &reIndex = *iter;
+	if(useRealTime)
+	  reIndex.time += reuse_clock->deltas(reuse_time[0],reuse_time[1]);
+	else
+	  reIndex.time += frameCount*time_step;
+	     
+	if(reIndex.time >= lifeTime){
+	  
+	  indicesInUse.erase(iter);
+	  indices.push_front(reIndex.id);
+	  std::cout << reIndex.time << " " << reIndex.id << std::endl;
+	  exit = true;
+	}
+	iter++;
+      }
+      frameCount = 0;
+    }
+  }
   ////////////////////////////////////////////////////////////
   // Emit Particles
   ///////////////////////////////////////////////////////////
@@ -204,7 +257,7 @@ void PlumeControl::display(){
       //std::cout << runtime << std::endl;
     }
     if(pe->timeToEmit(time_step))
-      pe->EmitParticle(fbo, odd);
+      pe->EmitParticle(fbo, odd); 
   }
   //record start time
   if(useRealTime)
@@ -349,6 +402,7 @@ void PlumeControl::setupTextures()
 			data[idx] = data[idx] +  100;
 			data[idx+1] = data[idx+1] + 100;
 			data[idx+2] = data[idx+2] + 100;
+			data[idx+3] = lifeTime+1;
 		}
   
 	// create the base texture with inital vertex positions
