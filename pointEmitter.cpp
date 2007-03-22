@@ -1,11 +1,15 @@
 #include "pointEmitter.h"
 
 PointEmitter::PointEmitter(float x,float y,float z,float rate, int* w, 
-		       int* h,std::list<int>* ind, GLSLObject* emit_shader){
+			   int* h,std::list<int>* ind, 
+		       GLSLObject* emit_shader){
 
   xpos = x;
   ypos = y;
   zpos = z;
+
+  reuse = false;
+  lifeTime = 1.0;
 
   pps = rate;
   numToEmit = 1;
@@ -16,7 +20,8 @@ PointEmitter::PointEmitter(float x,float y,float z,float rate, int* w,
   twidth = *w;
   theight = *h;
 
-  indices = ind;
+  indices = ind; 
+
   shader = emit_shader;
 
 }
@@ -69,8 +74,13 @@ void PointEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	
 	  //First get available index
 	  p_index = indices->back();
-	  //std::cout << p_index <<std::endl;
 	  indices->pop_back();
+	  if(reuse){
+	    pIndex newIndex;
+	    newIndex.id = p_index;
+	    newIndex.time = 0;
+	    indicesInUse->push_back(newIndex);	   
+	  }
 
 	  shader->activate();	
 
@@ -84,7 +94,7 @@ void PointEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
        
 	  glBegin(GL_POINTS);
 	  {
-	    glColor4f(xpos, ypos, zpos, 1.0);
+	    glColor4f(xpos, ypos, zpos, lifeTime);
 	    glVertex2f(s, t);
 	  }
 	  glEnd();
