@@ -9,7 +9,7 @@
 
 #include "particleControl.h"
 #include "displayControl.h"
-//#include "particleEmitter.h"
+#include "particleEmitter.h"
 #include "pointEmitter.h"
 #include "sphereEmitter.h"
 #include "gpuPlume.h"
@@ -32,7 +32,9 @@ class PlumeControl{
   ParticleControl* pc;
   DisplayControl* dc;
   ParticleEmitter* pe;
+
   std::list<int> indices; 
+  std::list<pIndex> indicesInUse;
 
   GLuint texid[8]; 
   GLenum texType;
@@ -47,6 +49,8 @@ class PlumeControl{
 
 
  private:
+  
+  std::list<pIndex>::iterator iter;
 
   void setupTextures();
   void initFBO();
@@ -54,8 +58,15 @@ class PlumeControl{
   Timer* display_clock;
   Timer_t display_time[2];
 
+  Timer* reuse_clock;
+  Timer_t reuse_time[2];
+
+  int frameCount;
+  double lifeTime;
+
   bool odd;
   bool useRealTime;
+  bool reuseParticles;
 
   int testcase;
   GLSLObject emit_shader;
@@ -63,6 +74,7 @@ class PlumeControl{
   GLenum int_format_init;
 
   GLint draw_buffer;
+
 
   //QUIC-PLUME References
   int nx;
