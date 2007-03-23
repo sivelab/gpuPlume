@@ -1,14 +1,23 @@
 #ifndef __COLLECTIONBOX_H__
 #define __COLLECTIONBOX_H__
 
+#include <math.h>
+
+typedef struct{
+  float moving_avg;
+  int count;
+
+}cell;
+
 class CollectionBox{
  public:
 
   CollectionBox(int,int,int,float*);
   
   void seeIfInBox(float,float,float);
+  void calculateAvg();
 
-  int* cBox;
+  cell* cBox;
 
  private:
 
@@ -23,6 +32,8 @@ class CollectionBox{
   float lz;
   float uz;
 
+  float n;
+  float alpha;
 
 };
 
