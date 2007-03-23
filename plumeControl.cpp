@@ -266,9 +266,12 @@ void PlumeControl::display(){
 	float z = pos_buffer[i-1];
 
 	//Check to see if particle is inside a collection box
-	cBoxes->seeIfInBox(x,y,z);
+	//Add up particle count.
+	cBoxes->seeIfInBox(x,y,z);	
+
       }
     }
+    cBoxes->calculateAvg();
 
   }
   ////////////////////////////////////////////////////////////
