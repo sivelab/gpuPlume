@@ -12,6 +12,7 @@
 #include "particleEmitter.h"
 #include "pointEmitter.h"
 #include "sphereEmitter.h"
+#include "collectionBox.h"
 #include "gpuPlume.h"
 #include "framebufferObject.h"
 #include "renderbuffer.h"
@@ -33,6 +34,8 @@ class PlumeControl{
   DisplayControl* dc;
   ParticleEmitter* pe;
 
+  CollectionBox* cBoxes;
+
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
 
@@ -46,6 +49,7 @@ class PlumeControl{
   bool dump_contents;
   bool emit;
   bool show_particle_visuals;
+  bool collectionBoxes;
 
 
  private:
@@ -54,6 +58,7 @@ class PlumeControl{
 
   void setupTextures();
   void initFBO();
+  void particleReuse();
       
   Timer* display_clock;
   Timer_t display_time[2];
@@ -68,13 +73,15 @@ class PlumeControl{
   bool useRealTime;
   bool reuseParticles;
 
+  GLfloat* pos_buffer;
+
   int testcase;
   GLSLObject emit_shader;
   GLenum int_format; 
   GLenum int_format_init;
-
   GLint draw_buffer;
 
+  
 
   //QUIC-PLUME References
   int nx;
