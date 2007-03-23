@@ -113,17 +113,34 @@ PlumeControl::PlumeControl(int width, int height, int t){
   time_step = 0.0012;
   useRealTime = true;
 
+  //Toggle to use Collection Boxes
+  collectionBoxes = false;
+  pos_buffer = new GLfloat[ twidth * theight * 4 ];
+  float* bounds = new float[6];
+  bounds[0] = 0.0;
+  bounds[1] = 0.0;
+  bounds[2] = 0.0;
+  bounds[3] = 5.0;
+  bounds[4] = 5.0;
+  bounds[5] = 5.0;
+
+  cBoxes = new CollectionBox(3,4,5,bounds);
+   
+  
+
   odd = true; 
   dump_contents = false;
   emit = true;
   show_particle_visuals = true;
 
   //Set whether to reuse particles or not
+  //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
+  //If reuseParticles is set to true: fourth coordinate is <= lifetime if emiited, else lifetime+1
   reuseParticles = false;
   frameCount = 0;
   if(reuseParticles)
     lifeTime = 30.0;
-  else lifeTime = 0.0;
+  else lifeTime = -1.0;
 
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
@@ -209,39 +226,7 @@ void PlumeControl::display(){
   //Reuse particles if their lifespan is up
   /////////////////////////////////////////////////////////////
   if(reuseParticles){
-    if(frameCount == 0)
-      if(useRealTime)
-	reuse_time[0] = reuse_clock->tic();
-
-    frameCount++;
-    if(frameCount == 10){
-      
-
-      if(useRealTime)
-	reuse_time[1] = reuse_clock->tic();
-      //Iterate list indicesInUse; add time difference; 
-      //if over lifetime; remove from list in indicesInUse
-      //add that index into list indices
-      iter = indicesInUse.begin();
-      bool exit = false;
-      while(iter != indicesInUse.end() && !exit){
-	pIndex &reIndex = *iter;
-	if(useRealTime)
-	  reIndex.time += reuse_clock->deltas(reuse_time[0],reuse_time[1]);
-	else
-	  reIndex.time += frameCount*time_step;
-	     
-	if(reIndex.time >= lifeTime){
-	  
-	  indicesInUse.erase(iter);
-	  indices.push_front(reIndex.id);
-	  std::cout << reIndex.time << " " << reIndex.id << std::endl;
-	  exit = true;
-	}
-	iter++;
-      }
-      frameCount = 0;
-    }
+    particleReuse();
   }
   ////////////////////////////////////////////////////////////
   // Emit Particles
@@ -268,6 +253,24 @@ void PlumeControl::display(){
   ////////////////////////////////////////////////////////////
   pc->advect(fbo, odd, texid[4], texid[3], texid[0], texid[1], time_step);
 
+  ////////////////////////////////////////////////////////////
+  // Collection Boxes
+  ////////////////////////////////////////////////////////////
+  if(collectionBoxes){
+    glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, pos_buffer); 
+    for(int i = 3; i < theight*twidth; i+=4){
+      //If particle has been emitted
+      if(pos_buffer[i] == -1){
+	float x = pos_buffer[i-3];
+	float y = pos_buffer[i-2];
+	float z = pos_buffer[i-1];
+
+	//Check to see if particle is inside a collection box
+	cBoxes->seeIfInBox(x,y,z);
+      }
+    }
+
+  }
   ////////////////////////////////////////////////////////////
 
   CheckErrorsGL("END : after 1st pass");
@@ -445,3 +448,40 @@ void PlumeControl::setupTextures()
   CheckErrorsGL("END : Creating textures");
 }
 
+void PlumeControl::particleReuse(){
+    if(frameCount == 0)
+      if(useRealTime)
+	reuse_time[0] = reuse_clock->tic();
+
+    frameCount++;
+    if(frameCount == 10){
+      
+
+      if(useRealTime)
+	reuse_time[1] = reuse_clock->tic();
+      //Iterate list indicesInUse; add time difference; 
+      //if over lifetime; remove from list in indicesInUse
+      //add that index into list indices
+      iter = indicesInUse.begin();
+      bool exit = false;
+      while(iter != indicesInUse.end() && !exit){
+	pIndex &reIndex = *iter;
+	if(useRealTime)
+	  reIndex.time += reuse_clock->deltas(reuse_time[0],reuse_time[1]);
+	else
+	  reIndex.time += frameCount*time_step;
+	     
+	if(reIndex.time >= lifeTime){
+	  
+	  indicesInUse.erase(iter);
+	  indices.push_front(reIndex.id);
+	  std::cout << reIndex.time << " " << reIndex.id << std::endl;
+	  exit = true;
+	}
+	iter++;
+      }
+      frameCount = 0;
+    }
+
+
+}
