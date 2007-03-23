@@ -1,10 +1,10 @@
 #ifndef __COLLECTIONBOX_H__
 #define __COLLECTIONBOX_H__
-
+#include <iostream>
 #include <math.h>
 
 typedef struct{
-  float moving_avg;
+  double moving_avg;
   int count;
 
 }cell;
@@ -16,6 +16,7 @@ class CollectionBox{
   
   void seeIfInBox(float,float,float);
   void calculateAvg();
+  void outputAvg();
 
   cell* cBox;
 
@@ -32,8 +33,8 @@ class CollectionBox{
   float lz;
   float uz;
 
-  float n;
-  float alpha;
+  double n;
+  double alpha;
 
 };
 
