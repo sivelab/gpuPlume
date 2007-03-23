@@ -6,6 +6,7 @@ uniform float ny;
 uniform float nz;
 uniform float numInRow;
 uniform float time_step;
+uniform float life_time;
 uniform vec2 random_texCoordOffset;
 
 void main(void)
@@ -26,12 +27,23 @@ void main(void)
    float i = floor(pos.x);
    float j = floor(pos.z);
    float k = floor(pos.y);
+  
 	
+   //if(life_time != 0){
+   if(!(life_time <= 0)){
+     if(pos.a != life_time+1.0){
+       //Decrement the alpha value based on the time_step
+       pos.a = pos.a - time_step;
 
+     }
+   }
+	
    //This statement doesn't allow particles to move outside the domain.
+   //So, the particles inside the domain are the only ones operated on. 
    if((i < nx) && (j < nz) && (k < ny) && (i >= 0) && (j >= 0) && (k >=0)){
+   
 
-	//This is the initial lookup into the 2D texture that holds the wind field.
+     	//This is the initial lookup into the 2D texture that holds the wind field.
  	vec2 index;
    	index.s = j + mod(k,numInRow)*nz;
    	index.t = i + floor(k/numInRow)*nx;
@@ -96,8 +108,13 @@ void main(void)
 
 	//Now move the particle by adding the direction.
    	pos = pos + vec4(wind,0.0)*time_step + vec4(turbulence,0.0)*time_step;
-
+	
    }
-
-   gl_FragColor = pos;
+   if(pos.a <= 0 && (!(life_time <= 0))){
+	gl_FragColor = vec4(100.0, 100.0, 100.0, life_time+1.0);
+   }
+   else{
+    	gl_FragColor = pos;
+   }
+   
 }
