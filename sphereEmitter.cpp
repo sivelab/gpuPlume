@@ -17,7 +17,7 @@ SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
   zpos = z;
 
   reuse = false;
-  lifeTime = 1.0;
+  lifeTime = -1.0;
 
   pps = rate;
   radius = r;
