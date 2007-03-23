@@ -174,6 +174,10 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->emit = !plume->emit;
     }
+  else if(key == 'c')
+    {
+      plume->collectionBoxes = !plume->collectionBoxes;
+    }
 
   glutPostRedisplay();
 }
