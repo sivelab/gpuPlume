@@ -113,20 +113,21 @@ PlumeControl::PlumeControl(int width, int height, int t){
   time_step = 0.0012;
   useRealTime = true;
 
-  //Toggle to use Collection Boxes
-  collectionBoxes = false;
+  //Toggle to use Collection Boxes with c key (for now)
+  collectionBoxes = true;
+
+  output_CollectionBox = false;
   pos_buffer = new GLfloat[ twidth * theight * 4 ];
   float* bounds = new float[6];
-  bounds[0] = 0.0;
-  bounds[1] = 0.0;
-  bounds[2] = 0.0;
-  bounds[3] = 5.0;
-  bounds[4] = 5.0;
-  bounds[5] = 5.0;
+  bounds[0] = 8.0;
+  bounds[1] = 8.0;
+  bounds[2] = 12.0;
+  bounds[3] = 12.0;
+  bounds[4] = 12.0;
+  bounds[5] = 15.0;
 
-  cBoxes = new CollectionBox(3,4,5,bounds);
-   
-  
+  cBoxes = new CollectionBox(3,3,3,bounds);
+    
 
   odd = true; 
   dump_contents = false;
@@ -261,6 +262,7 @@ void PlumeControl::display(){
     for(int i = 3; i < theight*twidth; i+=4){
       //If particle has been emitted
       if(pos_buffer[i] == -1){
+
 	float x = pos_buffer[i-3];
 	float y = pos_buffer[i-2];
 	float z = pos_buffer[i-1];
@@ -300,6 +302,11 @@ void PlumeControl::display(){
 	{
 	  pc->dumpContents();
 	  dump_contents = false;
+	}
+      if(output_CollectionBox)
+	{
+	  cBoxes->outputAvg();
+	  output_CollectionBox = false;
 	}
       
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
