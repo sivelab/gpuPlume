@@ -50,6 +50,7 @@ class PlumeControl{
   bool emit;
   bool show_particle_visuals;
   bool collectionBoxes;
+  bool output_CollectionBox;
 
 
  private:
