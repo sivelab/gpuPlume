@@ -9,7 +9,7 @@ PointEmitter::PointEmitter(float x,float y,float z,float rate, int* w,
   zpos = z;
 
   reuse = false;
-  lifeTime = 1.0;
+  lifeTime = -1.0;
 
   pps = rate;
   numToEmit = 1;
