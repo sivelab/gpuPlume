@@ -178,6 +178,10 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->collectionBoxes = !plume->collectionBoxes;
     }
+  else if(key == 'b')
+    {
+      plume->output_CollectionBox = true;
+    }
 
   glutPostRedisplay();
 }
