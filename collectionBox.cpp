@@ -47,9 +47,34 @@ void CollectionBox::calculateAvg(){
 
 }
 void CollectionBox::outputAvg(){
-   for(int i = 0; i < numBox_x*numBox_y*numBox_z; i++){
-     std::cout << cBox[i].moving_avg << std::endl;
+  //int k = 0;
+  //for(int i = 0; i < numBox_x*numBox_y*numBox_z; i++){
+     /*if(i%(numBox_x*numBox_z) == 0){
+       std::cout << "Layer " << k << std::endl;
+       k++;
+       }*/
+     //std::cout << cBox[i].moving_avg << std::endl;
 
-  }
+  //}
+  for(int k=0; k < numBox_y; k++)
+    for(int i=0; i < numBox_x; i++)
+      for(int j=0; j < numBox_z; j++)
+	{
+	  int idx = k*numBox_z*numBox_x + i*numBox_z + j;
+	  int xBox = idx%numBox_x;
+	  int yBox = idx/(numBox_x*numBox_z);
+	  int zBox = (idx/numBox_x)%numBox_z;
+	  
+	  float x = ((ux-lx)/(float)numBox_x)*xBox + lx;
+	  float y = ((uy-ly)/(float)numBox_y)*yBox + ly;
+	  float z = ((uz-lz)/(float)numBox_z)*zBox + lz;
+	  float offsetx = ((ux-lx)/(float)numBox_x)/2.0;
+	  float offsety = ((uy-ly)/(float)numBox_y)/2.0;
+	  float offsetz = ((uz-lz)/(float)numBox_z)/2.0;
+
+	  std::cout << x+offsetx << "  " << y+offsety << "  " << z+offsetz <<
+	    "  " << cBox[idx].moving_avg << std::endl;
+
+	}
 
 }
