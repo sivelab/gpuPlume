@@ -34,7 +34,10 @@ class PlumeControl{
   DisplayControl* dc;
   ParticleEmitter* pe;
 
-  CollectionBox* cBoxes;
+  //An array of the collection boxes
+  CollectionBox* cBoxes[3];
+  //total number of collection boxes being used
+  int num_cBoxes;
 
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
