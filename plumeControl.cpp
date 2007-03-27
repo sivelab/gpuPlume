@@ -92,9 +92,13 @@ PlumeControl::PlumeControl(int width, int height, int t){
   nx = 60;
   ny = 20;
   nz = 60;
+  u=0;
+  v=0;
+  w=0;
+
 #endif
 
-  //These valuse determine the number of particles
+  //These values determine the number of particles
   twidth = width;  theight = height;
 
   texType = GL_TEXTURE_RECTANGLE_ARB;
@@ -116,18 +120,27 @@ PlumeControl::PlumeControl(int width, int height, int t){
   //Toggle to use Collection Boxes with c key (for now)
   collectionBoxes = true;
 
+  //Toggle to print output with b key
   output_CollectionBox = false;
   pos_buffer = new GLfloat[ twidth * theight * 4 ];
   float* bounds = new float[6];
-  bounds[0] = 8.0;
+  /*bounds[0] = 8.0;
   bounds[1] = 8.0;
   bounds[2] = 12.0;
   bounds[3] = 12.0;
   bounds[4] = 12.0;
   bounds[5] = 15.0;
 
-  cBoxes = new CollectionBox(3,3,3,bounds);
-    
+  cBoxes[0] = new CollectionBox(3,3,3,bounds);*/
+  
+  bounds[0] = 28.0;
+  bounds[1] = 8.0;
+  bounds[2] = 32.0;
+  bounds[3] = 32.0;
+  bounds[4] = 12.0;
+  bounds[5] = 36.0;
+  cBoxes[0] = new CollectionBox(3,4,5,bounds);
+  num_cBoxes = 1;
 
   odd = true; 
   dump_contents = false;
@@ -145,7 +158,7 @@ PlumeControl::PlumeControl(int width, int height, int t){
 
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
-
+  
 }
 
 void PlumeControl::init(){
@@ -153,8 +166,10 @@ void PlumeControl::init(){
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,u,v,w);
 
   dc = new DisplayControl(nx,ny,nz, texType);
+  //std::cout << "made it" << std::endl;
   dc->initVars(numBuild,xfo,yfo,zfo,ht,wti,lti);
-
+ 
+  
   if(testcase == 3){   
     dc->draw_buildings = true;
     //Creates a point emitter with position(10,10,10) , emitting 10 particles per second
@@ -171,6 +186,7 @@ void PlumeControl::init(){
       pe->setParticleReuse(&indicesInUse, lifeTime);
     }
   }
+  
 
   glEnable(texType);
   glGenTextures(8, texid);
@@ -263,17 +279,21 @@ void PlumeControl::display(){
       //If particle has been emitted
       if(pos_buffer[i] == -1){
 
+	//Get the x,y,z position of the particle
 	float x = pos_buffer[i-3];
 	float y = pos_buffer[i-2];
 	float z = pos_buffer[i-1];
 
 	//Check to see if particle is inside a collection box
 	//Add up particle count.
-	cBoxes->seeIfInBox(x,y,z);	
+	for(int j = 0; j < num_cBoxes; j++)
+	  cBoxes[j]->seeIfInBox(x,y,z);	
 
       }
     }
-    cBoxes->calculateAvg();
+    //Calculate the moving average for the collection boxes
+    for(int j = 0; j < num_cBoxes; j++)
+      cBoxes[j]->calculateAvg();
 
   }
   ////////////////////////////////////////////////////////////
@@ -305,7 +325,9 @@ void PlumeControl::display(){
 	}
       if(output_CollectionBox)
 	{
-	  cBoxes->outputAvg();
+	  for(int j = 0; j < num_cBoxes; j++){
+	    cBoxes[j]->outputAvg();
+	  }
 	  output_CollectionBox = false;
 	}
       
