@@ -3,7 +3,8 @@
 ParticleEmitter::~ParticleEmitter(){
 
 }
-void ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
+int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
+  return 0;
 
 }
 void ParticleEmitter::Draw(){
