@@ -50,7 +50,7 @@ PointEmitter::~PointEmitter(){}
   glDisable(GL_LIGHTING);
   }*/
 
-void PointEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
+int PointEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
  
   int p_index;
   //Make sure there are available indices to emit particles.
@@ -109,5 +109,8 @@ void PointEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
       glLoadIdentity();
 
     }
+    temp = numToEmit;
     numToEmit = 1;
+   
+    return temp;
 }
