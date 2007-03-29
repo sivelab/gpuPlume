@@ -117,21 +117,20 @@ PlumeControl::PlumeControl(int width, int height, int t){
   time_step = 0.0012;
   useRealTime = true;
 
-  //Toggle to use Collection Boxes with c key (for now)
-  collectionBoxes = true;
+  totalNumPar = 0;
 
-  //Toggle to print output with b key
+  //CollectionBox Settings
+  startCBoxTime = 0.0;
+  endCBoxTime = 30.0;
+  firstTime = true;
+  endCBox = false;
+  output_file = "data.txt";
+  averagingTime = 10.0;
+  avgTime = averagingTime;
+
   output_CollectionBox = false;
   pos_buffer = new GLfloat[ twidth * theight * 4 ];
   float* bounds = new float[6];
-  /*bounds[0] = 8.0;
-  bounds[1] = 8.0;
-  bounds[2] = 12.0;
-  bounds[3] = 12.0;
-  bounds[4] = 12.0;
-  bounds[5] = 15.0;
-
-  cBoxes[0] = new CollectionBox(3,3,3,bounds);*/
   
   bounds[0] = 28.0;
   bounds[1] = 8.0;
@@ -139,7 +138,7 @@ PlumeControl::PlumeControl(int width, int height, int t){
   bounds[3] = 32.0;
   bounds[4] = 12.0;
   bounds[5] = 36.0;
-  cBoxes[0] = new CollectionBox(3,4,5,bounds);
+  cBoxes[0] = new CollectionBox(3,4,5,bounds,averagingTime);
   num_cBoxes = 1;
 
   odd = true; 
@@ -228,11 +227,18 @@ void PlumeControl::init(){
     //We need to initialize time 0;
     display_time[0] = display_clock->tic();
   }
-  reuse_clock = new Timer(true);
 
 }
 
 void PlumeControl::display(){
+  if(firstTime){
+    if(useRealTime)
+      cBox_time[0] = display_clock->tic();
+    else
+      totalTime = 0;
+    firstTime = false;
+  }
+
   //GLint draw_buffer;
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
   
@@ -249,31 +255,39 @@ void PlumeControl::display(){
   // Emit Particles
   ///////////////////////////////////////////////////////////
   //record end time
-  if(useRealTime)
+  if(useRealTime){
     display_time[1] = display_clock->tic();
-  
+
+    time_step = display_clock->deltas(display_time[0],display_time[1]);
+    //std::cout << time_step << std::endl;
+  }  
   if(emit){
-    if(useRealTime){
-      float runtime = display_clock->deltas(display_time[0],display_time[1]);
-      time_step = runtime;
-      //std::cout << runtime << std::endl;
-    }
+    
     if(pe->timeToEmit(time_step))
-      pe->EmitParticle(fbo, odd); 
+      totalNumPar += (double)pe->EmitParticle(fbo, odd); 
   }
   //record start time
   if(useRealTime)
     display_time[0] = display_clock->tic();
- 
-  ////////////////////////////////////////////////////////////
-  // Update Particle Positions 
-  ////////////////////////////////////////////////////////////
-  pc->advect(fbo, odd, texid[4], texid[3], texid[0], texid[1], time_step);
 
   ////////////////////////////////////////////////////////////
   // Collection Boxes
   ////////////////////////////////////////////////////////////
-  if(collectionBoxes){
+  if(!endCBox){
+    if(useRealTime){
+      cBox_time[1] = display_clock->tic();
+      totalTime = display_clock->deltas(cBox_time[0],cBox_time[1]);
+    }
+    else totalTime += time_step;
+
+    if(totalTime >= endCBoxTime){
+      endCBox = true;
+      output_CollectionBox = true;
+    }       
+  }
+
+  if((totalTime >= startCBoxTime) && (totalTime < endCBoxTime)){
+  
     glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, pos_buffer); 
     for(int i = 3; i < theight*twidth; i+=4){
       //If particle has been emitted
@@ -285,17 +299,23 @@ void PlumeControl::display(){
 	float z = pos_buffer[i-1];
 
 	//Check to see if particle is inside a collection box
-	//Add up particle count.
-	for(int j = 0; j < num_cBoxes; j++)
-	  cBoxes[j]->seeIfInBox(x,y,z);	
-
+	for(int j = 0; j < num_cBoxes; j++){
+	  //if a particle is in a box the concentration value is updated
+	  cBoxes[j]->calculateConc(x,y,z,time_step,totalNumPar);
+	}	
       }
+    } 
+    if(totalTime >= avgTime){
+      avgTime += averagingTime;
+      output_CollectionBox = true;
     }
-    //Calculate the moving average for the collection boxes
-    for(int j = 0; j < num_cBoxes; j++)
-      cBoxes[j]->calculateAvg();
 
   }
+  ////////////////////////////////////////////////////////////
+  // Update Particle Positions 
+  ////////////////////////////////////////////////////////////
+  pc->advect(fbo, odd, texid[4], texid[3], texid[0], texid[1], time_step);
+
   ////////////////////////////////////////////////////////////
 
   CheckErrorsGL("END : after 1st pass");
@@ -326,7 +346,8 @@ void PlumeControl::display(){
       if(output_CollectionBox)
 	{
 	  for(int j = 0; j < num_cBoxes; j++){
-	    cBoxes[j]->outputAvg();
+	    cBoxes[j]->outputConc(output_file,totalTime);
+	    cBoxes[j]->clear();
 	  }
 	  output_CollectionBox = false;
 	}
@@ -483,14 +504,14 @@ void PlumeControl::setupTextures()
 void PlumeControl::particleReuse(){
     if(frameCount == 0)
       if(useRealTime)
-	reuse_time[0] = reuse_clock->tic();
+	reuse_time[0] = display_clock->tic();//reuse_clock->tic();
 
     frameCount++;
     if(frameCount == 10){
       
 
       if(useRealTime)
-	reuse_time[1] = reuse_clock->tic();
+	reuse_time[1] = display_clock->tic();//reuse_clock->tic();
       //Iterate list indicesInUse; add time difference; 
       //if over lifetime; remove from list in indicesInUse
       //add that index into list indices
@@ -499,12 +520,12 @@ void PlumeControl::particleReuse(){
       while(iter != indicesInUse.end() && !exit){
 	pIndex &reIndex = *iter;
 	if(useRealTime)
-	  reIndex.time += reuse_clock->deltas(reuse_time[0],reuse_time[1]);
+	  reIndex.time += display_clock->deltas(reuse_time[0],reuse_time[1]);
 	else
 	  reIndex.time += frameCount*time_step;
 	     
 	if(reIndex.time >= lifeTime){
-	  
+	  totalNumPar -= 1.0;
 	  indicesInUse.erase(iter);
 	  indices.push_front(reIndex.id);
 	  std::cout << reIndex.time << " " << reIndex.id << std::endl;
