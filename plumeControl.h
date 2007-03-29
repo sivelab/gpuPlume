@@ -52,7 +52,7 @@ class PlumeControl{
   bool dump_contents;
   bool emit;
   bool show_particle_visuals;
-  bool collectionBoxes;
+  //bool collectionBoxes;
   bool output_CollectionBox;
 
 
@@ -66,9 +66,17 @@ class PlumeControl{
       
   Timer* display_clock;
   Timer_t display_time[2];
+  Timer_t reuse_time[2]; 
+  Timer_t cBox_time[2];
 
-  Timer* reuse_clock;
-  Timer_t reuse_time[2];
+  double startCBoxTime;
+  double endCBoxTime;
+  double totalTime;
+  double averagingTime;
+  double avgTime;
+  bool firstTime;
+  bool endCBox;
+  char* output_file;
 
   int frameCount;
   double lifeTime;
@@ -85,7 +93,8 @@ class PlumeControl{
   GLenum int_format_init;
   GLint draw_buffer;
 
-  
+  //Total number of particles released in simulation
+  double totalNumPar;
 
   //QUIC-PLUME References
   int nx;
