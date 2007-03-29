@@ -28,7 +28,7 @@ class ParticleEmitter{
 
   //Emits numToEmit(number of particles to emit) particles by setting values in
   //the particle position textures to xpos,ypos,zpos.
-  virtual void EmitParticle(FramebufferObject*, bool);
+  virtual int EmitParticle(FramebufferObject*, bool);
 
   //Uses the variables, emitTime and remTime, to emit particles based on the time step
   //and how many particles per second(pps). 
@@ -59,6 +59,7 @@ class ParticleEmitter{
   //Value used to decide how many particle to emit once the function, EmitParticle,
   //is called.  
   int numToEmit;
+  int temp;
   
   //Number of particles to emit per second
   float pps;
