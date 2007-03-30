@@ -13,5 +13,6 @@ time_step 0.0012
 #Use value of 4 for uniform in U direction
 #Use value of 2 for random values
 testcase 4
+
 #output file for the values of the collection boxes
 output_file data.txt
