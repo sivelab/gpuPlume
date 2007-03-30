@@ -151,7 +151,7 @@ void PlumeControl::init(){
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,u,v,w);
 
   dc = new DisplayControl(nx,ny,nz, texType);
-  //std::cout << "made it" << std::endl;
+  
   dc->initVars(numBuild,xfo,yfo,zfo,ht,wti,lti);
  
   
