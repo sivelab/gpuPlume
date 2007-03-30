@@ -16,6 +16,7 @@
 #endif
 
 #include "plumeControl.h"
+//#include "util.h"
 
 PlumeControl* plume;
 
@@ -48,7 +49,8 @@ int main(int argc, char** argv)
     }
   else{ w = 128; h = 128; t = 4;}
 
-  plume = new PlumeControl(w,h, t);
+  
+  
 
 #ifdef WIN32
   TCHAR buffer[MAX_PATH];
@@ -66,6 +68,9 @@ int main(int argc, char** argv)
 	   dwRet = GetCurrentDirectory(MAX_PATH, buffer);
   }
 #endif
+  
+  plume = new PlumeControl(w,h, t);
+
 
 #ifndef WIN32
   srand48( time(0) % getpid() );
