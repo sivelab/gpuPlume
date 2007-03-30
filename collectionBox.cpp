@@ -60,15 +60,16 @@ void CollectionBox::clear(){
   }
 
 }
-void CollectionBox::outputConc(char* file,double totalTime){
+void CollectionBox::outputConc(std::string file,double totalTime){
   std::ofstream output;
 
+
   if(!alreadyOpen){
-    output.open(file);
+    output.open(file.c_str());
     alreadyOpen = true;
   }
   else{
-    output.open(file,std::ios::app);
+    output.open(file.c_str(),std::ios::app);
   }
 
   output << "Variables: X Y Z C" << "\n";
