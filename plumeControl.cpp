@@ -1,4 +1,3 @@
-#include <iostream>
 #include <math.h>
 
 #include "plumeControl.h"
@@ -98,24 +97,12 @@ PlumeControl::PlumeControl(int width, int height, int t){
 
 #endif
 
-  //These values determine the number of particles
-  twidth = width;  theight = height;
+  utility = new Util(this);
+  utility->readInput("input.txt");
 
   texType = GL_TEXTURE_RECTANGLE_ARB;
   int_format = GL_RGBA32F_ARB;
   int_format_init = GL_RGBA;
-
-  //testcase determines which data set to use for the windfield.
-  //The value t is currently passed in from gpuPlume.  When it
-  //equals 3, it runs the quicplume data set.  When it equals
-  //4 it runs the uniform u-direction windfield.  
-  testcase = t;
-  
-  //This is the time step of the simulation.
-  //Set useRealTime to true for real-time simulation
-  //or false to use the value given to time_step.
-  time_step = 0.0012;
-  useRealTime = true;
 
   totalNumPar = 0;
 
@@ -124,7 +111,6 @@ PlumeControl::PlumeControl(int width, int height, int t){
   endCBoxTime = 30.0;
   firstTime = true;
   endCBox = false;
-  output_file = "data.txt";
   averagingTime = 10.0;
   avgTime = averagingTime;
 
