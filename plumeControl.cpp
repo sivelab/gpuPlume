@@ -98,7 +98,7 @@ PlumeControl::PlumeControl(int width, int height, int t){
 #endif
 
   utility = new Util(this);
-  utility->readInput("input.txt");
+  utility->readInput("Settings/input.txt");
 
   texType = GL_TEXTURE_RECTANGLE_ARB;
   int_format = GL_RGBA32F_ARB;
