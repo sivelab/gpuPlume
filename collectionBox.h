@@ -34,7 +34,7 @@ class CollectionBox{
 
 
   //Writes the concentration values to specified file
-  void outputConc(char*,double);
+  void outputConc(std::string,double);
 
   cell* cBox;
 
