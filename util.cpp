@@ -1,7 +1,7 @@
 #include "util.h"
 #include <stdio.h>
 #include <sstream>
-#include "PlumeControl.h"
+#include "plumeControl.h"
 
 Util::Util(PlumeControl* p){
 	plume = p;
@@ -38,10 +38,10 @@ void Util::parseLine(char* line){
     return;
 
   if(read1Float(line, "twidth", &f1)){
-	 plume->twidth = f1;
+	 plume->twidth = (int)f1;
   }
   if(read1Float(line, "theight", &f1)){
-	 plume->theight = f1;
+	 plume->theight = (int)f1;
   }
   if(read1Float(line, "time_step", &f1)){
     plume->time_step = f1;
