@@ -1,7 +1,7 @@
 #ifndef __PLUMECONTROL_H__
 #define __PLUMECONTROL_H__
 
-//#include <iostream>
+#include <iostream>
 #include <list>
 
 #include <GL/glew.h>
@@ -17,6 +17,7 @@
 #include "framebufferObject.h"
 #include "renderbuffer.h"
 #include "GLSL.h"
+#include "util.h"
 
 class PlumeControl{
  public:
@@ -27,7 +28,9 @@ class PlumeControl{
   void display();
    
   float time_step; //time step used for the movement of particles
-  int twidth,theight;
+  bool useRealTime; //Set whether to use real time or not
+  
+  int twidth,theight; //they are twidth*theight number ofparticles
   int numInRow;
 
   ParticleControl* pc;
@@ -38,6 +41,12 @@ class PlumeControl{
   CollectionBox* cBoxes[3];
   //total number of collection boxes being used
   int num_cBoxes;
+
+  //testcase determines which data set to use for the windfield.
+  //The value t is currently passed in from gpuPlume.  When it
+  //equals 3, it runs the quicplume data set.  When it equals
+  //4 it runs the uniform u-direction windfield.  
+  int testcase;
 
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
@@ -52,9 +61,9 @@ class PlumeControl{
   bool dump_contents;
   bool emit;
   bool show_particle_visuals;
-  //bool collectionBoxes;
   bool output_CollectionBox;
-
+ 
+  std::string output_file;
 
  private:
   
@@ -63,6 +72,7 @@ class PlumeControl{
   void setupTextures();
   void initFBO();
   void particleReuse();
+  void readInputFile();
       
   Timer* display_clock;
   Timer_t display_time[2];
@@ -76,18 +86,14 @@ class PlumeControl{
   double avgTime;
   bool firstTime;
   bool endCBox;
-  char* output_file;
 
   int frameCount;
   double lifeTime;
 
   bool odd;
-  bool useRealTime;
   bool reuseParticles;
 
   GLfloat* pos_buffer;
-
-  int testcase;
   GLSLObject emit_shader;
   GLenum int_format; 
   GLenum int_format_init;
@@ -95,6 +101,8 @@ class PlumeControl{
 
   //Total number of particles released in simulation
   double totalNumPar;
+
+  Util* utility;
 
   //QUIC-PLUME References
   int nx;
