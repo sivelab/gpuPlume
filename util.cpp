@@ -1,39 +1,47 @@
 #include "util.h"
 #include <stdio.h>
-#include "plumeControl.h"
+#include <sstream>
+#include "PlumeControl.h"
 
 Util::Util(PlumeControl* p){
-  plume = p;
+	plume = p;
 }
 
-void Util::readInput(char* file){
-  FILE *in = fopen(file,"r");
-
+void Util::readInput(std::string file){
   
+  std::ifstream in;
+  in.open(file.c_str(),std::ios::in);
+    	
+  if(in == NULL) std::cout << "input file didn't open" << std::endl;
+    
   char line[1024];
-  while( fgets(line, 1024, in) != NULL )
-  {
-      if( line[ strlen(line)-1 ] == '\n' )
-          line[ strlen(line)-1 ] = '\0';
+
+  while(  !in.eof() )
+  {  
+	 in.getline(line, 1024);
+	 if( line[ strlen(line)] == '\n' ){
+		   line[ strlen(line)] = '\0';
+	  }
 
        parseLine(line);
   }
     
-  fclose(in);
+  in.close();
 
 }
 void Util::parseLine(char* line){
-  char s1[1024];
+  //char s1[1024];
   float f1;
+  std::string s1;
 
   if(readComment(line))
     return;
 
   if(read1Float(line, "twidth", &f1)){
-    plume->twidth = (int)f1;
+	 plume->twidth = f1;
   }
   if(read1Float(line, "theight", &f1)){
-    plume->theight = (int)f1;
+	 plume->theight = f1;
   }
   if(read1Float(line, "time_step", &f1)){
     plume->time_step = f1;
@@ -47,29 +55,22 @@ void Util::parseLine(char* line){
     else
       plume->useRealTime = true;
   }
-  if(read1String(line, "output_file", s1)){
-    plume->output_file = std::string(s1);
+  if(read1String(line, "output_file", &s1)){
+	  plume->output_file = s1;
   }
 
-
 }
-bool Util::read1Float(const char *line, char *settingName, float *f)
+bool Util::read1Float(char *line, std::string settingName, float *f)
 {
-    char readSettingName[256];
-    char readSettingVal[512];
-    readSettingName[0] = readSettingVal[0] = 0;
+	std::istringstream ist(line);
 
-    if(sscanf(line, "%s %[^\n]\n", readSettingName, readSettingVal) != 2)
-        return false;
-
-    if(strcmp(readSettingName, settingName) == 0)
-    {
-        if(sscanf(readSettingVal, "%f", f) != 1)
-        {
-           exit(1);
-        }
-        return true;
-    }
+	std::string w;
+	ist >> w;
+	if(w == settingName){
+		ist >> *f;
+		return true;
+	}
+	
     return false;
 }
 bool Util::readComment(const char *line)
@@ -92,22 +93,16 @@ bool Util::readComment(const char *line)
     return false;
 
 }
-bool Util::read1String(const char *line, char *settingName, char *s)
+bool Util::read1String(const char *line, char *settingName, std::string *s)
 {
-    char readSettingName[256];
-    char readSettingVal[512];
-    readSettingName[0] = readSettingVal[0] = 0;
+	std::istringstream ist(line);
 
-    if(sscanf(line, "%s %[^\n]\n", readSettingName, readSettingVal) != 2)
-        return false;
+	std::string w;
+	ist >> w;
+	if(w == settingName){
+		ist >> *s;
+		return true;
+	}
 
-    if(strcmp(readSettingName, settingName) == 0)
-    {
-        if(sscanf(readSettingVal, "%s", s) != 1)
-        {
-            exit(1);
-        }
-        return true;
-    }
     return false;
 }
