@@ -3,23 +3,23 @@
 
 #include <iostream>
 #include <fstream>
-// #include "plumeControl.h"
 
 class PlumeControl;
+
 
 class Util{
 
  public:
   
   Util(PlumeControl*);
-  void readInput(char*);
+  void readInput(std::string);
 
  private:
 
   void parseLine(char*);
-  bool read1Float(const char*,char*,float*);
+  bool read1Float(char*,std::string,float*);
   bool readComment(const char*);
-  bool read1String(const char*,char*,char*);
+  bool read1String(const char*,char*,std::string*);
   
   PlumeControl* plume;
 
