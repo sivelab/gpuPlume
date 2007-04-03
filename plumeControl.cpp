@@ -146,20 +146,21 @@ PlumeControl::PlumeControl(int width, int height, int t){
   
 }
 
-void PlumeControl::init(){
-
-#ifdef OSG_PLUME
-  vp = new GLint[4];
-  mvm = new GLfloat[16];
-  pm = new GLfloat[16];
-#endif
-  
+void PlumeControl::init(bool OSG){
+  osgPlume = OSG;
+ 
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,u,v,w);
 
-  dc = new DisplayControl(nx,ny,nz, texType);
-  
+  dc = new DisplayControl(nx,ny,nz, texType);  
   dc->initVars(numBuild,xfo,yfo,zfo,ht,wti,lti);
- 
+
+  if(osgPlume){
+    vp = new GLint[4];
+    mvm = new GLfloat[16];
+    pm = new GLfloat[16];
+    dc->osgPlume = true;
+  }
+
   
   if(testcase == 3){   
     dc->draw_buildings = true;
@@ -223,21 +224,19 @@ void PlumeControl::init(){
 }
 
 void PlumeControl::display(){
-#ifdef OSG_PLUME
-  glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
-  glGetFloatv(GL_PROJECTION_MATRIX,pm);
-  glGetIntegerv(GL_VIEWPORT,vp);
+  if(osgPlume){
+    glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
+    glGetFloatv(GL_PROJECTION_MATRIX,pm);
+    glGetIntegerv(GL_VIEWPORT,vp);
   
-  glViewport(vp[0],vp[1],vp[2],vp[3]);
+    glViewport(vp[0],vp[1],vp[2],vp[3]);
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluOrtho2D(-1,1,-1,1);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-#endif
-
-  
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-1,1,-1,1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+  }
 
   if(firstTime){
     if(useRealTime)
@@ -378,28 +377,29 @@ void PlumeControl::display(){
       // clear the color and depth buffer before drawing the scene, and
       // set the viewport to the window dimensions
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#ifdef OSG_PLUME
-      glViewport(vp[0], vp[1], vp[2], vp[3]);
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      glMultMatrixf(pm);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();		
-      glMultMatrixf(mvm);
-#else
-      glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();		
-#endif
+
+      if(osgPlume){
+	glViewport(vp[0], vp[1], vp[2], vp[3]);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMultMatrixf(pm);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();		
+	glMultMatrixf(mvm);
+      }
+      else{
+	glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();		
+      }
 
       //plume->displayVisual(vertex_buffer);
       dc->drawVisuals(vertex_buffer, texid[3], numInRow, twidth, theight);
-#ifndef OSG_PLUME
-      pe->Draw();
-#endif
+      if(!osgPlume)
+	pe->Draw();
 
       // If we've chose to display the 3D particle domain, we need to
       // set the projection and modelview matrices back to what is
@@ -415,9 +415,9 @@ void PlumeControl::display(){
       
       // Finally, swap the front and back buffers to display the
       // particle field to the monitor
-#ifndef OSG_PLUME
-      glutSwapBuffers();
-#endif
+      if(!osgPlume)
+	glutSwapBuffers();
+
     }
 
 }
