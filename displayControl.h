@@ -7,10 +7,11 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 //#include <glm.h>
-#include "gpuPlume.h"
+//#include "gpuPlume.h"
 #include "GLSL.h"
 
 #include "Timer.h"
+
 
 class DisplayControl{
 
@@ -36,6 +37,7 @@ class DisplayControl{
   bool frame_rate;
 
   bool draw_buildings;
+  bool osgPlume;
 
   int visual_layer;
 
