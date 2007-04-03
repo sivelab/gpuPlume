@@ -3,4 +3,6 @@
 
 //#define USE_PLUME_DATA
 
+//#define OSG_PLUME
+
 #endif // __GPUPLUME_H__
