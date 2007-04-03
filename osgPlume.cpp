@@ -52,7 +52,7 @@ class DrawableDrawCallback : public osg::Drawable::DrawCallback
 	    
 	    glewInit();
 	    glEnable(GL_DEPTH_TEST);
-	    plume->init();	    	    
+	    plume->init(true);	    	    
 	    firstTime = false;
 	  }		 
 
