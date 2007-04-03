@@ -28,11 +28,12 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   frame_rate = true;
   visual_layer = -1;
   
+  
   //This shader is used to make final changes before rendering to the screen
   render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
   render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   render_shader.createProgram();
-  
+  //std::cout << "made it" << std::endl;
   // Create a high resolution clock timer - only works on Linux, x86
   // systems.  The basic timer works on Windows.  Setting the argument
   // to true will have no affect on windows implementations.
@@ -43,6 +44,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRow, 
 				 int twidth, int theight)
 {
+#ifndef OSG_PLUME
   gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
 	     eye_gaze[0], eye_gaze[1], eye_gaze[2],
 	     0, 1, 0 );
@@ -54,6 +56,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
     glRotatef(azimuth, 0,1,0);
     // glTranslatef(0,0,5.0);
   }
+#endif
   
   // render the vertices in the VBO (the particle positions) as points in the domain
   glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
@@ -67,16 +70,19 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   
 
   drawAxes();
+#ifndef OSG_PLUME
   if(draw_buildings){
     drawFeatures();
   }
+#endif
   drawLayers(texid3, numInRow);  
 
   // spit out frame rate
+#ifndef OSG_PLUME
   if (frame_rate){
     drawFrameRate(twidth, theight);
   }
-  
+#endif
   
 }
 void DisplayControl::increaseVisualLayer(){
@@ -278,6 +284,7 @@ void DisplayControl::drawFeatures(void)
 
 //text: draws a string of text with an 18 point helvetica bitmap font
 // at position (x,y) in window space(bottom left corner is (0,0).
+
 void DisplayControl::drawFrameRate(int twidth, int theight)
 {
   // record end clock time
@@ -295,6 +302,8 @@ void DisplayControl::OpenGLText(int x, int y, char* s)
 {
   int lines;
   char* p;
+  GLint* vp = new GLint[4];
+  glGetIntegerv(GL_VIEWPORT,vp);
 
   // glDisable(GL_LIGHTING);
   glDisable(texType);
@@ -302,8 +311,8 @@ void DisplayControl::OpenGLText(int x, int y, char* s)
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
-  glOrtho(0, glutGet(GLUT_WINDOW_WIDTH), 
-	  0, glutGet(GLUT_WINDOW_HEIGHT), -1, 1);
+  glOrtho(0, vp[2], 
+	  0, vp[3], -1, 1);
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
   glLoadIdentity();
