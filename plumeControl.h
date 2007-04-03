@@ -120,6 +120,11 @@ class PlumeControl{
   double* wti;
   double* lti;
 
+
+  GLint* vp;
+  GLfloat* mvm;
+  GLfloat* pm;
+
 };
 
 #endif // __PLUMECONTROL_H__
