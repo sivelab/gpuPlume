@@ -24,7 +24,7 @@ class PlumeControl{
   
   PlumeControl(int, int, int);
 
-  void init(); 
+  void init(bool); 
   void display();
    
   float time_step; //time step used for the movement of particles
@@ -62,6 +62,7 @@ class PlumeControl{
   bool emit;
   bool show_particle_visuals;
   bool output_CollectionBox;
+  bool osgPlume;
  
   std::string output_file;
 
