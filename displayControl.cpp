@@ -27,7 +27,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 
   frame_rate = true;
   visual_layer = -1;
-  
+  osgPlume = false;
   
   //This shader is used to make final changes before rendering to the screen
   render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -44,19 +44,19 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRow, 
 				 int twidth, int theight)
 {
-#ifndef OSG_PLUME
-  gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
+  if(!osgPlume){
+    gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
 	     eye_gaze[0], eye_gaze[1], eye_gaze[2],
 	     0, 1, 0 );
 
-  if (!rotate_sphere) 
-  {
-    // allow rotation of this object
-    glRotatef(elevation, 1,0,0);
-    glRotatef(azimuth, 0,1,0);
-    // glTranslatef(0,0,5.0);
+    if (!rotate_sphere) 
+      {
+	// allow rotation of this object
+	glRotatef(elevation, 1,0,0);
+	glRotatef(azimuth, 0,1,0);
+	// glTranslatef(0,0,5.0);
+      }
   }
-#endif
   
   // render the vertices in the VBO (the particle positions) as points in the domain
   glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
@@ -65,24 +65,24 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   glVertexPointer(4, GL_FLOAT, 0, 0);
   glPointSize(2.0);
   render_shader.activate();
-  glDrawArrays(GL_POINTS, 0, twidth*theight); 
+  glDrawArrays(GL_POINTS, 0, twidth*theight);
   render_shader.deactivate();
   
 
   drawAxes();
-#ifndef OSG_PLUME
-  if(draw_buildings){
-    drawFeatures();
+  if(!osgPlume){
+    if(draw_buildings){
+      drawFeatures();
+    }
   }
-#endif
   drawLayers(texid3, numInRow);  
 
   // spit out frame rate
-#ifndef OSG_PLUME
-  if (frame_rate){
-    drawFrameRate(twidth, theight);
+  if(!osgPlume){
+    if (frame_rate){
+      drawFrameRate(twidth, theight);
+    }
   }
-#endif
   
 }
 void DisplayControl::increaseVisualLayer(){
