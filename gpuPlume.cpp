@@ -16,7 +16,6 @@
 #endif
 
 #include "plumeControl.h"
-//#include "util.h"
 
 PlumeControl* plume;
 
@@ -134,7 +133,7 @@ void init(void)
 {
   glEnable(GL_DEPTH_TEST);
   
-  plume->init(); 
+  plume->init(false); 
  
 }
 
