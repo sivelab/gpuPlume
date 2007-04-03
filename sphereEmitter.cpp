@@ -23,7 +23,7 @@ SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
   radius = r;
 
   numToEmit = 1;
-  emitTime = 0;
+  emitTime = 1;
   remTime = 0;
 
   twidth = *w;
