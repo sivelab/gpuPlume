@@ -1,9 +1,9 @@
 #Number of particles(twidth*theight)
-twidth 128
-theight 128
+twidth 256
+theight 256
 
 #Set useRealTime to 0 for false and 1 for true
-useRealTime 1
+useRealTime 0
 
 #Time step used for simulation
 time_step 0.0012
@@ -16,3 +16,7 @@ testcase 4
 
 #output file for the values of the collection boxes
 output_file data.txt
+
+#Total time in seconds to run simulation
+#set to 0 to let user decide when to quit
+duration 20.0
