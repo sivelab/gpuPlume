@@ -11,10 +11,10 @@ PointEmitter::PointEmitter(float x,float y,float z,float rate, int* w,
   reuse = false;
   lifeTime = -1.0;
 
-  pps = rate;
-  numToEmit = 1;
+  releaseRate = rate;
+  numToEmit = 0;
 
-  emitTime = 1;
+  emitTime = 0;
   remTime = 0;
 
   twidth = *w;
@@ -26,29 +26,6 @@ PointEmitter::PointEmitter(float x,float y,float z,float rate, int* w,
 
 }
 PointEmitter::~PointEmitter(){}
-
-/*void PointEmitter::Draw(){
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_COLOR_MATERIAL);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  glPointSize(5.0);
-  
-  glBegin(GL_POINTS);
-  {
-    glColor4f(1.0, 1.0, 0.0, 0.8);
-    glVertex3f(xpos,ypos,zpos);
-  }
-  glEnd();
-
-
-  glDisable(GL_BLEND);
-  glDisable(GL_COLOR_MATERIAL);
-  glDisable(GL_LIGHT0);
-  glDisable(GL_LIGHTING);
-  }*/
 
 int PointEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
  
@@ -89,7 +66,7 @@ int PointEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  int t = (p_index/twidth);
 	  //s = (s*(2.0/(float)twidth) - 1.0);
 	  //t = (t*(2.0/(float)theight) - 1.0);
-	  //std::cout << s << " " << t  <<std::endl;
+	  
 	  glViewport(s,t,1,1);
        
 	  glBegin(GL_POINTS);
@@ -109,8 +86,8 @@ int PointEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
       glLoadIdentity();
 
     }
-    temp = numToEmit;
-    numToEmit = 1;
+    //temp = numToEmit;
+    //numToEmit = 0;
    
-    return temp;
+    return numToEmit;
 }
