@@ -2,7 +2,6 @@
 #define __PARTICLE_EMITTER_H__
 #include <list>
 #include <GL/glew.h>
-//#include <GL/glut.h>
 #include <math.h>
 #include "framebufferObject.h"
 #include "GLSL.h"
@@ -39,6 +38,8 @@ class ParticleEmitter{
 
   virtual void setParticleReuse(std::list<pIndex>*, float time);
 
+  virtual void setNPTS(double,double);
+
   virtual ~ParticleEmitter();
 
 
@@ -52,18 +53,20 @@ class ParticleEmitter{
   //Lifetime of particle
   float lifeTime;
 
-
   //Number of particles is twidth*theight
   int twidth,theight;
 
-  //Value used to decide how many particle to emit once the function, EmitParticle,
-  //is called.  
+  //Value used to decide how many particle to emit once the 
+  //function, EmitParticle, is called if using particle per second.
+  //If particles per time step, numToEmit is set to the number
+  //of particles to emit per time step.
   int numToEmit;
   int temp;
   
-  //Number of particles to emit per second
-  float pps;
-
+  //Release rate of particles:
+  //number of particles per second
+  float releaseRate;
+  
   //These valuse are used in the timeToEmit function,
   //used to determine if it's time to emit a particle or not
   float emitTime, remTime;
