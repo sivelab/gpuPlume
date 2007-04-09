@@ -58,6 +58,9 @@ void Util::parseLine(char* line){
   if(read1String(line, "output_file", &s1)){
 	  plume->output_file = s1;
   }
+  if(read1Float(line, "duration", &f1)){
+    plume->duration = (double)f1;
+  }
 
 }
 bool Util::read1Float(char *line, std::string settingName, float *f)
