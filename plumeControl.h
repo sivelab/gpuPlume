@@ -18,6 +18,7 @@
 #include "renderbuffer.h"
 #include "GLSL.h"
 #include "util.h"
+#include "simulation.h"
 
 class PlumeControl{
  public:
@@ -26,7 +27,7 @@ class PlumeControl{
 
   void init(bool); 
   void display();
-   
+     
   float time_step; //time step used for the movement of particles
   bool useRealTime; //Set whether to use real time or not
   
@@ -52,7 +53,7 @@ class PlumeControl{
   std::list<pIndex> indicesInUse;
 
   GLuint texid[8]; 
-  GLenum texType;
+  GLenum texType,positions0,positions1,windField,randomValues;
   
   FramebufferObject* fbo;
   Renderbuffer* rb;
@@ -63,10 +64,20 @@ class PlumeControl{
   bool show_particle_visuals;
   bool output_CollectionBox;
   bool osgPlume;
+  bool quitSimulation;
  
+  //output file of collection box
   std::string output_file;
+  
+  //simulation duration in seconds
+  double duration;
+
+  //glut window id
+  int winid;
 
  private:
+  
+  Simulation* sim;
   
   std::list<pIndex>::iterator iter;
 
@@ -76,13 +87,10 @@ class PlumeControl{
   void readInputFile();
       
   Timer* display_clock;
-  Timer_t display_time[2];
   Timer_t reuse_time[2]; 
-  Timer_t cBox_time[2];
-
+  
   double startCBoxTime;
   double endCBoxTime;
-  double totalTime;
   double averagingTime;
   double avgTime;
   bool firstTime;
@@ -93,6 +101,7 @@ class PlumeControl{
 
   bool odd;
   bool reuseParticles;
+  bool releasePerTimeStep;
 
   GLfloat* pos_buffer;
   GLSLObject emit_shader;
