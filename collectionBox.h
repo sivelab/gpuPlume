@@ -4,11 +4,11 @@
 #include <math.h>
 #include <fstream>
 
-typedef struct{
+/*typedef struct{
   double concentration;
   int count;
 
-}cell;
+  }cell;*/
 
 class CollectionBox{
  public:
@@ -20,7 +20,7 @@ class CollectionBox{
   //The first three values is the lower x,y,z coordinate
   //and the last three is the upper x,y,z coordinate
   //The last float is the concentration averaging time
-  CollectionBox(int,int,int,float*,float);
+  CollectionBox(int,int,int,float*,double);
   
   //Checks the location of the particles each pass. 
   //void seeIfInBox(float,float,float);
@@ -32,11 +32,11 @@ class CollectionBox{
   //Set concentration values to zero
   void clear();
 
-
   //Writes the concentration values to specified file
   void outputConc(std::string,double);
 
-  cell* cBox;
+  //cell* cBox;
+  double* cBox;
 
  private:
 
@@ -55,10 +55,10 @@ class CollectionBox{
   float lz;
   float uz;
 
-  float volume;
+  double volume;
   double constant;
-  float TotRel;
-  float concAvgTime;
+  double TotRel;
+  double concAvgTime;
 
 
 };
