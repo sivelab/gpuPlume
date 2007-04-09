@@ -19,11 +19,12 @@ SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
   reuse = false;
   lifeTime = -1.0;
 
-  pps = rate;
+  releaseRate = rate;
   radius = r;
 
-  numToEmit = 1;
-  emitTime = 1;
+  numToEmit = 0;
+
+  emitTime = 0;
   remTime = 0;
 
   twidth = *w;
@@ -61,8 +62,11 @@ void SphereEmitter::Draw(){
 int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
  
   int p_index;
+  //int* vp = new int[4];
+
   //Make sure there are available indices to emit particles.
     if(!indices->empty()){
+      //glGetIntegerv(GL_VIEWPORT,vp);
 
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
@@ -117,6 +121,9 @@ int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  shader->deactivate();
 	}
       }
+
+      //glViewport(vp[0],vp[1],vp[2],vp[3]);
+
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
       gluOrtho2D(-1, 1, -1, 1);
@@ -124,7 +131,8 @@ int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
       glLoadIdentity();
 
     }
-    temp = numToEmit;
-    numToEmit = 1;
-    return temp;
+    //temp = numToEmit;
+    //numToEmit = 0;
+
+    return numToEmit;
 }
