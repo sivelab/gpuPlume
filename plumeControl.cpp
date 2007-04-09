@@ -94,27 +94,26 @@ PlumeControl::PlumeControl(int width, int height, int t){
   u=0;
   v=0;
   w=0;
-
 #endif
 
   utility = new Util(this);
   utility->readInput("Settings/input.txt");
+  
+  //Sets up the type of simulation to run
+  sim = new Simulation(useRealTime,duration,&time_step);
 
   texType = GL_TEXTURE_RECTANGLE_ARB;
   int_format = GL_RGBA32F_ARB;
   int_format_init = GL_RGBA;
 
-  totalNumPar = 0;
+  totalNumPar = 0.0;
 
   //CollectionBox Settings
   startCBoxTime = 0.0;
-  endCBoxTime = 30.0;
-  firstTime = true;
-  endCBox = false;
-  averagingTime = 10.0;
-  avgTime = averagingTime;
-
-  output_CollectionBox = false;
+  endCBoxTime = 15.0;
+  averagingTime = (double)3.0;
+  avgTime = averagingTime + startCBoxTime;
+  
   pos_buffer = new GLfloat[ twidth * theight * 4 ];
   float* bounds = new float[6];
   
@@ -127,10 +126,20 @@ PlumeControl::PlumeControl(int width, int height, int t){
   cBoxes[0] = new CollectionBox(3,4,5,bounds,averagingTime);
   num_cBoxes = 1;
 
+  firstTime = true;
+  endCBox = false;
+  output_CollectionBox = false;
   odd = true; 
   dump_contents = false;
-  emit = true;
+  emit = false;
   show_particle_visuals = true;
+  quitSimulation = false;
+  
+  if(duration != 0 && !useRealTime){
+    releasePerTimeStep = true;
+  }
+  else
+    releasePerTimeStep = false;
 
   //Set whether to reuse particles or not
   //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
@@ -160,34 +169,37 @@ void PlumeControl::init(bool OSG){
     pm = new GLfloat[16];
     dc->osgPlume = true;
   }
-
   
   if(testcase == 3){   
     dc->draw_buildings = true;
     //Creates a point emitter with position(10,10,10) , emitting 10 particles per second
     pe = new PointEmitter(10.0,10.0,10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
-    if(reuseParticles){
-      pe->setParticleReuse(&indicesInUse, lifeTime);
-    }
   }
   else{
     dc->draw_buildings = false;
-    //Creates a sphere emitter with position(30,10,10), emitting 10 pps, with a radius of 4
-    pe = new SphereEmitter(30.0, 10.0, 30.0, 30.0, 4.0, &twidth, &theight, &indices, &emit_shader);
-    if(reuseParticles){
-      pe->setParticleReuse(&indicesInUse, lifeTime);
-    }
+    //Creates a sphere emitter with position(30,10,10), emitting 60 pps, with a radius of 4
+    pe = new SphereEmitter(30.0, 10.0, 30.0, 2000.0, 4.0, &twidth, &theight, &indices, &emit_shader);
+  }
+  if(reuseParticles)
+    pe->setParticleReuse(&indicesInUse, lifeTime);
+
+  if(releasePerTimeStep){
+    //setNPTS(number of particles, total number of time steps);
+    pe->setNPTS(double(twidth*theight), duration/(double)time_step);
   }
   
-
   glEnable(texType);
   glGenTextures(8, texid);
   /////////////////////////////
   //Textures used:
   //texid[0] and texid[1] are the double buffered position textures
+  positions0 = texid[0];
+  positions1 = texid[1];
   //texid[2] can be used to initialize the positions
   //texid[3] is the wind field texture
-  //texid[4] is ...
+  windField = texid[3];
+  //texid[4] is random values
+  randomValues = texid[4];
   /////////////////////////////
   setupTextures();
 
@@ -217,13 +229,15 @@ void PlumeControl::init(bool OSG){
 
   if(useRealTime){
     display_clock = new Timer(true);
-    //We need to initialize time 0;
-    display_time[0] = display_clock->tic();
-  }
+    sim->init();
+  } 
 
 }
+//Error checking variable.
+//Delete once emit particles problem solved. 
+int d = 0;
 
-void PlumeControl::display(){
+void PlumeControl::display(){ 
   if(osgPlume){
     glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
     glGetFloatv(GL_PROJECTION_MATRIX,pm);
@@ -238,20 +252,38 @@ void PlumeControl::display(){
     glLoadIdentity();
   }
 
-  if(firstTime){
-    if(useRealTime)
-      cBox_time[0] = display_clock->tic();
-    else
-      totalTime = 0;
-    firstTime = false;
+  //Makes sure the display loop is run once first
+  //before emitting particles.  There is an error
+  //in starting to emit particles the first time.
+  ///////////////////////
+  if(d < 1){
+    d++;
   }
-
-  //GLint draw_buffer;
+  else{
+    //emit = true;
+  //////////////////////
+  //Set start time the second display call.
+    //Once error is fixed, we can call this the first time.
+    if(firstTime){
+      emit = true;
+      sim->setStartTime();
+      firstTime = false;
+    }
+  }
+ 
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
   
   // bind the framebuffer object so we can render to the 2nd texture
   fbo->Bind();
   
+  //update simulation information such as total time elapsed and current time step
+  //if set to run for a total number of time steps and that value has been reached,
+  //clean up anything needed and close the window
+  if(sim->update(&time_step) && !firstTime){
+    if(!osgPlume){
+      quitSimulation = true;
+    }
+  }
   /////////////////////////////////////////////////////////////
   //Reuse particles if their lifespan is up
   /////////////////////////////////////////////////////////////
@@ -260,46 +292,36 @@ void PlumeControl::display(){
   }
   ////////////////////////////////////////////////////////////
   // Emit Particles
-  ///////////////////////////////////////////////////////////
-  //record end time
-  if(useRealTime){
-    display_time[1] = display_clock->tic();
-
-    time_step = display_clock->deltas(display_time[0],display_time[1]);
-    //std::cout << time_step << std::endl;
-  }  
-  if(emit){
-    
-    if(pe->timeToEmit(time_step))
-      totalNumPar += (double)pe->EmitParticle(fbo, odd); 
+  ////////////////////////////////////////////////////////////
+  
+  if(emit){    
+    if(releasePerTimeStep){
+      totalNumPar += (double)pe->EmitParticle(fbo,odd);
+    }
+    else{
+      if(pe->timeToEmit(time_step))
+	totalNumPar += (double)pe->EmitParticle(fbo, odd); 
+    }   
   }
-  //record start time
-  if(useRealTime)
-    display_time[0] = display_clock->tic();
-
+ 
   ////////////////////////////////////////////////////////////
   // Collection Boxes
   ////////////////////////////////////////////////////////////
   if(!endCBox){
-    if(useRealTime){
-      cBox_time[1] = display_clock->tic();
-      totalTime = display_clock->deltas(cBox_time[0],cBox_time[1]);
-    }
-    else totalTime += time_step;
-
-    if(totalTime >= endCBoxTime){
+    
+    if(sim->totalTime > endCBoxTime){
       endCBox = true;
       output_CollectionBox = true;
     }       
   }
 
-  if((totalTime >= startCBoxTime) && (totalTime < endCBoxTime)){
-  
+  if((sim->totalTime >= startCBoxTime) && (!endCBox) && !firstTime){
+    
     glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, pos_buffer); 
     for(int i = 3; i < theight*twidth; i+=4){
       //If particle has been emitted
       if(pos_buffer[i] == -1){
-
+	
 	//Get the x,y,z position of the particle
 	float x = pos_buffer[i-3];
 	float y = pos_buffer[i-2];
@@ -312,7 +334,7 @@ void PlumeControl::display(){
 	}	
       }
     } 
-    if(totalTime >= avgTime){
+    if(sim->totalTime >= avgTime){
       avgTime += averagingTime;
       output_CollectionBox = true;
     }
@@ -321,7 +343,7 @@ void PlumeControl::display(){
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
   ////////////////////////////////////////////////////////////
-  pc->advect(fbo, odd, texid[4], texid[3], texid[0], texid[1], time_step);
+  pc->advect(fbo, odd, randomValues, windField, positions0, positions1, time_step);
 
   ////////////////////////////////////////////////////////////
 
@@ -353,8 +375,9 @@ void PlumeControl::display(){
       if(output_CollectionBox)
 	{
 	  for(int j = 0; j < num_cBoxes; j++){
-	    cBoxes[j]->outputConc(output_file,totalTime);
-	    cBoxes[j]->clear();
+	    cBoxes[j]->outputConc(output_file,sim->totalTime);
+	    //I'm calling clear at the end of outputConc();
+	    //cBoxes[j]->clear();
 	  }
 	  output_CollectionBox = false;
 	}
@@ -397,10 +420,10 @@ void PlumeControl::display(){
       }
 
       //plume->displayVisual(vertex_buffer);
-      dc->drawVisuals(vertex_buffer, texid[3], numInRow, twidth, theight);
+      dc->drawVisuals(vertex_buffer, windField, numInRow, twidth, theight);
       if(!osgPlume)
 	pe->Draw();
-
+      
       // If we've chose to display the 3D particle domain, we need to
       // set the projection and modelview matrices back to what is
       // needed for the particle advection step
@@ -417,8 +440,13 @@ void PlumeControl::display(){
       // particle field to the monitor
       if(!osgPlume)
 	glutSwapBuffers();
-
     }
+
+  if(quitSimulation){
+    std::cout << "Simulation ended after " << sim->simDuration << " seconds."<< std::endl;
+    std::cout << "Total number of particles used: " << totalNumPar << std::endl;
+    glutDestroyWindow(winid);
+  }
 
 }
 
