@@ -135,6 +135,8 @@ PlumeControl::PlumeControl(int width, int height, int t){
   show_particle_visuals = true;
   quitSimulation = false;
   
+  //Release particles per time step only if duration is defined and
+  //there is a fixed time step.
   if(duration != 0 && !useRealTime){
     releasePerTimeStep = true;
   }
@@ -178,16 +180,16 @@ void PlumeControl::init(bool OSG){
   else{
     dc->draw_buildings = false;
     //Creates a sphere emitter with position(30,10,10), emitting 60 pps, with a radius of 4
-    pe = new SphereEmitter(30.0, 10.0, 30.0, 2000.0, 4.0, &twidth, &theight, &indices, &emit_shader);
+    pe = new SphereEmitter(30.0, 10.0, 30.0, 4000.0, 4.0, &twidth, &theight, &indices, &emit_shader);
   }
   if(reuseParticles)
     pe->setParticleReuse(&indicesInUse, lifeTime);
 
   if(releasePerTimeStep){
-    //setNPTS(number of particles, total number of time steps);
+    //setNPTS(number of particles/ total number of time steps);
     pe->setNPTS(double(twidth*theight), duration/(double)time_step);
   }
-  
+
   glEnable(texType);
   glGenTextures(8, texid);
   /////////////////////////////
@@ -309,16 +311,17 @@ void PlumeControl::display(){
   ////////////////////////////////////////////////////////////
   if(!endCBox){
     
-    if(sim->totalTime > endCBoxTime){
+    if(sim->totalTime >= endCBoxTime){
       endCBox = true;
-      output_CollectionBox = true;
+      if(endCBoxTime != 0)
+	output_CollectionBox = true;
     }       
   }
 
-  if((sim->totalTime >= startCBoxTime) && (!endCBox) && !firstTime){
+  if((sim->totalTime >= startCBoxTime) && !endCBox && !firstTime){
     
     glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, pos_buffer); 
-    for(int i = 3; i < theight*twidth; i+=4){
+    for(int i = 3; i <= (theight*twidth*4); i+=4){
       //If particle has been emitted
       if(pos_buffer[i] == -1){
 	
@@ -330,7 +333,7 @@ void PlumeControl::display(){
 	//Check to see if particle is inside a collection box
 	for(int j = 0; j < num_cBoxes; j++){
 	  //if a particle is in a box the concentration value is updated
-	  cBoxes[j]->calculateConc(x,y,z,time_step,totalNumPar);
+	  cBoxes[j]->calculateConc(x,y,z,time_step,totalNumPar);	  	  
 	}	
       }
     } 
@@ -515,7 +518,7 @@ void PlumeControl::setupTextures()
 	CheckErrorsGL("\tcreated texid[0], the position texture...");
 
 	// create a second texture to double buffer the vertex positions
-	pc->createTexture(texid[1], int_format, twidth, theight, NULL);
+	pc->createTexture(texid[1], int_format, twidth, theight, data);
 	CheckErrorsGL("\tcreated texid[1], the position texture (double buffer)...");
 
 	//
