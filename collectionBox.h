@@ -4,15 +4,9 @@
 #include <math.h>
 #include <fstream>
 
-/*typedef struct{
-  double concentration;
-  int count;
-
-  }cell;*/
 
 class CollectionBox{
  public:
-
   
   //The first three int variables are the number of boxes in
   //the x,y, and z directions respectively.
@@ -21,9 +15,6 @@ class CollectionBox{
   //and the last three is the upper x,y,z coordinate
   //The last float is the concentration averaging time
   CollectionBox(int,int,int,float*,double);
-  
-  //Checks the location of the particles each pass. 
-  //void seeIfInBox(float,float,float);
 
   //Calculates the Concentration for each position in the 
   //collection box
@@ -35,7 +26,6 @@ class CollectionBox{
   //Writes the concentration values to specified file
   void outputConc(std::string,double);
 
-  //cell* cBox;
   double* cBox;
 
  private:
