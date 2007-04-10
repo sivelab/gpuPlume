@@ -17,46 +17,30 @@ CollectionBox::CollectionBox(int x,int y,int z,float* bounds,double time){
   TotRel = (double)1.0;
   concAvgTime = time;
   
-  //cBox = new cell[x*y*z];
   cBox = new double[x*y*z];
 
   clear();
 
   alreadyOpen = false;
-  
 }
-/*void CollectionBox::seeIfInBox(float x, float y, float z){
 
-  if( (lx <= x)&&(x <= ux)&&(ly <= y)&&(y <= uy)&&(lz <= z)&&(z <= uz) ){
-   
-    int xBox = (int)floor((x-lx)/((ux-lx)/numBox_x));
-    int yBox = (int)floor((y-ly)/((uy-ly)/numBox_y));
-    int zBox = (int)floor((z-lz)/((uz-lz)/numBox_z));
-    int idx = yBox*numBox_x*numBox_z + xBox*numBox_z + zBox;
-    //cBox[idx].count++; 
-    
-    
-  }
-  }*/
 void CollectionBox::calculateConc(float x,float y,float z,float timeStep,double totalNumPar){
 
    if( (lx <= x)&&(x <= ux)&&(ly <= y)&&(y <= uy)&&(lz <= z)&&(z <= uz) ){
-   
+        
     int xBox = (int)floor((x-lx)/((ux-lx)/(float)numBox_x));
     int yBox = (int)floor((y-ly)/((uy-ly)/(float)numBox_y));
     int zBox = (int)floor((z-lz)/((uz-lz)/(float)numBox_z));
     int idx = yBox*numBox_x*numBox_z + xBox*numBox_z + zBox;
-    
-    constant = ((double)(timeStep*TotRel))/(double)(volume*concAvgTime*totalNumPar);
-    //std::cout << constant << std::endl;
-    //cBox[idx].concentration = cBox[idx].concentration + constant;
-    cBox[idx] = (double)((double)cBox[idx] + (double)constant);
+       
+    constant = (timeStep*TotRel)/(volume*concAvgTime*totalNumPar);
+    cBox[idx] = cBox[idx] + constant;   
   }
 
 }
 void CollectionBox::clear(){
   for(int i=0; i < numBox_x*numBox_y*numBox_z; i++){
-    cBox[i] = (double)0.0; //.concentration = 0;
+    cBox[i] = 0.0; 
   }
 
 }
