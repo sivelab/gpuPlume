@@ -180,7 +180,7 @@ void PlumeControl::init(bool OSG){
   else{
     dc->draw_buildings = false;
     //Creates a sphere emitter with position(30,10,10), emitting 60 pps, with a radius of 4
-    pe = new SphereEmitter(30.0, 10.0, 30.0, 4000.0, 4.0, &twidth, &theight, &indices, &emit_shader);
+    pe = new SphereEmitter(30.0, 10.0, 30.0, 60.0, 4.0, &twidth, &theight, &indices, &emit_shader);
   }
   if(reuseParticles)
     pe->setParticleReuse(&indicesInUse, lifeTime);
@@ -243,15 +243,10 @@ void PlumeControl::display(){
   if(osgPlume){
     glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
     glGetFloatv(GL_PROJECTION_MATRIX,pm);
+  
     glGetIntegerv(GL_VIEWPORT,vp);
   
     glViewport(vp[0],vp[1],vp[2],vp[3]);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-1,1,-1,1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
   }
 
   //Makes sure the display loop is run once first
@@ -281,9 +276,11 @@ void PlumeControl::display(){
   //update simulation information such as total time elapsed and current time step
   //if set to run for a total number of time steps and that value has been reached,
   //clean up anything needed and close the window
-  if(sim->update(&time_step) && !firstTime){
-    if(!osgPlume){
-      quitSimulation = true;
+  if(!firstTime){
+    if(sim->update(&time_step)){
+      if(!osgPlume){
+	quitSimulation = true;
+      }
     }
   }
   /////////////////////////////////////////////////////////////
