@@ -62,12 +62,10 @@ void SphereEmitter::Draw(){
 int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
  
   int p_index;
-  //int* vp = new int[4];
-
+  
   //Make sure there are available indices to emit particles.
     if(!indices->empty()){
-      //glGetIntegerv(GL_VIEWPORT,vp);
-
+      
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
       gluOrtho2D(0, twidth, 0, theight);
@@ -98,7 +96,7 @@ int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  if(reuse){
 	    pIndex newIndex;
 	    newIndex.id = p_index;
-	    newIndex.time = 0;
+	    newIndex.time = 0.0;
 	    indicesInUse->push_back(newIndex);
 	  
 	  }
@@ -121,8 +119,6 @@ int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  shader->deactivate();
 	}
       }
-
-      //glViewport(vp[0],vp[1],vp[2],vp[3]);
 
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
