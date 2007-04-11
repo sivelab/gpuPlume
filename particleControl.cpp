@@ -23,6 +23,73 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   v_quicPlumeData = w;
   w_quicPlumeData = u;
 }
+void ParticleControl::setupPrimeShader(){
+  //This shader is used to update prime values
+  prime_shader.addShader("Shaders/updatePrime_vp.glsl", GLSLObject::VERTEX_SHADER);
+  prime_shader.addShader("Shaders/updatePrime_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  prime_shader.createProgram();
+
+  uniform_prime = prime_shader.createUniform("primePrev");
+  uniform_random = prime_shader.createUniform("random");
+  uniform_windTex = prime_shader.createUniform("wind");
+  uniform_lambda = prime_shader.createUniform("lambda");
+  uniform_dt = prime_shader.createUniform("time_step");
+
+}
+void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint prime0, 
+				  GLuint prime1, GLuint windField, GLuint randomValues, 
+				  GLuint lambda, float time_step){
+
+  if (odd)
+    glDrawBuffer(GL_COLOR_ATTACHMENT3_EXT);
+  else 
+    glDrawBuffer(GL_COLOR_ATTACHMENT2_EXT);
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, twidth, theight);
+  
+  
+  glEnable(texType);
+  prime_shader.activate();
+  glUniform1fARB(uniform_dt, time_step);
+
+  //Bind the lambda texture to TEXTURE UNIT 3
+  glActiveTexture(GL_TEXTURE3);
+  glBindTexture(texType, lambda);
+  glUniform1iARB(uniform_lambda, 3);
+
+  // Bind the random data field to TEXTURE UNIT 2
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(texType, randomValues);
+  glUniform1iARB(uniform_random, 2);
+
+  // wind field can be stored here in TEXTURE UNIT 1
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(texType, windField);
+  glUniform1iARB(uniform_windTex, 1);
+    
+  glActiveTexture(GL_TEXTURE0);
+  glUniform1iARB(uniform_prime, 0);
+
+  if (odd)
+    glBindTexture(texType, prime0);  // read from prime texture 0
+  else 
+    glBindTexture(texType, prime1);  // read from prime texture 1
+
+  glBegin(GL_QUADS);
+  {
+    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+  }
+  glEnd();
+  
+  pass1_shader.deactivate();
+ 
+  glBindTexture(texType, 0);
+
+}
 void ParticleControl::setupAdvectShader(float* time_step, int* numInRow, float life_time){
 
   //This shader is used to move the particles
@@ -35,6 +102,9 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow, float l
   uniform_wind = pass1_shader.createUniform("wind_texunit");
   uniform_randomTexture = pass1_shader.createUniform("random_texunit");
   uniform_timeStep = pass1_shader.createUniform("time_step");
+  uniform_primePrev = pass1_shader.createUniform("primePrev");
+  uniform_primeCurr = pass1_shader.createUniform("primeCurr");
+
   GLint ulifeTime = pass1_shader.createUniform("life_time");
   GLint unx = pass1_shader.createUniform("nx");
   GLint uny = pass1_shader.createUniform("ny");
@@ -54,8 +124,9 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow, float l
   pass1_shader.deactivate();
 
 }
-void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint randomValues, GLuint windField,
-			     GLuint positions0, GLuint positions1, float time_step)
+void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint randomValues, 
+			     GLuint windField, GLuint positions0, GLuint positions1, 
+			     GLuint prime0, GLuint prime1, float time_step)
 {
   if (odd)
     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
@@ -70,6 +141,24 @@ void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint randomValu
   pass1_shader.activate();
   glUniform1fARB(uniform_timeStep, time_step);
 
+  //Bind current prime values to TEXTURE UNIT 4
+  glActiveTexture(GL_TEXTURE4);
+  glUniform1iARB(uniform_primeCurr, 4);
+  if(odd)
+    glBindTexture(texType, prime1);
+  else
+    glBindTexture(texType, prime0);
+
+  //Bind previous prime values to TEXTURE UNIT 3
+  glActiveTexture(GL_TEXTURE3);
+  glUniform1iARB(uniform_primePrev, 3);
+  if(odd)
+    glBindTexture(texType, prime0);
+  else
+    glBindTexture(texType, prime1);
+
+  //I think this can be taken out since the random values 
+  //apply to updating the prime textures
   // Bind the random data field to TEXTURE UNIT 2
   glActiveTexture(GL_TEXTURE2);
   glBindTexture(texType, randomValues);
@@ -145,7 +234,7 @@ void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, i
   glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);
 }
 
-void ParticleControl::initWindTex(GLuint windField, int* numInRow, int dataSet){
+void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow, int dataSet){
   // Create wind data texture
   data3d = new wind[nx*ny*nz];
   switch(dataSet){
@@ -162,6 +251,9 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow, int dataSet){
       case 4:
 	uniformUWindField();
 	break;
+      case 5:
+        gravity();
+        break;
 
   }
 
@@ -222,11 +314,15 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow, int dataSet){
 	  
 	  dataTwo[texidx] = data3d[p2idx].u;
 	  dataTwo[texidx+1] = data3d[p2idx].v;
-	  dataTwo[texidx+2] = data3d[p2idx].w;
-	  dataTwo[texidx+3] = 1.0;	      			      
+	  dataTwo[texidx+2] = data3d[p2idx].w;	  
+	  dataTwo[texidx+3] = 1.0;//This value needs to become Epsilon	      			      
         }
 
   createTexture(windField, GL_RGBA, width, height, dataTwo);
+
+  //Create lambda texture.
+  //Right now I'm using NULL; we need to initialize some data
+  createTexture(lambda, GL_RGBA, width,height, NULL);
   
   delete [] dataTwo;
   
@@ -298,6 +394,20 @@ void ParticleControl::uniformUWindField(){
     }
   }
 }
+void ParticleControl::gravity(){
+   for(int k = 0; k < ny; k++){   
+    for(int i = 0; i < nx; i++){
+      for(int j = 0; j < nz; j++){
+	int p2idx = k*nx*nz + i*nz + j;
+	data3d[p2idx].u = 0.0;
+	data3d[p2idx].v = -9.81;
+	data3d[p2idx].w = 0.0;
+      }
+    }
+  }
+
+}
+
 void ParticleControl::initParticlePositions(FramebufferObject* fbo, GLuint texId){
   
    //This shader is used to initialize the particle positions
