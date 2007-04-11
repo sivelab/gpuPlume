@@ -46,8 +46,11 @@ int main(int argc, char** argv)
     }
   else{ w = 128; h = 128; t = 4;}
 
+<<<<<<< .mine
+=======
   
   
+>>>>>>> .r201
 
 #ifdef WIN32
   TCHAR buffer[MAX_PATH];
@@ -67,7 +70,6 @@ int main(int argc, char** argv)
 #endif
   
   plume = new PlumeControl(w,h, t);
-
 
 #ifndef WIN32
   srand48( time(0) % getpid() );
