@@ -98,7 +98,7 @@ PlumeControl::PlumeControl(int width, int height, int t){
 
   utility = new Util(this);
   utility->readInput("Settings/input.txt");
-  
+    
   //Sets up the type of simulation to run
   sim = new Simulation(useRealTime,duration,&time_step);
 
@@ -107,25 +107,13 @@ PlumeControl::PlumeControl(int width, int height, int t){
   int_format_init = GL_RGBA;
 
   totalNumPar = 0.0;
+  pos_buffer = new GLfloat[ twidth * theight * 4 ];
 
   //CollectionBox Settings
-  startCBoxTime = 0.0;
-  endCBoxTime = 15.0;
-  averagingTime = (double)3.0;
   avgTime = averagingTime + startCBoxTime;
-  
-  pos_buffer = new GLfloat[ twidth * theight * 4 ];
-  float* bounds = new float[6];
-  
-  bounds[0] = 28.0;
-  bounds[1] = 8.0;
-  bounds[2] = 32.0;
-  bounds[3] = 32.0;
-  bounds[4] = 12.0;
-  bounds[5] = 36.0;
-  cBoxes[0] = new CollectionBox(3,4,5,bounds,averagingTime);
+  cBoxes[0] = new CollectionBox(numBox_x,numBox_y,numBox_z,bounds,averagingTime);
   num_cBoxes = 1;
-
+  
   firstTime = true;
   endCBox = false;
   output_CollectionBox = false;
@@ -202,6 +190,10 @@ void PlumeControl::init(bool OSG){
   windField = texid[3];
   //texid[4] is random values
   randomValues = texid[4];
+  prime0 = texid[5];
+  prime1 = texid[6];
+  lambda = texid[7];
+
   /////////////////////////////
   setupTextures();
 
@@ -218,6 +210,10 @@ void PlumeControl::init(bool OSG){
 
   //This shader is used to advect the particles using the windfield
   pc->setupAdvectShader(&time_step, &numInRow, lifeTime);
+
+  //This shader is used to update the prime values
+  pc->setupPrimeShader();
+
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
   emit_shader.addShader("Shaders/emitParticle_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -243,10 +239,14 @@ void PlumeControl::display(){
   if(osgPlume){
     glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
     glGetFloatv(GL_PROJECTION_MATRIX,pm);
-  
     glGetIntegerv(GL_VIEWPORT,vp);
-  
+
     glViewport(vp[0],vp[1],vp[2],vp[3]);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-1, 1, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
   }
 
   //Makes sure the display loop is run once first
@@ -261,6 +261,7 @@ void PlumeControl::display(){
   //////////////////////
   //Set start time the second display call.
     //Once error is fixed, we can call this the first time.
+    //Also get rid of all the checks on if(!firstTime).
     if(firstTime){
       emit = true;
       sim->setStartTime();
@@ -341,9 +342,17 @@ void PlumeControl::display(){
 
   }
   ////////////////////////////////////////////////////////////
+  // Update Prime Values
+  ////////////////////////////////////////////////////////////
+  if(!firstTime)
+    pc->updatePrime(fbo, odd, prime0, prime1, windField, randomValues, lambda,time_step);
+ 
+  ////////////////////////////////////////////////////////////
   // Update Particle Positions 
   ////////////////////////////////////////////////////////////
-  pc->advect(fbo, odd, randomValues, windField, positions0, positions1, time_step);
+  if(!firstTime)
+    pc->advect(fbo, odd, randomValues, windField, positions0, positions1, 
+	       prime0,prime1,time_step);
 
   ////////////////////////////////////////////////////////////
 
@@ -462,6 +471,8 @@ void PlumeControl::initFBO(void){
   //Attach textures to framebuffer object
   fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, texid[0]);
   fbo->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, texid[1]);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, prime0);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT3_EXT, texType, prime1);
 
   fbo->IsValid();
   FramebufferObject::Disable();
@@ -497,7 +508,7 @@ void PlumeControl::setupTextures()
 	CheckErrorsGL("\tcreated texid[2]...");
 		
 	// Creates wind field data texture
-	pc->initWindTex(texid[3], &numInRow, testcase);
+	pc->initWindTex(windField, lambda, &numInRow, testcase);
 	CheckErrorsGL("\tcreated texid[3], the wind field texture...");
 
 	for (int j=0; j<theight; j++)
@@ -517,6 +528,33 @@ void PlumeControl::setupTextures()
 	// create a second texture to double buffer the vertex positions
 	pc->createTexture(texid[1], int_format, twidth, theight, data);
 	CheckErrorsGL("\tcreated texid[1], the position texture (double buffer)...");
+
+
+	//These two textures are to store the prime values(previous and updated values)
+	//We will need to initialize some data into prime0
+	for (int j=0; j<theight; j++)
+	  for (int i=0; i<twidth; i++)
+	    {
+	      int idx = j*twidth*sz + i*sz;
+
+	      data[idx] = randVal() * 2.0 - 1.0;
+	      data[idx+1] = randVal() * 2.0 - 1.0;
+	      data[idx+2] = randVal() * 2.0 - 1.0;
+	      data[idx+3] = 0.0;
+
+	      // normalize
+	      float mag = sqrt(data[idx]*data[idx] + data[idx+1]*data[idx+1] 
+			       + data[idx+2]*data[idx+2]);
+	      //calculating u',v' and w'and storing them in data
+	      data[idx] = sigU*(data[idx]/mag);   
+	      data[idx+1] = sigV*(data[idx+1]/mag);
+	      data[idx+2] = sigW*(data[idx+2]/mag);
+	    }
+
+	pc->createTexture(prime0, int_format, twidth, theight, data);
+	CheckErrorsGL("\tcreated texid[5], the initial prime value texture...");
+
+	pc->createTexture(prime1, int_format, twidth, theight, data);
 
 	//
 	// create random texture for use with particle simulation and turbulence
