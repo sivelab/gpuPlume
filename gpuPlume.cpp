@@ -27,8 +27,6 @@ void keyboard_cb(unsigned char key, int x, int y);
 void mouse(int button, int state, int x, int y);
 void motion(int x, int y);
 
-int winid;
-
 int winwidth = 512, winheight = 512;
 
 int main(int argc, char** argv)
@@ -80,7 +78,7 @@ int main(int argc, char** argv)
   glutInitDisplayMode( GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE );
   glutInit(&argc, argv);
   glutInitWindowSize(winwidth, winheight);
-  winid = glutCreateWindow("gpuPLUME");
+  plume->winid = glutCreateWindow("gpuPLUME");
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
   glutIdleFunc(idle);
@@ -159,7 +157,7 @@ void keyboard_cb(unsigned char key, int x, int y)
       plume->dc->increaseVisualLayer();
     }
 
-  else if (key == 'd')
+  else if (key == 't')
     {
       // toggle whether to display output
       plume->show_particle_visuals = !plume->show_particle_visuals;
@@ -167,7 +165,7 @@ void keyboard_cb(unsigned char key, int x, int y)
 
   else if (key == 27)
     {
-      glutDestroyWindow(winid);
+      glutDestroyWindow(plume->winid);
       exit(0);
     }
   else if (key == 'r')
@@ -177,6 +175,22 @@ void keyboard_cb(unsigned char key, int x, int y)
   else if( key == 'e')
     {
       plume->emit = !plume->emit;
+    }
+  else if (key == 'w')
+    {
+      plume->pe->setPosition(plume->pe->xpos, plume->pe->ypos, plume->pe->zpos - 1.0);
+    }
+  else if (key == 's')
+    {
+      plume->pe->setPosition(plume->pe->xpos, plume->pe->ypos, plume->pe->zpos+ 1.0);
+    }
+   else if (key == 'a')
+    {
+      plume->pe->setPosition(plume->pe->xpos-1.0, plume->pe->ypos, plume->pe->zpos);
+    }
+  else if (key == 'd')
+    {
+      plume->pe->setPosition(plume->pe->xpos+1.0, plume->pe->ypos, plume->pe->zpos);
     }
   /*else if(key == 'c')
     {
