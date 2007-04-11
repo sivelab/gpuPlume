@@ -33,7 +33,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
   render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   render_shader.createProgram();
-  //std::cout << "made it" << std::endl;
+  
   // Create a high resolution clock timer - only works on Linux, x86
   // systems.  The basic timer works on Windows.  Setting the argument
   // to true will have no affect on windows implementations.
