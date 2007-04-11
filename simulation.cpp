@@ -22,9 +22,10 @@ void Simulation::init(){
 }
 
 void Simulation::setStartTime(){
-  if(useRealTime)
+  if(useRealTime){
     sim_time[0] = sim_clock->tic();
-  
+    display_time[0] = sim_clock->tic();
+  }
 }
 bool Simulation::update(float* time_step){ 
 
@@ -39,7 +40,7 @@ bool Simulation::update(float* time_step){
     *time_step = sim_clock->deltas(display_time[0],display_time[1]);
     //Total time elapsed
     totalTime = sim_clock->deltas(sim_time[0],sim_time[1]);
-
+   
     display_time[0] = sim_clock->tic();
   }
   else{
