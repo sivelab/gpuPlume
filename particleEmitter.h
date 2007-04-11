@@ -36,19 +36,22 @@ class ParticleEmitter{
   //The base function draws the particle emitter as a point
   virtual void Draw();
 
+  virtual void setPosition(float,float,float);
+
   virtual void setParticleReuse(std::list<pIndex>*, float time);
 
   virtual void setNPTS(double,double);
 
   virtual ~ParticleEmitter();
 
+  //The position of the particle emitter
+  float xpos,ypos,zpos;
 
  protected:
 
   bool reuse;
 
-  //The position of the particle emitter
-  float xpos,ypos,zpos;
+  
 
   //Lifetime of particle
   float lifeTime;
