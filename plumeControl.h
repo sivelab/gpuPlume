@@ -42,6 +42,11 @@ class PlumeControl{
   CollectionBox* cBoxes[3];
   //total number of collection boxes being used
   int num_cBoxes;
+  double startCBoxTime;
+  double endCBoxTime;
+  double averagingTime;
+  float* bounds;
+  int numBox_x, numBox_y, numBox_z;
 
   //testcase determines which data set to use for the windfield.
   //The value t is currently passed in from gpuPlume.  When it
@@ -54,6 +59,7 @@ class PlumeControl{
 
   GLuint texid[8]; 
   GLenum texType,positions0,positions1,windField,randomValues;
+  GLenum prime0, prime1, lambda;
   
   FramebufferObject* fbo;
   Renderbuffer* rb;
@@ -75,6 +81,9 @@ class PlumeControl{
   //glut window id
   int winid;
 
+  float ustar,sigU,sigV,sigW;
+
+
  private:
   
   Simulation* sim;
@@ -89,9 +98,6 @@ class PlumeControl{
   Timer* display_clock;
   Timer_t reuse_time[2]; 
   
-  double startCBoxTime;
-  double endCBoxTime;
-  double averagingTime;
   double avgTime;
   bool firstTime;
   bool endCBox;
