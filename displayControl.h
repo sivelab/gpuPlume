@@ -40,6 +40,8 @@ class DisplayControl{
   bool osgPlume;
 
   int visual_layer;
+  float eye_pos[3];
+  float eye_gaze[3];
 
  private:
   
@@ -68,9 +70,6 @@ class DisplayControl{
   GLfloat elevation;
   
   //GLuint axisLabel[3];
-  
-  float eye_pos[3];
-  float eye_gaze[3];
 
   GLenum texType;
 
