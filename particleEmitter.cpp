@@ -20,6 +20,13 @@ void ParticleEmitter::Draw(){
   glEnd();
 
 }
+void ParticleEmitter::setPosition(float x, float y, float z){
+  xpos = x;
+  ypos = y;
+  zpos = z;
+
+}
+
 void ParticleEmitter::setParticleReuse(std::list<pIndex>* ind, float time){
   indicesInUse = ind;
  
@@ -29,7 +36,6 @@ void ParticleEmitter::setParticleReuse(std::list<pIndex>* ind, float time){
 }
 void ParticleEmitter::setNPTS(double np, double tts){
   numToEmit = (int)floor(np/tts);
-  //std::cout << "numtoEmit: " << numToEmit << std::endl;
   
 }
 
