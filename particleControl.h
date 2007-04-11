@@ -5,8 +5,6 @@
 //////////////////////////////////////////////////
 
 #include <GL/glew.h>
-//#include <GL/glut.h>
-//#include "gpuPlume.h"
 #include "framebufferObject.h"
 #include "GLSL.h"
 
@@ -18,6 +16,8 @@ class ParticleControl{
 
   void setupAdvectShader(float*,int*, float);
 
+  void setupPrimeShader();
+
   //This function puts the values held in the variable, data, into a 2D texture 
   //on the GPU. 
   void createTexture(GLuint texId, GLenum format,  int w, int h, GLfloat* data); 
@@ -25,7 +25,7 @@ class ParticleControl{
  
   //This function maps the 3D wind field into a 2D texture that can be
   //stored on the GPU.
-  void initWindTex(GLuint texId, int* numInRow, int dataSet);
+  void initWindTex(GLuint,GLuint, int* numInRow, int dataSet);
 
   //This function is used to initialize the particle positions.
   //It was needed when we weren't able to directly put 32-bit floating point
@@ -39,7 +39,9 @@ class ParticleControl{
   //Advects particle positions using the windfield.
   //First GLuint is the windfield texture.
   //Second and third GLuint are the two position textures. 
-  void advect(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,float);
+  void advect(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
+
+  void updatePrime(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,float);
 
   void getDomain(int* , int*, int*);
   
@@ -50,6 +52,7 @@ class ParticleControl{
   void randomWindField();
   void quicPlumeWindField();  
   void uniformUWindField();
+  void gravity();
   
   typedef struct{
     float u;
@@ -68,8 +71,13 @@ class ParticleControl{
 
   int twidth, theight;
 
-  GLSLObject init_shader, pass1_shader;
-  GLint uniform_postex, uniform_wind, uniform_randomTexture, uniform_timeStep;
+  GLSLObject init_shader, pass1_shader, prime_shader;
+  //Variables for prime shader
+  GLint uniform_prime, uniform_windTex, uniform_random;
+  GLint uniform_dt,uniform_lambda;
+  //Variables for advect shader
+  GLint uniform_postex, uniform_wind, uniform_randomTexture;
+  GLint uniform_primePrev, uniform_primeCurr, uniform_timeStep;
 
   GLenum texType;
   GLfloat* buffer_mem;
