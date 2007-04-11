@@ -32,6 +32,7 @@ void Util::readInput(std::string file){
 void Util::parseLine(char* line){
   //char s1[1024];
   float f1;
+  float* b = new float[6];
   std::string s1;
 
   if(readComment(line))
@@ -61,8 +62,54 @@ void Util::parseLine(char* line){
   if(read1Float(line, "duration", &f1)){
     plume->duration = (double)f1;
   }
-
+  if(read1Float(line, "startCBoxTime", &f1)){
+    plume->startCBoxTime = (double)f1;
+  }
+  if(read1Float(line, "endCBoxTime", &f1)){
+    plume->endCBoxTime = (double)f1;
+  }
+  if(read1Float(line, "averagingTime", &f1)){
+    plume->averagingTime = (double)f1;
+  }
+  if(read6Float(line, "bounds", b)){
+    plume->bounds = b;
+  }
+  if(read1Float(line, "numBox_x", &f1)){
+    plume->numBox_x = (int)f1;
+  }
+  if(read1Float(line, "numBox_y", &f1)){
+    plume->numBox_y = (int)f1;
+  }
+  if(read1Float(line, "numBox_z", &f1)){
+    plume->numBox_z = (int)f1;
+  }
+  if(read1Float(line, "ustar", &f1)){
+    plume->ustar = f1;
+    plume->sigU = 2.0*f1;
+    plume->sigV = 2.0*f1;
+    plume->sigW = 1.3*f1;
+  }
+  
 }
+bool Util::read6Float(char *line, std::string settingName, float *f)
+{
+	std::istringstream ist(line);
+
+	std::string w;
+	ist >> w;
+	if(w == settingName){
+		ist >> f[0];
+		ist >> f[1];
+		ist >> f[2];
+		ist >> f[3];
+		ist >> f[4];
+		ist >> f[5];
+		return true;
+	}
+	
+    return false;
+}
+
 bool Util::read1Float(char *line, std::string settingName, float *f)
 {
 	std::istringstream ist(line);
