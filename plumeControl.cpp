@@ -54,7 +54,7 @@ extern "C" double* __datamodule__lti;
 // //////////////////////////////////////
 
 
-PlumeControl::PlumeControl(int width, int height, int t){
+PlumeControl::PlumeControl(){
  
 #ifdef USE_PLUME_DATA
   // Call the PLUME code to read in the data files.
@@ -98,7 +98,7 @@ PlumeControl::PlumeControl(int width, int height, int t){
 
   utility = new Util(this);
   utility->readInput("Settings/input.txt");
-    
+
   //Sets up the type of simulation to run
   sim = new Simulation(useRealTime,duration,&time_step);
 
@@ -149,6 +149,7 @@ void PlumeControl::init(bool OSG){
   osgPlume = OSG;
  
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,u,v,w);
+  pc->setUstarAndSigmas(ustar);
 
   dc = new DisplayControl(nx,ny,nz, texType);  
   dc->initVars(numBuild,xfo,yfo,zfo,ht,wti,lti);
