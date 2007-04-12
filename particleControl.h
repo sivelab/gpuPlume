@@ -44,7 +44,10 @@ class ParticleControl{
   void updatePrime(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,float);
 
   void getDomain(int* , int*, int*);
-  
+
+  //Sets the ustar and sigma values which can now be used to create
+  //the lambda texture and CoE/2 values. 
+  void setUstarAndSigmas(float);
   
  private:
 
@@ -70,6 +73,8 @@ class ParticleControl{
   int nz;
 
   int twidth, theight;
+
+  float ustar,sigU,sigV,sigW;
 
   GLSLObject init_shader, pass1_shader, prime_shader;
   //Variables for prime shader
