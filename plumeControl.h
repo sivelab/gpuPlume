@@ -23,7 +23,7 @@
 class PlumeControl{
  public:
   
-  PlumeControl(int, int, int);
+  PlumeControl();
 
   void init(bool); 
   void display();
@@ -82,7 +82,6 @@ class PlumeControl{
   int winid;
 
   float ustar,sigU,sigV,sigW;
-
 
  private:
   
