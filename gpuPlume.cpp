@@ -31,7 +31,8 @@ int winwidth = 512, winheight = 512;
 
 int main(int argc, char** argv)
 {
-  int w, h, t;
+  //These are now read from input file
+  /*int w, h, t;
   if (argc == 2)
     {
       w = atoi(argv[1]);
@@ -44,13 +45,8 @@ int main(int argc, char** argv)
       h = w;
       t = atoi(argv[2]);
     }
-  else{ w = 128; h = 128; t = 4;}
+    else{ w = 128; h = 128; t = 4;}*/
 
-<<<<<<< .mine
-=======
-  
-  
->>>>>>> .r201
 
 #ifdef WIN32
   TCHAR buffer[MAX_PATH];
@@ -69,7 +65,7 @@ int main(int argc, char** argv)
   }
 #endif
   
-  plume = new PlumeControl(w,h, t);
+  plume = new PlumeControl();
 
 #ifndef WIN32
   srand48( time(0) % getpid() );
@@ -194,14 +190,6 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->pe->setPosition(plume->pe->xpos+1.0, plume->pe->ypos, plume->pe->zpos);
     }
-  /*else if(key == 'c')
-    {
-      plume->collectionBoxes = !plume->collectionBoxes;
-    }
-  else if(key == 'b')
-    {
-      plume->output_CollectionBox = true;
-      }*/
 
   glutPostRedisplay();
 }
