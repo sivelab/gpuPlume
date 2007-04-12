@@ -23,6 +23,14 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   v_quicPlumeData = w;
   w_quicPlumeData = u;
 }
+void ParticleControl::setUstarAndSigmas(float u){
+  ustar = u;
+  sigU = 2.0*ustar;
+  sigV = 2.0*ustar;
+  sigW = 1.3*ustar;
+
+}
+
 void ParticleControl::setupPrimeShader(){
   //This shader is used to update prime values
   prime_shader.addShader("Shaders/updatePrime_vp.glsl", GLSLObject::VERTEX_SHADER);
