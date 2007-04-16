@@ -1,4 +1,6 @@
 uniform samplerRect pos_texunit;
+uniform samplerRect primePrev;
+uniform samplerRect primeCurr;
 uniform samplerRect wind_texunit;
 uniform samplerRect random_texunit;
 uniform float nx;
@@ -11,17 +13,15 @@ uniform vec2 random_texCoordOffset;
 
 void main(void)
 {
-   //This gets the position of the particle in 3D space.
    vec2 texCoord = gl_TexCoord[0].xy;
+   vec3 prmPrev = vec3(textureRect(primePrev, texCoord));
+   vec3 prmCurr = vec3(textureRect(primeCurr, texCoord));
+   
+   //This gets the position of the particle in 3D space.
    vec4 pos = vec4(textureRect(pos_texunit, texCoord));
+     
     
-   // Read out a random value based on the particle's texture coordinate for use with 
-   // the turbulence model.
-   vec3 turbulence_sigma = vec3(0.1, 0.1, 0.065);
-
-   // random values are being generated between -1.0 and 1.0
-   vec3 turbulence = vec3(textureRect(random_texunit, texCoord)) * turbulence_sigma;
-
+   
    //The floor of the position in 3D space is needed to find the index into
    //the 2D Texture.
    float i = floor(pos.x);
@@ -29,21 +29,14 @@ void main(void)
    float k = floor(pos.y);
   
 	
-   //if(life_time != 0){
-   if(!(life_time <= 0)){
-     if(pos.a != life_time+1.0){
-       //Decrement the alpha value based on the time_step
-       pos.a = pos.a - time_step;
-
-     }
-   }
+   
 	
    //This statement doesn't allow particles to move outside the domain.
    //So, the particles inside the domain are the only ones operated on. 
    if((i < nx) && (j < nz) && (k < ny) && (i >= 0) && (j >= 0) && (k >=0)){
    
 
-     	//This is the initial lookup into the 2D texture that holds the wind field.
+    //This is the initial lookup into the 2D texture that holds the wind field.
  	vec2 index;
    	index.s = j + mod(k,numInRow)*nz;
    	index.t = i + floor(k/numInRow)*nx;
@@ -107,14 +100,42 @@ void main(void)
 	}		
 
 	//Now move the particle by adding the direction.
-   	pos = pos + vec4(wind,0.0)*time_step + vec4(turbulence,0.0)*time_step;
+   	pos = pos + vec4(wind,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
    }
-   if(pos.a <= 0 && (!(life_time <= 0))){
-	gl_FragColor = vec4(100.0, 100.0, 100.0, life_time+1.0);
-   }
-   else{
+   
     	gl_FragColor = pos;
-   }
+   
    
 }
+
+
+
+
+
+
+
+
+// Read out a random value based on the particle's texture coordinate for use with 
+   // the turbulence model.
+   //vec3 turbulence_sigma = vec3(0.1, 0.1, 0.065);
+
+   // random values are being generated between -1.0 and 1.0
+   //vec3 turbulence = vec3(textureRect(random_texunit, texCoord)) * turbulence_sigma;
+
+
+//if(life_time != 0){
+   //if(!(life_time <= 0)){
+   //  if(pos.a != life_time+1.0){
+       //Decrement the alpha value based on the time_step
+  //     pos.a = pos.a - time_step;
+
+  //   }
+  // }
+  
+  //if(pos.a <= 0 && (!(life_time <= 0))){
+	//gl_FragColor = vec4(100.0, 100.0, 100.0, life_time+1.0);
+  // }
+   //else{
+   
+   //}
