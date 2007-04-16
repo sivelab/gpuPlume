@@ -31,22 +31,40 @@ void ParticleControl::setUstarAndSigmas(float u){
 
 }
 
-void ParticleControl::setupPrimeShader(){
+void ParticleControl::setupPrimeShader( int* numInRow){  //Included argument -- Balli(04/12/07)
   //This shader is used to update prime values
   prime_shader.addShader("Shaders/updatePrime_vp.glsl", GLSLObject::VERTEX_SHADER);
   prime_shader.addShader("Shaders/updatePrime_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   prime_shader.createProgram();
 
+  uniform_pos = prime_shader.createUniform("pos"); //Balli (04/12/07)- position texture is need for epsilon calculations  
   uniform_prime = prime_shader.createUniform("primePrev");
   uniform_random = prime_shader.createUniform("random");
   uniform_windTex = prime_shader.createUniform("wind");
   uniform_lambda = prime_shader.createUniform("lambda");
   uniform_dt = prime_shader.createUniform("time_step");
+  
+  // Following is copy-paste from setupadvect shader
+  //we need all of the following in prime shader too. --Balli(04/12/07)
+  GLint unx = prime_shader.createUniform("nx");
+  GLint uny = prime_shader.createUniform("ny");
+  GLint unz = prime_shader.createUniform("nz");
+  GLint uNumInRow = prime_shader.createUniform("numInRow");
 
+  prime_shader.activate();
+
+  glUniform1fARB(unx, nx);
+  glUniform1fARB(uny, ny);
+  glUniform1fARB(unz, nz);
+  float numR= *numInRow;
+  glUniform1fARB(uNumInRow, numR);
+
+  prime_shader.deactivate();
+  //End --Balli(04/12/07)
 }
-void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint prime0, 
+void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint positions0,GLuint positions1,GLuint prime0, 
 				  GLuint prime1, GLuint windField, GLuint randomValues, 
-				  GLuint lambda, float time_step){
+				  GLuint lambda, float time_step){  // included two more argument for position--Balli(04/12/07)
 
   if (odd)
     glDrawBuffer(GL_COLOR_ATTACHMENT3_EXT);
@@ -60,6 +78,14 @@ void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint prime
   glEnable(texType);
   prime_shader.activate();
   glUniform1fARB(uniform_dt, time_step);
+
+  //Bind the position texture to TEXTURE UNIT 4-- Balli (04/12/07)
+  glActiveTexture(GL_TEXTURE4);
+  glUniform1iARB(uniform_pos, 4);
+  if (odd)
+    glBindTexture(texType, positions0);  // read from texture 0
+  else 
+    glBindTexture(texType, positions1);  // read from texture 1
 
   //Bind the lambda texture to TEXTURE UNIT 3
   glActiveTexture(GL_TEXTURE3);
@@ -184,7 +210,7 @@ void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint randomValu
     glBindTexture(texType, positions0);  // read from texture 0
   else 
     glBindTexture(texType, positions1);  // read from texture 1
-
+  //dumpContents();
   glBegin(GL_QUADS);
   {
     glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
@@ -323,15 +349,39 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
 	  dataTwo[texidx] = data3d[p2idx].u;
 	  dataTwo[texidx+1] = data3d[p2idx].v;
 	  dataTwo[texidx+2] = data3d[p2idx].w;	  
-	  dataTwo[texidx+3] = 1.0;//This value needs to become Epsilon	      			      
+	  dataTwo[texidx+3] = (ustar*ustar*ustar)/(0.4*qk);//This value needs to become Epsilon	
+
         }
 
   createTexture(windField, GL_RGBA, width, height, dataTwo);
 
-  //Create lambda texture.
-  //Right now I'm using NULL; we need to initialize some data
-  createTexture(lambda, GL_RGBA, width,height, NULL);
-  
+  //Create lambda texture. --Balli (04/12/07)
+  float tau11=sigU*sigU;
+  float tau22=sigU*sigU;
+  float tau33=sigU*sigU;
+  float tau13=ustar*ustar;
+  float tauDetInv=1/((tau11*tau22*tau33)-(tau13*tau13*tau22));
+
+   for (qk=0; qk<ny; qk++) 
+    for (qi=0; qi<nx; qi++)
+      for (qj=0; qj<nz; qj++)
+	{
+	  p2idx = qk*nz*nx + qi*nz + qj;
+	    
+	  row = qk / (*numInRow);
+	  texidx = row * width * nx * 4 +
+	  qi * width * 4 +
+	  qk % (*numInRow) * nz * 4 +
+	  qj * 4;
+	  
+	  dataTwo[texidx]   = tauDetInv*(tau22*tau33);              //Lam11
+	  dataTwo[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
+	  dataTwo[texidx+2] = tauDetInv*(tau11*tau22);	          //Lam33
+	  dataTwo[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
+        }
+
+  createTexture(lambda, GL_RGBA, width,height, dataTwo);
+  //Lambda Texture Ends-- Balli (04/12/07)
   delete [] dataTwo;
   
 }
