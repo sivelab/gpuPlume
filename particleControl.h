@@ -16,7 +16,7 @@ class ParticleControl{
 
   void setupAdvectShader(float*,int*, float);
 
-  void setupPrimeShader();
+  void setupPrimeShader(int*); //Included argument -- Balli(04/12/07)
 
   //This function puts the values held in the variable, data, into a 2D texture 
   //on the GPU. 
@@ -41,8 +41,8 @@ class ParticleControl{
   //Second and third GLuint are the two position textures. 
   void advect(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
 
-  void updatePrime(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,float);
-
+  void updatePrime(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
+  // included two more arguments in the above function for position textures. --Balli(04/12/07)
   void getDomain(int* , int*, int*);
 
   //Sets the ustar and sigma values which can now be used to create
@@ -78,7 +78,7 @@ class ParticleControl{
 
   GLSLObject init_shader, pass1_shader, prime_shader;
   //Variables for prime shader
-  GLint uniform_prime, uniform_windTex, uniform_random;
+  GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;
   GLint uniform_dt,uniform_lambda;
   //Variables for advect shader
   GLint uniform_postex, uniform_wind, uniform_randomTexture;
