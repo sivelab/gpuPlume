@@ -169,7 +169,8 @@ void PlumeControl::init(bool OSG){
   else{
     dc->draw_buildings = false;
     //Creates a sphere emitter with position(30,10,10), emitting 60 pps, with a radius of 4
-    pe = new SphereEmitter(30.0, 10.0, 30.0, 60.0, 4.0, &twidth, &theight, &indices, &emit_shader);
+
+    pe = new SphereEmitter(5.0, 10.0, 30.0, 60.0, 4.0, &twidth, &theight, &indices, &emit_shader);
   }
   if(reuseParticles)
     pe->setParticleReuse(&indicesInUse, lifeTime);
@@ -213,7 +214,7 @@ void PlumeControl::init(bool OSG){
   pc->setupAdvectShader(&time_step, &numInRow, lifeTime);
 
   //This shader is used to update the prime values
-  pc->setupPrimeShader();
+  pc->setupPrimeShader(&numInRow); //Included argument -- Balli(04/12/07)
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -346,7 +347,7 @@ void PlumeControl::display(){
   // Update Prime Values
   ////////////////////////////////////////////////////////////
   if(!firstTime)
-    pc->updatePrime(fbo, odd, prime0, prime1, windField, randomValues, lambda,time_step);
+    pc->updatePrime(fbo, odd,positions0, positions1, prime0, prime1, windField, randomValues, lambda,time_step);
  
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
