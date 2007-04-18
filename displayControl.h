@@ -3,18 +3,10 @@
 // displaying the layers of the wind field, and drawing the
 // frame rate to the screen.
 ///////////////////////////////////////////////////////////
-#include <list>
-#include <vector>
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include "GLSL.h"
 #include "Timer.h"
-
-typedef struct{
-  float x;
-  float y;
-  float z;
-}partPos;
 
 class DisplayControl{
 
@@ -35,7 +27,7 @@ class DisplayControl{
   void setElevation(float, float);
   void initVars(int,double*,double*,double*,
 		      double*,double*,double*);
-  void drawStreams(std::vector<std::vector<partPos> >);
+  //void drawStreams(std::vector<std::vector<partPos> >);
 
   bool rotate_sphere, rotate_object, translate_view;
   bool frame_rate;
@@ -76,9 +68,5 @@ class DisplayControl{
   //GLuint axisLabel[3];
 
   GLenum texType;
-  
-  std::list<partPos>::iterator iter;
-
-  //std::vector<std::list<partPos> >::iterator streamIter;
 
 };
