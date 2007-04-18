@@ -174,6 +174,18 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->emit = !plume->emit;
     }
+  else if( key == 'o')
+    {
+      plume->releasePerSecond = false;
+      plume->releasePerTimeStep = false;
+      plume->releaseOne = true;
+    }
+  else if(key == 'p')
+    {
+      plume->releaseOne = false;
+      plume->releasePerTimeStep = false;
+      plume->releasePerSecond = true;
+    }
   else if (key == 'w')
     {
       plume->pe->setPosition(plume->pe->xpos, plume->pe->ypos, plume->pe->zpos - 1.0);
