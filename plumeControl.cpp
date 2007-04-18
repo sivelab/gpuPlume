@@ -98,12 +98,6 @@ PlumeControl::PlumeControl(){
 
   utility = new Util(this);
   utility->readInput("Settings/input.txt");
-  
-  //ParicleEmitter position and radius
-  xpos = 30.0;
-  ypos = 10.0;
-  zpos = 30.0;
-  radius = 4.0;
 
   //Sets up the type of simulation to run
   sim = new Simulation(useRealTime,duration,&time_step);
@@ -127,7 +121,6 @@ PlumeControl::PlumeControl(){
   odd = true; 
   dump_contents = false;
   emit = false;
-  show_particle_visuals = true;
   quitSimulation = false;
   startStream = false;
   
@@ -182,13 +175,8 @@ void PlumeControl::init(bool OSG){
   }
   else{
     dc->draw_buildings = false;
-    //Creates a sphere emitter with position(30,10,10), emitting 60 pps, with a radius of 4
-    //<<<<<<< .mine
     pe = new SphereEmitter(xpos,ypos,zpos, 60.0, radius, &twidth, &theight, &indices, &emit_shader);
-    //=======
-
-    //pe = new SphereEmitter(5.0, 10.0, 30.0, 60.0, 4.0, &twidth, &theight, &indices, &emit_shader);
-    //>>>>>>> .r217
+   
   }
   if(reuseParticles)
     pe->setParticleReuse(&indicesInUse, lifeTime);
@@ -447,6 +435,23 @@ void PlumeControl::display(){
   //Switches the frame buffer and binding texture
   odd = !odd;
 
+  // In some circumstances, we may want to dump the contents of
+  // the FBO to a file.
+  if (dump_contents)
+     {
+       pc->dumpContents();
+       dump_contents = false;
+     }
+  if(output_CollectionBox)
+     {
+       for(int j = 0; j < num_cBoxes; j++){
+         cBoxes[j]->outputConc(output_file,sim->totalTime);
+	 //I'm calling clear at the end of outputConc();
+	 //cBoxes[j]->clear();
+       }
+       output_CollectionBox = false;
+     }
+
   // We only need to do PASS 2 (copy to VBO) and PASS 3 (visualize) if
   // we actually want to render to the screen.  Rendering to the
   // screen will make the simulation run more slowly. This feature is
@@ -459,23 +464,6 @@ void PlumeControl::display(){
       // PASS 2 - copy the contents of the 2nd texture (the new positions)
       // into the vertex buffer
       // //////////////////////////////////////////////////////////////
-
-      // In some circumstances, we may want to dump the contents of
-      // the FBO to a file.
-      if (dump_contents)
-	{
-	  pc->dumpContents();
-	  dump_contents = false;
-	}
-      if(output_CollectionBox)
-	{
-	  for(int j = 0; j < num_cBoxes; j++){
-	    cBoxes[j]->outputConc(output_file,sim->totalTime);
-	    //I'm calling clear at the end of outputConc();
-	    //cBoxes[j]->clear();
-	  }
-	  output_CollectionBox = false;
-	}
       
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
