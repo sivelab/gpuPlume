@@ -33,6 +33,7 @@ void Util::parseLine(char* line){
   //char s1[1024];
   float f1;
   float* b = new float[6];
+  float* s = new float[4];
   std::string s1;
 
   if(readComment(line))
@@ -89,7 +90,34 @@ void Util::parseLine(char* line){
     plume->sigV = 2.0*f1;
     plume->sigW = 1.3*f1;
   }
-  
+  if(read1Float(line, "show_particle_visuals", &f1)){
+    if(f1 == 0)
+      plume->show_particle_visuals = false;
+    else
+      plume->show_particle_visuals = true;
+  }
+  if(read4Float(line, "source_info", s)){
+    plume->xpos = s[0];
+    plume->ypos = s[1];
+    plume->zpos = s[2];
+    plume->radius = s[3];
+  }
+}
+bool Util::read4Float(char *line, std::string settingName, float *f)
+{
+	std::istringstream ist(line);
+
+	std::string w;
+	ist >> w;
+	if(w == settingName){
+		ist >> f[0];
+		ist >> f[1];
+		ist >> f[2];
+		ist >> f[3];
+		return true;
+	}
+	
+    return false;
 }
 bool Util::read6Float(char *line, std::string settingName, float *f)
 {
