@@ -20,14 +20,7 @@
 #include "GLSL.h"
 #include "util.h"
 #include "simulation.h"
-
-typedef struct{
-  int s;
-  int t;
-  int i;
-  bool done;
-}streamIndex;
-
+#include "streamLine.h"
 
 class PlumeControl{
  public:
@@ -46,6 +39,7 @@ class PlumeControl{
   ParticleControl* pc;
   DisplayControl* dc;
   ParticleEmitter* pe;
+  StreamLine* stream;
 
   //An array of the collection boxes
   CollectionBox* cBoxes[3];
@@ -65,13 +59,6 @@ class PlumeControl{
 
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
-
-  //A list of the particle position lists
-  std::vector<std::vector<partPos> > streamList;
-  //A list of indices for streams
-  std::list<streamIndex> indexList;
-  int streamNum;
-  bool startStream;
 
   GLuint texid[8]; 
   GLenum texType,positions0,positions1,windField,randomValues;
@@ -119,7 +106,6 @@ class PlumeControl{
   Simulation* sim;
   
   std::list<pIndex>::iterator iter;
-  std::list<streamIndex>::iterator indexIter;
 
   void setupTextures();
   void initFBO();
