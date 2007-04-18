@@ -12,6 +12,8 @@ class SphereEmitter : public ParticleEmitter{
 
   virtual int EmitParticle(FramebufferObject*, bool);
   virtual void Draw();
+  virtual void getPosition(float*,float*,float*,float*);
+  virtual void getReleasedPosition(float*,float*,float*);
  
  protected:
   virtual ~SphereEmitter();  
