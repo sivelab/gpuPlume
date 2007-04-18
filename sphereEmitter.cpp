@@ -37,6 +37,20 @@ SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
 }
 SphereEmitter::~SphereEmitter(){}
 
+void SphereEmitter::getPosition(float*x, float*y, float*z, float*r){
+  *x = xpos;
+  *y = ypos;
+  *z = zpos;
+  *r = radius;
+
+}
+void SphereEmitter::getReleasedPosition(float*x,float*y,float*z){
+  *x = xpos + offsetx;
+  *y = ypos + offsety;
+  *z = zpos + offsetz;
+
+}
+
 void SphereEmitter::Draw(){
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
@@ -104,8 +118,8 @@ int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  shader->activate();	
 
 	  //Determine the coordinates into the position texture
-	  int s = (p_index%twidth);
-	  int t = (p_index/twidth);
+	  s = (p_index%twidth);
+	  t = (p_index/twidth);
 	  
 	  glViewport(s,t,1,1);
        
