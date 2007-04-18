@@ -98,6 +98,12 @@ PlumeControl::PlumeControl(){
 
   utility = new Util(this);
   utility->readInput("Settings/input.txt");
+  
+  //ParicleEmitter position and radius
+  xpos = 30.0;
+  ypos = 10.0;
+  zpos = 30.0;
+  radius = 4.0;
 
   //Sets up the type of simulation to run
   sim = new Simulation(useRealTime,duration,&time_step);
@@ -107,6 +113,7 @@ PlumeControl::PlumeControl(){
   int_format_init = GL_RGBA;
 
   totalNumPar = 0.0;
+  streamNum = 0;
   pos_buffer = new GLfloat[ twidth * theight * 4 ];
 
   //CollectionBox Settings
@@ -122,14 +129,21 @@ PlumeControl::PlumeControl(){
   emit = false;
   show_particle_visuals = true;
   quitSimulation = false;
+  startStream = false;
   
+  //streamList = new std::vector<std::list<partPos> >(10);
+
+  //Set up the ParticleEmitter method to release particles
   //Release particles per time step only if duration is defined and
   //there is a fixed time step.
   if(duration != 0 && !useRealTime){
     releasePerTimeStep = true;
   }
-  else
+  else{
+    releaseOne = false;
     releasePerTimeStep = false;
+    releasePerSecond = true;
+  }
 
   //Set whether to reuse particles or not
   //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
@@ -169,15 +183,20 @@ void PlumeControl::init(bool OSG){
   else{
     dc->draw_buildings = false;
     //Creates a sphere emitter with position(30,10,10), emitting 60 pps, with a radius of 4
+    //<<<<<<< .mine
+    pe = new SphereEmitter(xpos,ypos,zpos, 60.0, radius, &twidth, &theight, &indices, &emit_shader);
+    //=======
 
-    pe = new SphereEmitter(5.0, 10.0, 30.0, 60.0, 4.0, &twidth, &theight, &indices, &emit_shader);
+    //pe = new SphereEmitter(5.0, 10.0, 30.0, 60.0, 4.0, &twidth, &theight, &indices, &emit_shader);
+    //>>>>>>> .r217
   }
   if(reuseParticles)
     pe->setParticleReuse(&indicesInUse, lifeTime);
 
   if(releasePerTimeStep){
-    //setNPTS(number of particles/ total number of time steps);
-    pe->setNPTS(double(twidth*theight), duration/(double)time_step);
+    //set number of particles to emit = (number of particles/ total number of time steps);
+    int num = (int)floor((double)(twidth*theight) / (duration/(double)time_step));
+    pe->setNumToEmit(num);
   }
 
   glEnable(texType);
@@ -263,7 +282,7 @@ void PlumeControl::display(){
   //////////////////////
   //Set start time the second display call.
     //Once error is fixed, we can call this the first time.
-    //Also get rid of all the checks on if(!firstTime).
+    //Also can get rid of all the checks on if(!firstTime).
     if(firstTime){
       emit = true;
       sim->setStartTime();
@@ -298,9 +317,47 @@ void PlumeControl::display(){
   
   if(emit){    
     if(releasePerTimeStep){
+      //Releases particles per time step.
+      //This can only be used with a time duration > 0
+      //and a fixed time step
       totalNumPar += (double)pe->EmitParticle(fbo,odd);
     }
-    else{
+    else if(releaseOne){
+      //Release one particle every time key is pressed( or hand gesture made)
+      pe->setNumToEmit(1);
+      totalNumPar += (double)pe->EmitParticle(fbo,odd);
+      //Stream line info
+
+      //if posList isn't empty, add it to the list of all streams
+      //if(!posList.empty())
+      //streamList.push_back(posList);
+      //posList.clear();    
+      std::vector<partPos> posList;
+      partPos p;
+      int xindex;
+      int yindex;
+      streamIndex sIndex;
+
+      pe->getReleasedPosition(&p.x,&p.y,&p.z);
+      posList.push_back(p);
+      pe->getIndex(&xindex,&yindex);
+      sIndex.s = xindex;
+      sIndex.t = yindex;
+      sIndex.i = streamNum;
+      sIndex.done = false;
+      indexList.push_front(sIndex);
+      
+      streamList.push_back(posList);
+
+      streamNum++;
+
+      std::cout << xindex << " " << yindex <<" " << p.x << " " << p.y << " " << p.z<<std::endl;
+      ///////////////////
+      emit = false;
+      startStream = true;
+    }
+    else if(releasePerSecond){
+      //Release particle using the defined particles per second
       if(pe->timeToEmit(time_step))
 	totalNumPar += (double)pe->EmitParticle(fbo, odd); 
     }   
@@ -347,7 +404,8 @@ void PlumeControl::display(){
   // Update Prime Values
   ////////////////////////////////////////////////////////////
   if(!firstTime)
-    pc->updatePrime(fbo, odd,positions0, positions1, prime0, prime1, windField, randomValues, lambda,time_step);
+    pc->updatePrime(fbo, odd,positions0, positions1, prime0, prime1, 
+		    windField, randomValues, lambda,time_step);
  
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
@@ -357,6 +415,32 @@ void PlumeControl::display(){
 	       prime0,prime1,time_step);
 
   ////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////
+  // Get Position for Streams
+  ////////////////////////////////////////////////////////////
+  if(!firstTime && startStream){
+    glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, pos_buffer); 
+     partPos pos;
+     streamIndex sIndex;
+
+     indexIter = indexList.begin();
+     while(indexIter != indexList.end()){
+       sIndex = *indexIter;
+
+       int idx = sIndex.t*twidth*4 + sIndex.s*4;
+       pos.x = pos_buffer[idx];
+       pos.y = pos_buffer[idx+1];
+       pos.z = pos_buffer[idx+2];
+       //partPos prev = posList.front();
+       partPos prev = streamList[sIndex.i].back();
+       if((prev.x != pos.x) || (prev.y != pos.y) || (prev.z != pos.z))
+	 streamList[sIndex.i].push_back(pos);
+
+       indexIter++;
+     }
+  }
+  ///////////////////////////////////////////////////////////
 
   CheckErrorsGL("END : after 1st pass");
   
@@ -432,6 +516,7 @@ void PlumeControl::display(){
 
       //plume->displayVisual(vertex_buffer);
       dc->drawVisuals(vertex_buffer, windField, numInRow, twidth, theight);
+      dc->drawStreams(streamList);
       if(!osgPlume)
 	pe->Draw();
       
