@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <list>
+#include <vector>
 
 #include <GL/glew.h>
 #include <GL/glut.h>
@@ -19,6 +20,14 @@
 #include "GLSL.h"
 #include "util.h"
 #include "simulation.h"
+
+typedef struct{
+  int s;
+  int t;
+  int i;
+  bool done;
+}streamIndex;
+
 
 class PlumeControl{
  public:
@@ -57,6 +66,13 @@ class PlumeControl{
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
 
+  //A list of the particle position lists
+  std::vector<std::vector<partPos> > streamList;
+  //A list of indices for streams
+  std::list<streamIndex> indexList;
+  int streamNum;
+  bool startStream;
+
   GLuint texid[8]; 
   GLenum texType,positions0,positions1,windField,randomValues;
   GLenum prime0, prime1, lambda;
@@ -82,12 +98,28 @@ class PlumeControl{
   int winid;
 
   float ustar,sigU,sigV,sigW;
+  
+  //ParicleEmitter information (source)
+  float xpos,ypos,zpos,radius;
+
+  //ParticleEmitter method of releasing particles
+  bool releaseOne;
+  bool releasePerSecond;
+  bool releasePerTimeStep;
+
+  void getSourceInfo(float*x,float*y,float*z,float*r){
+    *x = xpos;
+    *y = ypos;
+    *z = zpos;
+    *r = radius;   
+  }
 
  private:
   
   Simulation* sim;
   
   std::list<pIndex>::iterator iter;
+  std::list<streamIndex>::iterator indexIter;
 
   void setupTextures();
   void initFBO();
@@ -106,7 +138,6 @@ class PlumeControl{
 
   bool odd;
   bool reuseParticles;
-  bool releasePerTimeStep;
 
   GLfloat* pos_buffer;
   GLSLObject emit_shader;
