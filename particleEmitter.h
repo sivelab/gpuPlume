@@ -38,9 +38,15 @@ class ParticleEmitter{
 
   virtual void setPosition(float,float,float);
 
+  virtual void getPosition(float*,float*,float*,float*);
+
+  virtual void getReleasedPosition(float*,float*,float*);
+
   virtual void setParticleReuse(std::list<pIndex>*, float time);
 
-  virtual void setNPTS(double,double);
+  virtual void setNumToEmit(int);
+
+  virtual void getIndex(int*,int*);
 
   virtual ~ParticleEmitter();
 
@@ -65,6 +71,10 @@ class ParticleEmitter{
   //of particles to emit per time step.
   int numToEmit;
   int temp;
+
+  //Index of particle in position texture
+  int s;
+  int t;
   
   //Release rate of particles:
   //number of particles per second
