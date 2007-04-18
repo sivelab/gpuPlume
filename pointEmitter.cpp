@@ -62,8 +62,8 @@ int PointEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  shader->activate();	
 
 	  //Determine the coordinates into the position texture
-	  int s = (p_index%twidth);
-	  int t = (p_index/twidth);
+	  s = (p_index%twidth);
+	  t = (p_index/twidth);
 	  //s = (s*(2.0/(float)twidth) - 1.0);
 	  //t = (t*(2.0/(float)theight) - 1.0);
 	  
