@@ -107,7 +107,6 @@ PlumeControl::PlumeControl(){
   int_format_init = GL_RGBA;
 
   totalNumPar = 0.0;
-  streamNum = 0;
   pos_buffer = new GLfloat[ twidth * theight * 4 ];
 
   //CollectionBox Settings
@@ -122,9 +121,8 @@ PlumeControl::PlumeControl(){
   dump_contents = false;
   emit = false;
   quitSimulation = false;
-  startStream = false;
-  
-  //streamList = new std::vector<std::list<partPos> >(10);
+
+  stream = new StreamLine(twidth,theight,nx,ny,nz);
 
   //Set up the ParticleEmitter method to release particles
   //Release particles per time step only if duration is defined and
@@ -314,35 +312,9 @@ void PlumeControl::display(){
       //Release one particle every time key is pressed( or hand gesture made)
       pe->setNumToEmit(1);
       totalNumPar += (double)pe->EmitParticle(fbo,odd);
-      //Stream line info
-
-      //if posList isn't empty, add it to the list of all streams
-      //if(!posList.empty())
-      //streamList.push_back(posList);
-      //posList.clear();    
-      std::vector<partPos> posList;
-      partPos p;
-      int xindex;
-      int yindex;
-      streamIndex sIndex;
-
-      pe->getReleasedPosition(&p.x,&p.y,&p.z);
-      posList.push_back(p);
-      pe->getIndex(&xindex,&yindex);
-      sIndex.s = xindex;
-      sIndex.t = yindex;
-      sIndex.i = streamNum;
-      sIndex.done = false;
-      indexList.push_front(sIndex);
-      
-      streamList.push_back(posList);
-
-      streamNum++;
-
-      std::cout << xindex << " " << yindex <<" " << p.x << " " << p.y << " " << p.z<<std::endl;
-      ///////////////////
+ 
+      stream->addNewStream(pe);
       emit = false;
-      startStream = true;
     }
     else if(releasePerSecond){
       //Release particle using the defined particles per second
@@ -407,26 +379,9 @@ void PlumeControl::display(){
   ////////////////////////////////////////////////////////////
   // Get Position for Streams
   ////////////////////////////////////////////////////////////
-  if(!firstTime && startStream){
-    glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, pos_buffer); 
-     partPos pos;
-     streamIndex sIndex;
-
-     indexIter = indexList.begin();
-     while(indexIter != indexList.end()){
-       sIndex = *indexIter;
-
-       int idx = sIndex.t*twidth*4 + sIndex.s*4;
-       pos.x = pos_buffer[idx];
-       pos.y = pos_buffer[idx+1];
-       pos.z = pos_buffer[idx+2];
-       //partPos prev = posList.front();
-       partPos prev = streamList[sIndex.i].back();
-       if((prev.x != pos.x) || (prev.y != pos.y) || (prev.z != pos.z))
-	 streamList[sIndex.i].push_back(pos);
-
-       indexIter++;
-     }
+  if(!firstTime && stream->doUpdate()){
+  //if(!firstTime && releaseOne){  
+    stream->updateStreamPos();
   }
   ///////////////////////////////////////////////////////////
 
@@ -504,7 +459,7 @@ void PlumeControl::display(){
 
       //plume->displayVisual(vertex_buffer);
       dc->drawVisuals(vertex_buffer, windField, numInRow, twidth, theight);
-      dc->drawStreams(streamList);
+      stream->draw();
       if(!osgPlume)
 	pe->Draw();
       
