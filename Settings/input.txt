@@ -1,5 +1,5 @@
 #Number of particles(twidth*theight)
-twidth 256
+twidth 256 
 theight 256
 
 #Set useRealTime to 0 for false and 1 for true
