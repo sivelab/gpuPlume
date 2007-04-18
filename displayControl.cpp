@@ -40,6 +40,35 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   clock_timer = new Timer(true);
   
 }
+void DisplayControl::drawStreams(std::vector<std::vector<partPos> > streamList){
+
+  partPos prevPos;
+  partPos pos;
+  bool first = true;
+
+  //This is just so I don't get a warning after compiling
+  pos.x = pos.y = pos.z = 0.0;
+
+  for(int i =0;i < (int)streamList.size(); i++){
+    for(int j = 0; j < (int)streamList[i].size(); j++){
+      prevPos = pos;
+      pos = streamList[i][j];
+
+      if(!first){
+	glBegin(GL_LINES);
+	glColor3f(1.0,1.0,0.0);
+	glVertex3f(prevPos.x,prevPos.y,prevPos.z);
+	glVertex3f(pos.x,pos.y,pos.z);
+	glEnd();    
+      }
+      if(first)
+	first = false;
+      
+    }
+    first = true;
+  }
+
+} 
 
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRow, 
 				 int twidth, int theight)
