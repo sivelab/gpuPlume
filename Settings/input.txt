@@ -46,6 +46,7 @@ numBox_x   3
 #number of boxes in y direction
 numBox_y   4
 #number of boxes in z direction
+numBox_z   5
 
 #Source/ParticleEmitter information
 #x_coordinate, y_coordinate, z_coordinate, radius
