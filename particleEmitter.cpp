@@ -26,6 +26,21 @@ void ParticleEmitter::setPosition(float x, float y, float z){
   zpos = z;
 
 }
+void ParticleEmitter::getPosition(float* x, float*y, float*z, float*r){
+  *x = xpos;
+  *y = ypos;
+  *z = zpos;
+  *r = 1.0;
+}
+void ParticleEmitter::getReleasedPosition(float*x,float*y,float*z){
+  *x = xpos;
+  *y = ypos;
+  *z = zpos;
+}
+void ParticleEmitter::getIndex(int* x, int*y){
+  *x = s;
+  *y = t;
+}
 
 void ParticleEmitter::setParticleReuse(std::list<pIndex>* ind, float time){
   indicesInUse = ind;
@@ -34,8 +49,9 @@ void ParticleEmitter::setParticleReuse(std::list<pIndex>* ind, float time){
   reuse = true;
 
 }
-void ParticleEmitter::setNPTS(double np, double tts){
-  numToEmit = (int)floor(np/tts);
+void ParticleEmitter::setNumToEmit(int num){
+  //numToEmit = (int)floor(np/tts);
+  numToEmit = num;
   
 }
 
