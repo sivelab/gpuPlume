@@ -119,22 +119,9 @@ PlumeControl::PlumeControl(){
   output_CollectionBox = false;
   odd = true; 
   dump_contents = false;
-  emit = false;
   quitSimulation = false;
 
   stream = new StreamLine(twidth,theight,nx,ny,nz);
-
-  //Set up the ParticleEmitter method to release particles
-  //Release particles per time step only if duration is defined and
-  //there is a fixed time step.
-  if(duration != 0 && !useRealTime){
-    releasePerTimeStep = true;
-  }
-  else{
-    releaseOne = false;
-    releasePerTimeStep = false;
-    releasePerSecond = true;
-  }
 
   //Set whether to reuse particles or not
   //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
@@ -167,24 +154,44 @@ void PlumeControl::init(bool OSG){
   }
   
   if(testcase == 3){   
+    numOfPE = 1;
     dc->draw_buildings = true;
     //Creates a point emitter with position(10,10,10) , emitting 10 particles per second
-    pe = new PointEmitter(10.0,10.0,10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
+    pe[0] = new PointEmitter(10.0,10.0,10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
   }
   else{
     dc->draw_buildings = false;
-    pe = new SphereEmitter(xpos,ypos,zpos, 60.0, radius, &twidth, &theight, &indices, &emit_shader);
-   
+    for(int i=0; i < numOfPE; i++){
+      if(radius[i] == 0)
+	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], 10.0, &twidth, &theight, &indices, &emit_shader);
+      else
+	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 60.0, radius[i], &twidth, &theight, &indices, &emit_shader);
+    }
   }
-  if(reuseParticles)
-    pe->setParticleReuse(&indicesInUse, lifeTime);
+  for(int i=0; i < numOfPE; i++){
+    if(reuseParticles)
+      pe[i]->setParticleReuse(&indicesInUse, lifeTime);
 
-  if(releasePerTimeStep){
-    //set number of particles to emit = (number of particles/ total number of time steps);
-    int num = (int)floor((double)(twidth*theight) / (duration/(double)time_step));
-    pe->setNumToEmit(num);
+    pe[i]->emit = false;
+
+    //Set up the ParticleEmitter method to release particles
+    //Release particles per time step only if duration is defined and
+    //there is a fixed time step.
+    if(duration != 0 && !useRealTime){
+      pe[i]->releasePerTimeStep = true;
+    }
+    else{
+      pe[i]->releaseOne = false;
+      pe[i]->releasePerTimeStep = false;
+      pe[i]->releasePerSecond = true;
+    }
+
+    if(pe[i]->releasePerTimeStep){
+      //set number of particles to emit = (number of particles/ total number of time steps);
+      int num = (int)floor((double)(twidth*theight) / (duration/(double)time_step));
+      pe[i]->setNumToEmit(num);
+    }
   }
-
   glEnable(texType);
   glGenTextures(8, texid);
   /////////////////////////////
@@ -270,7 +277,7 @@ void PlumeControl::display(){
     //Once error is fixed, we can call this the first time.
     //Also can get rid of all the checks on if(!firstTime).
     if(firstTime){
-      emit = true;
+      pe[0]->emit = true;
       sim->setStartTime();
       firstTime = false;
     }
@@ -300,29 +307,29 @@ void PlumeControl::display(){
   ////////////////////////////////////////////////////////////
   // Emit Particles
   ////////////////////////////////////////////////////////////
-  
-  if(emit){    
-    if(releasePerTimeStep){
-      //Releases particles per time step.
-      //This can only be used with a time duration > 0
-      //and a fixed time step
-      totalNumPar += (double)pe->EmitParticle(fbo,odd);
-    }
-    else if(releaseOne){
-      //Release one particle every time key is pressed( or hand gesture made)
-      pe->setNumToEmit(1);
-      totalNumPar += (double)pe->EmitParticle(fbo,odd);
+  for(int i = 0; i < numOfPE; i++){
+    if(pe[i]->emit){    
+      if(pe[i]->releasePerTimeStep){
+	//Releases particles per time step.
+	//This can only be used with a time duration > 0
+	//and a fixed time step
+	totalNumPar += (double)pe[i]->EmitParticle(fbo,odd);
+      }
+      else if(pe[i]->releaseOne){
+	//Release one particle every time key is pressed( or hand gesture made)
+	pe[i]->setNumToEmit(1);
+	totalNumPar += (double)pe[i]->EmitParticle(fbo,odd);
  
-      stream->addNewStream(pe);
-      emit = false;
+	stream->addNewStream(pe[i]);
+	pe[i]->emit = false;
+      }
+      else if(pe[i]->releasePerSecond){
+	//Release particle using the defined particles per second
+	if(pe[i]->timeToEmit(time_step))
+	  totalNumPar += (double)pe[i]->EmitParticle(fbo, odd); 
+      }   
     }
-    else if(releasePerSecond){
-      //Release particle using the defined particles per second
-      if(pe->timeToEmit(time_step))
-	totalNumPar += (double)pe->EmitParticle(fbo, odd); 
-    }   
   }
- 
   ////////////////////////////////////////////////////////////
   // Collection Boxes
   ////////////////////////////////////////////////////////////
@@ -458,10 +465,15 @@ void PlumeControl::display(){
       }
 
       //plume->displayVisual(vertex_buffer);
+      
       dc->drawVisuals(vertex_buffer, windField, numInRow, twidth, theight);
+      glDisable(texType);
       stream->draw();
-      if(!osgPlume)
-	pe->Draw();
+      if(!osgPlume){
+	for(int i=0; i < numOfPE; i++){
+	  pe[i]->Draw();
+	}
+      }
       
       // If we've chose to display the 3D particle domain, we need to
       // set the projection and modelview matrices back to what is
