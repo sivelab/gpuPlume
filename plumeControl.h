@@ -38,8 +38,8 @@ class PlumeControl{
 
   ParticleControl* pc;
   DisplayControl* dc;
-  ParticleEmitter* pe;
-  StreamLine* stream;
+  ParticleEmitter* pe[10];
+  int numOfPE;
 
   //An array of the collection boxes
   CollectionBox* cBoxes[3];
@@ -69,7 +69,6 @@ class PlumeControl{
   GLuint vertex_buffer;
 
   bool dump_contents;
-  bool emit;
   bool show_particle_visuals;
   bool output_CollectionBox;
   bool osgPlume;
@@ -87,23 +86,23 @@ class PlumeControl{
   float ustar,sigU,sigV,sigW;
   
   //ParicleEmitter information (source)
-  float xpos,ypos,zpos,radius;
-
-  //ParticleEmitter method of releasing particles
-  bool releaseOne;
-  bool releasePerSecond;
-  bool releasePerTimeStep;
+  //float xpos,ypos,zpos,radius;
+  float* xpos;
+  float* ypos;
+  float* zpos;
+  float* radius;
 
   void getSourceInfo(float*x,float*y,float*z,float*r){
-    *x = xpos;
-    *y = ypos;
-    *z = zpos;
-    *r = radius;   
+    x = xpos;
+    y = ypos;
+    z = zpos;
+    r = radius;   
   }
 
  private:
   
   Simulation* sim;
+  StreamLine* stream;
   
   std::list<pIndex>::iterator iter;
 
