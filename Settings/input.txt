@@ -49,5 +49,9 @@ numBox_y   4
 numBox_z   5
 
 #Source/ParticleEmitter information
+num_of_sources 1
+
 #x_coordinate, y_coordinate, z_coordinate, radius
-source_info 30.0 10.0 30.0 4.0
+source_info 30.0 10.0 30.0 4.0 
+#source_info 20.0 5.0 20.0 2.0
+#source_info 50.0 15.0 5.0 0.0
