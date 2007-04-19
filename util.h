@@ -19,11 +19,13 @@ class Util{
   void parseLine(char*);
   bool read1Float(char*,std::string,float*);
   bool read6Float(char*,std::string,float*);
-  bool read4Float(char*,std::string,float*);
+  bool readSourceInfo(char*,std::string,float*);
   bool readComment(const char*);
   bool read1String(const char*,char*,std::string*);
   
   PlumeControl* plume;
+
+  int num;
 
 };
 
