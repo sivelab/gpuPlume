@@ -154,17 +154,27 @@ void DisplayControl::drawAxes(){
 void DisplayControl::drawLayers(GLuint texId, int numInRow){
   if (visual_layer >= 0 && visual_layer < ny)
     {
-      glEnable(GL_LIGHTING);
-      glEnable(GL_LIGHT0);
+      //glEnable(GL_LIGHTING);
+      //glEnable(GL_LIGHT0);
       glEnable(GL_COLOR_MATERIAL);
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+      static GLfloat col[4] = {0.0,0.0,0.0,1.0};
+      glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, col);
 
       glEnable(texType);
       glBindTexture(texType, texId);
       glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+      
+      //Since the alpha value is the epsilon value, we need
+      //to make sure alpha value of displayed layer is 1.0;
+      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);  
+      glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_ADD);
+      glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE);
+      
+      //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
       // The s and t parameters reference pixels on the UVW texture
       // map.  Because we are using texture rectangles, the s and t
@@ -187,7 +197,7 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       // s (or the value in the x dimension of the texture) can be
       // determined with a mod of the layer by the number of layers
       // that can be held in each row of the texutre. [ COMPLETE DESCRIPTION ]
-      s = (visual_layer % numInRow) * nz;
+      s = (int)(visual_layer % numInRow) * nz;
 
       // t (or the value in the y dimension of the texture) can be 
       // calculated by the floor of the layer to be visualized divided
@@ -208,11 +218,12 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       glEnd();
       glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      //glBindTexture(texType, 0);
       glDisable(texType);
       glDisable(GL_BLEND);
       glDisable(GL_COLOR_MATERIAL);
-      glDisable(GL_LIGHT0);
-      glDisable(GL_LIGHTING);
+      //glDisable(GL_LIGHT0);
+      //glDisable(GL_LIGHTING);
     }
 }
 
