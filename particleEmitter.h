@@ -53,11 +53,15 @@ class ParticleEmitter{
   //The position of the particle emitter
   float xpos,ypos,zpos;
 
+  bool releasePerTimeStep;
+  bool releaseOne;
+  bool releasePerSecond;
+  bool emit;
+
+
  protected:
 
   bool reuse;
-
-  
 
   //Lifetime of particle
   float lifeTime;
