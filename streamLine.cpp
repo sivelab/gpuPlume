@@ -56,7 +56,9 @@ void StreamLine::updateStreamPos(){
        
        partPos prev = streamList[sIndex.i].back();
        //if((prev.x != pos.x) || (prev.y != pos.y) || (prev.z != pos.z))
-       if((pos.x >= nx) || (pos.y >= ny) || (pos.z >= nz)){
+       if((pos.x >= nx) || (pos.y >= ny) || (pos.z >= nz)
+	  || (pos.x < 0) || (pos.y < 0) || (pos.z < 0)){
+
 	 sIdx.done = true;
        }
        else
@@ -70,6 +72,7 @@ void StreamLine::updateStreamPos(){
 }
 
 void StreamLine::draw(){
+
   partPos prevPos;
   partPos pos;
   bool first = true;
@@ -86,11 +89,11 @@ void StreamLine::draw(){
       //colorx = 1/fabs(prevPos.x - pos.x);
       //colory = 1/fabs(prevPos.y-pos.y);
       //colorz = 1/fabs(prevPos.z-pos.z);
+      glColor4f(1.0,1.0,0.0,1.0);
+      //glColor3f(colorx,colory,colorz);
 
       if(!first){
-	glBegin(GL_LINES);
-	glColor3f(1.0,1.0,0.0);
-	//glColor3f(colorx,colory,colorz);
+	glBegin(GL_LINES);		
 	glVertex3f(prevPos.x,prevPos.y,prevPos.z);
 	glVertex3f(pos.x,pos.y,pos.z);
 	glEnd();    
