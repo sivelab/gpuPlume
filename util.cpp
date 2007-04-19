@@ -5,10 +5,11 @@
 
 Util::Util(PlumeControl* p){
 	plume = p;
+	num = 0;
 }
 
 void Util::readInput(std::string file){
-  
+
   std::ifstream in;
   in.open(file.c_str(),std::ios::in);
     	
@@ -96,25 +97,36 @@ void Util::parseLine(char* line){
     else
       plume->show_particle_visuals = true;
   }
-  if(read4Float(line, "source_info", s)){
-    plume->xpos = s[0];
-    plume->ypos = s[1];
-    plume->zpos = s[2];
-    plume->radius = s[3];
+  if(read1Float(line, "num_of_sources", &f1)){
+    plume->numOfPE = (int)f1;
+    plume->xpos = new float[plume->numOfPE];
+    plume->ypos = new float[plume->numOfPE];
+    plume->zpos = new float[plume->numOfPE];
+    plume->radius = new float[plume->numOfPE];
+  }
+  if(readSourceInfo(line, "source_info", s)){
+    plume->xpos[num] = s[0];
+    plume->ypos[num] = s[1];
+    plume->zpos[num] = s[2];
+    plume->radius[num] = s[3];
+    num++;
   }
 }
-bool Util::read4Float(char *line, std::string settingName, float *f)
+
+bool Util::readSourceInfo(char *line, std::string settingName, float *f)
 {
 	std::istringstream ist(line);
 
 	std::string w;
+
 	ist >> w;
-	if(w == settingName){
-		ist >> f[0];
-		ist >> f[1];
-		ist >> f[2];
-		ist >> f[3];
-		return true;
+	if(w == settingName){	 
+	  ist >> f[0];
+	  ist >> f[1];
+	  ist >> f[2];
+	  ist >> f[3];
+	
+	  return true;
 	}
 	
     return false;
