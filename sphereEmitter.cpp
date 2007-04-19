@@ -52,6 +52,7 @@ void SphereEmitter::getReleasedPosition(float*x,float*y,float*z){
 }
 
 void SphereEmitter::Draw(){
+  glDisable(GL_TEXTURE_RECTANGLE_ARB);
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
   glEnable(GL_COLOR_MATERIAL);
@@ -59,9 +60,9 @@ void SphereEmitter::Draw(){
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   //glPointSize(2.0);
-  glColor4f(0.0, 0.0, 1.0, 0.5);
+  
   glPushMatrix();
-
+  glColor4f(0.0, 0.0, 1.0, 0.5);
   glTranslatef(xpos,ypos,zpos);
   glutSolidSphere(radius, 20, 16);
 
@@ -71,6 +72,7 @@ void SphereEmitter::Draw(){
   glDisable(GL_COLOR_MATERIAL);
   glDisable(GL_LIGHT0);
   glDisable(GL_LIGHTING);
+  glEnable(GL_TEXTURE_RECTANGLE_ARB);
 }
 
 int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
