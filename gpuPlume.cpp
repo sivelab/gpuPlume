@@ -18,6 +18,7 @@
 #include "plumeControl.h"
 
 PlumeControl* plume;
+int curr;
 
 void init(void);
 void idle();
@@ -127,6 +128,7 @@ void reshape(int w, int h)
 
 void init(void)
 {
+  curr = 0;
   glEnable(GL_DEPTH_TEST);
   
   plume->init(false); 
@@ -172,35 +174,42 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if( key == 'e')
     {
-      plume->emit = !plume->emit;
+      plume->pe[curr]->emit = !plume->pe[curr]->emit;
     }
   else if( key == 'o')
     {
-      plume->releasePerSecond = false;
-      plume->releasePerTimeStep = false;
-      plume->releaseOne = true;
+      plume->pe[curr]->releasePerSecond = false;
+      plume->pe[curr]->releasePerTimeStep = false;
+      plume->pe[curr]->releaseOne = true;
     }
   else if(key == 'p')
     {
-      plume->releaseOne = false;
-      plume->releasePerTimeStep = false;
-      plume->releasePerSecond = true;
+      plume->pe[curr]->releaseOne = false;
+      plume->pe[curr]->releasePerTimeStep = false;
+      plume->pe[curr]->releasePerSecond = true;
     }
   else if (key == 'w')
     {
-      plume->pe->setPosition(plume->pe->xpos, plume->pe->ypos, plume->pe->zpos - 1.0);
+      plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos - 1.0);
     }
   else if (key == 's')
     {
-      plume->pe->setPosition(plume->pe->xpos, plume->pe->ypos, plume->pe->zpos+ 1.0);
+      plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos+ 1.0);
     }
    else if (key == 'a')
     {
-      plume->pe->setPosition(plume->pe->xpos-1.0, plume->pe->ypos, plume->pe->zpos);
+      plume->pe[curr]->setPosition(plume->pe[curr]->xpos-1.0, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
     }
   else if (key == 'd')
     {
-      plume->pe->setPosition(plume->pe->xpos+1.0, plume->pe->ypos, plume->pe->zpos);
+      plume->pe[curr]->setPosition(plume->pe[curr]->xpos+1.0, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
+    }
+  else if (key == '>')
+    {
+      curr++;
+      if(curr == plume->numOfPE)
+	curr = 0;
+
     }
 
   glutPostRedisplay();
