@@ -33,6 +33,8 @@ class StreamLine{
 
   bool doUpdate();
 
+  void clear();
+
   int streamNum;
   bool startStream;
 
@@ -42,7 +44,7 @@ class StreamLine{
   std::vector<std::vector<partPos> > streamList;
   //A list of indices for streams
   std::list<streamIndex> indexList;
-
+  
   std::list<streamIndex>::iterator indexIter;
 
   int twidth;
@@ -51,6 +53,7 @@ class StreamLine{
   int ny;
   int nz;
 
+  float colorx,colory,colorz;
   bool update;
 
 };
