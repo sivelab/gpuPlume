@@ -6,12 +6,13 @@ CollectionBox::CollectionBox(int x,int y,int z,float* bounds,double time){
   numBox_y = y;
   numBox_z = z;
   
-  lx = bounds[0];
+  //Converts from quic-plume coordinate system to openGL
+  lx = bounds[2];
   ly = bounds[1];
-  lz = bounds[2];
-  ux = bounds[3];
+  lz = bounds[0];
+  ux = bounds[5];
   uy = bounds[4];
-  uz = bounds[5];
+  uz = bounds[3];
 
   volume = (double)(ux-lx)*(uy-ly)*(uz-lz);
   TotRel = (double)1.0;
