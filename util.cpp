@@ -105,9 +105,9 @@ void Util::parseLine(char* line){
     plume->radius = new float[plume->numOfPE];
   }
   if(readSourceInfo(line, "source_info", s)){
-    plume->xpos[num] = s[0];
-    plume->ypos[num] = s[1];
-    plume->zpos[num] = s[2];
+    plume->xpos[num] = s[1];
+    plume->ypos[num] = s[2];
+    plume->zpos[num] = s[0];
     plume->radius[num] = s[3];
     num++;
   }
