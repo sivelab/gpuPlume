@@ -7,11 +7,11 @@ CollectionBox::CollectionBox(int x,int y,int z,float* bounds,double time){
   numBox_z = z;
   
   //Converts from quic-plume coordinate system to openGL
-  lx = bounds[2];
-  ly = bounds[1];
+  lx = bounds[1];
+  ly = bounds[2];
   lz = bounds[0];
-  ux = bounds[5];
-  uy = bounds[4];
+  ux = bounds[4];
+  uy = bounds[5];
   uz = bounds[3];
 
   volume = (double)(ux-lx)*(uy-ly)*(uz-lz);
