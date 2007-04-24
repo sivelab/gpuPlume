@@ -77,13 +77,13 @@ void Util::parseLine(char* line){
     plume->bounds = b;
   }
   if(read1Float(line, "numBox_x", &f1)){
-    plume->numBox_x = (int)f1;
+    plume->numBox_z = (int)f1;
   }
   if(read1Float(line, "numBox_y", &f1)){
-    plume->numBox_y = (int)f1;
+    plume->numBox_x = (int)f1;
   }
   if(read1Float(line, "numBox_z", &f1)){
-    plume->numBox_z = (int)f1;
+    plume->numBox_y = (int)f1;
   }
   if(read1Float(line, "ustar", &f1)){
     plume->ustar = f1;
