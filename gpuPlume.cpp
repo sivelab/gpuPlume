@@ -211,6 +211,14 @@ void keyboard_cb(unsigned char key, int x, int y)
 	curr = 0;
 
     }
+  else if(key == 'c')
+    {
+      plume->stream->clear();      
+    }
+  else if(key == 'g')
+    {
+      plume->pc->outputPrime = true;
+    }
 
   glutPostRedisplay();
 }
