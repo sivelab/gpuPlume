@@ -35,6 +35,7 @@ void StreamLine::addNewStream(ParticleEmitter* pe){
    
    startStream = true;
    update = true;
+
 }
 
 void StreamLine::updateStreamPos(){
@@ -79,20 +80,21 @@ void StreamLine::draw(){
 
   //This is just so I don't get a warning after compiling
   pos.x = pos.y = pos.z = 0.0;
-  float colorx,colory,colorz;
-
+  
   for(int i =0;i < (int)streamList.size(); i++){
     for(int j = 0; j < (int)streamList[i].size(); j++){
       prevPos = pos;
       pos = streamList[i][j];
 
-      //colorx = 1/fabs(prevPos.x - pos.x);
-      //colory = 1/fabs(prevPos.y-pos.y);
-      //colorz = 1/fabs(prevPos.z-pos.z);
-      glColor4f(1.0,1.0,0.0,1.0);
-      //glColor3f(colorx,colory,colorz);
+
+      colorx = fabs(prevPos.x - pos.x)*100;
+      colory = fabs(prevPos.y-pos.y)*100;
+      colorz = fabs(prevPos.z-pos.z)*100;
+     //glColor4f(1.0,1.0,0.0,1.0);
 
       if(!first){
+	glColor4f(colorx,colory,colorz,1.0);
+
 	glBegin(GL_LINES);		
 	glVertex3f(prevPos.x,prevPos.y,prevPos.z);
 	glVertex3f(pos.x,pos.y,pos.z);
@@ -124,5 +126,13 @@ bool StreamLine::doUpdate(){
   }
   update = false;
   return update;
+
+}
+void StreamLine::clear(){
+  streamList.clear();
+  indexList.clear();
+  startStream = true;
+  update = true;
+  streamNum = 0;
 
 }
