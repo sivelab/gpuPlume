@@ -9,7 +9,7 @@ show_particle_visuals 1
 useRealTime 0
 
 #Time step used for simulation
-time_step 0.0012
+time_step 0.12
 
 #Test case for setting Windfield
 #Use value of 3 for quic Plume data
@@ -37,7 +37,7 @@ endCBoxTime 20.0
 averagingTime 5.0
 
 #Collection box bounds; lower_x,lower_y,lower_z, upper_x,upper_y,upper_z
-bounds 32.0 8.0 28.0 36.0 12.0 32.0 
+bounds 32.0 28.0 8.0 36.0 32.0 12.0
 
 #Collection box discretization
 
