@@ -41,10 +41,9 @@ void main(void)
 
     //This is the initial lookup into the 2D texture that holds the wind field.
  	vec2 index;
-   	index.s = j + mod(k,numInRow)*nz;
-    index.t = i + floor(k/numInRow)*nx;
-	float s = index.s;
-	float t = index.t;
+   	index.s = j + mod((int)k,numInRow)*nz;
+        index.t = i + floor((int)k/numInRow)*nx;
+	
 	vec4 windTex = vec4(textureRect(wind, index));
 	vec4 lam = vec4(textureRect(lambda, index));
 	
@@ -55,16 +54,16 @@ void main(void)
 	
 	float CoEps_D2=windTex.w; // grabing 4th vector,--Co*Eps/2 in the wind texture
       
-    float du= CoEps_D2*(Lam11*upPrev+Lam13*wpPrev)*time_step + pow((2*CoEps_D2*time_step),0.5)* xRandom;
-    float dv= CoEps_D2*(Lam22*vpPrev)*time_step + pow((2*CoEps_D2*time_step),0.5)* yRandom;
-    float dw= CoEps_D2*(Lam13*upPrev+Lam33*wpPrev)*time_step + pow((2*CoEps_D2*time_step),0.5)* zRandom;
+        float du= -CoEps_D2*(Lam11*upPrev+Lam13*wpPrev)*time_step + pow((2*CoEps_D2*time_step),0.5)* xRandom;
+        float dv= -CoEps_D2*(Lam22*vpPrev)*time_step + pow((2*CoEps_D2*time_step),0.5)* yRandom;
+        float dw= -CoEps_D2*(Lam13*upPrev+Lam33*wpPrev)*time_step + pow((2*CoEps_D2*time_step),0.5)* zRandom;
            
-    vec3 PrmCurr=vec3(upPrev+du,vpPrev+dv,wpPrev+dw);
+        PrmCurr=vec3(upPrev+du,vpPrev+dv,wpPrev+dw);
     }	
 	//Currently this code just keeps passing the prime values,
 	//keeping them the same.  
 	//We need to add the equations to calculate the new values.
-	gl_FragColor = vec4(PrmCurr, 1.0);
+    gl_FragColor = vec4(PrmCurr, 1.0);
 
 
 }
