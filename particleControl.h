@@ -49,6 +49,8 @@ class ParticleControl{
   //the lambda texture and CoE/2 values. 
   void setUstarAndSigmas(float);
   
+  bool outputPrime;
+
  private:
 
   void test1();
@@ -56,6 +58,8 @@ class ParticleControl{
   void quicPlumeWindField();  
   void uniformUWindField();
   void gravity();
+
+  void printPrime(bool,bool);
   
   typedef struct{
     float u;
@@ -86,4 +90,7 @@ class ParticleControl{
 
   GLenum texType;
   GLfloat* buffer_mem;
+
+  GLint currentbuffer;
+
 };
