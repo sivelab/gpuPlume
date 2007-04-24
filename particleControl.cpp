@@ -392,7 +392,7 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
 	  dataTwo[texidx] = data3d[p2idx].u;
 	  dataTwo[texidx+1] = data3d[p2idx].v;
 	  dataTwo[texidx+2] = data3d[p2idx].w;	  
-	  dataTwo[texidx+3] = (ustar*ustar*ustar)/(0.4*(qk+1));//This value is the Epsilon value	
+	  dataTwo[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)/(0.4*(qk+1));//This value is the '0.5*CoEps' value	
 
         }
 
