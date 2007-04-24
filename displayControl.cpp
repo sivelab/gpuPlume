@@ -160,8 +160,7 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-      static GLfloat col[4] = {0.0,0.0,0.0,1.0};
-      glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, col);
+     
 
       glEnable(texType);
       glBindTexture(texType, texId);
@@ -170,6 +169,9 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       
       //Since the alpha value is the epsilon value, we need
       //to make sure alpha value of displayed layer is 1.0;
+      static GLfloat col[4] = {0.0,0.0,0.0,1.0};
+      glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, col);
+
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);  
       glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_ADD);
       glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE);
