@@ -36,6 +36,7 @@ class PlumeControl{
   int twidth,theight; //they are twidth*theight number ofparticles
   int numInRow;
 
+  StreamLine* stream;
   ParticleControl* pc;
   DisplayControl* dc;
   ParticleEmitter* pe[10];
@@ -102,7 +103,6 @@ class PlumeControl{
  private:
   
   Simulation* sim;
-  StreamLine* stream;
   
   std::list<pIndex>::iterator iter;
 
