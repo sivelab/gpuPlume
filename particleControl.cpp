@@ -22,6 +22,9 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   u_quicPlumeData = v;
   v_quicPlumeData = w;
   w_quicPlumeData = u;
+
+  outputPrime = false;
+
 }
 void ParticleControl::setUstarAndSigmas(float u){
   ustar = u;
@@ -65,6 +68,11 @@ void ParticleControl::setupPrimeShader( int* numInRow){  //Included argument -- 
 void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint positions0,GLuint positions1,GLuint prime0, 
 				  GLuint prime1, GLuint windField, GLuint randomValues, 
 				  GLuint lambda, float time_step){  // included two more argument for position--Balli(04/12/07)
+
+
+  //Prints out the previous prime values
+  if(outputPrime)
+    printPrime(odd, true);
 
   if (odd)
     glDrawBuffer(GL_COLOR_ATTACHMENT3_EXT);
@@ -110,6 +118,7 @@ void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint posit
   else 
     glBindTexture(texType, prime1);  // read from prime texture 1
 
+
   glBegin(GL_QUADS);
   {
     glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
@@ -119,9 +128,42 @@ void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint posit
   }
   glEnd();
   
-  pass1_shader.deactivate();
+  prime_shader.deactivate();
+  
+  //Prints out the updated prime values
+  if(outputPrime)
+    printPrime(odd,false);  
  
   glBindTexture(texType, 0);
+
+}
+void ParticleControl::printPrime(bool odd, bool prev){
+  glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
+  
+  if(prev){
+    std::cout << "Previous Prime Values" << std::endl;
+    if(odd)
+      glReadBuffer(GL_COLOR_ATTACHMENT2_EXT);
+    else
+      glReadBuffer(GL_COLOR_ATTACHMENT3_EXT);
+  }
+  else{
+
+    std::cout << "Updated Prime Values" << std::endl;
+    if(odd)
+      glReadBuffer(GL_COLOR_ATTACHMENT3_EXT);
+    else
+      glReadBuffer(GL_COLOR_ATTACHMENT2_EXT);
+
+    outputPrime = false;
+
+  }
+
+  dumpContents();
+  
+ 
+  glReadBuffer(currentbuffer);
+
 
 }
 void ParticleControl::setupAdvectShader(float* time_step, int* numInRow, float life_time){
@@ -162,6 +204,7 @@ void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint randomValu
 			     GLuint windField, GLuint positions0, GLuint positions1, 
 			     GLuint prime0, GLuint prime1, float time_step)
 {
+
   if (odd)
     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
   else 
@@ -210,7 +253,7 @@ void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint randomValu
     glBindTexture(texType, positions0);  // read from texture 0
   else 
     glBindTexture(texType, positions1);  // read from texture 1
-  //dumpContents();
+ 
   glBegin(GL_QUADS);
   {
     glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
@@ -349,7 +392,7 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
 	  dataTwo[texidx] = data3d[p2idx].u;
 	  dataTwo[texidx+1] = data3d[p2idx].v;
 	  dataTwo[texidx+2] = data3d[p2idx].w;	  
-	  dataTwo[texidx+3] = (ustar*ustar*ustar)/(0.4*qk);//This value needs to become Epsilon	
+	  dataTwo[texidx+3] = (ustar*ustar*ustar)/(0.4*(qk+1));//This value is the Epsilon value	
 
         }
 
