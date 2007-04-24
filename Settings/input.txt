@@ -6,7 +6,7 @@ theight 256
 show_particle_visuals 1
 
 #Set useRealTime to 0 for false and 1 for true
-useRealTime 1
+useRealTime 0
 
 #Time step used for simulation
 time_step 0.0012
@@ -22,7 +22,7 @@ output_file data.txt
 
 #Total time in seconds to run simulation
 #set to 0 to let user decide when to quit
-duration 0.0
+duration 30.0
 
 #Ustar value for prime and lambda calculations
 ustar 0.3
@@ -31,27 +31,28 @@ ustar 0.3
 startCBoxTime 0.0
 
 #Collection box end Time
-endCBoxTime 0.0
+endCBoxTime 20.0
 
 #Collection box averaging Time
 averagingTime 5.0
 
 #Collection box bounds; lower_x,lower_y,lower_z, upper_x,upper_y,upper_z
-bounds 28.0 8.0 32.0 32.0 12.0 36.0
+bounds 32.0 8.0 28.0 36.0 12.0 32.0 
 
 #Collection box discretization
 
-#number of boxes in x direction
+#number of boxes in x direction (z in openGL)
 numBox_x   3
-#number of boxes in y direction
+#number of boxes in y direction (x in openGL)
 numBox_y   4
-#number of boxes in z direction
+#number of boxes in z direction (y in openGL)
 numBox_z   5
 
 #Source/ParticleEmitter information
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius
-source_info 30.0 10.0 30.0 4.0 
-#source_info 20.0 5.0 20.0 2.0
-#source_info 50.0 15.0 5.0 0.0
+source_info 30.0 10.0 30.0 4.0
+#source_info 30.0 0.5 30.0 0.25 
+#source_info 20.0 2.0 20.0 0.5
+#source_info 50.0 3.0 5.0 0.0
