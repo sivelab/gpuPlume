@@ -8,13 +8,13 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 
+#include "gpuPlume.h"
 #include "particleControl.h"
 #include "displayControl.h"
 #include "particleEmitter.h"
 #include "pointEmitter.h"
 #include "sphereEmitter.h"
 #include "collectionBox.h"
-#include "gpuPlume.h"
 #include "framebufferObject.h"
 #include "renderbuffer.h"
 #include "GLSL.h"
@@ -99,6 +99,11 @@ class PlumeControl{
     z = zpos;
     r = radius;   
   }
+
+  //This is for use with using HMD.
+  //Both eyes need to have same random data set
+  void makeRandomDataSet();
+  GLfloat* random;
 
  private:
   
