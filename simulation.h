@@ -11,6 +11,7 @@ class Simulation{
   void init();
   void setStartTime();
   bool update(float*);
+  float randVal();
 
   //holds value for total elapsed time in running collection boxes
   double totalTime;
