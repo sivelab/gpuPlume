@@ -2,13 +2,6 @@
 #include <math.h>
 #include "particleControl.h"
 
-#ifdef WIN32
-float randomVal() { return (float)(rand()/(float)RAND_MAX); }
-#else
-float randomVal(){ return drand48();}
-#endif
-
-
 ParticleControl::ParticleControl(GLenum type,int width,int height,
 				 int x, int y, int z,
 				 double* u, double* v, double* w){
@@ -311,7 +304,8 @@ void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, i
   glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);
 }
 
-void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow, int dataSet){
+void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow,
+				  int dataSet){
   // Create wind data texture
   data3d = new wind[nx*ny*nz];
   switch(dataSet){
@@ -455,11 +449,11 @@ void ParticleControl::randomWindField(){
       for(int j = 0; j < nz; j++){
 	int p2idx = k*nx*nz + i*nz + j;
 	//
-	// Randomly generate a vector within the unit sphere
+	// Not currently random
 	// 	
-	data3d[p2idx].u = randomVal();
-	data3d[p2idx].v = randomVal();
-	data3d[p2idx].w = randomVal();
+	data3d[p2idx].u = 0.0;//randVal();
+	data3d[p2idx].v = 1.0;//randVal();
+	data3d[p2idx].w = 0.0;//randVal();
       }
     }
   }
