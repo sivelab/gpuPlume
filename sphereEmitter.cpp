@@ -1,16 +1,10 @@
 #include <iostream>
 #include "sphereEmitter.h"
 
-#ifdef WIN32
-// Rand functions
-float rVal() { return (float)(rand()/(float)RAND_MAX); } 
-#else
-float rVal() { return drand48(); }
-#endif
 
 SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
 	       int* w,int* h,std::list<int>* ind, 
-	       GLSLObject* emit_shader){
+	       GLSLObject* emit_shader, Simulation* s){
 
   xpos = x;
   ypos = y;
@@ -31,19 +25,20 @@ SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
   theight = *h;
 
   indices = ind;
+  sim = s;
  
   shader = emit_shader;
 
 }
 SphereEmitter::~SphereEmitter(){}
 
-void SphereEmitter::getPosition(float*x, float*y, float*z, float*r){
+/*void SphereEmitter::getPosition(float*x, float*y, float*z){
   *x = xpos;
   *y = ypos;
   *z = zpos;
-  *r = radius;
+  //r = radius;
 
-}
+  }*/
 void SphereEmitter::getReleasedPosition(float*x,float*y,float*z){
   *x = xpos + offsetx;
   *y = ypos + offsety;
@@ -97,9 +92,10 @@ int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
       for(int i = 0; i < numToEmit; i++){
 	if(!indices->empty()){
 
-	  offsetx = rVal()*2.0 - 1.0;
-	  offsety = rVal()*2.0 - 1.0;
-	  offsetz = rVal()*2.0 - 1.0;
+	  offsetx = sim->randVal()*2.0 - 1.0;
+	  offsety = sim->randVal()*2.0 - 1.0;
+	  offsetz = sim->randVal()*2.0 - 1.0;
+
 	  float d = sqrt(offsetx*offsetx + offsety*offsety + offsetz*offsetz);
 	  offsetx = (offsetx/d) * radius;
 	  offsety = (offsety/d) * radius;
