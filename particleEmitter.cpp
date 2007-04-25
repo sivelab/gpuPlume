@@ -26,11 +26,11 @@ void ParticleEmitter::setPosition(float x, float y, float z){
   zpos = z;
 
 }
-void ParticleEmitter::getPosition(float* x, float*y, float*z, float*r){
+void ParticleEmitter::getPosition(float* x, float*y, float*z){
   *x = xpos;
   *y = ypos;
   *z = zpos;
-  *r = 1.0;
+  //*r = 1.0;
 }
 void ParticleEmitter::getReleasedPosition(float*x,float*y,float*z){
   *x = xpos;
