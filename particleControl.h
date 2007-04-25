@@ -1,3 +1,6 @@
+#ifndef  __PC_H__
+#define  __PC_H__
+
 //////////////////////////////////////////////////
 // This class takes care of the represenation of
 // the particle positions and wind field on the GPU.
@@ -94,3 +97,4 @@ class ParticleControl{
   GLint currentbuffer;
 
 };
+#endif //__PC_H__
