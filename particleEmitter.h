@@ -38,7 +38,7 @@ class ParticleEmitter{
 
   virtual void setPosition(float,float,float);
 
-  virtual void getPosition(float*,float*,float*,float*);
+  virtual void getPosition(float*,float*,float*);
 
   virtual void getReleasedPosition(float*,float*,float*);
 
