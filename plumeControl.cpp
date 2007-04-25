@@ -9,10 +9,6 @@
 #include <conio.h>
 #include <tchar.h>
 
-// Rand functions
-float randVal() { return (float)(rand()/(float)RAND_MAX); } 
-#else
-float randVal() { return drand48(); }
 #endif
 
 // //////////////////////////////////////
@@ -89,7 +85,7 @@ PlumeControl::PlumeControl(){
   
 #else
   nx = 60;
-  ny = 20;
+  ny = 20;//140;
   nz = 60;
   u=0;
   v=0;
@@ -165,7 +161,7 @@ void PlumeControl::init(bool OSG){
       if(radius[i] == 0)
 	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], 10.0, &twidth, &theight, &indices, &emit_shader);
       else
-	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 60.0, radius[i], &twidth, &theight, &indices, &emit_shader);
+	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 60.0, radius[i], &twidth, &theight, &indices, &emit_shader,sim);
     }
   }
   for(int i=0; i < numOfPE; i++){
@@ -277,7 +273,8 @@ void PlumeControl::display(){
     //Once error is fixed, we can call this the first time.
     //Also can get rid of all the checks on if(!firstTime).
     if(firstTime){
-      pe[0]->emit = true;
+      if(!osgPlume)
+	pe[0]->emit = true;
       sim->setStartTime();
       firstTime = false;
     }
@@ -519,6 +516,18 @@ void PlumeControl::initFBO(void){
   fbo->IsValid();
   FramebufferObject::Disable();
 }
+void PlumeControl::makeRandomDataSet(){
+  random = new GLfloat[twidth*theight*4];
+  for(int j=0; j<theight; j++)
+    for(int i=0; i<twidth; i++){
+      int idx = j*twidth*4 + i*4;
+      random[idx] = sim->randVal();
+      random[idx+1] = sim->randVal();
+      random[idx+2] = sim->randVal();
+      random[idx+3] = sim->randVal();
+    }
+
+}
 
 void PlumeControl::setupTextures()
 {
@@ -540,10 +549,10 @@ void PlumeControl::setupTextures()
 			// values between 0 and 1 and then use an initial shader to
 			// transform the normalized coordinates to the correct domain.
       
-			data[idx] = randVal();
-			data[idx+1] = randVal();
-			data[idx+2] = randVal();
-			data[idx+3] = randVal();
+			data[idx] = sim->randVal();
+			data[idx+1] = sim->randVal();
+			data[idx+2] = sim->randVal();
+			data[idx+3] = sim->randVal();
 		}
 	pc->createTexture(texid[2], int_format_init, twidth, theight, data);
 
@@ -557,9 +566,9 @@ void PlumeControl::setupTextures()
 		for (int i=0; i<twidth; i++)
 		{
 			int idx = j*twidth*sz + i*sz;
-			data[idx] = data[idx] +  100;
-			data[idx+1] = data[idx+1] + 100;
-			data[idx+2] = data[idx+2] + 100;
+			data[idx] = random[idx] +  100;
+			data[idx+1] = random[idx+1] + 100;
+			data[idx+2] = random[idx+2] + 100;
 			data[idx+3] = lifeTime+1;
 		}
   
@@ -579,9 +588,9 @@ void PlumeControl::setupTextures()
 	    {
 	      int idx = j*twidth*sz + i*sz;
 
-	      data[idx] = randVal() * 2.0 - 1.0;
-	      data[idx+1] = randVal() * 2.0 - 1.0;
-	      data[idx+2] = randVal() * 2.0 - 1.0;
+	      data[idx] = random[idx] * 2.0 - 1.0;
+	      data[idx+1] = random[idx+1] * 2.0 - 1.0;
+	      data[idx+2] = random[idx+2] * 2.0 - 1.0;
 	      data[idx+3] = 0.0;
 
 	      // normalize
@@ -602,26 +611,26 @@ void PlumeControl::setupTextures()
 	// create random texture for use with particle simulation and turbulence
 	//
 	for (int j=0; j<theight; j++)
-		for (int i=0; i<twidth; i++)
-		{
-			int idx = j*twidth*sz + i*sz;
+	  for (int i=0; i<twidth; i++)
+	    {
+		int idx = j*twidth*sz + i*sz;
 	
-			//
-			// Generate random values should of normal distribution with zero mean and standard deviation of one.
-			// Need to pull classes from sim_fast that handle this... 
-			// For now, generate random values between -1 and 1.... shader subtracts 1.0
-			//
-			data[idx] = randVal() * 2.0 - 1.0;
-			data[idx+1] = randVal() * 2.0 - 1.0;
-			data[idx+2] = randVal() * 2.0 - 1.0;
-			data[idx+3] = 0.0;
+		//
+		// Generate random values should of normal distribution with zero mean and standard deviation of one.
+		// Need to pull classes from sim_fast that handle this... 
+		// For now, generate random values between -1 and 1.... shader subtracts 1.0
+		//
+		data[idx] = random[idx] * 2.0 - 1.0;
+		data[idx+1] = random[idx+1] * 2.0 - 1.0;
+		data[idx+2] = random[idx+2] * 2.0 - 1.0;
+		data[idx+3] = 0.0;
 
-			// normalize
-			float mag = sqrt(data[idx]*data[idx] + data[idx+1]*data[idx+1] + data[idx+2]*data[idx+2]);
-			data[idx] /= mag;
-			data[idx+1] /= mag;
-			data[idx+2] /= mag;
-		}
+		// normalize
+		float mag = sqrt(data[idx]*data[idx] + data[idx+1]*data[idx+1] + data[idx+2]*data[idx+2]);
+		data[idx] /= mag;
+		data[idx+1] /= mag;
+		data[idx+2] /= mag;
+	    }
 	pc->createTexture(texid[4], int_format, twidth, theight, data);
 	CheckErrorsGL("\tcreated texid[4], the random number texture...");
 
