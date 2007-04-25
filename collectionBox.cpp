@@ -69,9 +69,9 @@ void CollectionBox::outputConc(std::string file,double totalTime){
       for(int j=0; j < numBox_z; j++)
 	{
 	  idx = k*numBox_z*numBox_x + i*numBox_z + j;
-	  xBox = (idx/numBox_x)%numBox_z;
+	  xBox = (idx/numBox_z)%numBox_x;
 	  yBox = idx/(numBox_x*numBox_z);
-	  zBox = idx%numBox_x;
+	  zBox = idx%numBox_z;
 	  
 	  x = ((ux-lx)/(float)numBox_x)*xBox + lx;
 	  y = ((uy-ly)/(float)numBox_y)*yBox + ly;
