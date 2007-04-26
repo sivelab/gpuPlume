@@ -56,7 +56,7 @@ bool Simulation::update(float* time_step){
   
   return false;
 }
-float Simulation::randVal(){
+/*float Simulation::randVal(){
 #ifdef WIN32
   // Rand functions
   return (float)(rand()/(float)RAND_MAX); 
@@ -64,4 +64,4 @@ float Simulation::randVal(){
   return drand48(); 
 #endif
 
-}
+}*/
