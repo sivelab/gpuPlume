@@ -67,7 +67,6 @@ int main(int argc, char** argv)
 #endif
   
   plume = new PlumeControl();
-  plume->makeRandomDataSet();
 
 #ifndef WIN32
   srand48( time(0) % getpid() );
