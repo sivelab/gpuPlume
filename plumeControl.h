@@ -100,11 +100,6 @@ class PlumeControl{
     r = radius;   
   }
 
-  //This is for use with using HMD.
-  //Both eyes need to have same random data set
-  void makeRandomDataSet();
-  GLfloat* random;
-
  private:
   
   Simulation* sim;
