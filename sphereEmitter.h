@@ -3,13 +3,13 @@
 
 #include "particleEmitter.h"
 #include <GL/glut.h>
-#include "simulation.h"
+#include "Random.h"
 
 class SphereEmitter : public ParticleEmitter{
 
  public:
 
-  SphereEmitter(float,float,float,float,float,int*,int*,std::list<int>*, GLSLObject*,Simulation*);
+  SphereEmitter(float,float,float,float,float,int*,int*,std::list<int>*, GLSLObject*);
 
   virtual int EmitParticle(FramebufferObject*, bool);
   virtual void Draw();
@@ -25,8 +25,6 @@ class SphereEmitter : public ParticleEmitter{
   float offsetx;
   float offsety;
   float offsetz;
-
-  Simulation* sim;
 
 };
 
