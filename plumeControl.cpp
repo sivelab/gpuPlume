@@ -161,7 +161,7 @@ void PlumeControl::init(bool OSG){
       if(radius[i] == 0)
 	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], 10.0, &twidth, &theight, &indices, &emit_shader);
       else
-	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 60.0, radius[i], &twidth, &theight, &indices, &emit_shader,sim);
+	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 60.0, radius[i], &twidth, &theight, &indices, &emit_shader);
     }
   }
   for(int i=0; i < numOfPE; i++){
@@ -537,10 +537,10 @@ void PlumeControl::setupTextures()
 			// values between 0 and 1 and then use an initial shader to
 			// transform the normalized coordinates to the correct domain.
       
-			data[idx] = sim->randVal();
-			data[idx+1] = sim->randVal();
-			data[idx+2] = sim->randVal();
-			data[idx+3] = sim->randVal();
+			data[idx] = Random::uniform();
+			data[idx+1] = Random::uniform();
+			data[idx+2] = Random::uniform();
+			data[idx+3] = Random::uniform();
 		}
 	pc->createTexture(texid[2], int_format_init, twidth, theight, data);
 
@@ -576,9 +576,9 @@ void PlumeControl::setupTextures()
 	    {
 	      int idx = j*twidth*sz + i*sz;
 
-	      data[idx] = sim->randVal() * 2.0 - 1.0;
-	      data[idx+1] = sim->randVal() * 2.0 - 1.0;
-	      data[idx+2] = sim->randVal() * 2.0 - 1.0;
+	      data[idx] = Random::normal();
+	      data[idx+1] = Random::normal();
+	      data[idx+2] = Random::normal();
 	      data[idx+3] = 0.0;
 
 	      // normalize
@@ -608,9 +608,9 @@ void PlumeControl::setupTextures()
 		// Need to pull classes from sim_fast that handle this... 
 		// For now, generate random values between -1 and 1.... shader subtracts 1.0
 		//
-		data[idx] = sim->randVal() * 2.0 - 1.0;
-		data[idx+1] = sim->randVal() * 2.0 - 1.0;
-		data[idx+2] = sim->randVal() * 2.0 - 1.0;
+		data[idx] = Random::normal();
+		data[idx+1] = Random::normal();
+		data[idx+2] = Random::normal();
 		data[idx+3] = 0.0;
 
 		// normalize
