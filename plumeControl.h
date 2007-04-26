@@ -21,6 +21,7 @@
 #include "util.h"
 #include "simulation.h"
 #include "streamLine.h"
+#include "Random.h"
 
 class PlumeControl{
  public:
