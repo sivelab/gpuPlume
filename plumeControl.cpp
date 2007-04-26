@@ -516,18 +516,6 @@ void PlumeControl::initFBO(void){
   fbo->IsValid();
   FramebufferObject::Disable();
 }
-void PlumeControl::makeRandomDataSet(){
-  random = new GLfloat[twidth*theight*4];
-  for(int j=0; j<theight; j++)
-    for(int i=0; i<twidth; i++){
-      int idx = j*twidth*4 + i*4;
-      random[idx] = sim->randVal();
-      random[idx+1] = sim->randVal();
-      random[idx+2] = sim->randVal();
-      random[idx+3] = sim->randVal();
-    }
-
-}
 
 void PlumeControl::setupTextures()
 {
@@ -566,9 +554,9 @@ void PlumeControl::setupTextures()
 		for (int i=0; i<twidth; i++)
 		{
 			int idx = j*twidth*sz + i*sz;
-			data[idx] = random[idx] +  100;
-			data[idx+1] = random[idx+1] + 100;
-			data[idx+2] = random[idx+2] + 100;
+			data[idx] = data[idx] +  100;
+			data[idx+1] = data[idx+1] + 100;
+			data[idx+2] = data[idx+2] + 100;
 			data[idx+3] = lifeTime+1;
 		}
   
@@ -588,9 +576,9 @@ void PlumeControl::setupTextures()
 	    {
 	      int idx = j*twidth*sz + i*sz;
 
-	      data[idx] = random[idx] * 2.0 - 1.0;
-	      data[idx+1] = random[idx+1] * 2.0 - 1.0;
-	      data[idx+2] = random[idx+2] * 2.0 - 1.0;
+	      data[idx] = sim->randVal() * 2.0 - 1.0;
+	      data[idx+1] = sim->randVal() * 2.0 - 1.0;
+	      data[idx+2] = sim->randVal() * 2.0 - 1.0;
 	      data[idx+3] = 0.0;
 
 	      // normalize
@@ -620,9 +608,9 @@ void PlumeControl::setupTextures()
 		// Need to pull classes from sim_fast that handle this... 
 		// For now, generate random values between -1 and 1.... shader subtracts 1.0
 		//
-		data[idx] = random[idx] * 2.0 - 1.0;
-		data[idx+1] = random[idx+1] * 2.0 - 1.0;
-		data[idx+2] = random[idx+2] * 2.0 - 1.0;
+		data[idx] = sim->randVal() * 2.0 - 1.0;
+		data[idx+1] = sim->randVal() * 2.0 - 1.0;
+		data[idx+2] = sim->randVal() * 2.0 - 1.0;
 		data[idx+3] = 0.0;
 
 		// normalize
