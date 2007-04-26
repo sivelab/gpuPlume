@@ -1,5 +1,9 @@
 #include <math.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
 #include "Random.h"
+
 
 static float randVal()
 {
@@ -23,6 +27,8 @@ Random::Random()
   // Windows.
   srand(2);
 #endif
+
+  m_normal_value = false;
 }
 
 Random::Random(long s)
@@ -38,6 +44,8 @@ Random::Random(long s)
   // Windows.
   srand( s );
 #endif
+
+  m_normal_value = false;
 }
 
 float Random::uniform()
@@ -47,7 +55,7 @@ float Random::uniform()
 
 float Random::normal()
 {
-  float fac, rsq, v1, v2;
+  float rsq, v1, v2;
 
   if (m_normal_value == false)
     {
@@ -72,3 +80,5 @@ float Random::normal()
     }
 }
 
+bool Random::m_normal_value;
+float Random::m_remaining_value;
