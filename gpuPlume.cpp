@@ -68,11 +68,7 @@ int main(int argc, char** argv)
   
   plume = new PlumeControl();
 
-#ifndef WIN32
-  srand48( time(0) % getpid() );
-#else
-  srand(2);
-#endif
+  Random random_gen(2);
 
   glutInitDisplayMode( GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE );
   glutInit(&argc, argv);
