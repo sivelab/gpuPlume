@@ -4,7 +4,7 @@
 
 SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
 	       int* w,int* h,std::list<int>* ind, 
-	       GLSLObject* emit_shader, Simulation* s){
+	       GLSLObject* emit_shader){
 
   xpos = x;
   ypos = y;
@@ -25,7 +25,6 @@ SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
   theight = *h;
 
   indices = ind;
-  sim = s;
  
   shader = emit_shader;
 
@@ -92,9 +91,9 @@ int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
       for(int i = 0; i < numToEmit; i++){
 	if(!indices->empty()){
 
-	  offsetx = sim->randVal()*2.0 - 1.0;
-	  offsety = sim->randVal()*2.0 - 1.0;
-	  offsetz = sim->randVal()*2.0 - 1.0;
+	  offsetx = Random::uniform()*2.0 - 1.0;
+	  offsety = Random::uniform()*2.0 - 1.0;
+	  offsetz = Random::uniform()*2.0 - 1.0;
 
 	  float d = sqrt(offsetx*offsetx + offsety*offsety + offsetz*offsetz);
 	  offsetx = (offsetx/d) * radius;
