@@ -1,13 +1,17 @@
 #include <math.h>
+#ifndef WIN32
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
+#else
+#include <windows.h>
+#endif
 #include "Random.h"
 
 
 static float randVal()
 {
-#ifndef WIN32
+#ifdef WIN32
   return (float)(rand()/(float)RAND_MAX); 
 #else
   return drand48(); 
