@@ -49,6 +49,15 @@ void Util::parseLine(char* line){
   if(read1Float(line, "time_step", &f1)){
     plume->time_step = f1;
   }
+  if(read1Float(line, "nx", &f1)){
+    plume->nz = (int)f1;
+  }
+  if(read1Float(line, "ny", &f1)){
+    plume->nx = (int)f1;
+  }
+  if(read1Float(line, "nz", &f1)){
+    plume->ny = (int)f1;
+  }
   if(read1Float(line, "testcase", &f1)){
     plume->testcase = (int)f1;
   }
