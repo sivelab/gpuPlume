@@ -186,11 +186,11 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if (key == 'w')
     {
-      plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos - 1.0);
+      plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos-1.0, plume->pe[curr]->zpos);
     }
   else if (key == 's')
     {
-      plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos+ 1.0);
+      plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos+1.0, plume->pe[curr]->zpos);
     }
    else if (key == 'a')
     {
