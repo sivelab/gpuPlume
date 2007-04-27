@@ -41,6 +41,8 @@ void ParticleControl::setupPrimeShader( int* numInRow){  //Included argument -- 
   uniform_lambda = prime_shader.createUniform("lambda");
   uniform_dt = prime_shader.createUniform("time_step");
   uniform_randomTexCoordOffset = prime_shader.createUniform("random_texCoordOffset");
+  uniform_randomTexWidth = prime_shader.createUniform("random_texWidth");
+  uniform_randomTexHeight = prime_shader.createUniform("random_texHeight");
   
   // Following is copy-paste from setupadvect shader
   //we need all of the following in prime shader too. --Balli(04/12/07)
@@ -90,7 +92,7 @@ void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint posit
       // H in height, so generate random value in this range
       float f1 = Random::uniform() * twidth;
       float f2 = Random::uniform() * theight;
-      // std::cout << "here I am: f1 = " << f1 << ", f2 = " << f2 << std::endl;
+      // std::cout << "Setting random offset: " << f1 << ", " << f2 << std::endl;
       glUniform2fARB(uniform_randomTexCoordOffset, f1, f2);
     }
   else 
@@ -98,6 +100,11 @@ void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint posit
       // texture coordinates will range from 0 to 1, so generate random value in this range
       glUniform2fARB(uniform_randomTexCoordOffset, Random::uniform(), Random::uniform());
     }
+
+  // set the size of the texture width and height for the shader to use
+  // std::cout << "Setting twidth, theight: " << twidth << ", " << theight << std::endl;
+  glUniform1iARB(uniform_randomTexWidth, twidth);
+  glUniform1iARB(uniform_randomTexHeight, theight);
 
   //Bind the position texture to TEXTURE UNIT 4-- Balli (04/12/07)
   glActiveTexture(GL_TEXTURE4);
@@ -318,6 +325,11 @@ void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, i
   glBindTexture(texType, texId);
   glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  //
+  // NOTE: GL_REPEAT IS NOT SUPPORTED FOR GL_TEXTURE_RECTANGLE_ARB
+  // Thus, we must use the normal clamp to edge texture, but do the work in the shader to correct the random
+  // offset.
+  //
   glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);

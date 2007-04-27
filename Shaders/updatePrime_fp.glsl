@@ -17,6 +17,8 @@ uniform float numInRow;
 // reflect a more uniform random value rather than the same value for
 // each particle.
 //
+uniform int random_texWidth;
+uniform int random_texHeight;
 uniform vec2 random_texCoordOffset;
 
 void main(void)
@@ -26,7 +28,18 @@ void main(void)
 	// Add the random texture coordinate offset to the
 	// texture coordinate.  The texture is set to perform wrapping
 	// so texture coordinates outside the range will be valid.
+	//
+	// GL_TEXTURE_RECTANGLE_ARB does not support GL_REPEAT (at least on windows)
+	// so we will do the normalization here given the width and length of the 
+	// random texture.
 	vec2 rTexCoord = texCoord + random_texCoordOffset;
+
+	// bring the texture coordinate back within the (0,W)x(0,H) range
+	// rTexCoord.s = rTexCoord.s - random_texWidth;
+	// rTexCoord.t = rTexCoord.t - random_texHeight;
+
+	// lookup the random value to be used for this particle in
+	// this timestep
 	vec3 randn = vec3(textureRect(random, rTexCoord));
 
 	float xRandom = randn.x;

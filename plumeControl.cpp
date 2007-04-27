@@ -619,7 +619,7 @@ void PlumeControl::setupTextures()
 		data[idx+2] = Random::normal();
 		data[idx+3] = 0.0;
 	    }
-	pc->createWrappedTexture(texid[4], int_format, twidth, theight, data);
+	pc->createTexture(texid[4], int_format, twidth, theight, data);
 	CheckErrorsGL("\tcreated texid[4], the random number texture...");
 
   delete [] data;

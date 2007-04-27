@@ -88,7 +88,7 @@ class ParticleControl{
   //Variables for prime shader
   GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;
   GLint uniform_dt,uniform_lambda;
-  GLint uniform_randomTexCoordOffset;
+  GLint uniform_randomTexCoordOffset, uniform_randomTexWidth, uniform_randomTexHeight;
 
   //Variables for advect shader
   GLint uniform_postex, uniform_wind, uniform_randomTexture;
