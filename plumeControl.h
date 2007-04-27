@@ -101,6 +101,10 @@ class PlumeControl{
     r = radius;   
   }
 
+  int nx;
+  int ny;
+  int nz;
+
  private:
   
   Simulation* sim;
@@ -137,9 +141,6 @@ class PlumeControl{
   Util* utility;
 
   //QUIC-PLUME References
-  int nx;
-  int ny;
-  int nz;
   double* u;
   double* v;
   double* w;
