@@ -3,7 +3,7 @@
 #include <iostream>
 #include <math.h>
 #include <fstream>
-
+#include <GL/glew.h>
 
 class CollectionBox{
  public:
@@ -16,6 +16,8 @@ class CollectionBox{
   //The last float is the concentration averaging time
   CollectionBox(int,int,int,float*,double);
 
+  void calcSimpleConc(float,float,float);
+
   //Calculates the Concentration for each position in the 
   //collection box
   void calculateConc(float,float,float,float,double);
@@ -24,9 +26,10 @@ class CollectionBox{
   void clear();
 
   //Writes the concentration values to specified file
-  void outputConc(std::string,double);
+  void outputConc(std::string,double,double);
 
-  double* cBox;
+  double* cBox; 
+  double* cCell;
 
  private:
 
@@ -50,6 +53,10 @@ class CollectionBox{
   double TotRel;
   double concAvgTime;
 
+  //GLfloat* pos_buffer; 
+
+  //int twidth;
+  //int theight;
 
 };
 
