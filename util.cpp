@@ -50,13 +50,13 @@ void Util::parseLine(char* line){
     plume->time_step = f1;
   }
   if(read1Float(line, "nx", &f1)){
-    plume->nz = (int)f1;
-  }
-  if(read1Float(line, "ny", &f1)){
     plume->nx = (int)f1;
   }
-  if(read1Float(line, "nz", &f1)){
+  if(read1Float(line, "ny", &f1)){
     plume->ny = (int)f1;
+  }
+  if(read1Float(line, "nz", &f1)){
+    plume->nz = (int)f1;
   }
   if(read1Float(line, "testcase", &f1)){
     plume->testcase = (int)f1;
@@ -86,13 +86,13 @@ void Util::parseLine(char* line){
     plume->bounds = b;
   }
   if(read1Float(line, "numBox_x", &f1)){
-    plume->numBox_z = (int)f1;
-  }
-  if(read1Float(line, "numBox_y", &f1)){
     plume->numBox_x = (int)f1;
   }
-  if(read1Float(line, "numBox_z", &f1)){
+  if(read1Float(line, "numBox_y", &f1)){
     plume->numBox_y = (int)f1;
+  }
+  if(read1Float(line, "numBox_z", &f1)){
+    plume->numBox_z = (int)f1;
   }
   if(read1Float(line, "ustar", &f1)){
     plume->ustar = f1;
@@ -114,9 +114,9 @@ void Util::parseLine(char* line){
     plume->radius = new float[plume->numOfPE];
   }
   if(readSourceInfo(line, "source_info", s)){
-    plume->xpos[num] = s[1];
-    plume->ypos[num] = s[2];
-    plume->zpos[num] = s[0];
+    plume->xpos[num] = s[0];
+    plume->ypos[num] = s[1];
+    plume->zpos[num] = s[2];
     plume->radius[num] = s[3];
     num++;
   }
