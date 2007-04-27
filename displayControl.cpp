@@ -11,13 +11,13 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   nz = z;
   texType = type;
 
-  eye_pos[0] = 0;
+  eye_pos[0] = nx+50;
   eye_pos[1] = 0;
-  eye_pos[2] = nz + 50;
+  eye_pos[2] = 0;
   
-  eye_gaze[0] = 0;
+  eye_gaze[0] = eye_pos[0] - 5;
   eye_gaze[1] = 0;
-  eye_gaze[2] = eye_pos[2] - 5;
+  eye_gaze[2] = 0;
 
   rotate_sphere = false;
   rotate_object = false;
@@ -47,13 +47,13 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
 	     eye_gaze[0], eye_gaze[1], eye_gaze[2],
-	     0, 1, 0 );
+	     0, 0, 1 );
 
     if (!rotate_sphere) 
       {
 	// allow rotation of this object
-	glRotatef(elevation, 1,0,0);
-	glRotatef(azimuth, 0,1,0);
+	glRotatef(elevation, 0,1,0);
+	glRotatef(azimuth, 0,0,1);
 	// glTranslatef(0,0,5.0);
       }
   }
@@ -87,7 +87,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
 }
 void DisplayControl::increaseVisualLayer(){
   visual_layer++;
-  if(visual_layer > ny) visual_layer = ny;
+  if(visual_layer > nz) visual_layer = nz;
 
 }
 void DisplayControl::decreaseVisualLayer(){
@@ -95,8 +95,8 @@ void DisplayControl::decreaseVisualLayer(){
   if(visual_layer < -1) visual_layer = -1;
 }
 void DisplayControl::setEyeValues(float change){
-  eye_pos[2] = eye_pos[2] + change;
-  eye_gaze[2] = eye_pos[2] - 5.0;
+  eye_pos[0] = eye_pos[0] + change;
+  eye_gaze[0] = eye_pos[0] - 5.0;
 }
 void DisplayControl::setAzimuth(float change, float rate){
   azimuth = azimuth + change*rate;
@@ -152,15 +152,13 @@ void DisplayControl::drawAxes(){
 
 }
 void DisplayControl::drawLayers(GLuint texId, int numInRow){
-  if (visual_layer >= 0 && visual_layer < ny)
+  if (visual_layer >= 0 && visual_layer < nz)
     {
       //glEnable(GL_LIGHTING);
       //glEnable(GL_LIGHT0);
       glEnable(GL_COLOR_MATERIAL);
       glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-     
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
 
       glEnable(texType);
       glBindTexture(texType, texId);
@@ -199,23 +197,23 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       // s (or the value in the x dimension of the texture) can be
       // determined with a mod of the layer by the number of layers
       // that can be held in each row of the texutre. [ COMPLETE DESCRIPTION ]
-      s = (int)(visual_layer % numInRow) * nz;
+      s = (int)(visual_layer % numInRow) * nx;
 
       // t (or the value in the y dimension of the texture) can be 
       // calculated by the floor of the layer to be visualized divided
       // by the number of layers that can be held in each row of
       // the texture. 
-      t = (int)(floor(visual_layer/(float)numInRow) * nx);
+      t = (int)(floor(visual_layer/(float)numInRow) * ny);
 
       // Create a quad at this layer with 50% transparency
       glColor4f(1.0, 1.0, 1.0, 0.8);
       glBegin(GL_QUADS);
       {
-	glNormal3f(0.0, 1.0, 0.0);
-	glTexCoord2f(s, t);         glVertex3f(0, visual_layer, 0);
-	glTexCoord2f(s+nz, t);      glVertex3f(nz, visual_layer, 0);
-	glTexCoord2f(s+nz, t+nx);   glVertex3f(nz, visual_layer, nx);
-	glTexCoord2f(s, t+nx);      glVertex3f(0, visual_layer, nx);
+	glNormal3f(0.0, 0.0, 1.0);
+	glTexCoord2f(s, t);         glVertex3f(0, 0, visual_layer);
+	glTexCoord2f(s+nx, t);      glVertex3f(nx, 0,visual_layer);
+	glTexCoord2f(s+nx, t+ny);   glVertex3f(nx, ny,visual_layer);
+	glTexCoord2f(s, t+ny);      glVertex3f(0, ny,visual_layer);
       }
       glEnd();
       glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -281,13 +279,13 @@ void DisplayControl::drawFeatures(void)
       glPushMatrix();
       glColor3f(0.5, 0.5, 0.5);
 
-      glTranslatef(yfo[qi]*grid_scale,
-		   zfo[qi]*grid_scale + (ht[qi]*grid_scale)/2.0,
-		   xfo[qi]*grid_scale + (lti[qi]*grid_scale)/2.0);
+      glTranslatef(xfo[qi]*grid_scale+ (lti[qi]*grid_scale)/2.0,
+		   yfo[qi]*grid_scale,
+		   zfo[qi]*grid_scale + (ht[qi]*grid_scale)/2.0);
 
-      glScalef(wti[qi]*grid_scale,
-	       ht[qi]*grid_scale,
-	       lti[qi]*grid_scale);
+      glScalef(lti[qi]*grid_scale,
+	       wti[qi]*grid_scale,
+	       ht[qi]*grid_scale);
 
       glutSolidCube(1.0);
       glPopMatrix();
