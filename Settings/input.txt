@@ -2,13 +2,17 @@
 twidth 256
 theight 256
 
+#Set the Domain
+nx 60
+ny 60
+nz 50
+
 #Set this to 1 to show the particle display, else 0
 show_particle_visuals 1
 
 #Set useRealTime to 0 for false and 1 for true
-useRealTime 0
+useRealTime 1
 
-#Time step used for simulation
 time_step 0.012
 
 #Test case for setting Windfield
@@ -31,10 +35,10 @@ ustar 0.3
 startCBoxTime 0.0
 
 #Collection box end Time
-endCBoxTime 20.0
+endCBoxTime 0.0
 
 #Collection box averaging Time
-averagingTime 5.0
+averagingTime 20.0
 
 #Collection box bounds; lower_x,lower_y,lower_z, upper_x,upper_y,upper_z
 bounds 32.0 28.0 8.0 36.0 32.0 12.0
