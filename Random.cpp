@@ -8,7 +8,6 @@
 #endif
 #include "Random.h"
 
-
 static float randVal()
 {
 #ifdef WIN32
@@ -57,6 +56,10 @@ float Random::uniform()
   return randVal();
 }
 
+// The normal function returns a random number from a Gaussian
+// distribution with mean 0 and standard deviation of 1.  This is
+// accomplished by using the Box-Muller algorithm for transformation
+// between different distributions.
 float Random::normal()
 {
   float rsq, v1, v2;
