@@ -35,8 +35,10 @@ void main(void)
 	vec2 rTexCoord = texCoord + random_texCoordOffset;
 
 	// bring the texture coordinate back within the (0,W)x(0,H) range
-	// rTexCoord.s = rTexCoord.s - random_texWidth;
-	// rTexCoord.t = rTexCoord.t - random_texHeight;
+	if (rTexCoord.s > random_texWidth)
+	   rTexCoord.s = rTexCoord.s - random_texWidth;
+	if (rTexCoord.t > random_texHeight)
+	   rTexCoord.t = rTexCoord.t - random_texHeight;
 
 	// lookup the random value to be used for this particle in
 	// this timestep
