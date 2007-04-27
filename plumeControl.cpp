@@ -91,13 +91,13 @@ PlumeControl::PlumeControl(){
   v=0;
   w=0;
 #endif
-
+  
   utility = new Util(this);
   utility->readInput("Settings/input.txt");
 
   //Sets up the type of simulation to run
   sim = new Simulation(useRealTime,duration,&time_step);
-
+  
   texType = GL_TEXTURE_RECTANGLE_ARB;
   int_format = GL_RGBA32F_ARB;
   int_format_init = GL_RGBA;
@@ -107,6 +107,8 @@ PlumeControl::PlumeControl(){
 
   //CollectionBox Settings
   avgTime = averagingTime + startCBoxTime;
+  //If we want to output concentrations only at end set this
+  avgTime = endCBoxTime;
   cBoxes[0] = new CollectionBox(numBox_x,numBox_y,numBox_z,bounds,averagingTime);
   num_cBoxes = 1;
   
@@ -118,7 +120,7 @@ PlumeControl::PlumeControl(){
   quitSimulation = false;
 
   stream = new StreamLine(twidth,theight,nx,ny,nz);
-
+  
   //Set whether to reuse particles or not
   //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
   //If reuseParticles is set to true: fourth coordinate is <= lifetime if emiited, else lifetime+1
@@ -130,12 +132,12 @@ PlumeControl::PlumeControl(){
 
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
-  
+   
 }
 
 void PlumeControl::init(bool OSG){
   osgPlume = OSG;
- 
+
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,u,v,w);
   pc->setUstarAndSigmas(ustar);
 
@@ -313,7 +315,7 @@ void PlumeControl::display(){
 	totalNumPar += (double)pe[i]->EmitParticle(fbo,odd);
       }
       else if(pe[i]->releaseOne){
-	//Release one particle every time key is pressed( or hand gesture made)
+	//Release one particle every time key is pressed
 	pe[i]->setNumToEmit(1);
 	totalNumPar += (double)pe[i]->EmitParticle(fbo,odd);
  
@@ -354,7 +356,8 @@ void PlumeControl::display(){
 	//Check to see if particle is inside a collection box
 	for(int j = 0; j < num_cBoxes; j++){
 	  //if a particle is in a box the concentration value is updated
-	  cBoxes[j]->calculateConc(x,y,z,time_step,totalNumPar);	  	  
+	  //cBoxes[j]->calculateConc(x,y,z,time_step,totalNumPar);
+	  cBoxes[j]->calcSimpleConc(x,y,z);
 	}	
       }
     } 
@@ -404,9 +407,7 @@ void PlumeControl::display(){
   if(output_CollectionBox)
      {
        for(int j = 0; j < num_cBoxes; j++){
-         cBoxes[j]->outputConc(output_file,sim->totalTime);
-	 //I'm calling clear at the end of outputConc();
-	 //cBoxes[j]->clear();
+	 cBoxes[j]->outputConc(output_file,sim->totalTime,sim->curr_timeStep);
        }
        output_CollectionBox = false;
      }
@@ -585,9 +586,14 @@ void PlumeControl::setupTextures()
 	      float mag = sqrt(data[idx]*data[idx] + data[idx+1]*data[idx+1] 
 			       + data[idx+2]*data[idx+2]);
 	      //calculating u',v' and w'and storing them in data
-	      data[idx] = sigU*(data[idx]/mag);   
-	      data[idx+1] = sigV*(data[idx+1]/mag);
-	      data[idx+2] = sigW*(data[idx+2]/mag);
+	      //Quicplume coordinates
+	      //data[idx] = sigU*(data[idx]/mag);   
+	      //data[idx+1] = sigV*(data[idx+1]/mag);
+	      //data[idx+2] = sigW*(data[idx+2]/mag);
+	      //Need to switch to gpuPlume coordinates
+	      data[idx] = sigV*(data[idx]/mag);   
+	      data[idx+1] = sigW*(data[idx+1]/mag);
+	      data[idx+2] = sigU*(data[idx+2]/mag);
 	    }
 
 	pc->createTexture(prime0, int_format, twidth, theight, data);
