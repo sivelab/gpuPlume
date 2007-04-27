@@ -13,16 +13,29 @@ CollectionBox::CollectionBox(int x,int y,int z,float* bounds,double time){
   ux = bounds[4];
   uy = bounds[5];
   uz = bounds[3];
-
+  
   volume = (double)(ux-lx)*(uy-ly)*(uz-lz);
   TotRel = (double)1.0;
   concAvgTime = time;
-  
-  cBox = new double[x*y*z];
 
+  cBox = new double[x*y*z];
   clear();
 
   alreadyOpen = false;
+  
+}
+
+void CollectionBox::calcSimpleConc(float x, float y, float z){
+  if( (lx <= x)&&(x <= ux)&&(ly <= y)&&(y <= uy)&&(lz <= z)&&(z <= uz) ){
+        
+    int xBox = (int)floor((x-lx)/((ux-lx)/(float)numBox_x));
+    int yBox = (int)floor((y-ly)/((uy-ly)/(float)numBox_y));
+    int zBox = (int)floor((z-lz)/((uz-lz)/(float)numBox_z));
+    int idx = yBox*numBox_x*numBox_z + xBox*numBox_z + zBox;
+       
+    cBox[idx] = cBox[idx] + 1.0;   
+  }
+
 }
 
 void CollectionBox::calculateConc(float x,float y,float z,float timeStep,double totalNumPar){
@@ -45,7 +58,7 @@ void CollectionBox::clear(){
   }
 
 }
-void CollectionBox::outputConc(std::string file,double totalTime){
+void CollectionBox::outputConc(std::string file,double totalTime,double totalTimeSteps){
   std::ofstream output;
 
   int idx,xBox,yBox,zBox;
@@ -81,7 +94,7 @@ void CollectionBox::outputConc(std::string file,double totalTime){
 	  offsetz = ((uz-lz)/(float)numBox_z)/2.0;
 	  
 	  output << z+offsetz << "  " << x+offsetx << "  " << y+offsety <<
-	    "  " << cBox[idx] << "\n";
+	    "  " << cBox[idx]/totalTimeSteps << "\n";
 
 	  /*std::cout << z+offsetz << "  " << x+offsetx << "  " << y+offsety <<
 	    "  " << cBox[idx] << std::endl;*/
