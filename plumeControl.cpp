@@ -58,12 +58,12 @@ PlumeControl::PlumeControl(){
   readfiles_();
 
   //QuicPlume data for the domain
-  nx = __datamodule__ny; //domain in the x direction
-  ny = __datamodule__nz; //domain in the y direction(our orientation is y for up)
-  nz = __datamodule__nx; //domain in the z direction
+  nx = __datamodule__nx; //domain in the x direction
+  ny = __datamodule__ny; //domain in the y direction
+  nz = __datamodule__nz; //domain in the z direction
 
   //nx = (__datamodule__nx - 1) * __datamodule__dx; //domain in the x direction
-  //ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction(our orientation is y for up)
+  //ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction
   //nz = (__datamodule__ny - 1) * __datamodule__dy; //domain in the z direction
 
   std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " 
@@ -85,8 +85,8 @@ PlumeControl::PlumeControl(){
   
 #else
   nx = 60;
-  ny = 20;//140;
-  nz = 60;
+  ny = 60;//140;
+  nz = 20;
   u=0;
   v=0;
   w=0;
@@ -587,13 +587,13 @@ void PlumeControl::setupTextures()
 			       + data[idx+2]*data[idx+2]);
 	      //calculating u',v' and w'and storing them in data
 	      //Quicplume coordinates
-	      //data[idx] = sigU*(data[idx]/mag);   
-	      //data[idx+1] = sigV*(data[idx+1]/mag);
-	      //data[idx+2] = sigW*(data[idx+2]/mag);
+	      data[idx] = sigU*(data[idx]/mag);   
+	      data[idx+1] = sigV*(data[idx+1]/mag);
+	      data[idx+2] = sigW*(data[idx+2]/mag);
 	      //Need to switch to gpuPlume coordinates
-	      data[idx] = sigV*(data[idx]/mag);   
-	      data[idx+1] = sigW*(data[idx+1]/mag);
-	      data[idx+2] = sigU*(data[idx+2]/mag);
+	      //data[idx] = sigV*(data[idx]/mag);   
+	      //data[idx+1] = sigW*(data[idx+1]/mag);
+	      //data[idx+2] = sigU*(data[idx+2]/mag);
 	    }
 
 	pc->createTexture(prime0, int_format, twidth, theight, data);
