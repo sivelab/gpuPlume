@@ -92,7 +92,6 @@ void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint posit
       // H in height, so generate random value in this range
       float f1 = Random::uniform() * twidth;
       float f2 = Random::uniform() * theight;
-      // std::cout << "Setting random offset: " << f1 << ", " << f2 << std::endl;
       glUniform2fARB(uniform_randomTexCoordOffset, f1, f2);
     }
   else 
@@ -102,7 +101,6 @@ void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint posit
     }
 
   // set the size of the texture width and height for the shader to use
-  // std::cout << "Setting twidth, theight: " << twidth << ", " << theight << std::endl;
   glUniform1iARB(uniform_randomTexWidth, twidth);
   glUniform1iARB(uniform_randomTexHeight, theight);
 
