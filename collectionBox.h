@@ -29,7 +29,6 @@ class CollectionBox{
   void outputConc(std::string,double,double);
 
   double* cBox; 
-  double* cCell;
 
  private:
 
