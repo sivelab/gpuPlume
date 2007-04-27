@@ -36,6 +36,10 @@ class PlumeControl{
   
   int twidth,theight; //they are twidth*theight number ofparticles
   int numInRow;
+  //Domain 
+  int nx;
+  int ny;
+  int nz;
 
   StreamLine* stream;
   ParticleControl* pc;
@@ -43,7 +47,7 @@ class PlumeControl{
   ParticleEmitter* pe[10];
   int numOfPE;
 
-  //An array of the collection boxes
+  //An array of the collection boxes 
   CollectionBox* cBoxes[3];
   //total number of collection boxes being used
   int num_cBoxes;
@@ -100,10 +104,6 @@ class PlumeControl{
     z = zpos;
     r = radius;   
   }
-
-  int nx;
-  int ny;
-  int nz;
 
  private:
   
