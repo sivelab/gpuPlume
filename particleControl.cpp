@@ -1,6 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include "particleControl.h"
+#include "Random.h"
 
 ParticleControl::ParticleControl(GLenum type,int width,int height,
 				 int x, int y, int z,
@@ -39,6 +40,7 @@ void ParticleControl::setupPrimeShader( int* numInRow){  //Included argument -- 
   uniform_windTex = prime_shader.createUniform("wind");
   uniform_lambda = prime_shader.createUniform("lambda");
   uniform_dt = prime_shader.createUniform("time_step");
+  uniform_randomTexCoordOffset = prime_shader.createUniform("random_texCoordOffset");
   
   // Following is copy-paste from setupadvect shader
   //we need all of the following in prime shader too. --Balli(04/12/07)
@@ -79,6 +81,23 @@ void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint posit
   glEnable(texType);
   prime_shader.activate();
   glUniform1fARB(uniform_dt, time_step);
+
+  // generate and set the random texture coordinate offset
+  // 
+  if (texType == GL_TEXTURE_RECTANGLE_ARB)
+    {
+      // texture coordinates will range from 0 to W in width and 0 to
+      // H in height, so generate random value in this range
+      float f1 = Random::uniform() * twidth;
+      float f2 = Random::uniform() * theight;
+      // std::cout << "here I am: f1 = " << f1 << ", f2 = " << f2 << std::endl;
+      glUniform2fARB(uniform_randomTexCoordOffset, f1, f2);
+    }
+  else 
+    {
+      // texture coordinates will range from 0 to 1, so generate random value in this range
+      glUniform2fARB(uniform_randomTexCoordOffset, Random::uniform(), Random::uniform());
+    }
 
   //Bind the position texture to TEXTURE UNIT 4-- Balli (04/12/07)
   glActiveTexture(GL_TEXTURE4);

@@ -9,7 +9,6 @@ uniform float nz;
 uniform float numInRow;
 uniform float time_step;
 uniform float life_time;
-uniform vec2 random_texCoordOffset;
 
 void main(void)
 {

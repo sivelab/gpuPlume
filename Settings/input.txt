@@ -9,7 +9,7 @@ show_particle_visuals 1
 useRealTime 0
 
 #Time step used for simulation
-time_step 0.12
+time_step 0.012
 
 #Test case for setting Windfield
 #Use value of 3 for quic Plume data
@@ -22,7 +22,7 @@ output_file data.txt
 
 #Total time in seconds to run simulation
 #set to 0 to let user decide when to quit
-duration 30.0
+duration 0
 
 #Ustar value for prime and lambda calculations
 ustar 0.3
@@ -52,7 +52,7 @@ numBox_z   5
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius
-source_info 30.0 10.0 30.0 4.0
+source_info 30.0 30.0 10.0 4.0
 #source_info 30.0 0.5 30.0 0.25 
 #source_info 20.0 2.0 20.0 0.5
 #source_info 50.0 3.0 5.0 0.0

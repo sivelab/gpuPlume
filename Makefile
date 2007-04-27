@@ -2,7 +2,7 @@ EXEC	= gpuPlume
 
 CC	= g++ -g -O2 -Wall -DNDEBUG
 
-CSRC 	= gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp
+CSRC 	= gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp
 
 COBJS   = $(CSRC:.cpp=.o)
 
@@ -17,7 +17,7 @@ FOBJSS = DataModule.o ReadFiles.o
 
 LIB=-Wl,-rpath=/home/cs/vr/software/glew-1.3.4.dist/lib -lGLEW -lglut -lGL 
 LIB_PATH=-L/home/cs/vr/software/glew-1.3.4.dist/lib
-INCLUDE_PATH=-I/home/cs/vr/software/glew-1.3.4.dist/include -Itutors/
+INCLUDE_PATH=-I/home/cs/vr/software/glew-1.3.4.dist/include
 
 # compile with gfortran
 FCLOC	= /usr

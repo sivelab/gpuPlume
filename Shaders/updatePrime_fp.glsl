@@ -9,11 +9,25 @@ uniform float ny;
 uniform float nz;
 uniform float numInRow;
 
+//
+// This variable contains a uniformally generated random 2D vector in
+// the range [0,1].  The value is generated on the CPU each iteration
+// and is used to offset the random texture (used in this shader).  By
+// offsetting the random texture lookup, the random numbers will
+// reflect a more uniform random value rather than the same value for
+// each particle.
+//
+uniform vec2 random_texCoordOffset;
+
 void main(void)
 {
 	vec2 texCoord = gl_TexCoord[0].xy;
 	
-	vec3 randn = vec3(textureRect(random, texCoord));
+	// Add the random texture coordinate offset to the
+	// texture coordinate.  The texture is set to perform wrapping
+	// so texture coordinates outside the range will be valid.
+	vec2 rTexCoord = texCoord + random_texCoordOffset;
+	vec3 randn = vec3(textureRect(random, rTexCoord));
 
 	float xRandom = randn.x;
 	float yRandom = randn.y;

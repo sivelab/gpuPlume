@@ -84,9 +84,12 @@ class ParticleControl{
   float ustar,sigU,sigV,sigW;
 
   GLSLObject init_shader, pass1_shader, prime_shader;
+
   //Variables for prime shader
   GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;
   GLint uniform_dt,uniform_lambda;
+  GLint uniform_randomTexCoordOffset;
+
   //Variables for advect shader
   GLint uniform_postex, uniform_wind, uniform_randomTexture;
   GLint uniform_primePrev, uniform_primeCurr, uniform_timeStep;
