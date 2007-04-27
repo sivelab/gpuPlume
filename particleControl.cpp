@@ -13,9 +13,9 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   nx = x;
   ny = y;
   nz = z;
-  u_quicPlumeData = v;
-  v_quicPlumeData = w;
-  w_quicPlumeData = u;
+  u_quicPlumeData = u;
+  v_quicPlumeData = v;
+  w_quicPlumeData = w;
 
   outputPrime = false;
 
@@ -368,15 +368,15 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
   int width = (int)sqrt((float)total);
   
   int scaler;
-  if(nx > nz) scaler = nx;
-  else scaler = nz;
+  if(ny > nx) scaler = ny;
+  else scaler = nx;
 
   width = width - (width%scaler);
   
   bool done = false;
   while(!done){ 
     int num = width/scaler;
-    if((num*num) >= ny){
+    if((num*num) >= nz){
       done = true;
     }
     else{
@@ -392,7 +392,7 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
   //This will directly put the 3D data into an array
   //that is used to make the 2D texture.
   ///////////////////////////////////////////////////////
-  (*numInRow) = (width - (width % nz))/nz;
+  (*numInRow) = (width - (width % nx))/nx;
   //std::cout << width << " " << *numInRow << std::endl;
 
   int qi, qj, qk;
@@ -400,16 +400,16 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
   int row = 0;
   
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
-  for (qk=0; qk<ny; qk++) 
-    for (qi=0; qi<nx; qi++)
-      for (qj=0; qj<nz; qj++)
+  for (qk=0; qk<nz; qk++) 
+    for (qi=0; qi<ny; qi++)
+      for (qj=0; qj<nx; qj++)
 	{
-	  p2idx = qk*nz*nx + qi*nz + qj;
+	  p2idx = qk*ny*nx + qi*nx + qj;
 	    
 	  row = qk / (*numInRow);
-	  texidx = row * width * nx * 4 +
+	  texidx = row * width * ny * 4 +
 	  qi * width * 4 +
-	  qk % (*numInRow) * nz * 4 +
+	  qk % (*numInRow) * nx * 4 +
 	  qj * 4;
 	  
 	  dataTwo[texidx] = data3d[p2idx].u;
@@ -428,16 +428,16 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
   float tau13=ustar*ustar;
   float tauDetInv=1/((tau11*tau22*tau33)-(tau13*tau13*tau22));
 
-   for (qk=0; qk<ny; qk++) 
-    for (qi=0; qi<nx; qi++)
-      for (qj=0; qj<nz; qj++)
+   for (qk=0; qk<nz; qk++) 
+    for (qi=0; qi<ny; qi++)
+      for (qj=0; qj<nx; qj++)
 	{
-	  p2idx = qk*nz*nx + qi*nz + qj;
+	  p2idx = qk*ny*nx + qi*nx + qj;
 	    
 	  row = qk / (*numInRow);
-	  texidx = row * width * nx * 4 +
+	  texidx = row * width * ny * 4 +
 	  qi * width * 4 +
-	  qk % (*numInRow) * nz * 4 +
+	  qk % (*numInRow) * nx * 4 +
 	  qj * 4;
 	  
 	  dataTwo[texidx]   = tauDetInv*(tau22*tau33);              //Lam11
@@ -453,10 +453,10 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
 }
 
 void ParticleControl::test1(){
-  for(int k = 0; k < ny; k++){   
-    for(int i = 0; i < nx; i++){
-      for(int j = 0; j < nz; j++){
-	int p2idx = k*nx*nz + i*nz + j;
+  for(int k = 0; k < nz; k++){   
+    for(int i = 0; i < ny; i++){
+      for(int j = 0; j < nx; j++){
+	int p2idx = k*nx*ny + i*nx + j;
   	if(i%2 == 0){
 	  data3d[p2idx].u = 0;
 	  data3d[p2idx].v = 1.0;
@@ -473,10 +473,10 @@ void ParticleControl::test1(){
 }
 //Creates a random value wind field.
 void ParticleControl::randomWindField(){
-  for(int k = 0; k < ny; k++){   
-    for(int i = 0; i < nx; i++){
-      for(int j = 0; j < nz; j++){
-	int p2idx = k*nx*nz + i*nz + j;
+  for(int k = 0; k < nz; k++){   
+    for(int i = 0; i < ny; i++){
+      for(int j = 0; j < nx; j++){
+	int p2idx = k*nx*ny + i*nx + j;
 	//
 	// Not currently random
 	// 	
@@ -492,11 +492,11 @@ void ParticleControl::randomWindField(){
 void ParticleControl::quicPlumeWindField()
 {
   //#ifdef USE_PLUME_DATA
-  for(int k = 0; k < ny; k++){   
-    for(int i = 0; i < nx; i++){
-      for(int j = 0; j < nz; j++){
-	int p2idx = k*(nx)*(nz) + i*(nz) + j;
-	int idx = k*nx*nz + j*nz + i;
+  for(int k = 0; k < nz; k++){   
+    for(int i = 0; i < ny; i++){
+      for(int j = 0; j < nx; j++){
+	int p2idx = k*(nx)*(ny) + i*(nx) + j;
+	int idx = k*nx*ny + i*nx + j;
 	data3d[p2idx].u = u_quicPlumeData[idx+1];
 	data3d[p2idx].v = v_quicPlumeData[idx+1];
 	data3d[p2idx].w = w_quicPlumeData[idx+1];
@@ -507,25 +507,25 @@ void ParticleControl::quicPlumeWindField()
 }
 
 void ParticleControl::uniformUWindField(){
-  for(int k = 0; k < ny; k++){   
-    for(int i = 0; i < nx; i++){
-      for(int j = 0; j < nz; j++){
-	int p2idx = k*nx*nz + i*nz + j;
-	data3d[p2idx].u = 0.0;
+  for(int k = 0; k < nz; k++){   
+    for(int i = 0; i < ny; i++){
+      for(int j = 0; j < nx; j++){
+	int p2idx = k*nx*ny + i*nx + j;
+	data3d[p2idx].u = 1.0;
 	data3d[p2idx].v = 0.0;
-	data3d[p2idx].w = 1.0;
+	data3d[p2idx].w = 0.0;
       }
     }
   }
 }
 void ParticleControl::gravity(){
-   for(int k = 0; k < ny; k++){   
-    for(int i = 0; i < nx; i++){
-      for(int j = 0; j < nz; j++){
-	int p2idx = k*nx*nz + i*nz + j;
+   for(int k = 0; k < nz; k++){   
+    for(int i = 0; i < ny; i++){
+      for(int j = 0; j < nx; j++){
+	int p2idx = k*nx*ny + i*nx + j;
 	data3d[p2idx].u = 0.0;
-	data3d[p2idx].v = -9.81;
-	data3d[p2idx].w = 0.0;
+	data3d[p2idx].v = 0.0;
+	data3d[p2idx].w = -9.81;
       }
     }
   }
