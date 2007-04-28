@@ -423,8 +423,8 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
 
   //Create lambda texture. --Balli (04/12/07)
   float tau11=sigU*sigU;
-  float tau22=sigU*sigU;
-  float tau33=sigU*sigU;
+  float tau22=sigV*sigV;
+  float tau33=sigW*sigW;
   float tau13=ustar*ustar;
   float tauDetInv=1/((tau11*tau22*tau33)-(tau13*tau13*tau22));
 
