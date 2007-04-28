@@ -419,7 +419,7 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
 
         }
 
-  createTexture(windField, GL_RGBA, width, height, dataTwo);
+  createTexture(windField, GL_RGBA32F_ARB, width, height, dataTwo);
 
   //Create lambda texture. --Balli (04/12/07)
   float tau11=sigU*sigU;
@@ -446,7 +446,7 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
 	  dataTwo[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
         }
 
-  createTexture(lambda, GL_RGBA, width,height, dataTwo);
+  createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
   //Lambda Texture Ends-- Balli (04/12/07)
   delete [] dataTwo;
   
