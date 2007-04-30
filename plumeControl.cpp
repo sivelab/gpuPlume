@@ -325,7 +325,10 @@ void PlumeControl::display(){
       else if(pe[i]->releasePerSecond){
 	//Release particle using the defined particles per second
 	if(pe[i]->timeToEmit(time_step))
-	  totalNumPar += (double)pe[i]->EmitParticle(fbo, odd); 
+	  {
+	    pe[i]->setPosTexID(positions0, positions1);
+	    totalNumPar += (double)pe[i]->EmitParticle(fbo, odd); 
+	  }
       }   
     }
   }
@@ -555,9 +558,9 @@ void PlumeControl::setupTextures()
 		for (int i=0; i<twidth; i++)
 		{
 			int idx = j*twidth*sz + i*sz;
-			data[idx] = data[idx] +  100;
-			data[idx+1] = data[idx+1] + 100;
-			data[idx+2] = data[idx+2] + 100;
+			data[idx] = -10.0;
+			data[idx+1] = -10.0;
+			data[idx+2] = 10.0;
 			data[idx+3] = lifeTime+1;
 		}
   
