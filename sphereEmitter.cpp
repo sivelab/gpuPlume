@@ -76,19 +76,18 @@ int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
   //Make sure there are available indices to emit particles.
     if(!indices->empty()){
       
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      gluOrtho2D(0, twidth, 0, theight);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-  
+#if USE_VERTEX_PARTICLE_WRITE
       if(odd)
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
       else 
 	glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
 	        
+      shader->activate();	
+#endif
+
       //Do this for each particle that is being emitted.
       for(int i = 0; i < numToEmit; i++){
+
 	if(!indices->empty()){
 
 	  offsetx = Random::uniform()*2.0 - 1.0;
@@ -101,7 +100,7 @@ int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  offsetz = (offsetz/d) * radius;
 	
 	  //First get available index
-	  p_index = indices->back();	 
+	  p_index = indices->back();
 	  indices->pop_back();
 
 	  if(reuse){
@@ -109,37 +108,83 @@ int SphereEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	    newIndex.id = p_index;
 	    newIndex.time = 0.0;
 	    indicesInUse->push_back(newIndex);
-	  
 	  }
-
-	  shader->activate();	
-
+	  
 	  //Determine the coordinates into the position texture
 	  s = (p_index%twidth);
 	  t = (p_index/twidth);
 	  
+#if 0
+	  std::cout << "\tp_index = " << p_index << ", (s,t) = (" << s << ", " << t << "), position = (" 
+		    << xpos + offsetx << ", " 
+		    << ypos + offsety << ", " 
+		    << zpos + offsetz << ", "
+		    << lifeTime << ")" << std::endl;
+#endif
+
+#if USE_VERTEX_PARTICLE_WRITE
 	  glViewport(s,t,1,1);
-       
+	  
+	  glMatrixMode(GL_PROJECTION);
+	  glLoadIdentity();
+	  gluOrtho2D(0-0.5, twidth+0.5, 0-0.5, theight+0.5);
+	  glMatrixMode(GL_MODELVIEW);
+	  glLoadIdentity();
+
+	  // glPointSize(0.10);
+	  // glPointSize(1.0);
 	  glBegin(GL_POINTS);
 	  {
 	    glColor4f(xpos + offsetx, ypos + offsety, zpos + offsetz, lifeTime);
 	    glVertex2f(s, t);
 	  }
 	  glEnd();
+	  glFinish();
+#endif
 
-	  shader->deactivate();
-	}
+	  // Second mechanism to release particles.  Uses a texture
+	  // copy which may likely be more expensive even though we're
+	  // doing 1x1 pixels (but many times).  This operation
+	  // appears to work consistently.
+	  GLfloat value[4];
+	  value[0] = xpos + offsetx;
+	  value[1] = ypos + offsety;
+	  value[2] = zpos + offsetz;
+	  value[3] = lifeTime;
+
+	  // write there via a glTexSubImage2D
+	  if(odd)
+	    // will read from this texture next
+	    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_posTexID0);
+	  else 
+	    // will read from this texture next
+	    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_posTexID1);
+
+	  glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, s, t, 1, 1, GL_RGBA, GL_FLOAT, value);
+	}	
+	else 
+	  {
+	    std::cout << "No more indices!!!" << std::endl;
+	  }
       }
+
+#if USE_VERTEX_PARTICLE_WRITE
+	  shader->deactivate();
 
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
       gluOrtho2D(-1, 1, -1, 1);
       glMatrixMode(GL_MODELVIEW);
       glLoadIdentity();
+#endif
 
+      return numToEmit;
     }
+    else 
+      {
     //temp = numToEmit;
     //numToEmit = 0;
+	return 0;
+      }
 
-    return numToEmit;
 }
