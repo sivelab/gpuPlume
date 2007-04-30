@@ -47,31 +47,27 @@ void main(void)
 	float xRandom = randn.x;
 	float yRandom = randn.y;
 	float zRandom = randn.z;
-
-	
 	
 	vec3 PrmPrev = vec3(textureRect(primePrev, texCoord));
 	vec3 PrmCurr=PrmPrev;
 	
 	float upPrev=PrmPrev.x;
 	float vpPrev=PrmPrev.y;
-	float wpPrev=PrmPrev.z;
-	
-	
-	
+	float wpPrev=PrmPrev.z;	
+		
 	vec4 position = vec4(textureRect(pos, texCoord));
            
-    float i = floor(position.x);
-    float j = floor(position.z);
-    float k = floor(position.y);
+    float i = floor(position.y);
+    float j = floor(position.x);
+    float k = floor(position.z);
     
-    if((i < nx) && (j < nz) && (k < ny) && (i >= 0) && (j >= 0) && (k >=0)){
+    if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0) && (k >=0)){
    
 
     //This is the initial lookup into the 2D texture that holds the wind field.
  	vec2 index;
-   	index.s = j + mod((int)k,numInRow)*nz;
-        index.t = i + floor((int)k/numInRow)*nx;
+   	index.s = j + mod((int)k,numInRow)*nx;
+        index.t = i + floor((int)k/numInRow)*ny;
 	
 	vec4 windTex = vec4(textureRect(wind, index));
 	vec4 lam = vec4(textureRect(lambda, index));
@@ -88,6 +84,7 @@ void main(void)
         float dw= -CoEps_D2*(Lam13*upPrev+Lam33*wpPrev)*time_step + pow((2*CoEps_D2*time_step),0.5)* zRandom;
            
         PrmCurr=vec3(upPrev+du,vpPrev+dv,wpPrev+dw);
+	
     }	
 	//Currently this code just keeps passing the prime values,
 	//keeping them the same.  
