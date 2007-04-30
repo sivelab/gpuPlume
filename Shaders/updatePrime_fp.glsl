@@ -4,9 +4,9 @@ uniform samplerRect wind;
 uniform samplerRect random;
 uniform samplerRect lambda;
 uniform float time_step;
-uniform float nx;
-uniform float ny;
-uniform float nz;
+uniform int nx;
+uniform int ny;
+uniform int nz;
 uniform float numInRow;
 
 //
@@ -57,17 +57,17 @@ void main(void)
 		
 	vec4 position = vec4(textureRect(pos, texCoord));
            
-    float i = floor(position.y);
-    float j = floor(position.x);
-    float k = floor(position.z);
+    int i = floor(position.y);
+    int j = floor(position.x);
+    int k = floor(position.z);
     
     if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0) && (k >=0)){
    
 
     //This is the initial lookup into the 2D texture that holds the wind field.
  	vec2 index;
-   	index.s = j + mod((int)k,numInRow)*nx;
-        index.t = i + floor((int)k/numInRow)*ny;
+   	index.s = j + mod(k,numInRow)*nx;
+        index.t = i + floor(k/numInRow)*ny;
 	
 	vec4 windTex = vec4(textureRect(wind, index));
 	vec4 lam = vec4(textureRect(lambda, index));
