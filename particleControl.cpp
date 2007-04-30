@@ -53,9 +53,9 @@ void ParticleControl::setupPrimeShader( int* numInRow){  //Included argument -- 
 
   prime_shader.activate();
 
-  glUniform1fARB(unx, nx);
-  glUniform1fARB(uny, ny);
-  glUniform1fARB(unz, nz);
+  glUniform1iARB(unx, nx);
+  glUniform1iARB(uny, ny);
+  glUniform1iARB(unz, nz);
   float numR= *numInRow;
   glUniform1fARB(uNumInRow, numR);
 
