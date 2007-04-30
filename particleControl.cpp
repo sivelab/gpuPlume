@@ -297,14 +297,18 @@ void ParticleControl::getDomain(int* x, int* y, int* z){
 void ParticleControl::dumpContents(){
    buffer_mem = new GLfloat[ twidth * theight * 4 ];
    glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
+   std::cout << "IDX  X     Y     Z" << std::endl;
+   int pn =0;
       for (int j=0; j<theight; j++)
 	for (int i=0; i<twidth; i++){
 	  
 	    int idx = j*twidth*4 + i*4;
+	    std::cout << pn << " ";
 	    std::cout << buffer_mem[idx] << " ";
 	    std::cout << buffer_mem[idx+1] << " ";
 	    std::cout << buffer_mem[idx+2] << " ";
 	    std::cout << buffer_mem[idx+3] << std::endl;
+	    pn++;
 	}
       delete [] buffer_mem;
 }
