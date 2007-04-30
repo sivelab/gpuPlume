@@ -312,11 +312,13 @@ void PlumeControl::display(){
 	//Releases particles per time step.
 	//This can only be used with a time duration > 0
 	//and a fixed time step
+	pe[i]->setPosTexID(positions0, positions1);
 	totalNumPar += (double)pe[i]->EmitParticle(fbo,odd);
       }
       else if(pe[i]->releaseOne){
 	//Release one particle every time key is pressed
 	pe[i]->setNumToEmit(1);
+	pe[i]->setPosTexID(positions0, positions1);
 	totalNumPar += (double)pe[i]->EmitParticle(fbo,odd);
  
 	stream->addNewStream(pe[i]);
