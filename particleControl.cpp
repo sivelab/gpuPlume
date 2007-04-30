@@ -207,9 +207,9 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow, float l
   pass1_shader.activate();
 
   glUniform1fARB(ulifeTime, life_time);
-  glUniform1fARB(unx, nx);
-  glUniform1fARB(uny, ny);
-  glUniform1fARB(unz, nz);
+  glUniform1iARB(unx, nx);
+  glUniform1iARB(uny, ny);
+  glUniform1iARB(unz, nz);
   glUniform1fARB(uniform_timeStep, *time_step);
   float numR= *numInRow;
   glUniform1fARB(uNumInRow, numR);
@@ -221,6 +221,8 @@ void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint randomValu
 			     GLuint windField, GLuint positions0, GLuint positions1, 
 			     GLuint prime0, GLuint prime1, float time_step)
 {
+
+  //fbo->Bind();
 
   if (odd)
     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
