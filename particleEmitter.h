@@ -50,6 +50,10 @@ class ParticleEmitter{
 
   virtual ~ParticleEmitter();
 
+  void setPosTexID(GLuint id0, GLuint id1) { m_posTexID0 = id0; m_posTexID1 = id1; }
+
+
+
   //The position of the particle emitter
   float xpos,ypos,zpos;
 
@@ -60,6 +64,8 @@ class ParticleEmitter{
 
 
  protected:
+
+  GLuint m_posTexID0, m_posTexID1;
 
   bool reuse;
 

@@ -11,7 +11,7 @@ int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 }
 void ParticleEmitter::Draw(){
 
-  glPointSize(4.0);
+  // glPointSize(4.0);
   glColor4f(0.0, 0.0, 1.0, 1.0);
   glBegin(GL_POINTS);
   {
