@@ -594,13 +594,13 @@ void PlumeControl::setupTextures()
 	      random_values.push_back( data[idx + 2] );
 
 	      // normalize
-	      float mag = sqrt(data[idx]*data[idx] + data[idx+1]*data[idx+1] 
-			       + data[idx+2]*data[idx+2]);
+	      //float mag = sqrt(data[idx]*data[idx] + data[idx+1]*data[idx+1] --Commented as it is not required now --Balli(05/01/07)
+		  //	       + data[idx+2]*data[idx+2]);
 	      //calculating u',v' and w'and storing them in data
 	      //Quicplume coordinates
-	      data[idx] = sigU*(data[idx]/mag);   
-	      data[idx+1] = sigV*(data[idx+1]/mag);
-	      data[idx+2] = sigW*(data[idx+2]/mag);
+	      data[idx] = sigU*(data[idx]); //sigU*(data[idx]/mag);     --Changed equations--Balli(05/01/07)
+	      data[idx+1] = sigV*(data[idx+1]); //sigV*(data[idx+1]/mag);
+	      data[idx+2] = sigW*(data[idx+2]); //sigW*(data[idx+2]/mag);
 	      //Need to switch to gpuPlume coordinates
 	      //data[idx] = sigV*(data[idx]/mag);   
 	      //data[idx+1] = sigW*(data[idx+1]/mag);
