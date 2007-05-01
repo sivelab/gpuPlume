@@ -58,52 +58,54 @@ void main(void)
 	float dk = pos.z - k; 		//distance to the layer below.
 	float dd = 1 - dk; 		//distance to the layer above.
 
+
+      // FOLLOWING IS COMMENTED BECAUSE IT DOUBLES THE WIND SPEED AND NOT REQUIRED FOR UNIFORM FLOW CASE--BALLI(05/01/07)
 	//Perform lookups into the 2D Texture of the surrounding cells.
 	//Then accumulate the weighted values.
  
 	//To the Left
-	if(mod(s,nx) != 0){
-		index.s = s-1;
-		index.t = t;
-		wind2 = vec3(textureRect(wind_texunit, index));
-		wind = wind + dl*wind2;
-	}
+	//if(mod(s,nx) != 0){
+	//	index.s = s-1;
+   	//	index.t = t;
+	//	wind2 = vec3(textureRect(wind_texunit, index));
+	//	wind = wind + dl*wind2;
+	//}
 	//To the Right
-	if(mod(s,nx) != nx-1){
-		index.s = s + 1;
-		index.t = t;
-		wind2 = vec3(textureRect(wind_texunit, index));
-		wind = wind+ dr*wind2;
-	}
+	//if(mod(s,nx) != nx-1){
+	//	index.s = s + 1;
+	//	index.t = t;
+	//	wind2 = vec3(textureRect(wind_texunit, index));
+	//	wind = wind+ dr*wind2;
+	//}
 	//Right Above
-	if(mod(t,ny) != ny-1){
-		index.s = s;
-		index.t = t+1;
-		wind2 = vec3(textureRect(wind_texunit, index));
-		wind = wind+ wind2*da;
-	}
+	//if(mod(t,ny) != ny-1){
+	//	index.s = s;
+	//	index.t = t+1;
+	//	wind2 = vec3(textureRect(wind_texunit, index));
+	//	wind = wind+ wind2*da;
+	//}
 	//Right Below
-	if(mod(t,ny) != 0){
-		index.s = s;
-		index.t = t-1;
-		wind2 = vec3(textureRect(wind_texunit, index));
-		wind = wind+ wind2*db;
-	}	
+	//if(mod(t,ny) != 0){
+	//	index.s = s;
+	//	index.t = t-1;
+	//	wind2 = vec3(textureRect(wind_texunit, index));
+	//	wind = wind+ wind2*db;
+	//}	
 	//K level up
-	if(k != nz-1){
-		index.s = s;
-		index.t = t + ny;
-		wind2 = vec3(textureRect(wind_texunit, index));
-		wind = wind+ wind2*dk;
-	}
+	//if(k != nz-1){
+	//	index.s = s;
+	//	index.t = t + ny;
+	//	wind2 = vec3(textureRect(wind_texunit, index));
+	//	wind = wind+ wind2*dk;
+	//}
 	//K level down
-	if(k != 0){
-		index.s = s;
-		index.t = t-ny;
-		wind2 = vec3(textureRect(wind_texunit, index));
-		wind = wind+ wind2*dd;
-	}		
-
+	//if(k != 0){
+	//	index.s = s;
+	//	index.t = t-ny;
+	//	wind2 = vec3(textureRect(wind_texunit, index));
+	//	wind = wind+ wind2*dd;
+	//}		
+    //COMMENTING COMPLETE--BALLI(05/01/07)
 	//Now move the particle by adding the direction.
    	pos = pos + vec4(wind,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
