@@ -29,7 +29,7 @@ output_file data.txt
 duration 0
 
 #Ustar value for prime and lambda calculations
-ustar 0.3
+ustar 0.087
 
 #Collection box start Time
 startCBoxTime 0.0
