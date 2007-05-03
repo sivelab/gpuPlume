@@ -180,6 +180,7 @@ void PlumeControl::init(bool OSG){
       // BALWINDER!!!!  this is the case where we have a fixed time
       // step and set duration we made this change so we could do the
       // fixed time step, fixed duration timings.
+      pe[i]->releaseOne = false;
       pe[i]->releasePerTimeStep = false;
       pe[i]->releasePerSecond = true;
 
