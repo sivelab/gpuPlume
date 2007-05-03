@@ -340,6 +340,7 @@ void PlumeControl::display(){
   if(!endCBox){
     
     if(sim->totalTime >= endCBoxTime){
+      sim->curr_timeStep += 1.0;
       endCBox = true;
       if(endCBoxTime != 0)
 	output_CollectionBox = true;
@@ -347,7 +348,9 @@ void PlumeControl::display(){
   }
 
   if((sim->totalTime >= startCBoxTime) && !endCBox && !firstTime){
-    
+
+    sim->curr_timeStep +=1.0;
+
     glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, pos_buffer); 
     for(int i = 3; i <= (theight*twidth*4); i+=4){
       //If particle has been emitted
