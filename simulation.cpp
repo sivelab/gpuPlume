@@ -47,7 +47,6 @@ bool Simulation::update(float* time_step){
     totalTime += *time_step;
   }
 
-  
   if(!infiniteSim){
     if(totalTime >= simDuration){
       return true;

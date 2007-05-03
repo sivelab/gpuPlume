@@ -29,7 +29,7 @@ class PlumeControl{
   PlumeControl();
 
   void init(bool); 
-  void display();
+  int display();
      
   float time_step; //time step used for the movement of particles
   bool useRealTime; //Set whether to use real time or not

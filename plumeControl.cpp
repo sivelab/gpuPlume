@@ -176,7 +176,18 @@ void PlumeControl::init(bool OSG){
     //Release particles per time step only if duration is defined and
     //there is a fixed time step.
     if(duration != 0 && !useRealTime){
-      pe[i]->releasePerTimeStep = true;
+
+      // BALWINDER!!!!  this is the case where we have a fixed time
+      // step and set duration we made this change so we could do the
+      // fixed time step, fixed duration timings.
+      pe[i]->releasePerTimeStep = false;
+      pe[i]->releasePerSecond = true;
+
+      // To go back to what we had before, comment out the above two
+      // lines, and uncomment the following line.
+      // pe[i]->releasePerTimeStep = true;      
+
+      // Andy will fix this so we can do all of this... eventually.
     }
     else{
       pe[i]->releaseOne = false;
@@ -247,7 +258,7 @@ void PlumeControl::init(bool OSG){
 //Delete once emit particles problem solved. 
 int d = 0;
 
-void PlumeControl::display(){ 
+int PlumeControl::display(){ 
   if(osgPlume){
     glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
     glGetFloatv(GL_PROJECTION_MATRIX,pm);
@@ -502,9 +513,10 @@ void PlumeControl::display(){
   if(quitSimulation){
     std::cout << "Simulation ended after " << sim->simDuration << " seconds."<< std::endl;
     std::cout << "Total number of particles used: " << totalNumPar << std::endl;
-    glutDestroyWindow(winid);
+    // glutDestroyWindow(winid);
+    return 0;
   }
-
+  return 1;
 }
 
 void PlumeControl::initFBO(void){

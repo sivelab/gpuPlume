@@ -24,6 +24,7 @@ long timing_count = 0;
 bool compute_timings = false;
 long timing_N;
 double *timing_array;
+Timer_t total_timer[2];
 Timer_t plume_timer[2];
 Timer *plume_clock;
 
@@ -102,6 +103,9 @@ int main(int argc, char** argv)
 
   init();
 
+  // record the start time
+  total_timer[0] = plume_clock->tic();  
+
   glutMainLoop();
   return 0;
 }
@@ -141,7 +145,18 @@ void display(void)
       plume_timer[0] = plume_clock->tic();      
     }
 
-  plume->display();
+  // if quitting the simulation, 0 is returned
+  int quitSimulation = 1;
+  quitSimulation = plume->display();
+  
+  if (quitSimulation == 0)
+    {
+      total_timer[1] = plume_clock->tic();  
+      std::cout << "Total Simulation Time: " << plume_clock->deltas(total_timer[0], total_timer[1]) << std::endl;
+
+      glutDestroyWindow(plume->winid);
+      exit(0);      
+    }
  
   // stats computation
   if (compute_timings)
