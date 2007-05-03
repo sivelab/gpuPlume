@@ -17,6 +17,16 @@
 
 #include "plumeControl.h"
 
+#include "Timer.h"
+
+// Variables to hold timing array and record timings
+long timing_count = 0;
+bool compute_timings = false;
+long timing_N;
+double *timing_array;
+Timer_t plume_timer[2];
+Timer *plume_clock;
+
 PlumeControl* plume;
 int curr;
 
@@ -32,23 +42,6 @@ int winwidth = 512, winheight = 512;
 
 int main(int argc, char** argv)
 {
-  //These are now read from input file
-  /*int w, h, t;
-  if (argc == 2)
-    {
-      w = atoi(argv[1]);
-      h = w;
-      t = 4;
-    }
-  else if(argc == 3)
-    {
-      w = atoi(argv[1]);
-      h = w;
-      t = atoi(argv[2]);
-    }
-    else{ w = 128; h = 128; t = 4;}*/
-
-
 #ifdef WIN32
   TCHAR buffer[MAX_PATH];
   DWORD dwRet;
@@ -66,6 +59,16 @@ int main(int argc, char** argv)
   }
 #endif
   
+  // allocate memory for the timing values
+  // keep 1000 values
+  timing_N = 1000;
+  timing_array = new double[timing_N];
+
+  // Create a timer to use with timing calculations
+  // & query the start time so we have a value in it
+  plume_clock = new Timer(true);
+  plume_timer[0] = plume_clock->tic();
+
   plume = new PlumeControl();
 
   Random random_gen(2);
@@ -133,8 +136,33 @@ void init(void)
 
 void display(void)
 {
+  if (compute_timings)
+    {
+      plume_timer[0] = plume_clock->tic();      
+    }
+
   plume->display();
  
+  // stats computation
+  if (compute_timings)
+    {
+      plume_timer[1] = plume_clock->tic();      
+      if (timing_count >= 0 && timing_count < timing_N)
+	{
+	  // calculate the difference between start and end, returns end - start
+	  timing_array[timing_count] = plume_clock->deltas(plume_timer[0], plume_timer[1]);
+	}
+      
+      // increment timing value
+      timing_count++;
+	  
+      if (timing_count == timing_N) 
+	{
+	  std::cout << "Timing complete, restoring visuals..." << std::endl;
+	  compute_timings = false;
+	  plume->show_particle_visuals = true;
+	}
+    }
 }
 
 void idle()
@@ -159,8 +187,27 @@ void keyboard_cb(unsigned char key, int x, int y)
       plume->show_particle_visuals = !plume->show_particle_visuals;
     }
 
+  else if (key == 'b')
+    {
+      // Turn on timing - shut off visuals and allow a ten cycle count before timings start
+      plume->show_particle_visuals = false;
+      timing_count = -10;
+      compute_timings = true;
+    }
   else if (key == 27)
     {
+      // Before we exit, write out timing values (if collected) to a file.
+      std::cout << "Exiting... writing out timing values..." << std::endl;
+      std::ofstream outfile("gpuplumetimes.m");
+      outfile << "plumetimes = [" << std::endl;
+      for (long i=0; i<timing_N; i++)
+	{
+	  outfile << timing_array[i] << ";" << std::endl;
+	}
+      outfile << "];" << std::endl;
+      delete [] timing_array;
+
+      // Next, destroy the glut window and exit
       glutDestroyWindow(plume->winid);
       exit(0);
     }
