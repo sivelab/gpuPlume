@@ -1,3 +1,4 @@
+#include <iostream>
 #include <math.h>
 #ifndef WIN32
 #include <unistd.h>
@@ -11,7 +12,8 @@
 static float randVal()
 {
 #ifdef WIN32
-  return (float)(rand()/(float)RAND_MAX); 
+  double rval = rand()/(double)RAND_MAX;  
+  return rval;
 #else
   return drand48(); 
 #endif
