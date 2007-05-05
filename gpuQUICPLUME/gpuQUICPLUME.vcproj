@@ -178,6 +178,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\collectionBox.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\displayControl.cpp"
 				>
 			</File>
@@ -210,11 +214,35 @@
 				>
 			</File>
 			<File
+				RelativePath="..\pointEmitter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Random.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\renderbuffer.cpp"
 				>
 			</File>
 			<File
+				RelativePath="..\simulation.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\sphereEmitter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\streamLine.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\Timer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\util.cpp"
 				>
 			</File>
 		</Filter>
@@ -224,7 +252,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\collectionBox.h"
+				>
+			</File>
+			<File
 				RelativePath="..\displayControl.h"
+				>
+			</File>
+			<File
+				RelativePath="..\emitterTransform.h"
 				>
 			</File>
 			<File
@@ -256,11 +292,35 @@
 				>
 			</File>
 			<File
+				RelativePath="..\pointEmitter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Random.h"
+				>
+			</File>
+			<File
 				RelativePath="..\renderbuffer.h"
 				>
 			</File>
 			<File
+				RelativePath="..\simulation.h"
+				>
+			</File>
+			<File
+				RelativePath="..\sphereEmitter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\streamLine.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Timer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\util.h"
 				>
 			</File>
 		</Filter>
@@ -303,6 +363,14 @@
 			</File>
 			<File
 				RelativePath="..\Shaders\plumeAdvect_vp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\updatePrime_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\updatePrime_vp.glsl"
 				>
 			</File>
 		</Filter>
