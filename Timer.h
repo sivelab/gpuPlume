@@ -4,6 +4,11 @@
 // "rtfs" is a real-time frame scheduler.
 //
 // It has been modified to provide functionality for our applications.
+//
+// I've also supplied a working windows timer using both the high resolution (nano-second) 
+// clocks and a lower resolution (millisecond) clock.  Supplying a "true" value to the constructor
+// will allow the class to use the high resolution timers.
+//
 // -Pete Willemsen
 // 
 //C++ header - Open Scene Graph - Copyright (C) 1998-2001 Robert Osfield
@@ -28,7 +33,7 @@ class Timer {
     
   Timer_t tic() const;
     
-  inline double deltas( Timer_t t1, Timer_t t2 ) const { return (double)(t2 - t1)*_secsPerTic; }
+  double deltas( Timer_t t1, Timer_t t2 ) const;
   inline Timer_t deltam( Timer_t t1, Timer_t t2 ) const { return Timer_t(deltas(t1,t2)*1e3); }
   inline Timer_t deltau( Timer_t t1, Timer_t t2 ) const { return Timer_t(deltas(t1,t2)*1e6); }
   inline Timer_t deltan( Timer_t t1, Timer_t t2 ) const { return Timer_t(deltas(t1,t2)*1e9); }

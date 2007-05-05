@@ -1,54 +1,80 @@
 #include <iostream>
-
 #include "Timer.h"
 
-#if 0
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#endif
-
 #ifdef WIN32
-
 #include <sys/types.h>
 #include <fcntl.h>
 #include <windows.h>
 #include <winbase.h>
 
 Timer::Timer( bool enable_high_res_timer )
-  : _use_high_res_timer(false)
+  : _use_high_res_timer(enable_high_res_timer)
 {
-  LARGE_INTEGER frequency;
-  if(QueryPerformanceFrequency(&frequency))
-    {
-      _secsPerTic = 1.0/(double)frequency.QuadPart;
-    }
-  else
-    {
-      _secsPerTic = 1.0;
-      std::cerr << "Error: Timer::Timer() unable to use QueryPerformanceFrequency, " << std::endl;
-      std::cerr << "timing code will be wrong, Windows error code: "<< GetLastError() << std::endl;
-    }
+	if (_use_high_res_timer)
+	{
+		Timer_t ctr;
+		if (QueryPerformanceCounter((LARGE_INTEGER *)&ctr) != 0)
+		{
+			std::cout << "High Performance Timer available." << std::endl;
+		}
+		else
+		{
+			// High performance timer is not available.
+			_secsPerTic = 1.0;
+			std::cerr << "**************************************" << std::endl;
+			std::cerr << "Error: Timer::Timer() unable to use QueryPerformanceFrequency, " << std::endl;
+			std::cerr << "timing code will be wrong, Windows error code: "<< GetLastError() << std::endl;
+			std::cerr << "**************************************" << std::endl;
+		}
+	}
+	else 
+	{
+		// Use the lower resolution timers
+		_secsPerTic = 1.0;
+	}
 }
 
 Timer_t Timer::tic() const
 {
-  LARGE_INTEGER qpc;
-  if (QueryPerformanceCounter(&qpc))
-    {
-      return qpc.QuadPart;
-    }
-  else
-    {
-      std::cerr << "Error: Timer::Timer() unable to use QueryPerformanceCounter, " << std::endl;
-      std::cerr << "timing code will be wrong, Windows error code: "<< GetLastError() << std::endl;
-      return 0;
-    }
+	if (_use_high_res_timer)
+	{
+		Timer_t qpc;
+		if (QueryPerformanceCounter((LARGE_INTEGER *)&qpc) != 0)
+		{
+			return qpc;
+		}
+		else
+		{
+			std::cerr << "Error: Timer::Timer() unable to use QueryPerformanceCounter, " << std::endl;
+			std::cerr << "timing code will be wrong, Windows error code: "<< GetLastError() << std::endl;
+			return 0;
+		}
+	}
+	else
+	{
+		// use the low resolution timer
+		return timeGetTime();
+	}
+}
+
+double Timer::deltas( Timer_t t1, Timer_t t2 ) const
+{ 
+	if (_use_high_res_timer)
+	{
+		Timer_t frequency;
+		QueryPerformanceFrequency((LARGE_INTEGER *)&frequency);
+		return (t2 - t1) * 1.0 / frequency;
+	}
+	else
+	{
+		// this is in milliseconds, so convert to seconds
+		return (double)(t2 - t1) / 1000.0;
+	}
 }
 
 #else
 
+// UNIX and OS X based timer functionality
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
@@ -119,6 +145,11 @@ Timer_t Timer::tic() const
       gettimeofday(&tv, NULL);
       return ((Timer_t)tv.tv_sec)*1000000+(Timer_t)tv.tv_usec;
     }
+}
+
+double Timer::deltas( Timer_t t1, Timer_t t2 ) const
+{ 
+	return (double)((t2 - t1) * _secs_per_tic);
 }
 
 #endif // else clause for ifdef WIN32
