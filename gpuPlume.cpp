@@ -67,6 +67,8 @@ int main(int argc, char** argv)
 
   // Create a timer to use with timing calculations
   // & query the start time so we have a value in it
+  // 
+  // Attempt to create a high resolution timer.
   plume_clock = new Timer(true);
   plume_timer[0] = plume_clock->tic();
 
@@ -224,6 +226,26 @@ void keyboard_cb(unsigned char key, int x, int y)
 	  outfile << timing_array[i] << ";" << std::endl;
 	}
       outfile << "];" << std::endl;
+
+      // 
+      // Before deleting the timing array, perform the mean, std, and
+      // var calculations.
+      //
+      double mean = 0.0;
+      for (long i=0; i<timing_N; i++)
+	mean += timing_array[i];
+      mean = mean/(double)timing_N;
+      std::cout << "Mean Advection Step Time: " << mean << " seconds (" 
+		<< mean * 1000.0 << " ms, " 
+		<< mean * 1000000.0 << " us)" << std::endl;
+
+      double isum = 0.0;
+      for (long i=0; i<timing_N; i++)
+	isum += ((timing_array[i] - mean) * (timing_array[i] - mean));
+      double sigma = sqrt(1.0/(double)timing_N * isum);
+      std::cout << "\tStandard Deviation: " << sigma << ", Variance = " << sigma*sigma << std::endl;
+
+      // Delete the timing array
       delete [] timing_array;
 
       // Next, destroy the glut window and exit
