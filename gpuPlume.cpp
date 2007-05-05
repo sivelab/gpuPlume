@@ -152,8 +152,9 @@ void display(void)
   if (quitSimulation == 0)
     {
       total_timer[1] = plume_clock->tic();  
-      std::cout << "Total Simulation Time: " << plume_clock->deltas(total_timer[0], total_timer[1]) << std::endl;
+      std::cout << "Total Simulation Time: " << plume_clock->deltas(total_timer[0], total_timer[1]) << " seconds." << std::endl;
 
+      // system("pause");
       glutDestroyWindow(plume->winid);
       exit(0);      
     }
@@ -211,6 +212,9 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if (key == 27)
     {
+      total_timer[1] = plume_clock->tic();  
+      std::cout << "Total Simulation Time: " << plume_clock->deltas(total_timer[0], total_timer[1]) << " seconds." << std::endl;
+
       // Before we exit, write out timing values (if collected) to a file.
       std::cout << "Exiting... writing out timing values..." << std::endl;
       std::ofstream outfile("gpuplumetimes.m");
