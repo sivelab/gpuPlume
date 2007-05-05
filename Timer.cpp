@@ -149,7 +149,7 @@ Timer_t Timer::tic() const
 
 double Timer::deltas( Timer_t t1, Timer_t t2 ) const
 { 
-	return (double)((t2 - t1) * _secs_per_tic);
+	return (double)((t2 - t1) * _secsPerTic);
 }
 
 #endif // else clause for ifdef WIN32
