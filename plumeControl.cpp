@@ -110,6 +110,7 @@ PlumeControl::PlumeControl(){
   //If we want to output concentrations only at end set this
   avgTime = endCBoxTime;
   cBoxes[0] = new CollectionBox(numBox_x,numBox_y,numBox_z,bounds,averagingTime);
+  
   num_cBoxes = 1;
   
   firstTime = true;
@@ -118,7 +119,7 @@ PlumeControl::PlumeControl(){
   odd = true; 
   dump_contents = false;
   quitSimulation = false;
-
+	
   stream = new StreamLine(twidth,theight,nx,ny,nz);
   
   //Set whether to reuse particles or not
@@ -163,7 +164,7 @@ void PlumeControl::init(bool OSG){
       if(radius[i] == 0)
 	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], 10.0, &twidth, &theight, &indices, &emit_shader);
       else
-	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 60.0, radius[i], &twidth, &theight, &indices, &emit_shader);
+	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 1.0, radius[i], &twidth, &theight, &indices, &emit_shader);
     }
   }
   for(int i=0; i < numOfPE; i++){
@@ -183,6 +184,7 @@ void PlumeControl::init(bool OSG){
       pe[i]->releaseOne = false;
       pe[i]->releasePerTimeStep = false;
       pe[i]->releasePerSecond = true;
+	  pe[i]->releaseOne = false;
 
       // To go back to what we had before, comment out the above two
       // lines, and uncomment the following line.
@@ -199,6 +201,7 @@ void PlumeControl::init(bool OSG){
     if(pe[i]->releasePerTimeStep){
       //set number of particles to emit = (number of particles/ total number of time steps);
       int num = (int)floor((double)(twidth*theight) / (duration/(double)time_step));
+	  std::cout << num << std::endl;
       pe[i]->setNumToEmit(num);
     }
   }
@@ -427,7 +430,7 @@ int PlumeControl::display(){
   if(output_CollectionBox)
      {
        for(int j = 0; j < num_cBoxes; j++){
-	 cBoxes[j]->outputConc(output_file,sim->totalTime,sim->curr_timeStep);
+		cBoxes[j]->outputConc(output_file,sim->totalTime,sim->curr_timeStep);
        }
        output_CollectionBox = false;
      }
