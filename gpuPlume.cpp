@@ -248,6 +248,10 @@ void keyboard_cb(unsigned char key, int x, int y)
       // Delete the timing array
       delete [] timing_array;
 
+#ifdef WIN32
+	  system("pause");
+#endif
+
       // Next, destroy the glut window and exit
       glutDestroyWindow(plume->winid);
       exit(0);
