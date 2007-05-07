@@ -156,6 +156,10 @@ void display(void)
       total_timer[1] = plume_clock->tic();  
       std::cout << "Total Simulation Time: " << plume_clock->deltas(total_timer[0], total_timer[1]) << " seconds." << std::endl;
 
+#ifdef WIN32
+	  system("pause");
+#endif
+
       // system("pause");
       glutDestroyWindow(plume->winid);
       exit(0);      
