@@ -21,16 +21,18 @@ void Simulation::init(){
   }
 }
 
-void Simulation::setStartTime(){
+void Simulation::setStartTime(float * time_step){
   if(useRealTime){
     sim_time[0] = sim_clock->tic();
-    display_time[0] = sim_clock->tic();
+    display_time[1] = sim_clock->tic();
+    *time_step = sim_clock->deltas(display_time[0],display_time[1]);
+    display_time[0] = display_time[1];
   }
 }
 bool Simulation::update(float* time_step){ 
 
   //increment the current time step of the simulation
-  // curr_timeStep += 1.0;
+  //curr_timeStep += 1.0;
 
   if(useRealTime){
     display_time[1] = sim_clock->tic();
@@ -55,12 +57,4 @@ bool Simulation::update(float* time_step){
   
   return false;
 }
-/*float Simulation::randVal(){
-#ifdef WIN32
-  // Rand functions
-  return (float)(rand()/(float)RAND_MAX); 
-#else
-  return drand48(); 
-#endif
 
-}*/
