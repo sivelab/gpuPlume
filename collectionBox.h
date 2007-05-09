@@ -5,6 +5,17 @@
 #include <fstream>
 #include <GL/glew.h>
 
+typedef struct{
+  float x;
+  float y;
+  float z;
+}BoxPos;
+
+typedef struct{
+  float d;
+  int idx;
+}BoxDis;
+
 class CollectionBox{
  public:
   
@@ -24,13 +35,22 @@ class CollectionBox{
   
   //Set concentration values to zero
   void clear();
+  void draw(double);
+  void sort(float,float,float);
 
   //Writes the concentration values to specified file
   void outputConc(std::string,double,double);
 
   double* cBox; 
+  BoxPos* cPos;
+  BoxDis* cDis;
 
+  float dx;
+  float dy;
+  float dz;
  private:
+
+  void calcBoxPositions();
 
   //std::ofstream output;
   bool alreadyOpen;
@@ -52,10 +72,7 @@ class CollectionBox{
   double TotRel;
   double concAvgTime;
 
-  //GLfloat* pos_buffer; 
-
-  //int twidth;
-  //int theight;
+  
 
 };
 
