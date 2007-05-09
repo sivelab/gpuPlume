@@ -48,7 +48,7 @@ class DrawableDrawCallback : public osg::Drawable::DrawCallback
       }		 
 
       glDisable(GL_LIGHTING);
-      plume->display();     
+      int i = plume->display();     
 
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
@@ -57,6 +57,31 @@ class DrawableDrawCallback : public osg::Drawable::DrawCallback
       glLoadIdentity();
       glPopMatrix();
 
+      glPopAttrib();
+  }  
+
+};
+class CBoxDrawCallback : public osg::Drawable::DrawCallback
+{
+  
+  virtual void drawImplementation(osg::State& state,const osg::Drawable* drawable) const
+  {	  	  
+      GLfloat* mvm = new GLfloat[16];
+
+      glPushAttrib(GL_ALL_ATTRIB_BITS);
+      
+      //Get  Eye Position
+      glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
+
+      //std::cout << mvm[12] << " " << mvm[13] << " " << mvm[14] << std::endl;
+      float x = mvm[12];//(mvm[12]-plume->nx/2);
+      float y = mvm[13];//(mvm[13]-plume->ny/2);
+      float z = mvm[14];
+
+      plume->cBoxes[0]->sort(x,y,z);
+      plume->cBoxes[0]->draw(plume->sim->curr_timeStep);
+
+      
       glPopAttrib();
   }  
 
@@ -126,6 +151,7 @@ class MyEventHandler : public osgGA::GUIEventHandler
     //current particle emitter selected
     int curr;
     bool keystroke;
+    bool clear;
 
   public:
     MyEventHandler(vissimViewer* viewer,
@@ -141,6 +167,7 @@ class MyEventHandler : public osgGA::GUIEventHandler
 
         curr = 0;
         keystroke = false;
+        clear = false;
    
         // This checks to see if the mode of operation is the SENDER (aka master)
         if(_viewer->m_settings->getNetMode() != RECEIVE)
@@ -289,8 +316,8 @@ class MyEventHandler : public osgGA::GUIEventHandler
             }
             else if(ea.getKey() == 'c')
             {
-                plume->stream->clear();
-                sharedData->clear = true;
+                //plume->stream->clear();
+                clear = true;
                 keystroke = true;
                 //return true;
 
@@ -305,10 +332,14 @@ class MyEventHandler : public osgGA::GUIEventHandler
             if(keystroke){
                 
                 sharedData->curr = curr;
-               
                 sharedData->releaseOne = plume->pe[curr]->releaseOne;
                 sharedData->releasePerSecond = plume->pe[curr]->releasePerSecond;
-                
+                if(clear){
+                    plume->stream->clear();
+                    sharedData->clear = true;
+                    clear = false;
+                } 
+                else sharedData->clear = false;
                 
             }
             if(!firstTime){
@@ -319,8 +350,8 @@ class MyEventHandler : public osgGA::GUIEventHandler
             sharedData->time_step = plume->time_step;
             sharedData->keystroke = keystroke;
 
-            if (sharedData->keystroke == true)
-                std::cout << "Master: keystroke = " << sharedData->keystroke << std::endl;
+            //if (sharedData->keystroke == true)
+            //  std::cout << "Master: keystroke = " << sharedData->keystroke << std::endl;
 	}
         else
             { 
@@ -409,24 +440,6 @@ osg::Node* floor()
     return geode;
 
 }
-/*osg::Node* setupLights(osg::StateSet* modelStateSet)
-{
-    osg::Group* lightGroup = new osg::Group;
-
-    osg::Light* light1 = new osg::Light;
-    light1->setLightNum(0);
-    light1->setPosition(osg::Vec4(0.0, 20.0, 0.0, 1.0));
-    light1->setAmbient(osg::Vec4(1.0,1.0,1.0,1.0));
-    light1->setDiffuse(osg::Vec4(1.0,1.0,1.0,1.0));
-    light1->setDirection(osg::Vec3(0.0,-1.0,0.0));
-    osg::LightSource* lightS = new osg::LightSource;
-    lightS->setLight(light1);
-    lightS->setLocalStateSetModes(osg::StateAttribute::ON);
-    lightS->setStateSetModes(*modelStateSet,osg::StateAttribute::ON);
-    lightGroup->addChild(lightS);
-    return lightGroup;
-
-}*/
 
 void setupModel(vissimViewer *viewer, osg::MatrixTransform* modelRoot)
 {
@@ -446,11 +459,26 @@ void setupModel(vissimViewer *viewer, osg::MatrixTransform* modelRoot)
     shape->setInitialBound(*bb);
 
     geode->addDrawable(shape);
+    
+    //Collection box
+    
+    osg::ShapeDrawable* boxShape = new osg::ShapeDrawable;
+    osg::Geode* cboxes = new osg::Geode;
+    boxShape->setDrawCallback(new CBoxDrawCallback());
+    boxShape->setUseDisplayList(false);
+    boxShape->setSupportsDisplayList(false);
+    
+    //const osg::BoundingBox* cbb = new osg::BoundingBox(0,0,0,plume->bounds[3]-plume->bounds[0],
+    //                                                  plume->bounds[4]-plume->bounds[1],plume->bounds[5]-plume->bounds[2]);
+    const osg::BoundingBox* cbb = new osg::BoundingBox(plume->bounds[0],plume->bounds[1],plume->bounds[2],plume->bounds[3],
+                                                      plume->bounds[4],plume->bounds[5]);
+    boxShape->setInitialBound(*cbb);
+
+    cboxes->addDrawable(boxShape);
+    ////////////////////////////
    
     osg::StateSet* modelStateSet = new osg::StateSet();
-    //modelStateSet->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
     model->setStateSet(modelStateSet);
-    //model->addChild(setupLights(modelStateSet));
     
     model->addChild(geode);
 
@@ -464,10 +492,16 @@ void setupModel(vissimViewer *viewer, osg::MatrixTransform* modelRoot)
     osg::Group* fGroup = new osg::Group;
     fGroup->addChild(floor());
 
-
-
     model->addChild(fGroup);
     model->addChild(PEGroup);
+    
+    //Add Collection box visual last
+    osg::Group* boxGroup = new osg::Group;
+    osg::StateSet* boxState = new osg::StateSet();
+    boxGroup->setStateSet(boxState);
+    //model->addChild(cboxes);
+    boxGroup->addChild(cboxes);
+    model->addChild(boxGroup);
 
     modelRoot->addChild(model);
    
@@ -535,7 +569,6 @@ int main( int argc, char **argv )
     // manipulator, and anything else that needs to be setup prior to
     // starting the simulation loop.
     viewer->initialize();
-
 
     // allocate space for the shared data.
     sharedData = (sharedDataStruct*) malloc(sizeof(sharedDataStruct));
