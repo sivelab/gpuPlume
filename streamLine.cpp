@@ -81,6 +81,13 @@ void StreamLine::draw(){
   //This is just so I don't get a warning after compiling
   pos.x = pos.y = pos.z = 0.0;
   
+  glLineWidth(3.0);
+  //glEnable(GL_LINE_SMOOTH);
+  //glEnable(GL_BLEND);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+  
+
   for(int i =0;i < (int)streamList.size(); i++){
     for(int j = 0; j < (int)streamList[i].size(); j++){
       prevPos = pos;
@@ -95,9 +102,11 @@ void StreamLine::draw(){
       if(!first){
 	glColor4f(colorx,colory,colorz,1.0);
 
-	glBegin(GL_LINES);		
-	glVertex3f(prevPos.x,prevPos.y,prevPos.z);
-	glVertex3f(pos.x,pos.y,pos.z);
+	glBegin(GL_LINES);
+	{		
+	  glVertex3f(prevPos.x,prevPos.y,prevPos.z);
+	  glVertex3f(pos.x,pos.y,pos.z);
+	}
 	glEnd();    
       }
       if(first)
@@ -106,6 +115,11 @@ void StreamLine::draw(){
     }
     first = true;
   }
+  //glDisable(GL_BLEND);
+  //glDisable(GL_LINE_SMOOTH);
+  //glLineWidth(1.0);
+  
+
 }
 bool StreamLine::doUpdate(){
   if(indexList.empty())
