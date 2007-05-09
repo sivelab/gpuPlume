@@ -5,13 +5,121 @@
 ParticleEmitter::~ParticleEmitter(){
 
 }
+void ParticleEmitter::setVertices(){
+
+}
 int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
-  return 0;
+  int p_index;
+  float x;
+  float y;
+  float z;
+  float l;
+ 
+  if(!indices->empty()){
+    //THIS DOESN'T WORK YET!!!!
+    //Punch Hole method. Need to set drawbuffer and activate shader.
+    if(Punch_Hole){
+
+      if(odd)
+	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+      else 
+	glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      gluOrtho2D(0, twidth, 0, theight);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();     
+
+    }
+    	
+    //Do this for each particle that is being emitted.
+    for(int i = 0; i < numToEmit; i++){
+      if(!indices->empty()){
+	
+      //First get available index
+	p_index = indices->back();
+	indices->pop_back();
+	if(reuse){
+	  pIndex newIndex;
+	  newIndex.id = p_index;
+	  newIndex.time = 0;
+	  indicesInUse->push_back(newIndex);	   
+	}	 
+
+	//Determine the coordinates into the position texture
+	s = (p_index%twidth);
+	t = (p_index/twidth);	  
+
+	//Get position value
+	if(posCoord.empty())
+	  std::cout << "Error: PosCoord empty" << std::endl;
+
+	l = posCoord.back();
+	posCoord.pop_back();
+	z = posCoord.back();
+	posCoord.pop_back();
+	y = posCoord.back();
+	posCoord.pop_back();
+	x = posCoord.back();
+	posCoord.pop_back();
+
+	if(Punch_Hole){
+	  shader->activate();
+	  glPointSize(1.0);
+	  glViewport(s,t,1,1);
+       
+	  glBegin(GL_POINTS);
+	  {
+	    glColor4f(x, y, z, l);
+	    glVertex2f(0.5, 0.5);
+	  }
+	  glEnd();
+	  shader->deactivate();
+
+	}
+	else{
+	  // Second mechanism to release particles.  Uses a texture
+	  // copy which may likely be more expensive even though we're
+	  // doing 1x1 pixels (but many times).  This operation
+	  // appears to work consistently.
+	  GLfloat value[4];
+	  value[0] = x;
+	  value[1] = y;
+	  value[2] = z;
+	  value[3] = l;
+
+	  // write there via a glTexSubImage2D
+	  if(odd)
+	    // will read from this texture next
+	    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_posTexID0);
+	  else 
+	    // will read from this texture next
+	    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_posTexID1);
+
+	  glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, s, t, 1, 1, GL_RGBA, GL_FLOAT, value);
+	}
+  
+      }
+ 
+    }
+
+    if(Punch_Hole){
+
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      gluOrtho2D(-1, 1, -1, 1);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+
+    }
+  }
+  return numToEmit;
 
 }
 void ParticleEmitter::Draw(){
 
-  // glPointSize(4.0);
+  glPointSize(4.0);
   glColor4f(0.0, 0.0, 1.0, 1.0);
   glBegin(GL_POINTS);
   {
@@ -50,9 +158,7 @@ void ParticleEmitter::setParticleReuse(std::list<pIndex>* ind, float time){
 
 }
 void ParticleEmitter::setNumToEmit(int num){
-  //numToEmit = (int)floor(np/tts);
   numToEmit = num;
-  
 }
 
 //Determines whether or not it is time to emit a particle
