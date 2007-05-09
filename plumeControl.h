@@ -98,23 +98,27 @@ class PlumeControl{
   float* zpos;
   float* radius;
 
+  int releaseType;
+
   void getSourceInfo(float*x,float*y,float*z,float*r){
     x = xpos;
     y = ypos;
     z = zpos;
     r = radius;   
   }
+ 
+  Simulation* sim;
 
  private:
   
-  Simulation* sim;
   
   std::list<pIndex>::iterator iter;
 
   void setupTextures();
+  void setupEmitters();
   void initFBO();
   void particleReuse();
-  void readInputFile();
+  //void readInputFile();
       
   Timer* display_clock;
   Timer_t reuse_time[2]; 
