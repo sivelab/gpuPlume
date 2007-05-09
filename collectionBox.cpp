@@ -25,10 +25,154 @@ CollectionBox::CollectionBox(int x,int y,int z,float* bounds,double time){
   concAvgTime = time;
 
   cBox = new double[x*y*z];
+  cPos = new BoxPos[x*y*z];
+  cDis = new BoxDis[x*y*z];
+  calcBoxPositions();
+
+  //This is used for drawing the collection boxes.
+  //It is the distance from center to edge, minus
+  //a small spacing.
+  dx = ((ux-lx)/(float)numBox_x)/2.0 - 0.1;
+  dy = ((uy-ly)/(float)numBox_y)/2.0 - 0.1;
+  dz = ((uz-lz)/(float)numBox_z)/2.0 - 0.1;
+
+
   clear();
 
   alreadyOpen = false;
   
+}
+void CollectionBox::calcBoxPositions(){
+  int idx,xBox,yBox,zBox;
+  float x,y,z,offsetx,offsety,offsetz;
+
+  for(int k=0; k < numBox_z; k++)
+    for(int i=0; i < numBox_y; i++)
+      for(int j=0; j < numBox_x; j++)
+	{
+	  idx = k*numBox_x*numBox_y + i*numBox_x + j;
+	  xBox = idx%numBox_x;
+	  yBox = (idx/numBox_x)%numBox_y;
+	  zBox = idx/(numBox_y*numBox_x);
+	  
+	  
+	  x = ((ux-lx)/(float)numBox_x)*xBox + lx;
+	  y = ((uy-ly)/(float)numBox_y)*yBox + ly;
+	  z = ((uz-lz)/(float)numBox_z)*zBox + lz;
+	  offsetx = ((ux-lx)/(float)numBox_x)/2.0;
+	  offsety = ((uy-ly)/(float)numBox_y)/2.0;
+	  offsetz = ((uz-lz)/(float)numBox_z)/2.0;
+	  
+	  cPos[idx].x = x+offsetx;
+	  cPos[idx].y = y+offsety;
+	  cPos[idx].z = z+offsetz;
+	  cDis[idx].idx = idx;
+	 
+	}
+
+}
+void CollectionBox::sort(float eyeX, float eyeY, float eyeZ){
+  float xdiff, ydiff, zdiff;
+  int size = numBox_z*numBox_y*numBox_x;
+  //int max;
+  double temp;
+  int t;
+
+  //Calculate and store distance from eye to each box
+  for(int i=0; i < size; i++){
+    xdiff = fabs(cPos[i].x - eyeX);
+    ydiff = fabs(cPos[i].y - eyeY);
+    zdiff = fabs(cPos[i].z - eyeZ);
+
+    cDis[i].d = sqrt((xdiff*xdiff)+(ydiff*ydiff)+(zdiff*zdiff));
+  }
+  //Sort Distances from farthest to closest.
+  for(int i=0; i < size-1; i++){
+    for(int j=0; j < size-1-i; j++){
+      if(cDis[j+1].d > cDis[j].d){
+	 temp = cDis[j].d;
+	 cDis[j].d = cDis[j+1].d;
+	 cDis[j+1].d = temp;
+	 t = cDis[j].idx;
+	 cDis[j].idx = cDis[j+1].idx;
+	 cDis[j].idx = t;
+      }
+    }
+   
+   
+  }
+ 
+
+}
+
+void CollectionBox::draw(double timeStepNum){
+  float x,y,z;
+  float alpha;
+  float colorx,colory,colorz;
+
+  glDisable(GL_TEXTURE_RECTANGLE_ARB);
+  glEnable(GL_COLOR_MATERIAL);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+  for(int i=0; i < numBox_z*numBox_y*numBox_x; i++){
+    int idx = cDis[i].idx;
+    
+     x = cPos[idx].x;
+     y = cPos[idx].y;
+     z = cPos[idx].z;
+     
+     colorx=1.0;
+     colory=0.0;
+     colorz=0.0;
+
+     if(timeStepNum == 0)
+       alpha = 0.0;
+     else
+       alpha = (cBox[idx]/(timeStepNum))/100.0;
+
+     glBegin(GL_QUADS);
+     {
+	glColor4f(colorx,colory,colorz,alpha);
+	glVertex3f(x+dx,y-dy,z-dz);
+	glVertex3f(x+dx,y+dy,z-dz);
+	glVertex3f(x+dx,y+dy,z+dz);
+	glVertex3f(x+dx,y-dy,z+dz);
+
+	glVertex3f(x-dx,y+dy,z-dz);
+	glVertex3f(x-dx,y+dy,z+dz);
+	glVertex3f(x-dx,y-dy,z+dz);
+	glVertex3f(x-dx,y-dy,z-dz);
+
+	glVertex3f(x+dx,y+dy,z-dz);
+	glVertex3f(x-dx,y+dy,z-dz);
+	glVertex3f(x-dx,y+dy,z+dz);
+	glVertex3f(x+dx,y+dy,z+dz);
+
+	glVertex3f(x+dx,y-dy,z-dz);
+	glVertex3f(x+dx,y-dy,z+dz);
+	glVertex3f(x-dx,y-dy,z+dz);
+	glVertex3f(x-dx,y-dy,z-dz);
+	      
+	glVertex3f(x+dx,y-dy,z+dz);
+	glVertex3f(x+dx,y+dy,z+dz);
+	glVertex3f(x-dx,y+dy,z+dz);
+	glVertex3f(x-dx,y-dy,z+dz);
+
+	glVertex3f(x+dx,y-dy,z-dz);
+	glVertex3f(x+dx,y+dy,z-dz);
+	glVertex3f(x-dx,y+dy,z-dz);
+	glVertex3f(x-dx,y-dy,z-dz);	    
+
+      }
+      glEnd();
+  }
+
+  glDisable(GL_BLEND);
+  glDisable(GL_COLOR_MATERIAL);
+  glEnable(GL_TEXTURE_RECTANGLE_ARB);
+
 }
 
 void CollectionBox::calcSimpleConc(float x, float y, float z){
@@ -108,6 +252,6 @@ void CollectionBox::outputConc(std::string file,double totalTime,double totalTim
 
 	}
 
-  clear();
+  //clear();
 
 }
