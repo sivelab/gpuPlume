@@ -120,6 +120,10 @@ void Util::parseLine(char* line){
     plume->radius[num] = s[3];
     num++;
   }
+  if(read1Float(line, "release_type",&f1)){
+    plume->releaseType = (int)f1;
+  }
+
 }
 
 bool Util::readSourceInfo(char *line, std::string settingName, float *f)
