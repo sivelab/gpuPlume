@@ -7,8 +7,9 @@ class PointEmitter : public ParticleEmitter{
 
  public:
 
-  PointEmitter(float,float,float,float,int*,int*,std::list<int>*, GLSLObject*);
-  virtual int EmitParticle(FramebufferObject*, bool);
+  PointEmitter(float,float,float,float,int,int,std::list<int>*,GLSLObject*);
+  //virtual int EmitParticle(FramebufferObject*, bool);
+  virtual void setVertices();
   //virtual void Draw();
 
  protected:
