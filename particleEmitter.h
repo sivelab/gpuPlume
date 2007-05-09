@@ -1,6 +1,7 @@
 #ifndef __PARTICLE_EMITTER_H__
 #define __PARTICLE_EMITTER_H__
 #include <list>
+#include <vector>
 #include <GL/glew.h>
 #include <math.h>
 #include "framebufferObject.h"
@@ -11,6 +12,7 @@ typedef struct{
     double time;
 
 }pIndex;
+
 
 class ParticleEmitter{
 
@@ -48,11 +50,11 @@ class ParticleEmitter{
 
   virtual void getIndex(int*,int*);
 
+  virtual void setVertices();
+
   virtual ~ParticleEmitter();
 
   void setPosTexID(GLuint id0, GLuint id1) { m_posTexID0 = id0; m_posTexID1 = id1; }
-
-
 
   //The position of the particle emitter
   float xpos,ypos,zpos;
@@ -60,10 +62,14 @@ class ParticleEmitter{
   bool releasePerTimeStep;
   bool releaseOne;
   bool releasePerSecond;
+  bool instantRelease;
   bool emit;
 
+  bool Punch_Hole;
 
  protected:
+
+  std::list<float> posCoord;
 
   GLuint m_posTexID0, m_posTexID1;
 
