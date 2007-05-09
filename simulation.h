@@ -9,9 +9,8 @@ class Simulation{
   Simulation(bool,double,float*);
 
   void init();
-  void setStartTime();
+  void setStartTime(float*);
   bool update(float*);
-  //float randVal();
 
   //holds value for total elapsed time in running collection boxes
   double totalTime;
@@ -22,7 +21,7 @@ class Simulation{
 
   //Total number of time steps to run simulation
   double tts;
-  //Keeps track of the current time step of simulation
+  //Keeps track of the current time step of collection box calculation
   double curr_timeStep;
 
  private:
