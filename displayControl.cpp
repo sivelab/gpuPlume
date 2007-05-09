@@ -61,13 +61,13 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   // render the vertices in the VBO (the particle positions) as points in the domain
   glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
   glEnableClientState(GL_VERTEX_ARRAY);
-  glColor3f(1.0, 1.0, 1.0);
+  //glColor3f(1.0, 1.0, 1.0);
+  //glColor3f(0.0,0.0,0.0);
   glVertexPointer(4, GL_FLOAT, 0, 0);
-  glPointSize(2.0);
+  glPointSize(3.0);
   render_shader.activate();
   glDrawArrays(GL_POINTS, 0, twidth*theight);
   render_shader.deactivate();
-  
 
   drawAxes();
   if(!osgPlume){
