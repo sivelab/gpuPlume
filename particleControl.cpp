@@ -193,7 +193,6 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow, float l
   // Get location of the sampler uniform
   uniform_postex = pass1_shader.createUniform("pos_texunit");
   uniform_wind = pass1_shader.createUniform("wind_texunit");
-  uniform_randomTexture = pass1_shader.createUniform("random_texunit");
   uniform_timeStep = pass1_shader.createUniform("time_step");
   uniform_primePrev = pass1_shader.createUniform("primePrev");
   uniform_primeCurr = pass1_shader.createUniform("primeCurr");
@@ -217,7 +216,7 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow, float l
   pass1_shader.deactivate();
 
 }
-void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint randomValues, 
+void ParticleControl::advect(FramebufferObject* fbo, bool odd, 
 			     GLuint windField, GLuint positions0, GLuint positions1, 
 			     GLuint prime0, GLuint prime1, float time_step)
 {
@@ -238,27 +237,21 @@ void ParticleControl::advect(FramebufferObject* fbo, bool odd, GLuint randomValu
   glUniform1fARB(uniform_timeStep, time_step);
 
   //Bind current prime values to TEXTURE UNIT 4
-  glActiveTexture(GL_TEXTURE4);
-  glUniform1iARB(uniform_primeCurr, 4);
+  glActiveTexture(GL_TEXTURE3);
+  glUniform1iARB(uniform_primeCurr, 3);
   if(odd)
     glBindTexture(texType, prime1);
   else
     glBindTexture(texType, prime0);
 
   //Bind previous prime values to TEXTURE UNIT 3
-  glActiveTexture(GL_TEXTURE3);
-  glUniform1iARB(uniform_primePrev, 3);
+  glActiveTexture(GL_TEXTURE2);
+  glUniform1iARB(uniform_primePrev, 2);
   if(odd)
     glBindTexture(texType, prime0);
   else
     glBindTexture(texType, prime1);
 
-  //I think this can be taken out since the random values 
-  //apply to updating the prime textures
-  // Bind the random data field to TEXTURE UNIT 2
-  glActiveTexture(GL_TEXTURE2);
-  glBindTexture(texType, randomValues);
-  glUniform1iARB(uniform_randomTexture, 2);
 
   // wind field can be stored here
   glActiveTexture(GL_TEXTURE1);
