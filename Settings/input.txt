@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 256
-theight 256
+twidth 100
+theight 100
 
 #Set the Domain
 nx 60
@@ -11,7 +11,7 @@ nz 50
 show_particle_visuals 1
 
 #Set useRealTime to 0 for false and 1 for true
-useRealTime 1
+useRealTime 0
 
 time_step 0.012
 
@@ -35,28 +35,39 @@ ustar 0.087
 startCBoxTime 0.0
 
 #Collection box end Time
-endCBoxTime 0.0
+endCBoxTime 300.0
 
 #Collection box averaging Time
-averagingTime 20.0
+averagingTime 300.0
 
 #Collection box bounds; lower_x,lower_y,lower_z, upper_x,upper_y,upper_z
-bounds 32.0 28.0 8.0 36.0 32.0 12.0
-
+#bounds 32.0 10.0 8.0 60.0 50.0 12.0
+bounds 25.0 5.0  0.0 60.0 20.0 5.0
 #Collection box discretization
 
 #number of boxes in x direction (z in openGL)
-numBox_x   3
+numBox_x   10
 #number of boxes in y direction (x in openGL)
-numBox_y   4
+numBox_y   10
 #number of boxes in z direction (y in openGL)
 numBox_z   5
 
 #Source/ParticleEmitter information
-num_of_sources 1
+num_of_sources 3
 
 #x_coordinate, y_coordinate, z_coordinate, radius
-source_info 30.0 30.0 10.0 4.0
-#source_info 30.0 0.5 30.0 0.25 
-#source_info 20.0 2.0 20.0 0.5
-#source_info 50.0 3.0 5.0 0.0
+source_info 25.0 35.0 1.0 0.0
+source_info 25.0 17.0 1.0 0.0
+source_info 20.0 40.0 2.0 0.5
+#source_info 50.0 5.0 3.0 0.0
+
+#Set the type of Particle Release
+release_type 1
+
+#Set to 0 and it will release a set number of particles per time step
+#based on simulation duration. 
+#CAUTION!! When setting this to 0, make sure duration != 0 
+#and that you're using a fixed time step; i.e useRealTime == 0 
+
+#Set to 1 to release particles per second based on a set rate
+#Set to 2 to have an instantaneous release of all particles
