@@ -152,75 +152,19 @@ void PlumeControl::init(bool OSG){
     dc->osgPlume = true;
   }
   
-  if(testcase == 3){   
-    numOfPE = 1;
-    dc->draw_buildings = true;
-    //Creates a point emitter with position(10,10,10) , emitting 10 particles per second
-    pe[0] = new PointEmitter(10.0,10.0,10.0, 10.0, &twidth, &theight, &indices, &emit_shader);
-  }
-  else{
-    dc->draw_buildings = false;
-    for(int i=0; i < numOfPE; i++){
-      if(radius[i] == 0)
-	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], 10.0, &twidth, &theight, &indices, &emit_shader);
-      else
-	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 1.0, radius[i], &twidth, &theight, &indices, &emit_shader);
-    }
-  }
-  for(int i=0; i < numOfPE; i++){
-    if(reuseParticles)
-      pe[i]->setParticleReuse(&indicesInUse, lifeTime);
-
-    pe[i]->emit = false;
-
-    //Set up the ParticleEmitter method to release particles
-    //Release particles per time step only if duration is defined and
-    //there is a fixed time step.
-    if(duration != 0 && !useRealTime){
-
-      // BALWINDER!!!!  this is the case where we have a fixed time
-      // step and set duration we made this change so we could do the
-      // fixed time step, fixed duration timings.
-      pe[i]->releaseOne = false;
-      pe[i]->releasePerTimeStep = false;
-      pe[i]->releasePerSecond = true;
-	  pe[i]->releaseOne = false;
-
-      // To go back to what we had before, comment out the above two
-      // lines, and uncomment the following line.
-      // pe[i]->releasePerTimeStep = true;      
-
-      // Andy will fix this so we can do all of this... eventually.
-    }
-    else{
-      pe[i]->releaseOne = false;
-      pe[i]->releasePerTimeStep = false;
-      pe[i]->releasePerSecond = true;
-    }
-
-    if(pe[i]->releasePerTimeStep){
-      //set number of particles to emit = (number of particles/ total number of time steps);
-      int num = (int)floor((double)(twidth*theight) / (duration/(double)time_step));
-	  std::cout << num << std::endl;
-      pe[i]->setNumToEmit(num);
-    }
-  }
+  setupEmitters();
+  
   glEnable(texType);
   glGenTextures(8, texid);
   /////////////////////////////
   //Textures used:
-  //texid[0] and texid[1] are the double buffered position textures
   positions0 = texid[0];
-  positions1 = texid[1];
-  //texid[2] can be used to initialize the positions
-  //texid[3] is the wind field texture
+  positions1 = texid[1]; 
   windField = texid[3];
-  //texid[4] is random values
   randomValues = texid[4];
   prime0 = texid[5];
   prime1 = texid[6];
   lambda = texid[7];
-
   /////////////////////////////
   setupTextures();
 
@@ -258,9 +202,6 @@ void PlumeControl::init(bool OSG){
   } 
 
 }
-//Error checking variable.
-//Delete once emit particles problem solved. 
-int d = 0;
 
 int PlumeControl::display(){ 
   if(osgPlume){
@@ -276,32 +217,6 @@ int PlumeControl::display(){
     glLoadIdentity();
   }
 
-  //Makes sure the display loop is run once first
-  //before emitting particles.  There is an error
-  //in starting to emit particles the first time.
-  ///////////////////////
-  if(d < 1){
-    d++;
-  }
-  else{
-    //emit = true;
-  //////////////////////
-  //Set start time the second display call.
-    //Once error is fixed, we can call this the first time.
-    //Also can get rid of all the checks on if(!firstTime).
-    if(firstTime){
-      if(!osgPlume)
-	pe[0]->emit = true;
-      sim->setStartTime();
-      firstTime = false;
-    }
-  }
- 
-  glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
-  
-  // bind the framebuffer object so we can render to the 2nd texture
-  fbo->Bind();
-  
   //update simulation information such as total time elapsed and current time step
   //if set to run for a total number of time steps and that value has been reached,
   //clean up anything needed and close the window
@@ -312,6 +227,19 @@ int PlumeControl::display(){
       }
     }
   }
+  //Store simulation start time and turn on one particle emitter
+  if(firstTime){
+    if(!osgPlume)
+      pe[0]->emit = true;
+    sim->setStartTime(&time_step);
+    firstTime = false;
+  }
+
+  glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
+  glEnable(texType);
+  // bind the framebuffer object so we can render to the 2nd texture
+  fbo->Bind();
+  
   /////////////////////////////////////////////////////////////
   //Reuse particles if their lifespan is up
   /////////////////////////////////////////////////////////////
@@ -328,11 +256,13 @@ int PlumeControl::display(){
 	//This can only be used with a time duration > 0
 	//and a fixed time step
 	pe[i]->setPosTexID(positions0, positions1);
+	pe[i]->setVertices();
 	totalNumPar += (double)pe[i]->EmitParticle(fbo,odd);
       }
       else if(pe[i]->releaseOne){
 	//Release one particle every time key is pressed
 	pe[i]->setNumToEmit(1);
+	pe[i]->setVertices();
 	pe[i]->setPosTexID(positions0, positions1);
 	totalNumPar += (double)pe[i]->EmitParticle(fbo,odd);
  
@@ -343,10 +273,18 @@ int PlumeControl::display(){
 	//Release particle using the defined particles per second
 	if(pe[i]->timeToEmit(time_step))
 	  {
+	    pe[i]->setVertices();
 	    pe[i]->setPosTexID(positions0, positions1);
 	    totalNumPar += (double)pe[i]->EmitParticle(fbo, odd); 
 	  }
-      }   
+      }
+      else if(pe[i]->instantRelease){
+	pe[i]->setNumToEmit(twidth*theight);
+	pe[i]->setVertices();
+	pe[i]->setPosTexID(positions0,positions1);
+	totalNumPar += (double)pe[i]->EmitParticle(fbo, odd);
+	pe[i]->emit = false;
+      }
     }
   }
   ////////////////////////////////////////////////////////////
@@ -362,7 +300,7 @@ int PlumeControl::display(){
     }       
   }
 
-  if((sim->totalTime >= startCBoxTime) && !endCBox && !firstTime){
+  if((sim->totalTime >= startCBoxTime) && !endCBox){
 
     sim->curr_timeStep +=1.0;
 
@@ -393,24 +331,21 @@ int PlumeControl::display(){
   ////////////////////////////////////////////////////////////
   // Update Prime Values
   ////////////////////////////////////////////////////////////
-  if(!firstTime)
-    pc->updatePrime(fbo, odd,positions0, positions1, prime0, prime1, 
-		    windField, randomValues, lambda,time_step);
+  pc->updatePrime(fbo, odd,positions0, positions1, prime0, prime1, 
+  		    windField, randomValues, lambda,time_step);
  
   ////////////////////////////////////////////////////////////
   // Update Particle Positions 
   ////////////////////////////////////////////////////////////
-  if(!firstTime)
-    pc->advect(fbo, odd, randomValues, windField, positions0, positions1, 
-	       prime0,prime1,time_step);
+  pc->advect(fbo, odd, windField, positions0, positions1, 
+  	       prime0,prime1,time_step);
 
   ////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////
   // Get Position for Streams
   ////////////////////////////////////////////////////////////
-  if(!firstTime && stream->doUpdate()){
-  //if(!firstTime && releaseOne){  
+  if(stream->doUpdate()){
     stream->updateStreamPos();
   }
   ///////////////////////////////////////////////////////////
@@ -466,7 +401,7 @@ int PlumeControl::display(){
       // clear the color and depth buffer before drawing the scene, and
       // set the viewport to the window dimensions
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+     
       if(osgPlume){
 	glViewport(vp[0], vp[1], vp[2], vp[3]);
 	glMatrixMode(GL_PROJECTION);
@@ -482,20 +417,22 @@ int PlumeControl::display(){
 	glLoadIdentity();
 	gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();		
+	glLoadIdentity();	
+	//glClearColor(0.93,0.93,0.93,1.0);	
       }
-
-      //plume->displayVisual(vertex_buffer);
       
       dc->drawVisuals(vertex_buffer, windField, numInRow, twidth, theight);
-      glDisable(texType);
       stream->draw();
+          
       if(!osgPlume){
 	for(int i=0; i < numOfPE; i++){
 	  pe[i]->Draw();
 	}
+
+	cBoxes[0]->sort(dc->eye_pos[0],dc->eye_pos[1],dc->eye_pos[2]);
+	cBoxes[0]->draw(sim->curr_timeStep);
       }
-      
+        
       // If we've chose to display the 3D particle domain, we need to
       // set the projection and modelview matrices back to what is
       // needed for the particle advection step
@@ -521,6 +458,63 @@ int PlumeControl::display(){
     return 0;
   }
   return 1;
+}
+void PlumeControl::setupEmitters(){
+  if(testcase == 3){   
+    numOfPE = 1;
+    dc->draw_buildings = true;
+    //Creates a point emitter with position(10,10,10) , emitting 10 particles per second
+    pe[0] = new PointEmitter(10.0,10.0,10.0, 10.0, twidth, theight, &indices, &emit_shader);
+  }
+  else{
+    dc->draw_buildings = false;
+    for(int i=0; i < numOfPE; i++){
+      if(radius[i] == 0)
+	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], 60.0, twidth, theight, &indices, &emit_shader);
+      else
+	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 60.0, radius[i], twidth, theight, &indices, &emit_shader);
+    }
+  }
+  for(int i=0; i < numOfPE; i++){
+    if(reuseParticles)
+      pe[i]->setParticleReuse(&indicesInUse, lifeTime);
+
+    pe[i]->emit = false;
+    pe[i]->Punch_Hole = false;
+
+    //Set up the ParticleEmitter method to release particles
+    //Release particles per time step only if duration is defined and
+    //there is a fixed time step.
+    if(releaseType == 0){
+      pe[i]->releasePerTimeStep = true;
+      pe[i]->releaseOne = false;
+      pe[i]->releasePerSecond = false;
+      pe[i]->instantRelease = false;
+    }
+    else if(releaseType == 2){
+      pe[i]->releasePerTimeStep = false;
+      pe[i]->releaseOne = false;
+      pe[i]->releasePerSecond = false;
+      pe[i]->instantRelease = true;
+
+    }
+    else if(releaseType == 1){
+      pe[i]->instantRelease = false;
+      pe[i]->releaseOne = false;
+      pe[i]->releasePerTimeStep = false;
+      pe[i]->releasePerSecond = true;
+    }
+    else{
+      std::cout << "Error in setting up particle release type" << std::endl;
+    }
+
+    if(pe[i]->releasePerTimeStep){
+      //set number of particles to emit = (number of particles/ total number of time steps);
+      int num = (int)floor((double)(twidth*theight) / (duration/(double)time_step));
+      pe[i]->setNumToEmit(num);
+    }
+  }
+
 }
 
 void PlumeControl::initFBO(void){
@@ -579,9 +573,9 @@ void PlumeControl::setupTextures()
 		for (int i=0; i<twidth; i++)
 		{
 			int idx = j*twidth*sz + i*sz;
-			data[idx] = -10.0;
-			data[idx+1] = -10.0;
-			data[idx+2] = 10.0;
+			data[idx] = 100.0;
+			data[idx+1] = 100.0;
+			data[idx+2] = 100.0;
 			data[idx+3] = lifeTime+1;
 		}
   
@@ -617,13 +611,13 @@ void PlumeControl::setupTextures()
 		  //	       + data[idx+2]*data[idx+2]);
 	      //calculating u',v' and w'and storing them in data
 	      //Quicplume coordinates
-	      data[idx] = sigU*(data[idx]); //sigU*(data[idx]/mag);     --Changed equations--Balli(05/01/07)
-	      data[idx+1] = sigV*(data[idx+1]); //sigV*(data[idx+1]/mag);
-	      data[idx+2] = sigW*(data[idx+2]); //sigW*(data[idx+2]/mag);
-	      //Need to switch to gpuPlume coordinates
-	      //data[idx] = sigV*(data[idx]/mag);   
-	      //data[idx+1] = sigW*(data[idx+1]/mag);
-	      //data[idx+2] = sigU*(data[idx+2]/mag);
+
+	      //data[idx] = sigU*(data[idx]/mag);   
+	      //data[idx+1] = sigV*(data[idx+1]/mag);
+	      //data[idx+2] = sigW*(data[idx+2]/mag);	      
+	      data[idx] = sigU*(data[idx]);   
+	      data[idx+1] = sigV*(data[idx+1]);
+	      data[idx+2] = sigW*(data[idx+2]);
 	    }
 
 	// Sum random values to determine if they have mean of zero and variance of 1
