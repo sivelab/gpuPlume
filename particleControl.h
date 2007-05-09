@@ -42,7 +42,7 @@ class ParticleControl{
   //Advects particle positions using the windfield.
   //First GLuint is the windfield texture.
   //Second and third GLuint are the two position textures. 
-  void advect(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
+  void advect(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,float);
 
   void updatePrime(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
   // included two more arguments in the above function for position textures. --Balli(04/12/07)
