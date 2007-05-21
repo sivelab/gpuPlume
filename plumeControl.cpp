@@ -480,7 +480,7 @@ void PlumeControl::setupEmitters(){
       pe[i]->setParticleReuse(&indicesInUse, lifeTime);
 
     pe[i]->emit = false;
-    pe[i]->Punch_Hole = false;
+    pe[i]->Punch_Hole = true;
 
     //Set up the ParticleEmitter method to release particles
     //Release particles per time step only if duration is defined and
@@ -522,9 +522,9 @@ void PlumeControl::initFBO(void){
   fbo = new FramebufferObject();
   fbo->Bind();
       
-  rb = new Renderbuffer();
-  rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);
-  fbo->AttachRenderBuffer(GL_DEPTH_ATTACHMENT_EXT, rb->GetId() );
+  //rb = new Renderbuffer();
+  //rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);
+  //fbo->AttachRenderBuffer(GL_DEPTH_ATTACHMENT_EXT, rb->GetId() );
 
   //Attach textures to framebuffer object
   fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, texid[0]);
