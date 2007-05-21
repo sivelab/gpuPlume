@@ -16,7 +16,7 @@ int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
   float l;
  
   if(!indices->empty()){
-    //THIS DOESN'T WORK YET!!!!
+    //THIS Method *seems* to work now!
     //Punch Hole method. Need to set drawbuffer and activate shader.
     if(Punch_Hole){
 
@@ -65,10 +65,11 @@ int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	posCoord.pop_back();
 
 	if(Punch_Hole){
-	  shader->activate();
 	  glPointSize(1.0);
-	  glViewport(s,t,1,1);
-       
+
+	  shader->activate();
+       	  glViewport(s,t,1,1);
+	  std::cout << "particle num= " << p_index << "  s = " << s << "  t = " << t << std::endl;
 	  glBegin(GL_POINTS);
 	  {
 	    glColor4f(x, y, z, l);
