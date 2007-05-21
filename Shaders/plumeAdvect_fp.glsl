@@ -109,6 +109,10 @@ void main(void)
 	//Now move the particle by adding the direction.
    	pos = pos + vec4(wind,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
+	//Reflection off ground	
+	if(pos.z < 0)
+		pos.z = -pos.z;
+	
    }
    if(pos.a <= 0 && (!(life_time <= 0))){
       gl_FragColor = vec4(100.0, 100.0, 100.0, life_time+1.0);
@@ -118,34 +122,3 @@ void main(void)
    }
    
 }
-
-
-
-
-
-
-
-
-// Read out a random value based on the particle's texture coordinate for use with 
-   // the turbulence model.
-   //vec3 turbulence_sigma = vec3(0.1, 0.1, 0.065);
-
-   // random values are being generated between -1.0 and 1.0
-   //vec3 turbulence = vec3(textureRect(random_texunit, texCoord)) * turbulence_sigma;
-
-
-//if(life_time != 0){
-   //if(!(life_time <= 0)){
-   //  if(pos.a != life_time+1.0){
-       //Decrement the alpha value based on the time_step
-  //     pos.a = pos.a - time_step;
-
-  //   }
-  // }
-  
-  //if(pos.a <= 0 && (!(life_time <= 0))){
-	//gl_FragColor = vec4(100.0, 100.0, 100.0, life_time+1.0);
-  // }
-   //else{
-   
-   //}
