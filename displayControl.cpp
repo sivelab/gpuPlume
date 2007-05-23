@@ -1,6 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include "displayControl.h"
+#include <glm.h>
 
 static char text_buffer[128];
 
@@ -61,8 +62,6 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   // render the vertices in the VBO (the particle positions) as points in the domain
   glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
   glEnableClientState(GL_VERTEX_ARRAY);
-  //glColor3f(1.0, 1.0, 1.0);
-  //glColor3f(0.0,0.0,0.0);
   glVertexPointer(4, GL_FLOAT, 0, 0);
   glPointSize(3.0);
   render_shader.activate();
@@ -75,6 +74,8 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
       drawFeatures();
     }
   }
+  drawGround();
+
   drawLayers(texid3, numInRow);  
 
   // spit out frame rate
@@ -103,6 +104,26 @@ void DisplayControl::setAzimuth(float change, float rate){
 }
 void DisplayControl::setElevation(float change, float rate){
   elevation = elevation + change*rate;
+}
+void DisplayControl::drawGround(){
+
+  glDisable(texType);
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, displayTex[0]);
+
+  glBegin(GL_QUADS);
+  {
+    glTexCoord2f(0,0);       glVertex3f(0.0,0.0,0.0);
+    glTexCoord2f(1,0);       glVertex3f(nx,0.0,0.0);
+    glTexCoord2f(1,1);       glVertex3f(nx,ny,0.0);
+    glTexCoord2f(0,1);       glVertex3f(0.0,ny,0.0);
+  }
+  glEnd();
+
+  glBindTexture(GL_TEXTURE_2D,0);
+  glDisable(GL_TEXTURE_2D);
+  glEnable(texType);
+
 }
 void DisplayControl::drawAxes(){
   // query the current line width so we can set it back at the end of
@@ -240,18 +261,19 @@ void DisplayControl::initVars(int nb,double* x, double* y, double* z,
   ht = h;
   wti = w;
   lti = l;
-  /*
+  
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
-  glGenTextures(3, axisLabel);
-  initTex(axisLabel[0], "u.ppm");
+  glGenTextures(3,displayTex);
   
+  createImageTex(displayTex[0], "concrete.ppm");
+ 
   glDisable(GL_TEXTURE_2D);
-  glEnable(texType);*/
+  glEnable(texType);
 
 }
-/*
-void DisplayControl::initTex(GLuint texture, char* filename){
+
+void DisplayControl::createImageTex(GLuint texture, char* filename){
   GLubyte* testImage;
   int w, h;
 
@@ -267,7 +289,7 @@ void DisplayControl::initTex(GLuint texture, char* filename){
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, testImage);
 }
-*/
+
 void DisplayControl::drawFeatures(void)
 {
   float grid_scale = 1.0;  // currently, just 1 but likely needs to come from QUICPLUME
