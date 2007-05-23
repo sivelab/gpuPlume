@@ -270,13 +270,17 @@ int PlumeControl::display(){
 	pe[i]->emit = false;
       }
       else if(pe[i]->releasePerSecond){
+	/*pe[i]->setNumToEmit(1);
+	pe[i]->setVertices();
+	totalNumPar += (double)pe[i]->EmitParticle(fbo, odd); */
 	//Release particle using the defined particles per second
-	if(pe[i]->timeToEmit(time_step))
-	  {
+	if(pe[i]->timeToEmit(time_step)){
+	  
 	    pe[i]->setVertices();
 	    pe[i]->setPosTexID(positions0, positions1);
 	    totalNumPar += (double)pe[i]->EmitParticle(fbo, odd); 
-	  }
+	}
+	//pe[i]->emit = false;
       }
       else if(pe[i]->instantRelease){
 	pe[i]->setNumToEmit(twidth*theight);
@@ -429,8 +433,10 @@ int PlumeControl::display(){
 	  pe[i]->Draw();
 	}
 
-	cBoxes[0]->sort(dc->eye_pos[0],dc->eye_pos[1],dc->eye_pos[2]);
-	cBoxes[0]->draw(sim->curr_timeStep);
+	if(show_collectionBox_visuals){
+	  cBoxes[0]->sort(dc->eye_pos[0],dc->eye_pos[1],dc->eye_pos[2]);
+	  cBoxes[0]->draw(sim->curr_timeStep);
+	}
       }
         
       // If we've chose to display the 3D particle domain, we need to
