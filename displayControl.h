@@ -16,6 +16,7 @@ class DisplayControl{
   
   void drawVisuals(GLuint, GLuint, int, int, int);
   void drawAxes();
+  void drawGround();
   void drawLayers(GLuint, int);
   void drawFeatures(void);
   void drawFrameRate(int, int);
@@ -41,7 +42,7 @@ class DisplayControl{
 
  private:
   
-  //void initTex(GLuint, char*);
+  void createImageTex(GLuint, char*);
   
   int nx;
   int ny;
@@ -65,7 +66,7 @@ class DisplayControl{
   GLfloat azimuth;
   GLfloat elevation;
   
-  //GLuint axisLabel[3];
+  GLuint displayTex[3];
 
   GLenum texType;
 
