@@ -79,6 +79,7 @@ class PlumeControl{
   bool output_CollectionBox;
   bool osgPlume;
   bool quitSimulation;
+  bool show_collectionBox_visuals;
  
   //output file of collection box
   std::string output_file;
