@@ -1,7 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include "displayControl.h"
-#include <glm.h>
+#include "glm.h"
 
 static char text_buffer[128];
 
