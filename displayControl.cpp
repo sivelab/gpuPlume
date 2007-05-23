@@ -1,7 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include "displayControl.h"
-#include "glm.h"
+//#include "glm.h"
 
 static char text_buffer[128];
 
@@ -74,7 +74,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
       drawFeatures();
     }
   }
-  drawGround();
+  //drawGround();
 
   drawLayers(texid3, numInRow);  
 
@@ -105,7 +105,7 @@ void DisplayControl::setAzimuth(float change, float rate){
 void DisplayControl::setElevation(float change, float rate){
   elevation = elevation + change*rate;
 }
-void DisplayControl::drawGround(){
+/*void DisplayControl::drawGround(){
 
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
@@ -124,7 +124,7 @@ void DisplayControl::drawGround(){
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
 
-}
+}*/
 void DisplayControl::drawAxes(){
   // query the current line width so we can set it back at the end of
   // the function
@@ -261,7 +261,7 @@ void DisplayControl::initVars(int nb,double* x, double* y, double* z,
   ht = h;
   wti = w;
   lti = l;
-  
+  /*
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
   glGenTextures(3,displayTex);
@@ -270,10 +270,10 @@ void DisplayControl::initVars(int nb,double* x, double* y, double* z,
  
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
-
+*/
 }
 
-void DisplayControl::createImageTex(GLuint texture, char* filename){
+/*void DisplayControl::createImageTex(GLuint texture, char* filename){
   GLubyte* testImage;
   int w, h;
 
@@ -288,7 +288,7 @@ void DisplayControl::createImageTex(GLuint texture, char* filename){
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, testImage);
-}
+}*/
 
 void DisplayControl::drawFeatures(void)
 {
