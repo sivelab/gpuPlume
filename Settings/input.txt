@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 100
-theight 100
+twidth 128
+theight 128
 
 #Set the Domain
 nx 60
@@ -9,6 +9,9 @@ nz 50
 
 #Set this to 1 to show the particle display, else 0
 show_particle_visuals 1
+
+#Set this to 1 to show collection box visuals, else 0
+show_collectionBox_visuals 0
 
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
@@ -35,14 +38,14 @@ ustar 0.087
 startCBoxTime 0.0
 
 #Collection box end Time
-endCBoxTime 300.0
+endCBoxTime 0.0
 
 #Collection box averaging Time
 averagingTime 300.0
 
 #Collection box bounds; lower_x,lower_y,lower_z, upper_x,upper_y,upper_z
-#bounds 32.0 10.0 8.0 60.0 50.0 12.0
-bounds 25.0 5.0  0.0 60.0 20.0 5.0
+bounds 32.0 10.0 8.0 60.0 50.0 12.0
+#bounds 25.0 5.0  0.0 60.0 20.0 5.0
 #Collection box discretization
 
 #number of boxes in x direction (z in openGL)
@@ -50,15 +53,15 @@ numBox_x   10
 #number of boxes in y direction (x in openGL)
 numBox_y   10
 #number of boxes in z direction (y in openGL)
-numBox_z   5
+numBox_z   3
 
 #Source/ParticleEmitter information
-num_of_sources 3
+num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius
-source_info 25.0 35.0 1.0 0.0
-source_info 25.0 17.0 1.0 0.0
-source_info 20.0 40.0 2.0 0.5
+source_info 30.0 30.0 10.0 4.0
+#source_info 25.0 17.0 1.0 0.0
+#source_info 20.0 40.0 2.0 0.5
 #source_info 50.0 5.0 3.0 0.0
 
 #Set the type of Particle Release
