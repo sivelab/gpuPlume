@@ -106,6 +106,12 @@ void Util::parseLine(char* line){
     else
       plume->show_particle_visuals = true;
   }
+  if(read1Float(line, "show_collectionBox_visuals", &f1)){
+    if(f1 == 0)
+      plume->show_collectionBox_visuals = false;
+    else
+      plume->show_collectionBox_visuals = true;
+  }
   if(read1Float(line, "num_of_sources", &f1)){
     plume->numOfPE = (int)f1;
     plume->xpos = new float[plume->numOfPE];
