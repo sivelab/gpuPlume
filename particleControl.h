@@ -21,6 +21,12 @@ class ParticleControl{
 
   void setupPrimeShader(int*); //Included argument -- Balli(04/12/07)
 
+  void setupPrime_and_AdvectShader(int*,float);
+
+  //Performs update prime and advect with one shader using multiple render targets.
+  void updatePrimeAndAdvect(FramebufferObject*,bool,GLuint,GLuint,GLuint,
+			    GLuint,GLuint,GLuint,GLuint,float);
+
   //This function puts the values held in the variable, data, into a 2D texture 
   //on the GPU. 
   void createTexture(GLuint texId, GLenum format,  int w, int h, GLfloat* data); 
@@ -83,7 +89,7 @@ class ParticleControl{
 
   float ustar,sigU,sigV,sigW;
 
-  GLSLObject init_shader, pass1_shader, prime_shader;
+  GLSLObject init_shader, pass1_shader, prime_shader, mrt_shader;
 
   //Variables for prime shader
   GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;
