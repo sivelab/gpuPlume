@@ -80,6 +80,9 @@ class PlumeControl{
   bool osgPlume;
   bool quitSimulation;
   bool show_collectionBox_visuals;
+
+  //Set this to true to use one shader for rendering to multiple targets.
+  bool mrt;
  
   //output file of collection box
   std::string output_file;
