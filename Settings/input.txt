@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 128
-theight 128
+twidth 256
+theight 256
 
 #Set the Domain
 nx 60
@@ -12,6 +12,10 @@ show_particle_visuals 1
 
 #Set this to 1 to show collection box visuals, else 0
 show_collectionBox_visuals 0
+
+#Set this to 1 to use one shader for the advection step,
+#else 0 for the multi pass advection technique
+mrt 1
 
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
@@ -32,7 +36,7 @@ output_file data.txt
 duration 0
 
 #Ustar value for prime and lambda calculations
-ustar 0.087
+ustar 0.084
 
 #Collection box start Time
 startCBoxTime 0.0
