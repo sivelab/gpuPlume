@@ -179,11 +179,19 @@ void PlumeControl::init(bool OSG){
   //Initialize FBO
   initFBO();
 
+  //Setup Shaders for advection
+  if(mrt){
+    //This shader performs both the update prime and advection by
+    //writing to two buffers.
+    pc->setupPrime_and_AdvectShader(&numInRow,lifeTime);
+  }
+  else{
   //This shader is used to advect the particles using the windfield
-  pc->setupAdvectShader(&time_step, &numInRow, lifeTime);
+    pc->setupAdvectShader(&time_step, &numInRow, lifeTime);
 
   //This shader is used to update the prime values
-  pc->setupPrimeShader(&numInRow); //Included argument -- Balli(04/12/07)
+    pc->setupPrimeShader(&numInRow); //Included argument -- Balli(04/12/07)
+  }
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -332,18 +340,23 @@ int PlumeControl::display(){
     }
 
   }
+  
   ////////////////////////////////////////////////////////////
-  // Update Prime Values
+  // Update Prime Values and Particle Positions
   ////////////////////////////////////////////////////////////
-  pc->updatePrime(fbo, odd,positions0, positions1, prime0, prime1, 
+  
+  if(mrt){
+    pc->updatePrimeAndAdvect(fbo,odd,windField,positions0,positions1,
+  			   prime0,prime1,randomValues,lambda,time_step);
+  }
+  else{
+    pc->updatePrime(fbo, odd,positions0, positions1, prime0, prime1, 
   		    windField, randomValues, lambda,time_step);
  
-  ////////////////////////////////////////////////////////////
-  // Update Particle Positions 
-  ////////////////////////////////////////////////////////////
-  pc->advect(fbo, odd, windField, positions0, positions1, 
-  	       prime0,prime1,time_step);
-
+    pc->advect(fbo, odd, windField, positions0, positions1, 
+  	       prime0,prime1,time_step);  
+  }  
+  
   ////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////
@@ -476,7 +489,7 @@ void PlumeControl::setupEmitters(){
     dc->draw_buildings = false;
     for(int i=0; i < numOfPE; i++){
       if(radius[i] == 0)
-	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], 60.0, twidth, theight, &indices, &emit_shader);
+	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], 1.0, twidth, theight, &indices, &emit_shader);
       else
 	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 60.0, radius[i], twidth, theight, &indices, &emit_shader);
     }
