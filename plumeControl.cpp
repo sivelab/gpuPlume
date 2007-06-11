@@ -118,6 +118,7 @@ PlumeControl::PlumeControl(){
   output_CollectionBox = false;
   odd = true; 
   dump_contents = false;
+  createImages = false;
   quitSimulation = false;
 	
   stream = new StreamLine(twidth,theight,nx,ny,nz);
@@ -159,7 +160,7 @@ void PlumeControl::init(bool OSG){
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
-  positions1 = texid[1]; 
+  positions1 = texid[1];
   windField = texid[3];
   randomValues = texid[4];
   prime0 = texid[5];
@@ -210,7 +211,7 @@ void PlumeControl::init(bool OSG){
   } 
 
 }
-
+bool imagesDone = false;
 int PlumeControl::display(){ 
   if(osgPlume){
     glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
@@ -344,6 +345,10 @@ int PlumeControl::display(){
   ////////////////////////////////////////////////////////////
   // Update Prime Values and Particle Positions
   ////////////////////////////////////////////////////////////
+  /*if(sim->totalTime >= 10.0 && !imagesDone){
+    createImages = true;
+    imagesDone = true;
+    }*/
   
   if(mrt){
     pc->updatePrimeAndAdvect(fbo,odd,windField,positions0,positions1,
@@ -357,6 +362,12 @@ int PlumeControl::display(){
   	       prime0,prime1,time_step);  
   }  
   
+  /*if(createImages){
+    pc->createPosImages(odd);
+    pc->createPrimeImages(odd);
+    
+    createImages = false;
+    }*/
   ////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////
@@ -585,8 +596,11 @@ void PlumeControl::setupTextures()
 	CheckErrorsGL("\tcreated texid[2]...");
 		
 	// Creates wind field data texture
-	pc->initWindTex(windField, lambda, &numInRow, testcase);
+	pc->initWindTex(windField, &numInRow, testcase);
 	CheckErrorsGL("\tcreated texid[3], the wind field texture...");
+
+	pc->initLambdaTex(lambda, numInRow);
+	CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
 	for (int j=0; j<theight; j++)
 		for (int i=0; i<twidth; i++)
