@@ -10,6 +10,7 @@
 #include <GL/glew.h>
 #include "framebufferObject.h"
 #include "GLSL.h"
+#include <string>
 
 class ParticleControl{
 
@@ -34,7 +35,12 @@ class ParticleControl{
  
   //This function maps the 3D wind field into a 2D texture that can be
   //stored on the GPU.
-  void initWindTex(GLuint,GLuint, int* numInRow, int dataSet);
+  void initWindTex(GLuint, int* numInRow, int dataSet);
+
+  //Call this function for uniform wind field.
+  void initLambdaTex(GLuint, int);
+  
+  void initLambda_and_TauTex(GLuint,GLuint,int);
 
   //This function is used to initialize the particle positions.
   //It was needed when we weren't able to directly put 32-bit floating point
@@ -44,6 +50,10 @@ class ParticleControl{
 
   //This will output the values of the current texture being read.
   void dumpContents();
+
+  //Writes the texture to a ppm image.
+  void writePPM(const std::string&);
+  short c2Short(float);
 
   //Advects particle positions using the windfield.
   //First GLuint is the windfield texture.
@@ -58,15 +68,19 @@ class ParticleControl{
   //the lambda texture and CoE/2 values. 
   void setUstarAndSigmas(float);
   
+  void createPosImages(bool);
+  void createPrimeImages(bool);
+
   bool outputPrime;
 
  private:
+  float min,max;
 
   void test1();
   void randomWindField();
   void quicPlumeWindField();  
   void uniformUWindField();
-  void gravity();
+  void variedUWindField();
 
   void printPrime(bool,bool);
   
@@ -85,7 +99,11 @@ class ParticleControl{
   int ny;
   int nz;
 
+  //Number of Particles
   int twidth, theight;
+
+  //Width and height of wind,lambda textures
+  int width, height;
 
   float ustar,sigU,sigV,sigW;
 
