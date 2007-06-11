@@ -75,6 +75,7 @@ class PlumeControl{
   GLuint vertex_buffer;
 
   bool dump_contents;
+  bool createImages;
   bool show_particle_visuals;
   bool output_CollectionBox;
   bool osgPlume;
@@ -115,7 +116,7 @@ class PlumeControl{
 
  private:
   
-  
+  GLint currentbuffer;
   std::list<pIndex>::iterator iter;
 
   void setupTextures();
