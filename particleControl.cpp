@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <math.h>
 #include "particleControl.h"
 #include "Random.h"
@@ -311,11 +313,9 @@ void ParticleControl::printPrime(bool odd, bool prev){
 
     outputPrime = false;
 
-  }
-
+  }  
   dumpContents();
-  
- 
+   
   glReadBuffer(currentbuffer);
 
 
@@ -425,6 +425,7 @@ void ParticleControl::getDomain(int* x, int* y, int* z){
 }
 
 void ParticleControl::dumpContents(){
+
    buffer_mem = new GLfloat[ twidth * theight * 4 ];
    glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
    std::cout << "IDX  X     Y     Z" << std::endl;
@@ -442,7 +443,203 @@ void ParticleControl::dumpContents(){
 	}
       delete [] buffer_mem;
 }
+void ParticleControl::createPrimeImages(bool odd){
+  glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
 
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT2_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT3_EXT);
+
+  buffer_mem = new GLfloat[ twidth * theight * 4 ];
+  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
+  
+  int alpha = 3;
+
+  //Find min and max of previous position values
+  max = buffer_mem[0];
+  min = buffer_mem[0];
+
+  for(int j=1; j < theight*twidth*4; j++){
+    if(j != alpha){
+      if(buffer_mem[j] > max)
+	max = buffer_mem[j];
+      if(buffer_mem[j] < min)
+	min = buffer_mem[j];
+    }
+    else
+      alpha +=4;
+  }
+  //Now update min and max with updated position values
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT3_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT2_EXT);
+
+  buffer_mem = new GLfloat[ twidth * theight * 4 ];
+  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
+  
+  alpha = 3;
+  for(int j=0; j < theight*twidth*4; j++){
+    if(j != alpha){
+      if(buffer_mem[j] > max)
+	max = buffer_mem[j];
+      if(buffer_mem[j] < min)
+	min = buffer_mem[j];
+    }
+    else
+      alpha +=4;
+  }
+
+  //Now create the ppm image files
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT2_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT3_EXT);
+
+  writePPM("prevPrime.ppm");
+
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT3_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT2_EXT);
+
+  writePPM("updatePrime.ppm");
+
+  glReadBuffer(currentbuffer);
+
+}
+void ParticleControl::createPosImages(bool odd){
+
+  glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
+
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+  buffer_mem = new GLfloat[ twidth * theight * 4 ];
+  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
+  
+  int alpha = 3;
+
+  //Find min and max of previous position values
+  max = buffer_mem[0];
+  min = buffer_mem[0];
+
+  for(int j=1; j < theight*twidth*4; j++){
+    if(j != alpha){
+      if(buffer_mem[j] > max)
+	max = buffer_mem[j];
+      if(buffer_mem[j] < min)
+	min = buffer_mem[j];
+    }
+    else
+      alpha +=4;
+  }
+  //Now update min and max with updated position values
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+
+  buffer_mem = new GLfloat[ twidth * theight * 4 ];
+  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
+  
+  alpha = 3;
+  for(int j=0; j < theight*twidth*4; j++){
+    if(j != alpha){
+      if(buffer_mem[j] > max)
+	max = buffer_mem[j];
+      if(buffer_mem[j] < min)
+	min = buffer_mem[j];
+    }
+    else
+      alpha +=4;
+  }
+
+  //Now create the ppm image files
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+  writePPM("prevPos.ppm");
+
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+
+  writePPM("updatePos.ppm");
+
+  glReadBuffer(currentbuffer);
+}
+void ParticleControl::writePPM(const std::string& filename)
+{
+
+  buffer_mem = new GLfloat[ twidth * theight * 4 ];
+  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
+
+  std::ofstream outfile;
+  outfile.open(filename.c_str(), std::ios::out | std::ios::trunc);
+  if (!(outfile.is_open()))
+    {
+      std::cerr << "ERROR: Could not open " << filename << " for writing output image." << std::endl;
+      exit(-1);
+    }
+
+  outfile << "P3\n" << twidth << " " << theight << "\n255\n";
+ 
+  int idx;
+  int count = 1;
+  int N = twidth;
+  
+  //std::cout << filename << " max is " << max << " min is " << min << std::endl;
+  std::ostringstream strstream;
+  //for (int j=theight-1; j>=0; j--)
+  for(int j=0; j<theight; j++)
+    for (int i=0; i<twidth; i++)
+      {
+    idx = j*twidth*4 + i*4;
+   
+    // output a RGB tuple to the string
+    strstream << c2Short(buffer_mem[idx]) << ' '
+          << c2Short(buffer_mem[idx+1]) << ' '
+          << c2Short(buffer_mem[idx+2]) <<  ' ';
+
+    /*std::cout << c2Short(buffer_mem[idx]) << ' '
+          << c2Short(buffer_mem[idx+1]) << ' '
+	      << c2Short(buffer_mem[idx+2]) <<  std::endl;
+
+    std::cout << buffer_mem[idx] << ' '
+          << buffer_mem[idx+1] << ' '
+	  << buffer_mem[idx+2] <<  std::endl;*/
+     
+    // put at least N tuples on a line
+    if (count%N == 0)
+      {
+        outfile << strstream.str();
+        outfile << std::endl;
+        strstream.str("");
+      }
+    count++;
+      }
+  outfile << strstream.str();
+  outfile << std::endl;
+ 
+  outfile.close();
+}
+short ParticleControl::c2Short(float num){
+  
+  float range = max - min;
+  num = num - min;
+  num = num/range;
+  num = num*255;
+  
+  return (short)num;
+
+}
 void ParticleControl::createTexture(GLuint texId, GLenum format, int w, int h, GLfloat* data){
   glBindTexture(texType, texId);
   glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -469,7 +666,7 @@ void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, i
   glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);
 }
 
-void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow,
+void ParticleControl::initWindTex(GLuint windField, int* numInRow,
 				  int dataSet){
   // Create wind data texture
   data3d = new wind[nx*ny*nz];
@@ -488,7 +685,7 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
 	uniformUWindField();
 	break;
       case 5:
-        gravity();
+        variedUWindField();
         break;
 
   }
@@ -501,7 +698,7 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
   //wasting too much space.  
   /////////////////////////////////////////////////////////
   int total = nx*ny*nz;
-  int width = (int)sqrt((float)total);
+  width = (int)sqrt((float)total);
   
   int scaler;
   if(ny > nx) scaler = ny;
@@ -520,7 +717,7 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
     }
   }
   if(width%2 != 0) width++;
-  int height = width;
+  height = width;
 
   ////////////////////////////////////////////////////////
   //Convert this to data array for a texture
@@ -557,6 +754,62 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
 
   createTexture(windField, GL_RGBA32F_ARB, width, height, dataTwo);
 
+  delete [] dataTwo;
+
+}
+void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau, int numInRow){
+  GLfloat *data = new GLfloat[ width * height * 4 ];
+  GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
+
+  int qi, qj, qk;
+  int p2idx = 0, texidx = 0;
+  int row = 0;
+  
+  for (qk=0; qk<nz; qk++) 
+    for (qi=0; qi<ny; qi++)
+      for (qj=0; qj<nx; qj++)
+	{
+	  p2idx = qk*ny*nx + qi*nx + qj;
+	    
+	  row = qk / (numInRow);
+	  texidx = row * width * ny * 4 +
+	  qi * width * 4 +
+	  qk % (numInRow) * nx * 4 +
+	  qj * 4;
+	  
+	  ustar = 0.4*(qk+1); //*du/dz ...don't know what this needs to be yet!
+
+	  sigU = 2.0*ustar;
+	  sigV = 2.0*ustar;
+	  sigW = 1.3*ustar;
+
+	  float tau11=sigU*sigU;
+	  float tau22=sigV*sigV;
+	  float tau33=sigW*sigW;
+	  float tau13=ustar*ustar;
+	  float tauDetInv=1/((tau11*tau22*tau33)-(tau13*tau13*tau22));
+	  
+	  data[texidx]   = tau11;             //Tau11
+	  data[texidx+1] = tau22;             //Tau22
+	  data[texidx+2] = tau33;             //Tau33
+	  data[texidx+3] = tau13;             //Tau13
+
+	  dataTwo[texidx]   = tauDetInv*(tau22*tau33);              //Lam11
+	  dataTwo[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
+	  dataTwo[texidx+2] = tauDetInv*(tau11*tau22);	          //Lam33
+	  dataTwo[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
+        }
+
+  createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
+  //Lambda Texture Ends-- Balli (04/12/07)
+  delete [] dataTwo;
+
+
+}
+void ParticleControl::initLambdaTex(GLuint lambda, int numInRow){
+
+  GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
+
   //Create lambda texture. --Balli (04/12/07)
   float tau11=sigU*sigU;
   float tau22=sigV*sigV;
@@ -564,16 +817,20 @@ void ParticleControl::initWindTex(GLuint windField, GLuint lambda, int* numInRow
   float tau13=ustar*ustar;
   float tauDetInv=1/((tau11*tau22*tau33)-(tau13*tau13*tau22));
 
+  int qi, qj, qk;
+  int p2idx = 0, texidx = 0;
+  int row = 0;
+
    for (qk=0; qk<nz; qk++) 
     for (qi=0; qi<ny; qi++)
       for (qj=0; qj<nx; qj++)
 	{
 	  p2idx = qk*ny*nx + qi*nx + qj;
 	    
-	  row = qk / (*numInRow);
+	  row = qk / (numInRow);
 	  texidx = row * width * ny * 4 +
 	  qi * width * 4 +
-	  qk % (*numInRow) * nx * 4 +
+	  qk % (numInRow) * nx * 4 +
 	  qj * 4;
 	  
 	  dataTwo[texidx]   = tauDetInv*(tau22*tau33);              //Lam11
@@ -654,14 +911,14 @@ void ParticleControl::uniformUWindField(){
     }
   }
 }
-void ParticleControl::gravity(){
+void ParticleControl::variedUWindField(){
    for(int k = 0; k < nz; k++){   
     for(int i = 0; i < ny; i++){
       for(int j = 0; j < nx; j++){
 	int p2idx = k*nx*ny + i*nx + j;
-	data3d[p2idx].u = 0.0;
+	data3d[p2idx].u = 7.52*pow(((k+1)/20.0),0.15);
 	data3d[p2idx].v = 0.0;
-	data3d[p2idx].w = -9.81;
+	data3d[p2idx].w = 0.0;
       }
     }
   }
