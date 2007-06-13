@@ -34,7 +34,7 @@ void Util::parseLine(char* line){
   //char s1[1024];
   float f1;
   float* b = new float[6];
-  float* s = new float[4];
+  float* s = new float[5];
   std::string s1;
 
   if(readComment(line))
@@ -124,16 +124,21 @@ void Util::parseLine(char* line){
     plume->ypos = new float[plume->numOfPE];
     plume->zpos = new float[plume->numOfPE];
     plume->radius = new float[plume->numOfPE];
+    plume->rate = new float[plume->numOfPE];
   }
   if(readSourceInfo(line, "source_info", s)){
     plume->xpos[num] = s[0];
     plume->ypos[num] = s[1];
     plume->zpos[num] = s[2];
     plume->radius[num] = s[3];
+    plume->rate[num] = s[4];
     num++;
   }
   if(read1Float(line, "release_type",&f1)){
     plume->releaseType = (int)f1;
+  }
+  if(read1Float(line, "emit_method", &f1)){
+    plume->emit_method = (int)f1;
   }
 
 }
@@ -150,6 +155,7 @@ bool Util::readSourceInfo(char *line, std::string settingName, float *f)
 	  ist >> f[1];
 	  ist >> f[2];
 	  ist >> f[3];
+	  ist >> f[4];
 	
 	  return true;
 	}
