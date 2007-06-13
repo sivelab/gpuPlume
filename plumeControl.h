@@ -66,9 +66,9 @@ class PlumeControl{
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
 
-  GLuint texid[8]; 
+  GLuint texid[9]; 
   GLenum texType,positions0,positions1,windField,randomValues;
-  GLenum prime0, prime1, lambda;
+  GLenum prime0, prime1, lambda, tau_dz;
   
   FramebufferObject* fbo;
   Renderbuffer* rb;
@@ -81,6 +81,7 @@ class PlumeControl{
   bool osgPlume;
   bool quitSimulation;
   bool show_collectionBox_visuals;
+  bool emit_method;
 
   //Set this to true to use one shader for rendering to multiple targets.
   bool mrt;
@@ -97,11 +98,11 @@ class PlumeControl{
   float ustar,sigU,sigV,sigW;
   
   //ParicleEmitter information (source)
-  //float xpos,ypos,zpos,radius;
   float* xpos;
   float* ypos;
   float* zpos;
   float* radius;
+  float* rate;
 
   int releaseType;
 
