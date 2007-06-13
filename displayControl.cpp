@@ -76,7 +76,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   }
   //drawGround();
 
-  drawLayers(texid3, numInRow);  
+  //drawLayers(texid3, numInRow);  
 
   // spit out frame rate
   if(!osgPlume){
@@ -110,7 +110,8 @@ void DisplayControl::setElevation(float change, float rate){
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, displayTex[0]);
-
+  
+  glColor4f(1.0,1.0,1.0,1.0);
   glBegin(GL_QUADS);
   {
     glTexCoord2f(0,0);       glVertex3f(0.0,0.0,0.0);
@@ -175,6 +176,7 @@ void DisplayControl::drawAxes(){
 void DisplayControl::drawLayers(GLuint texId, int numInRow){
   if (visual_layer >= 0 && visual_layer < nz)
     {
+      glPushMatrix();
       //glEnable(GL_LIGHTING);
       //glEnable(GL_LIGHT0);
       glEnable(GL_COLOR_MATERIAL);
@@ -245,7 +247,10 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       glDisable(GL_COLOR_MATERIAL);
       //glDisable(GL_LIGHT0);
       //glDisable(GL_LIGHTING);
+
+      glPopMatrix();
     }
+  
 }
 
 void instanceCube()
