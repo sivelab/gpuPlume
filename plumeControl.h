@@ -33,7 +33,7 @@ class PlumeControl{
      
   float time_step; //time step used for the movement of particles
   bool useRealTime; //Set whether to use real time or not
-  
+
   int twidth,theight; //they are twidth*theight number ofparticles
   int numInRow;
   //Domain 
@@ -81,7 +81,8 @@ class PlumeControl{
   bool osgPlume;
   bool quitSimulation;
   bool show_collectionBox_visuals;
-  bool emit_method;
+
+  int emit_method;
 
   //Set this to true to use one shader for rendering to multiple targets.
   bool mrt;
