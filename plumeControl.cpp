@@ -156,7 +156,7 @@ void PlumeControl::init(bool OSG){
   setupEmitters();
   
   glEnable(texType);
-  glGenTextures(8, texid);
+  glGenTextures(9, texid);
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
@@ -166,6 +166,7 @@ void PlumeControl::init(bool OSG){
   prime0 = texid[5];
   prime1 = texid[6];
   lambda = texid[7];
+  tau_dz = texid[8];
   /////////////////////////////
   setupTextures();
 
@@ -184,14 +185,14 @@ void PlumeControl::init(bool OSG){
   if(mrt){
     //This shader performs both the update prime and advection by
     //writing to two buffers.
-    pc->setupPrime_and_AdvectShader(&numInRow,lifeTime);
+    pc->setupPrime_and_AdvectShader(numInRow,lifeTime);
   }
   else{
   //This shader is used to advect the particles using the windfield
-    pc->setupAdvectShader(&time_step, &numInRow, lifeTime);
+    pc->setupAdvectShader(numInRow, lifeTime);
 
   //This shader is used to update the prime values
-    pc->setupPrimeShader(&numInRow); //Included argument -- Balli(04/12/07)
+    pc->setupPrimeShader(numInRow); //Included argument -- Balli(04/12/07)
   }
 
   //This shader is used to emmit particles
@@ -345,11 +346,7 @@ int PlumeControl::display(){
   ////////////////////////////////////////////////////////////
   // Update Prime Values and Particle Positions
   ////////////////////////////////////////////////////////////
-  /*if(sim->totalTime >= 10.0 && !imagesDone){
-    createImages = true;
-    imagesDone = true;
-    }*/
-  
+   
   if(mrt){
     pc->updatePrimeAndAdvect(fbo,odd,windField,positions0,positions1,
   			   prime0,prime1,randomValues,lambda,time_step);
@@ -362,7 +359,11 @@ int PlumeControl::display(){
   	       prime0,prime1,time_step);  
   }  
   
-  /*if(createImages){
+  /*if(sim->totalTime >= 10.0 && !imagesDone){
+    createImages = true;
+    imagesDone = true;
+  }
+  if(createImages){
     pc->createPosImages(odd);
     pc->createPrimeImages(odd);
     
@@ -451,7 +452,10 @@ int PlumeControl::display(){
       
       dc->drawVisuals(vertex_buffer, windField, numInRow, twidth, theight);
       stream->draw();
-          
+         
+
+      dc->drawLayers(windField, numInRow);
+
       if(!osgPlume){
 	for(int i=0; i < numOfPE; i++){
 	  pe[i]->Draw();
@@ -461,6 +465,7 @@ int PlumeControl::display(){
 	  cBoxes[0]->sort(dc->eye_pos[0],dc->eye_pos[1],dc->eye_pos[2]);
 	  cBoxes[0]->draw(sim->curr_timeStep);
 	}
+	
       }
         
       // If we've chose to display the 3D particle domain, we need to
@@ -500,9 +505,9 @@ void PlumeControl::setupEmitters(){
     dc->draw_buildings = false;
     for(int i=0; i < numOfPE; i++){
       if(radius[i] == 0)
-	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], 1.0, twidth, theight, &indices, &emit_shader);
+	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], rate[i], twidth, theight, &indices, &emit_shader);
       else
-	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], 60.0, radius[i], twidth, theight, &indices, &emit_shader);
+	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], rate[i], radius[i], twidth, theight, &indices, &emit_shader);
     }
   }
   for(int i=0; i < numOfPE; i++){
@@ -510,31 +515,31 @@ void PlumeControl::setupEmitters(){
       pe[i]->setParticleReuse(&indicesInUse, lifeTime);
 
     pe[i]->emit = false;
-    pe[i]->Punch_Hole = true;
+    //Set for different methods of emitting particles
+    if(emit_method == 0){
+      pe[i]->Punch_Hole = true;
+    }
+    else pe[i]->Punch_Hole = false;
+
+    pe[i]->releasePerTimeStep = false;
+    pe[i]->releaseOne = false;
+    pe[i]->releasePerSecond = false;
+    pe[i]->instantRelease = false;
 
     //Set up the ParticleEmitter method to release particles
     //Release particles per time step only if duration is defined and
     //there is a fixed time step.
-    if(releaseType == 0){
+    switch(releaseType){
+    case 0:
       pe[i]->releasePerTimeStep = true;
-      pe[i]->releaseOne = false;
-      pe[i]->releasePerSecond = false;
-      pe[i]->instantRelease = false;
-    }
-    else if(releaseType == 2){
-      pe[i]->releasePerTimeStep = false;
-      pe[i]->releaseOne = false;
-      pe[i]->releasePerSecond = false;
-      pe[i]->instantRelease = true;
-
-    }
-    else if(releaseType == 1){
-      pe[i]->instantRelease = false;
-      pe[i]->releaseOne = false;
-      pe[i]->releasePerTimeStep = false;
+      break;
+    case 1:
       pe[i]->releasePerSecond = true;
-    }
-    else{
+      break;
+    case 2:
+      pe[i]->instantRelease = true;
+      break;
+    default:
       std::cout << "Error in setting up particle release type" << std::endl;
     }
 
@@ -601,6 +606,7 @@ void PlumeControl::setupTextures()
 
 	pc->initLambdaTex(lambda, numInRow);
 	CheckErrorsGL("\tcreated texid[7], the lambda texture...");
+
 
 	for (int j=0; j<theight; j++)
 		for (int i=0; i<twidth; i++)
