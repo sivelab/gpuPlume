@@ -68,12 +68,14 @@ int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  glPointSize(1.0);
 
 	  shader->activate();
-      glViewport(s,t,1,1);
+
+       	  glViewport(s,t,1,1);
 	  //std::cout << "particle num= " << p_index << "  s = " << s << "  t = " << t << std::endl;
 	  glBegin(GL_POINTS);
 	  {
 	    glColor4f(x, y, z, l);
 	    glVertex2f(0.5, 0.5);
+	    //glVertex2f(s,t);
 	  }
 	  glEnd();
 	  shader->deactivate();
