@@ -18,11 +18,11 @@ class ParticleControl{
  
   ParticleControl(GLenum,int,int,int,int,int,double*,double*,double*);
 
-  void setupAdvectShader(float*,int*, float);
+  void setupAdvectShader(int, float);
 
-  void setupPrimeShader(int*); //Included argument -- Balli(04/12/07)
+  void setupPrimeShader(int); //Included argument -- Balli(04/12/07)
 
-  void setupPrime_and_AdvectShader(int*,float);
+  void setupPrime_and_AdvectShader(int,float);
 
   //Performs update prime and advect with one shader using multiple render targets.
   void updatePrimeAndAdvect(FramebufferObject*,bool,GLuint,GLuint,GLuint,
@@ -90,6 +90,15 @@ class ParticleControl{
     float w;
   }wind;
   wind* data3d;
+
+  typedef struct{
+    float t11;
+    float t22;
+    float t33;
+    float t13;
+  }Matrix;
+
+  Matrix* tau;
 
   double* u_quicPlumeData;
   double* v_quicPlumeData;
