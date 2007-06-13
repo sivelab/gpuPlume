@@ -29,7 +29,7 @@ void ParticleControl::setUstarAndSigmas(float u){
   sigW = 1.3*ustar;
 
 }
-void ParticleControl::setupPrime_and_AdvectShader(int* numInRow,float life_time){
+void ParticleControl::setupPrime_and_AdvectShader(int numInRow,float life_time){
   //This shader is used to move the particles
   mrt_shader.addShader("Shaders/updatePrime_and_Advect_vp.glsl", GLSLObject::VERTEX_SHADER);
   mrt_shader.addShader("Shaders/updatePrime_and_Advect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -59,9 +59,7 @@ void ParticleControl::setupPrime_and_AdvectShader(int* numInRow,float life_time)
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  //glUniform1fARB(uniform_timeStep, *time_step);
-  float numR= *numInRow;
-  glUniform1fARB(uNumInRow, numR);
+  glUniform1fARB(uNumInRow, numInRow);
 
   mrt_shader.deactivate();
 
@@ -167,7 +165,7 @@ void ParticleControl::updatePrimeAndAdvect(FramebufferObject* fbo, bool odd,
 
 }
 
-void ParticleControl::setupPrimeShader( int* numInRow){  //Included argument -- Balli(04/12/07)
+void ParticleControl::setupPrimeShader(int numInRow){  //Included argument -- Balli(04/12/07)
   //This shader is used to update prime values
   prime_shader.addShader("Shaders/updatePrime_vp.glsl", GLSLObject::VERTEX_SHADER);
   prime_shader.addShader("Shaders/updatePrime_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -195,8 +193,7 @@ void ParticleControl::setupPrimeShader( int* numInRow){  //Included argument -- 
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  float numR= *numInRow;
-  glUniform1fARB(uNumInRow, numR);
+  glUniform1fARB(uNumInRow, numInRow);
 
   prime_shader.deactivate();
   //End --Balli(04/12/07)
@@ -320,7 +317,7 @@ void ParticleControl::printPrime(bool odd, bool prev){
 
 
 }
-void ParticleControl::setupAdvectShader(float* time_step, int* numInRow, float life_time){
+void ParticleControl::setupAdvectShader(int numInRow, float life_time){
 
   //This shader is used to move the particles
   pass1_shader.addShader("Shaders/plumeAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -346,9 +343,8 @@ void ParticleControl::setupAdvectShader(float* time_step, int* numInRow, float l
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  glUniform1fARB(uniform_timeStep, *time_step);
-  float numR= *numInRow;
-  glUniform1fARB(uNumInRow, numR);
+  //glUniform1fARB(uniform_timeStep, *time_step);
+  glUniform1fARB(uNumInRow, numInRow);
 
   pass1_shader.deactivate();
 
@@ -357,8 +353,6 @@ void ParticleControl::advect(FramebufferObject* fbo, bool odd,
 			     GLuint windField, GLuint positions0, GLuint positions1, 
 			     GLuint prime0, GLuint prime1, float time_step)
 {
-
-  //fbo->Bind();
 
   if (odd)
     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
@@ -602,9 +596,9 @@ void ParticleControl::writePPM(const std::string& filename)
     for (int i=0; i<twidth; i++)
       {
     idx = j*twidth*4 + i*4;
-   
+     
     // output a RGB tuple to the string
-    strstream << c2Short(buffer_mem[idx]) << ' '
+      strstream << c2Short(buffer_mem[idx]) << ' '
           << c2Short(buffer_mem[idx+1]) << ' '
           << c2Short(buffer_mem[idx+2]) <<  ' ';
 
@@ -670,6 +664,9 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
 				  int dataSet){
   // Create wind data texture
   data3d = new wind[nx*ny*nz];
+
+  tau = new Matrix[nx*ny*nz];
+
   switch(dataSet){
 
       case 1:
@@ -732,7 +729,7 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
   int p2idx = 0, texidx = 0;
   int row = 0;
   
-  GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
+  GLfloat *data = new GLfloat[ width * height * 4 ];
   for (qk=0; qk<nz; qk++) 
     for (qi=0; qi<ny; qi++)
       for (qj=0; qj<nx; qj++)
@@ -745,25 +742,35 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
 	  qk % (*numInRow) * nx * 4 +
 	  qj * 4;
 	  
-	  dataTwo[texidx] = data3d[p2idx].u;
-	  dataTwo[texidx+1] = data3d[p2idx].v;
-	  dataTwo[texidx+2] = data3d[p2idx].w;	  
-	  dataTwo[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)/(0.4*(qk+1));//This value is the '0.5*CoEps' value	
+	  data[texidx] = data3d[p2idx].u;
+	  data[texidx+1] = data3d[p2idx].v;
+	  data[texidx+2] = data3d[p2idx].w;	  
+	  data[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)/(0.4*(qk+1));//This value is the '0.5*CoEps' value	
 
         }
 
-  createTexture(windField, GL_RGBA32F_ARB, width, height, dataTwo);
+  createTexture(windField, GL_RGBA32F_ARB, width, height, data);
 
-  delete [] dataTwo;
+  delete [] data;
 
 }
-void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau, int numInRow){
+void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, int numInRow){
   GLfloat *data = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
 
   int qi, qj, qk;
   int p2idx = 0, texidx = 0;
   int row = 0;
+  
+  //cell below, cell above
+  int idxBelow, idxAbove;
+
+  float du_dz;
+
+  //Cell height
+  float dz = 1.0;
+  //Surface roughness
+  float znaut = 0.01;
   
   for (qk=0; qk<nz; qk++) 
     for (qi=0; qi<ny; qi++)
@@ -777,7 +784,26 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau, int numIn
 	  qk % (numInRow) * nx * 4 +
 	  qj * 4;
 	  
-	  ustar = 0.4*(qk+1); //*du/dz ...don't know what this needs to be yet!
+	  //The cells right above and below the current cell
+	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
+	  idxAbove = (qk+1)*ny*nx + qi*nx + qj;
+
+	  //Calculate du/dz
+
+	  //1st Cell...cell just above the ground
+	  if(qk == 0){
+	    du_dz = data3d[p2idx].u/(0.5*dz*log(0.5*dz/znaut));
+	  }
+	  //Last Cell...cell at the top of the domain
+	  else if(qk == (nz-1)){
+	    //U[one before last cell] - U[last cell]
+	    du_dz = (data3d[idxBelow].u - data3d[p2idx].u)/dz;
+	  }
+	  else{
+	    du_dz = (data3d[idxAbove].u - data3d[idxBelow].u)/(2.0*dz);
+	  }
+
+	  ustar = 0.4*(qk+1)*du_dz;
 
 	  sigU = 2.0*ustar;
 	  sigV = 2.0*ustar;
@@ -789,26 +815,79 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau, int numIn
 	  float tau13=ustar*ustar;
 	  float tauDetInv=1/((tau11*tau22*tau33)-(tau13*tau13*tau22));
 	  
-	  data[texidx]   = tau11;             //Tau11
-	  data[texidx+1] = tau22;             //Tau22
-	  data[texidx+2] = tau33;             //Tau33
-	  data[texidx+3] = tau13;             //Tau13
+	  tau[p2idx].t11   = tau11;             //Tau11
+	  tau[p2idx+1].t22 = tau22;             //Tau22
+	  tau[p2idx+2].t33 = tau33;         //Tau33
+	  tau[p2idx+3].t13 = tau13;           //Tau13
 
-	  dataTwo[texidx]   = tauDetInv*(tau22*tau33);              //Lam11
+	  dataTwo[texidx]   = tauDetInv*(tau22*tau33);            //Lam11
 	  dataTwo[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
 	  dataTwo[texidx+2] = tauDetInv*(tau11*tau22);	          //Lam33
 	  dataTwo[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
         }
 
   createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
-  //Lambda Texture Ends-- Balli (04/12/07)
+  
   delete [] dataTwo;
+
+  //Create the Tau/dz texture
+  float tau11_dz, tau22_dz, tau33_dz, tau13_dz;
+  
+  for (qk=0; qk<nz; qk++) 
+    for (qi=0; qi<ny; qi++)
+      for (qj=0; qj<nx; qj++)
+	{
+	  p2idx = qk*ny*nx + qi*nx + qj;
+	    
+	  row = qk / (numInRow);
+	  texidx = row * width * ny * 4 +
+	  qi * width * 4 +
+	  qk % (numInRow) * nx * 4 +
+	  qj * 4;
+	  
+	  //The cells right above and below the current cell
+	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
+	  idxAbove = (qk+1)*ny*nx + qi*nx + qj;
+
+	  //Calculate Tau/dz
+	  
+	  //1st Cell...cell just above the ground
+	  if(qk == 0){
+	    tau11_dz = (tau[idxAbove].t11 - tau[p2idx].t11)/dz;
+	    tau22_dz = (tau[idxAbove].t22 - tau[p2idx].t22)/dz;
+	    tau33_dz = (tau[idxAbove].t33 - tau[p2idx].t33)/dz;
+	    tau13_dz = (tau[idxAbove].t13 - tau[p2idx].t13)/dz;
+	  }
+	  //Last Cell...cell at the top of the domain
+	  else if(qk == (nz-1)){
+	    tau11_dz = (tau[idxBelow].t11 - tau[p2idx].t11)/dz;
+	    tau22_dz = (tau[idxBelow].t22 - tau[p2idx].t22)/dz;
+	    tau33_dz = (tau[idxBelow].t33 - tau[p2idx].t33)/dz;
+	    tau13_dz = (tau[idxBelow].t13 - tau[p2idx].t13)/dz;
+	  }
+	  else{
+	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0*dz);
+	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0*dz);
+	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0*dz);
+	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0*dz);
+	  }
+
+	  data[texidx] = tau11_dz;
+	  data[texidx+1] = tau22_dz;
+	  data[texidx+2] = tau33_dz;
+	  data[texidx+3] = tau13_dz;
+
+	}
+
+  createTexture(tau_dz, GL_RGBA32F_ARB, width,height, data);
+  
+  delete [] data;
 
 
 }
 void ParticleControl::initLambdaTex(GLuint lambda, int numInRow){
 
-  GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
+  GLfloat *data = new GLfloat[ width * height * 4 ];
 
   //Create lambda texture. --Balli (04/12/07)
   float tau11=sigU*sigU;
@@ -833,15 +912,15 @@ void ParticleControl::initLambdaTex(GLuint lambda, int numInRow){
 	  qk % (numInRow) * nx * 4 +
 	  qj * 4;
 	  
-	  dataTwo[texidx]   = tauDetInv*(tau22*tau33);              //Lam11
-	  dataTwo[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
-	  dataTwo[texidx+2] = tauDetInv*(tau11*tau22);	          //Lam33
-	  dataTwo[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
+	  data[texidx]   = tauDetInv*(tau22*tau33);            //Lam11
+	  data[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
+	  data[texidx+2] = tauDetInv*(tau11*tau22);	       //Lam33
+	  data[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
         }
 
-  createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
+  createTexture(lambda, GL_RGBA32F_ARB, width,height, data);
   //Lambda Texture Ends-- Balli (04/12/07)
-  delete [] dataTwo;
+  delete [] data;
   
 }
 
@@ -890,9 +969,9 @@ void ParticleControl::quicPlumeWindField()
       for(int j = 0; j < nx; j++){
 	int p2idx = k*(nx)*(ny) + i*(nx) + j;
 	int idx = k*nx*ny + i*nx + j;
-	data3d[p2idx].u = u_quicPlumeData[idx+1];
-	data3d[p2idx].v = v_quicPlumeData[idx+1];
-	data3d[p2idx].w = w_quicPlumeData[idx+1];
+	data3d[p2idx].u = u_quicPlumeData[idx];
+	data3d[p2idx].v = v_quicPlumeData[idx];
+	data3d[p2idx].w = w_quicPlumeData[idx];
       }
     }
   }
