@@ -62,11 +62,11 @@ numBox_z   3
 #Source/ParticleEmitter information
 num_of_sources 1
 
-#x_coordinate, y_coordinate, z_coordinate, radius
-source_info 30.0 30.0 10.0 4.0
-#source_info 25.0 17.0 1.0 0.0
-#source_info 20.0 40.0 2.0 0.5
-#source_info 50.0 5.0 3.0 0.0
+#x_coordinate, y_coordinate, z_coordinate, radius, rate
+source_info 30.0 30.0 10.0 4.0 1.0
+#source_info 25.0 17.0 1.0 0.0 1.0
+#source_info 20.0 40.0 2.0 0.5 1.0
+#source_info 50.0 5.0 3.0 0.0 1.0
 
 #Set the type of Particle Release
 release_type 1
@@ -78,3 +78,7 @@ release_type 1
 
 #Set to 1 to release particles per second based on a set rate
 #Set to 2 to have an instantaneous release of all particles
+
+#Set the method of emitting particles into simulation
+#Set to 0 for Punch Hole method and 1 for texture copy method
+emit_method 0
