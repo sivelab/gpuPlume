@@ -112,11 +112,8 @@ void Util::parseLine(char* line){
     else
       plume->show_collectionBox_visuals = true;
   }
-  if(read1Float(line, "mrt", &f1)){
-    if(f1 == 0)
-      plume->mrt = false;
-    else
-      plume->mrt = true;
+  if(read1Float(line, "advectChoice", &f1)){
+    plume->advectChoice = (int)f1;
   }
   if(read1Float(line, "num_of_sources", &f1)){
     plume->numOfPE = (int)f1;
