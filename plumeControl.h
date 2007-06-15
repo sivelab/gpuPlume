@@ -66,9 +66,9 @@ class PlumeControl{
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
 
-  GLuint texid[9]; 
+  GLuint texid[10]; 
   GLenum texType,positions0,positions1,windField,randomValues;
-  GLenum prime0, prime1, lambda, tau_dz;
+  GLenum prime0, prime1, lambda, tau_dz, duvw_dz;
   
   FramebufferObject* fbo;
   Renderbuffer* rb;
@@ -84,8 +84,8 @@ class PlumeControl{
 
   int emit_method;
 
-  //Set this to true to use one shader for rendering to multiple targets.
-  bool mrt;
+  //Set this to 1 to use one shader for rendering to multiple targets.
+  int advectChoice;
  
   //output file of collection box
   std::string output_file;
