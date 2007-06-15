@@ -156,7 +156,7 @@ void PlumeControl::init(bool OSG){
   setupEmitters();
   
   glEnable(texType);
-  glGenTextures(9, texid);
+  glGenTextures(10, texid);
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
@@ -167,6 +167,7 @@ void PlumeControl::init(bool OSG){
   prime1 = texid[6];
   lambda = texid[7];
   tau_dz = texid[8];
+  duvw_dz = texid[9];
   /////////////////////////////
   setupTextures();
 
@@ -182,10 +183,13 @@ void PlumeControl::init(bool OSG){
   initFBO();
 
   //Setup Shaders for advection
-  if(mrt){
+  if(advectChoice == 1){
     //This shader performs both the update prime and advection by
     //writing to two buffers.
     pc->setupPrime_and_AdvectShader(numInRow,lifeTime);
+  }
+  else if(advectChoice == 2){
+    pc->setupNonGaussianShader(numInRow,lifeTime);
   }
   else{
   //This shader is used to advect the particles using the windfield
@@ -347,9 +351,13 @@ int PlumeControl::display(){
   // Update Prime Values and Particle Positions
   ////////////////////////////////////////////////////////////
    
-  if(mrt){
+  if(advectChoice == 1){
     pc->updatePrimeAndAdvect(fbo,odd,windField,positions0,positions1,
   			   prime0,prime1,randomValues,lambda,time_step);
+  }
+  else if(advectChoice == 2){
+    pc->nonGaussianAdvect(fbo,odd,windField,positions0,positions1,
+  			   prime0,prime1,randomValues,lambda,tau_dz,duvw_dz,time_step);
   }
   else{
     pc->updatePrime(fbo, odd,positions0, positions1, prime0, prime1, 
@@ -604,7 +612,12 @@ void PlumeControl::setupTextures()
 	pc->initWindTex(windField, &numInRow, testcase);
 	CheckErrorsGL("\tcreated texid[3], the wind field texture...");
 
-	pc->initLambdaTex(lambda, numInRow);
+	if(advectChoice == 2){
+	  //pc->initLambdaTex(lambda, numInRow);
+	  pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
+	}
+	else
+	  pc->initLambdaTex(lambda, numInRow);
 	CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
 
