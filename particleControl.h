@@ -24,6 +24,11 @@ class ParticleControl{
 
   void setupPrime_and_AdvectShader(int,float);
 
+  void setupNonGaussianShader(int,float);
+
+  void nonGaussianAdvect(FramebufferObject*,bool,GLuint,GLuint,GLuint,
+			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
+
   //Performs update prime and advect with one shader using multiple render targets.
   void updatePrimeAndAdvect(FramebufferObject*,bool,GLuint,GLuint,GLuint,
 			    GLuint,GLuint,GLuint,GLuint,float);
@@ -40,7 +45,7 @@ class ParticleControl{
   //Call this function for uniform wind field.
   void initLambdaTex(GLuint, int);
   
-  void initLambda_and_TauTex(GLuint,GLuint,int);
+  void initLambda_and_TauTex(GLuint,GLuint,GLuint,int);
 
   //This function is used to initialize the particle positions.
   //It was needed when we weren't able to directly put 32-bit floating point
@@ -72,6 +77,14 @@ class ParticleControl{
   void createPrimeImages(bool);
 
   bool outputPrime;
+   
+  typedef struct{
+    float u;
+    float v;
+    float w;
+  }wind;
+
+  wind* sig;
 
  private:
   float min,max;
@@ -83,13 +96,8 @@ class ParticleControl{
   void variedUWindField();
 
   void printPrime(bool,bool);
-  
-  typedef struct{
-    float u;
-    float v;
-    float w;
-  }wind;
-  wind* data3d;
+ 
+  wind* wind_vel;
 
   typedef struct{
     float t11;
@@ -97,7 +105,6 @@ class ParticleControl{
     float t33;
     float t13;
   }Matrix;
-
   Matrix* tau;
 
   double* u_quicPlumeData;
@@ -117,6 +124,7 @@ class ParticleControl{
   float ustar,sigU,sigV,sigW;
 
   GLSLObject init_shader, pass1_shader, prime_shader, mrt_shader;
+  GLSLObject nonGaussian_shader;
 
   //Variables for prime shader
   GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;
@@ -126,6 +134,8 @@ class ParticleControl{
   //Variables for advect shader
   GLint uniform_postex, uniform_wind, uniform_randomTexture;
   GLint uniform_primePrev, uniform_primeCurr, uniform_timeStep;
+
+  GLint uniform_tau_dz, uniform_duvw_dz;
 
   GLenum texType;
   GLfloat* buffer_mem;
