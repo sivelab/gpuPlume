@@ -86,9 +86,7 @@ void main(void)
         PrmCurr=vec3(upPrev+du,vpPrev+dv,wpPrev+dw);
 	
     }	
-	//Currently this code just keeps passing the prime values,
-	//keeping them the same.  
-	//We need to add the equations to calculate the new values.
+	
     gl_FragColor = vec4(PrmCurr, 1.0);
 
 
