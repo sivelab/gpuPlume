@@ -109,9 +109,6 @@ void main(void)
 	//Now move the particle by adding the direction.
    	pos = pos + vec4(wind,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
-	//Reflection off ground	
-	if(pos.z < 0)
-		pos.z = -pos.z;
 	
    }
    if(pos.a <= 0 && (!(life_time <= 0))){
