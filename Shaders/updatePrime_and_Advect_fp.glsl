@@ -32,28 +32,28 @@ void main(void)
    //This gets the position of the particle in 3D space.
    vec4 pos = vec4(textureRect(pos_texunit, texCoord));
      
- 	// Add the random texture coordinate offset to the
-	// texture coordinate.  The texture is set to perform wrapping
-	// so texture coordinates outside the range will be valid.
-	//
-	// GL_TEXTURE_RECTANGLE_ARB does not support GL_REPEAT (at least on windows)
-	// so we will do the normalization here given the width and length of the 
-	// random texture.
-	vec2 rTexCoord = texCoord + random_texCoordOffset;
+   // Add the random texture coordinate offset to the
+   // texture coordinate.  The texture is set to perform wrapping
+   // so texture coordinates outside the range will be valid.
+   //
+   // GL_TEXTURE_RECTANGLE_ARB does not support GL_REPEAT (at least on windows)
+   // so we will do the normalization here given the width and length of the 
+   // random texture.
+   vec2 rTexCoord = texCoord + random_texCoordOffset;
 
-	// bring the texture coordinate back within the (0,W)x(0,H) range
-	if (rTexCoord.s > random_texWidth)
-	   rTexCoord.s = rTexCoord.s - random_texWidth;
-	if (rTexCoord.t > random_texHeight)
-	   rTexCoord.t = rTexCoord.t - random_texHeight;
+   // bring the texture coordinate back within the (0,W)x(0,H) range
+   if (rTexCoord.s > random_texWidth)
+      rTexCoord.s = rTexCoord.s - random_texWidth;
+   if (rTexCoord.t > random_texHeight)
+      rTexCoord.t = rTexCoord.t - random_texHeight;
 
-	// lookup the random value to be used for this particle in
-	// this timestep
-	vec3 randn = vec3(textureRect(random, rTexCoord));
+   // lookup the random value to be used for this particle in
+   // this timestep
+   vec3 randn = vec3(textureRect(random, rTexCoord));
 
-	float xRandom = randn.x;
-	float yRandom = randn.y;
-	float zRandom = randn.z;     
+   float xRandom = randn.x;
+   float yRandom = randn.y;
+   float zRandom = randn.z;     
 
    float upPrev=prmPrev.x;
    float vpPrev=prmPrev.y;
@@ -106,13 +106,13 @@ void main(void)
    	pos = pos + vec4(wind,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
 	//Reflection off ground	
-	vec4 n = vec4(0.0,0.0,1.0,0.0);
-	float rdot = dot(pos,n);	
+	//vec4 n = vec4(0.0,0.0,1.0,0.0);
+	//float rdot = dot(pos,n);	
 
-	if(pos.z < 0){
-		pos = reflect(pos,n);
-		prmCurr = reflect(prmCurr,vec3(0.0,0.0,1.0));
-	}
+	//if(pos.z < 0){
+		//pos = reflect(pos,n);
+		//prmCurr = reflect(prmCurr,vec3(0.0,0.0,1.0));
+	//}
 	
    }
    if(pos.a <= 0 && (!(life_time <= 0))){
