@@ -643,6 +643,23 @@ void PlumeControl::setupTextures()
 	std::vector<float> random_values;
 	//These two textures are to store the prime values(previous and updated values)
 	//We will need to initialize some data into prime0
+
+	//idx lookup using the source position to determine
+	//the sigma values at that point in space. Only accurate
+	//if there's only one source and it's a point emitter.
+	if(advectChoice == 2){
+	
+	  int xs = (int)xpos[0];
+	  int ys = (int)ypos[0];
+	  int zs = (int)zpos[0];
+
+	  int p2idx = zs*ny*nx + ys*nx + xs;
+
+	  sigU = pc->sig[p2idx].u;
+	  sigV = pc->sig[p2idx].v;
+	  sigW = pc->sig[p2idx].w;
+	}
+
 	for (int j=0; j<theight; j++)
 	  for (int i=0; i<twidth; i++)
 	    {
@@ -666,7 +683,8 @@ void PlumeControl::setupTextures()
 
 	      //data[idx] = sigU*(data[idx]/mag);   
 	      //data[idx+1] = sigV*(data[idx+1]/mag);
-	      //data[idx+2] = sigW*(data[idx+2]/mag);	      
+	      //data[idx+2] = sigW*(data[idx+2]/mag);
+
 	      data[idx] = sigU*(data[idx]);   
 	      data[idx+1] = sigV*(data[idx+1]);
 	      data[idx+2] = sigW*(data[idx+2]);
