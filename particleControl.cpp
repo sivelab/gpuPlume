@@ -562,14 +562,7 @@ void ParticleControl::getDomain(int* x, int* y, int* z){
   *z = nz;
 }
 
-void ParticleControl::dumpContents(bool odd){
-
-  glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
-
-  if(odd)
-    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-  else
-    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+void ParticleControl::dumpContents(){
 
   buffer_mem = new GLfloat[ twidth * theight * 4 ];
   glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
@@ -588,7 +581,6 @@ void ParticleControl::dumpContents(bool odd){
     }
   delete [] buffer_mem;
 
-  glReadBuffer(currentbuffer);
 }
 void ParticleControl::createPrimeImages(bool odd){
   glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
