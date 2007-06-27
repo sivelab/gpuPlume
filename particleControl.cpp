@@ -562,24 +562,33 @@ void ParticleControl::getDomain(int* x, int* y, int* z){
   *z = nz;
 }
 
-void ParticleControl::dumpContents(){
+void ParticleControl::dumpContents(bool odd){
 
-   buffer_mem = new GLfloat[ twidth * theight * 4 ];
-   glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
-   std::cout << "IDX  X     Y     Z" << std::endl;
-   int pn =0;
-      for (int j=0; j<theight; j++)
-	for (int i=0; i<twidth; i++){
+  glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
+
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+  buffer_mem = new GLfloat[ twidth * theight * 4 ];
+  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
+  std::cout << "IDX  X     Y     Z" << std::endl;
+  int pn =0;
+  for (int j=0; j<theight; j++)
+    for (int i=0; i<twidth; i++){
 	  
-	    int idx = j*twidth*4 + i*4;
-	    std::cout << pn << " ";
-	    std::cout << buffer_mem[idx] << " ";
-	    std::cout << buffer_mem[idx+1] << " ";
-	    std::cout << buffer_mem[idx+2] << " ";
-	    std::cout << buffer_mem[idx+3] << std::endl;
-	    pn++;
-	}
-      delete [] buffer_mem;
+       int idx = j*twidth*4 + i*4;
+       std::cout << pn << " ";
+       std::cout << buffer_mem[idx] << " ";
+       std::cout << buffer_mem[idx+1] << " ";
+       std::cout << buffer_mem[idx+2] << " ";
+       std::cout << buffer_mem[idx+3] << std::endl;
+       pn++;
+    }
+  delete [] buffer_mem;
+
+  glReadBuffer(currentbuffer);
 }
 void ParticleControl::createPrimeImages(bool odd){
   glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
@@ -908,8 +917,8 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   GLfloat *data3 = new GLfloat[width*height*4];
 
   int qi, qj, qk;
-  int p2idx = 0, texidx = 0;
-  int row = 0;
+  int p2idx = 0, texidx = 0, texidxBelow = 0;
+  int row = 0, rowBelow = 0;
   
   //cell below, cell above, cell two below
   int idxBelow, idxAbove, idx2Below;
@@ -932,6 +941,12 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  qi * width * 4 +
 	  qk % (numInRow) * nx * 4 +
 	  qj * 4;
+
+	  rowBelow = (qk-1) / (numInRow);
+	  texidxBelow = rowBelow * width * ny * 4 +
+	    qi * width * 4 +
+	    (qk-1) % (numInRow) * nx * 4 +
+	    qj * 4;
 	  
 	  //The cells right above and below the current cell
 	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
@@ -947,6 +962,11 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	    du_dz = wind_vel[p2idx].u/(0.5*dz*log(0.5*dz/znaut));
 	  }
 	  //Cell at the top of the domain
+	  else if(qk == (nz-1)){
+	    du_dz = data3[texidxBelow];  // du_dz at k-1th cell
+	  }
+	  /*
+	  //Cell at the top of the domain
 	  //du/dz = du/dz at k-1th cell
 	  //which is the same as du/dz = Uk-Uk-2/2dz if domain is higher than 2
 	  else if((qk == (nz-1)) && (qk > 1)){
@@ -957,6 +977,8 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  else if((qk == (nz-1)) && (qk == 1)){
 	    du_dz = wind_vel[idxBelow].u/(0.5*dz*log(0.5*dz/znaut));
 	  }
+	  */
+
 	  //All other cells. i.e not boundary cells
 	  //du/dz = (Uk+1 - Uk-1)/2dz
 	  else{
@@ -1015,6 +1037,12 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  qi * width * 4 +
 	  qk % (numInRow) * nx * 4 +
 	  qj * 4;
+
+	  rowBelow = (qk-1) / (numInRow);
+	  texidxBelow = rowBelow * width * ny * 4 +
+	    qi * width * 4 +
+	    (qk-1) % (numInRow) * nx * 4 +
+	    qj * 4;
 	  
 	  //The cells right above and below the current cell
 	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
@@ -1034,6 +1062,14 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	    tau13_dz = -2.0*(tau[p2idx].t13/(0.5*dz*log((0.5*dz)/znaut)));
 	  }
 	  //Cell at the top of the domain
+	  else if(qk == (nz-1)){
+	    tau11_dz = data[texidxBelow];
+	    tau22_dz = data[texidxBelow+1];
+	    tau33_dz = data[texidxBelow+2];
+	    tau13_dz = data[texidxBelow+3];
+	  }
+	  /*
+	  //Cell at the top of the domain
 	  //dT/dz = dT/dz at k-1th cell
 	  //which is the same as dT/dz = Tk-Tk-2/2dz if domain is higher than 2		     
 	  else if((qk == (nz-1)) && qk > 1){
@@ -1049,7 +1085,9 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	    tau22_dz = -2.0*(tau[idxBelow].t22/(0.5*dz*log((0.5*dz)/znaut)));
 	    tau33_dz = -2.0*(tau[idxBelow].t33/(0.5*dz*log((0.5*dz)/znaut)));
 	    tau13_dz = -2.0*(tau[idxBelow].t13/(0.5*dz*log((0.5*dz)/znaut)));
-	  }
+	    }*/
+
+
 	  //All other cells
 	  //dT/dz = (Tk+1 - Tk-1)/2dz
 	  else{
