@@ -389,14 +389,26 @@ int PlumeControl::display(){
 
   CheckErrorsGL("END : after 1st pass");
   
-  //Switches the frame buffer and binding texture
-  odd = !odd;
-
   // In some circumstances, we may want to dump the contents of
   // the FBO to a file.
   if (dump_contents)
      {
-       pc->dumpContents(odd);
+       glGetIntegerv(GL_READ_BUFFER, &readbuffer);
+
+       if(odd)
+	 glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+       else
+	 glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+       pc->dumpContents();
+
+       if(odd)
+	 glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+       else
+	 glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+       
+       pc->dumpContents();
+
        dump_contents = false;
      }
   if(output_CollectionBox)
@@ -406,6 +418,9 @@ int PlumeControl::display(){
        }
        output_CollectionBox = false;
      }
+
+  //Switches the frame buffer and binding texture
+  odd = !odd;
 
   // We only need to do PASS 2 (copy to VBO) and PASS 3 (visualize) if
   // we actually want to render to the screen.  Rendering to the
