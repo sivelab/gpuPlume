@@ -396,7 +396,7 @@ int PlumeControl::display(){
   // the FBO to a file.
   if (dump_contents)
      {
-       pc->dumpContents();
+       pc->dumpContents(odd);
        dump_contents = false;
      }
   if(output_CollectionBox)
