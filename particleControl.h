@@ -54,7 +54,7 @@ class ParticleControl{
   void initParticlePositions(FramebufferObject*, GLuint);
 
   //This will output the values of the current texture being read.
-  void dumpContents();
+  void dumpContents(bool);
 
   //Writes the texture to a ppm image.
   void writePPM(const std::string&);
