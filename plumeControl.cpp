@@ -400,6 +400,7 @@ int PlumeControl::display(){
        else
 	 glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
 
+       std::cout << "Previous Positions" << std::endl;
        pc->dumpContents();
 
        if(odd)
@@ -407,6 +408,7 @@ int PlumeControl::display(){
        else
 	 glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
        
+       std::cout << "Updated Positions" << std::endl;
        pc->dumpContents();
 
        dump_contents = false;
