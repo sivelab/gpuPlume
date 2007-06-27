@@ -118,7 +118,7 @@ class PlumeControl{
 
  private:
   
-  GLint currentbuffer;
+  GLint currentbuffer,readbuffer;
   std::list<pIndex>::iterator iter;
 
   void setupTextures();
