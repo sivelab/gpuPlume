@@ -951,7 +951,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  //Cell just above the ground
 	  //du/dz = Uat 1st cell/0.5dz(log(dz/znaut))
 	  if(qk == 0){
-	    du_dz = wind_vel[p2idx].u/(0.5*dz*log(0.5*dz/znaut));
+	    du_dz = wind_vel[p2idx].u/(dz*log(dz/znaut));
 	  }
 	  //Cell at the top of the domain
 	  else if(qk == (nz-1)){
@@ -1048,10 +1048,10 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  //Cell just above the ground
 	  //dT/dz = -2(T/(0.5dz)log((0.5dz/znaut)))
 	  if(qk == 0){
-	    tau11_dz = -2.0*(tau[p2idx].t11/(0.5*dz*log((0.5*dz)/znaut)));
-	    tau22_dz = -2.0*(tau[p2idx].t22/(0.5*dz*log((0.5*dz)/znaut)));
-	    tau33_dz = -2.0*(tau[p2idx].t33/(0.5*dz*log((0.5*dz)/znaut)));
-	    tau13_dz = -2.0*(tau[p2idx].t13/(0.5*dz*log((0.5*dz)/znaut)));
+	    tau11_dz = -2.0*(tau[p2idx].t11/(dz*log(dz/znaut)));
+	    tau22_dz = -2.0*(tau[p2idx].t22/(dz*log(dz/znaut)));
+	    tau33_dz = -2.0*(tau[p2idx].t33/(dz*log(dz/znaut)));
+	    tau13_dz = -2.0*(tau[p2idx].t13/(dz*log(dz/znaut)));
 	  }
 	  //Cell at the top of the domain
 	  else if(qk == (nz-1)){
