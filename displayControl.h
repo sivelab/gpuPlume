@@ -16,7 +16,7 @@ class DisplayControl{
   
   void drawVisuals(GLuint, GLuint, int, int, int);
   void drawAxes();
-  //void drawGround();
+  void drawGround();
   void drawLayers(GLuint, int);
   void drawFeatures(void);
   void drawFrameRate(int, int);
@@ -42,7 +42,8 @@ class DisplayControl{
 
  private:
   
-  //void createImageTex(GLuint, char*);
+  void createImageTex(GLuint, char*);
+  GLubyte* readPPM(char*, int*, int*);
   
   int nx;
   int ny;
