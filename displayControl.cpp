@@ -74,7 +74,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
       drawFeatures();
     }
   }
-  //drawGround();
+  drawGround();
 
   //drawLayers(texid3, numInRow);  
 
@@ -105,7 +105,7 @@ void DisplayControl::setAzimuth(float change, float rate){
 void DisplayControl::setElevation(float change, float rate){
   elevation = elevation + change*rate;
 }
-/*void DisplayControl::drawGround(){
+void DisplayControl::drawGround(){
 
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
@@ -125,7 +125,7 @@ void DisplayControl::setElevation(float change, float rate){
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
 
-}*/
+}
 void DisplayControl::drawAxes(){
   // query the current line width so we can set it back at the end of
   // the function
@@ -266,7 +266,7 @@ void DisplayControl::initVars(int nb,double* x, double* y, double* z,
   ht = h;
   wti = w;
   lti = l;
-  /*
+  
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
   glGenTextures(3,displayTex);
@@ -275,14 +275,14 @@ void DisplayControl::initVars(int nb,double* x, double* y, double* z,
  
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
-*/
+
 }
 
-/*void DisplayControl::createImageTex(GLuint texture, char* filename){
+void DisplayControl::createImageTex(GLuint texture, char* filename){
   GLubyte* testImage;
   int w, h;
 
-  testImage = glmReadPPM(filename, &w, &h);
+  testImage = readPPM(filename, &w, &h);
   if(testImage == 0){
     std::cout << "Didn't Load Texture File" << std::endl;
   }
@@ -293,7 +293,7 @@ void DisplayControl::initVars(int nb,double* x, double* y, double* z,
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, testImage);
-}*/
+}
 
 void DisplayControl::drawFeatures(void)
 {
@@ -381,3 +381,49 @@ void DisplayControl::OpenGLText(int x, int y, char* s)
   // glEnable(GL_LIGHTING);
 
 }
+
+GLubyte* DisplayControl::readPPM(char* filename, int* width, int* height)
+{
+    FILE* fp;
+    int i, w, h, d;
+    unsigned char* image;
+    char head[70];          /* max line <= 70 in PPM (per spec). */
+    
+    fp = fopen(filename, "rb");
+    if (!fp) {
+        perror(filename);
+        return NULL;
+    }
+    
+    /* grab first two chars of the file and make sure that it has the
+       correct magic cookie for a raw PPM file. */
+    fgets(head, 70, fp);
+    if (strncmp(head, "P6", 2)) {
+        fprintf(stderr, "%s: Not a raw PPM file\n", filename);
+        return NULL;
+    }
+    
+    /* grab the three elements in the header (width, height, maxval). */
+    i = 0;
+    while(i < 3) {
+        fgets(head, 70, fp);
+        if (head[0] == '#')     /* skip comments. */
+            continue;
+        if (i == 0)
+            i += sscanf(head, "%d %d %d", &w, &h, &d);
+        else if (i == 1)
+            i += sscanf(head, "%d %d", &h, &d);
+        else if (i == 2)
+            i += sscanf(head, "%d", &d);
+    }
+    
+    /* grab all the image data in one fell swoop. */
+    image = (unsigned char*)malloc(sizeof(unsigned char)*w*h*3);
+    fread(image, sizeof(unsigned char), w*h*3, fp);
+    fclose(fp);
+    
+    *width = w;
+    *height = h;
+    return image;
+}
+
