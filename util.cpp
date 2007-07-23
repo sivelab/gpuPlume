@@ -1,11 +1,48 @@
 #include "util.h"
 #include <stdio.h>
-#include <sstream>
-#include "plumeControl.h"
+#include "gpuPlume.h"
 
-Util::Util(PlumeControl* p){
-	plume = p;
-	num = 0;
+// //////////////////////////////////////
+// BEGIN -----> QUIC PLUME FORTRAN REFERENCES
+// //////////////////////////////////////
+
+#ifdef USE_PLUME_DATA
+
+extern "C"
+{
+  void readfiles_();
+}
+
+// Domain size stored in nx, ny, and nz
+extern "C" int __datamodule__nx;
+extern "C" int __datamodule__ny;
+extern "C" int __datamodule__nz;
+
+extern "C" double __datamodule__dx;
+extern "C" double __datamodule__dy;
+extern "C" double __datamodule__dz;
+
+// UVW contains the wind field
+extern "C" double* __datamodule__u;
+extern "C" double* __datamodule__v;
+extern "C" double* __datamodule__w;
+
+extern "C" int __datamodule__inumbuild;   // integer number of buildings
+extern "C" double* __datamodule__xfo;
+extern "C" double* __datamodule__yfo;
+extern "C" double* __datamodule__zfo; 
+extern "C" double* __datamodule__ht;
+extern "C" double* __datamodule__wti;
+extern "C" double* __datamodule__lti; 
+
+#endif
+// //////////////////////////////////////
+// END ----> QUIC PLUME FORTRAN REFERENCES
+// //////////////////////////////////////
+
+Util::Util(){
+  num = 0;
+  bounds = new float[6];
 }
 
 void Util::readInput(std::string file){
@@ -29,9 +66,49 @@ void Util::readInput(std::string file){
     
   in.close();
 
+#ifdef USE_PLUME_DATA
+ // Call the PLUME code to read in the data files.
+  std::cout << "Reading data using PLUME code..." << std::endl;
+  readfiles_();
+
+  //QuicPlume data for the domain
+  nx = __datamodule__nx; //domain in the x direction
+  ny = __datamodule__ny; //domain in the y direction
+  nz = __datamodule__nz; //domain in the z direction
+
+  //nx = (__datamodule__nx - 1) * __datamodule__dx; //domain in the x direction
+  //ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction
+  //nz = (__datamodule__ny - 1) * __datamodule__dy; //domain in the z direction
+
+  std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " 
+	    << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
+
+  //QuicPlume data for the windfield
+  u = __datamodule__u;
+  v = __datamodule__v;
+  w = __datamodule__w;
+
+  //QuicPlume data for the buildings
+  numBuild = __datamodule__inumbuild;
+  xfo = __datamodule__xfo;
+  yfo = __datamodule__yfo;
+  zfo = __datamodule__zfo;
+  ht = __datamodule__ht;
+  wti = __datamodule__wti;
+  lti = __datamodule__lti;
+  
+#else
+  nx = 60;
+  ny = 60;//140;
+  nz = 20;
+  u=0;
+  v=0;
+  w=0;
+#endif
+
 }
 void Util::parseLine(char* line){
-  //char s1[1024];
+  
   float f1;
   float* b = new float[6];
   float* s = new float[5];
@@ -41,101 +118,118 @@ void Util::parseLine(char* line){
     return;
 
   if(read1Float(line, "twidth", &f1)){
-	 plume->twidth = (int)f1;
+	 twidth = (int)f1;
   }
   if(read1Float(line, "theight", &f1)){
-	 plume->theight = (int)f1;
+	 theight = (int)f1;
   }
   if(read1Float(line, "time_step", &f1)){
-    plume->time_step = f1;
+    time_step = f1;
   }
   if(read1Float(line, "nx", &f1)){
-    plume->nx = (int)f1;
+    nx = (int)f1;
   }
   if(read1Float(line, "ny", &f1)){
-    plume->ny = (int)f1;
+    ny = (int)f1;
   }
   if(read1Float(line, "nz", &f1)){
-    plume->nz = (int)f1;
+    nz = (int)f1;
   }
-  if(read1Float(line, "testcase", &f1)){
-    plume->testcase = (int)f1;
+  if(read1Float(line, "windFieldData", &f1)){
+    windFieldData = (int)f1;
   }
   if(read1Float(line, "useRealTime", &f1)){
     if(f1 == 0)
-      plume->useRealTime = false;
+      useRealTime = false;
     else
-      plume->useRealTime = true;
+      useRealTime = true;
   }
   if(read1String(line, "output_file", &s1)){
-	  plume->output_file = s1;
+    output_file = s1;
   }
   if(read1Float(line, "duration", &f1)){
-    plume->duration = (double)f1;
+    duration = (double)f1;
   }
   if(read1Float(line, "startCBoxTime", &f1)){
-    plume->startCBoxTime = (double)f1;
+    startCBoxTime = (double)f1;
   }
   if(read1Float(line, "endCBoxTime", &f1)){
-    plume->endCBoxTime = (double)f1;
+    endCBoxTime = (double)f1;
   }
   if(read1Float(line, "averagingTime", &f1)){
-    plume->averagingTime = (double)f1;
+    averagingTime = (double)f1;
   }
   if(read6Float(line, "bounds", b)){
-    plume->bounds = b;
+    bounds = b;
   }
   if(read1Float(line, "numBox_x", &f1)){
-    plume->numBox_x = (int)f1;
+    numBox_x = (int)f1;
   }
   if(read1Float(line, "numBox_y", &f1)){
-    plume->numBox_y = (int)f1;
+    numBox_y = (int)f1;
   }
   if(read1Float(line, "numBox_z", &f1)){
-    plume->numBox_z = (int)f1;
+    numBox_z = (int)f1;
   }
   if(read1Float(line, "ustar", &f1)){
-    plume->ustar = f1;
-    plume->sigU = 2.0*f1;
-    plume->sigV = 2.0*f1;
-    plume->sigW = 1.3*f1;
+    ustar = f1;
+    sigU = 2.0*f1;
+    sigV = 2.0*f1;
+    sigW = 1.3*f1;
   }
   if(read1Float(line, "show_particle_visuals", &f1)){
     if(f1 == 0)
-      plume->show_particle_visuals = false;
+      show_particle_visuals = false;
     else
-      plume->show_particle_visuals = true;
+      show_particle_visuals = true;
   }
   if(read1Float(line, "show_collectionBox_visuals", &f1)){
     if(f1 == 0)
-      plume->show_collectionBox_visuals = false;
+      show_collectionBox_visuals = false;
     else
-      plume->show_collectionBox_visuals = true;
+      show_collectionBox_visuals = true;
   }
   if(read1Float(line, "advectChoice", &f1)){
-    plume->advectChoice = (int)f1;
+    advectChoice = (int)f1;
   }
   if(read1Float(line, "num_of_sources", &f1)){
-    plume->numOfPE = (int)f1;
-    plume->xpos = new float[plume->numOfPE];
-    plume->ypos = new float[plume->numOfPE];
-    plume->zpos = new float[plume->numOfPE];
-    plume->radius = new float[plume->numOfPE];
-    plume->rate = new float[plume->numOfPE];
+    numOfPE = (int)f1;
+    xpos = new float[numOfPE];
+    ypos = new float[numOfPE];
+    zpos = new float[numOfPE];
+    radius = new float[numOfPE];
+    rate = new float[numOfPE];
   }
   if(readSourceInfo(line, "source_info", s)){
-    plume->xpos[num] = s[0];
-    plume->ypos[num] = s[1];
-    plume->zpos[num] = s[2];
-    plume->radius[num] = s[3];
-    plume->rate[num] = s[4];
+    xpos[num] = s[0];
+    ypos[num] = s[1];
+    zpos[num] = s[2];
+    radius[num] = s[3];
+    rate[num] = s[4];
     num++;
   }
   if(read1Float(line, "release_type",&f1)){
-    plume->releaseType = (int)f1;
+    releaseType = (int)f1;
   }
   if(read1Float(line, "emit_method", &f1)){
-    plume->emit_method = (int)f1;
+    emit_method = (int)f1;
+  }
+  if(read6Float(line, "build_param", b)){
+    xfo[0] = b[0];
+    yfo[0] = b[1];
+    zfo[0] = b[2];
+    ht[0]  = b[3];
+    wti[0] = b[4];
+    lti[0] = b[5];
+  }
+  if(read1Float(line, "numBuild", &f1)){
+    numBuild = (int)f1;
+    xfo = new double[numBuild];
+    yfo = new double[numBuild];
+    zfo = new double[numBuild];
+    ht = new double[numBuild];
+    wti = new double[numBuild];
+    lti = new double[numBuild];
   }
 
 }
