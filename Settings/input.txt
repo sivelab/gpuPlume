@@ -13,11 +13,12 @@ show_particle_visuals 1
 #Set this to 1 to show collection box visuals, else 0
 show_collectionBox_visuals 0
 
-#Set this to 2 to use one shader for the non Gaussian advection step,
-#else set this to 1 to use one shader for the Gaussian advection step,
-#else 0 for the multi pass Gaussian advection technique
+#3 = one shader for the reflection non Gaussian setp,
+#2 = one shader for the non Gaussian advection step,
+#1 = one shader for the Gaussian advection step,
+#0 = the multi pass Gaussian advection technique
 #!!!!!if choice is 2, make sure to set testcase to 5!!!!!!
-advectChoice 1
+advectChoice 2
 
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
@@ -29,7 +30,7 @@ time_step 0.012
 #Use value of 4 for uniform in U direction
 #Use value of 2 for random values
 #use value of 5 for the varied in U direction
-testcase 4
+windFieldData 5
 
 #output file for the values of the collection boxes
 output_file data.txt
@@ -66,7 +67,7 @@ numBox_z   3
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius, rate
-source_info 30.0 30.0 10.0 4.0 60.0
+source_info 30.0 30.0 10.0 0.0 1.0
 #source_info 25.0 17.0 1.0 0.0 1.0
 #source_info 20.0 40.0 2.0 0.5 10.0
 #source_info 50.0 5.0 3.0 0.0 1.0
@@ -85,3 +86,12 @@ release_type 1
 #Set the method of emitting particles into simulation
 #Set to 0 for Punch Hole method and 1 for texture copy method
 emit_method 0
+
+#Number of Buildings
+#Set to 0 for no buildings
+numBuild 1
+
+#Building Parameters
+#I'm defining it the same as in QUIC
+#(x,y,z) (height, width, length)
+build_param 40.0 30.0 0.0 10.0 6.0 4.0
