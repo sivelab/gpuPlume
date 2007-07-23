@@ -16,6 +16,10 @@
 #endif
 
 #include "plumeControl.h"
+#include "nonGaussianModel.h"
+#include "GaussianModel.h"
+#include "Gaussian_2shaders_Model.h"
+#include "ReflectionModel.h"
 
 #include "Timer.h"
 
@@ -27,6 +31,8 @@ double *timing_array;
 Timer_t total_timer[2];
 Timer_t plume_timer[2];
 Timer *plume_clock;
+
+Util* util;
 
 PlumeControl* plume;
 int curr;
@@ -72,7 +78,33 @@ int main(int argc, char** argv)
   plume_clock = new Timer(true);
   plume_timer[0] = plume_clock->tic();
 
-  plume = new PlumeControl();
+  util = new Util();
+  util->readInput("Settings/input.txt");
+
+  //plume = new PlumeControl(util);
+  //Options are:
+  //  nonGaussianModel();
+  //  GaussianModel();
+  switch(util->advectChoice){
+  case 0:
+    util->windFieldData = 4;
+    plume = new Gaussian_2shaders_Model(util);
+    break;
+  case 1:
+    util->windFieldData = 4;
+    plume = new GaussianModel(util);
+    break;
+  case 2:
+    util->windFieldData = 5;
+    plume = new NonGaussianModel(util);
+    break;
+  case 3:
+    util->windFieldData = 5;
+    plume = new ReflectionModel(util);
+    break;
+  default:
+    std::cout << "Error in advection Choice in Settings file!" << std::endl;
+  }
 
   Random random_gen(2);
 
@@ -182,7 +214,7 @@ void display(void)
 	{
 	  std::cout << "Timing complete, restoring visuals..." << std::endl;
 	  compute_timings = false;
-	  plume->show_particle_visuals = true;
+	  util->show_particle_visuals = true;
 	}
     }
 }
@@ -206,13 +238,13 @@ void keyboard_cb(unsigned char key, int x, int y)
   else if (key == 't')
     {
       // toggle whether to display output
-      plume->show_particle_visuals = !plume->show_particle_visuals;
+      util->show_particle_visuals = !util->show_particle_visuals;
     }
 
   else if (key == 'b')
     {
       // Turn on timing - shut off visuals and allow a ten cycle count before timings start
-      plume->show_particle_visuals = false;
+      util->show_particle_visuals = false;
       timing_count = -10;
       compute_timings = true;
     }
@@ -299,17 +331,21 @@ void keyboard_cb(unsigned char key, int x, int y)
   else if (key == '>')
     {
       curr++;
-      if(curr == plume->numOfPE)
+      if(curr == util->numOfPE)
 	curr = 0;
 
     }
   else if(key == 'c')
     {
       plume->stream->clear();      
-    }
+      }
   else if(key == 'g')
     {
       plume->pc->outputPrime = true;
+    }
+  else if(key == 'h')
+    {
+      plume->createImages = true;
     }
 
   glutPostRedisplay();
@@ -330,6 +366,11 @@ void mouse(int button, int state, int x, int y)
     plume->dc->translate_view = true;
   else // state == GLUT_UP
     plume->dc->translate_view = false;
+
+  if (state == GLUT_DOWN && button == GLUT_MIDDLE_BUTTON)
+    plume->dc->rotate_around = true;
+  else
+    plume->dc->rotate_around = false;
 
   glutPostRedisplay();
 }
@@ -359,6 +400,16 @@ void motion(int x, int y)
 	change = y - last_y;
 	rate = 0.1;
 	plume->dc->setElevation(change,rate);
+    }
+
+    if (plume->dc->rotate_around)
+    {
+      float change = x - last_x;
+      float rate = 0.1;
+
+      plume->dc->setRotateAround(change,rate);
+
+
     }
 
     last_x = x;
