@@ -25,13 +25,18 @@ class ParticleControl{
   void setupPrime_and_AdvectShader(int,float);
 
   void setupNonGaussianShader(int,float);
+  
+  void setupReflectionShader(int,float);
 
-  void nonGaussianAdvect(FramebufferObject*,bool,GLuint,GLuint,GLuint,
+  void nonGaussianAdvect(bool,GLuint,GLuint,GLuint,
 			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
 
   //Performs update prime and advect with one shader using multiple render targets.
-  void updatePrimeAndAdvect(FramebufferObject*,bool,GLuint,GLuint,GLuint,
+  void updatePrimeAndAdvect(bool,GLuint,GLuint,GLuint,
 			    GLuint,GLuint,GLuint,GLuint,float);
+
+  void reflectionAdvect(bool,GLuint,GLuint,GLuint,
+			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float,double*);
 
   //This function puts the values held in the variable, data, into a 2D texture 
   //on the GPU. 
@@ -63,9 +68,9 @@ class ParticleControl{
   //Advects particle positions using the windfield.
   //First GLuint is the windfield texture.
   //Second and third GLuint are the two position textures. 
-  void advect(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,float);
+  void advect(bool,GLuint,GLuint,GLuint,GLuint,GLuint,float);
 
-  void updatePrime(FramebufferObject*,bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
+  void updatePrime(bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
   // included two more arguments in the above function for position textures. --Balli(04/12/07)
   void getDomain(int* , int*, int*);
 
@@ -124,7 +129,7 @@ class ParticleControl{
   float ustar,sigU,sigV,sigW;
 
   GLSLObject init_shader, pass1_shader, prime_shader, mrt_shader;
-  GLSLObject nonGaussian_shader;
+  GLSLObject nonGaussian_shader, reflection_shader;
 
   //Variables for prime shader
   GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;
@@ -136,6 +141,8 @@ class ParticleControl{
   GLint uniform_primePrev, uniform_primeCurr, uniform_timeStep;
 
   GLint uniform_tau_dz, uniform_duvw_dz;
+  //Uniform variables for building
+  GLint uniform_xfo, uniform_yfo, uniform_zfo, uniform_ht, uniform_wti, uniform_lti;
 
   GLenum texType;
   GLfloat* buffer_mem;
