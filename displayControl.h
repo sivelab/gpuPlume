@@ -26,11 +26,12 @@ class DisplayControl{
   void setEyeValues(float);
   void setAzimuth(float, float);
   void setElevation(float, float);
+  void setRotateAround(float, float);
   void initVars(int,double*,double*,double*,
 		      double*,double*,double*);
   //void drawStreams(std::vector<std::vector<partPos> >);
 
-  bool rotate_sphere, rotate_object, translate_view;
+  bool rotate_around, rotate_object, translate_view;
   bool frame_rate;
 
   bool draw_buildings;
@@ -66,6 +67,7 @@ class DisplayControl{
 
   GLfloat azimuth;
   GLfloat elevation;
+  GLfloat spin;
   
   GLuint displayTex[3];
 
