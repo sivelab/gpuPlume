@@ -1,7 +1,6 @@
 #include <iostream>
 #include <math.h>
 #include "displayControl.h"
-//#include "glm.h"
 
 static char text_buffer[128];
 
@@ -20,11 +19,13 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   eye_gaze[1] = 0;
   eye_gaze[2] = 0;
 
-  rotate_sphere = false;
+  //rotate_sphere = false;
   rotate_object = false;
   translate_view = false;
+  rotate_around = false;
   azimuth = 0.0;
   elevation = 0.0;
+  spin = 0.0;
 
   frame_rate = true;
   visual_layer = -1;
@@ -50,13 +51,14 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
 	     eye_gaze[0], eye_gaze[1], eye_gaze[2],
 	     0, 0, 1 );
 
-    if (!rotate_sphere) 
-      {
-	// allow rotation of this object
-	glRotatef(elevation, 0,1,0);
-	glRotatef(azimuth, 0,0,1);
-	// glTranslatef(0,0,5.0);
-      }
+    // allow rotation of this object
+    glRotatef(elevation, 0,1,0);
+    glRotatef(azimuth, 0,0,1);
+
+    glTranslatef(nx/2,ny/2,0);
+    glRotatef(spin, 0,0,1);
+    glTranslatef(-nx/2,-ny/2,0);
+
   }
   
   // render the vertices in the VBO (the particle positions) as points in the domain
@@ -104,6 +106,9 @@ void DisplayControl::setAzimuth(float change, float rate){
 }
 void DisplayControl::setElevation(float change, float rate){
   elevation = elevation + change*rate;
+}
+void DisplayControl::setRotateAround(float change, float rate){
+  spin = spin + change*rate;
 }
 void DisplayControl::drawGround(){
 
