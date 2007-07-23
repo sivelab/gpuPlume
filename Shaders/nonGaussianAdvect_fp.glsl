@@ -130,13 +130,15 @@ void main(void)
 	
 	//Reflection off ground	
 	vec4 n = vec4(0.0,0.0,1.0,0.0);
-	float rdot = dot(pos,n);	
+	float rdot = dot(pos,n);		
 
 	if(pos.z < 0){
-		pos = reflect(pos,n);
-		prmCurr = reflect(prmCurr,vec3(0.0,0.0,1.0));
+		pos.z = -pos.z;
+		prmCurr.z = -prmCurr.z;
+		//pos = reflect(pos,n);
+		//prmCurr = reflect(prmCurr,vec3(0.0,0.0,1.0));
 	}
-	
+
    }
    if(pos.a <= 0 && (!(life_time <= 0))){
       gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
