@@ -26,10 +26,13 @@
 class PlumeControl{
  public:
   
-  PlumeControl();
+  //PlumeControl(Util*);
 
-  void init(bool); 
-  int display();
+  virtual void init(bool); 
+  virtual int display();
+  virtual void setupTextures();
+  virtual void setupEmitters();
+  virtual ~PlumeControl();
      
   float time_step; //time step used for the movement of particles
   bool useRealTime; //Set whether to use real time or not
@@ -45,23 +48,11 @@ class PlumeControl{
   ParticleControl* pc;
   DisplayControl* dc;
   ParticleEmitter* pe[10];
-  int numOfPE;
 
   //An array of the collection boxes 
   CollectionBox* cBoxes[3];
   //total number of collection boxes being used
   int num_cBoxes;
-  double startCBoxTime;
-  double endCBoxTime;
-  double averagingTime;
-  float* bounds;
-  int numBox_x, numBox_y, numBox_z;
-
-  //testcase determines which data set to use for the windfield.
-  //The value t is currently passed in from gpuPlume.  When it
-  //equals 3, it runs the quicplume data set.  When it equals
-  //4 it runs the uniform u-direction windfield.  
-  int testcase;
 
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
@@ -76,56 +67,33 @@ class PlumeControl{
 
   bool dump_contents;
   bool createImages;
-  bool show_particle_visuals;
   bool output_CollectionBox;
   bool osgPlume;
   bool quitSimulation;
-  bool show_collectionBox_visuals;
-
-  int emit_method;
 
   //Set this to 1 to use one shader for rendering to multiple targets.
   int advectChoice;
- 
-  //output file of collection box
-  std::string output_file;
-  
-  //simulation duration in seconds
-  double duration;
 
   //glut window id
   int winid;
 
-  float ustar,sigU,sigV,sigW;
-  
-  //ParicleEmitter information (source)
-  float* xpos;
-  float* ypos;
-  float* zpos;
-  float* radius;
-  float* rate;
-
-  int releaseType;
-
   void getSourceInfo(float*x,float*y,float*z,float*r){
-    x = xpos;
-    y = ypos;
-    z = zpos;
-    r = radius;   
+    x = util->xpos;
+    y = util->ypos;
+    z = util->zpos;
+    r = util->radius;   
   }
  
   Simulation* sim;
+  double* buildParam;
 
- private:
+ protected:
   
   GLint currentbuffer,readbuffer;
   std::list<pIndex>::iterator iter;
 
-  void setupTextures();
-  void setupEmitters();
   void initFBO();
   void particleReuse();
-  //void readInputFile();
       
   Timer* display_clock;
   Timer_t reuse_time[2]; 
@@ -149,21 +117,7 @@ class PlumeControl{
   //Total number of particles released in simulation
   double totalNumPar;
 
-  Util* utility;
-
-  //QUIC-PLUME References
-  double* u;
-  double* v;
-  double* w;
-
-  int numBuild;
-  double* xfo;
-  double* yfo;
-  double* zfo;
-  double* ht;
-  double* wti;
-  double* lti;
-
+  Util* util;
 
   GLint* vp;
   GLfloat* mvm;
