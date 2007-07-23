@@ -29,6 +29,164 @@ void ParticleControl::setUstarAndSigmas(float u){
   sigW = 1.3*ustar;
 
 }
+void ParticleControl::setupReflectionShader(int numInRow, float life_time){
+  reflection_shader.addShader("Shaders/reflectionAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
+  reflection_shader.addShader("Shaders/reflectionAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  reflection_shader.createProgram();
+
+  // Get location of the sampler uniform
+  uniform_postex = reflection_shader.createUniform("pos_texunit");
+  uniform_wind = reflection_shader.createUniform("wind_texunit");
+  uniform_timeStep = reflection_shader.createUniform("time_step");
+  uniform_primePrev = reflection_shader.createUniform("primePrev");
+  uniform_random = reflection_shader.createUniform("random");
+  uniform_lambda = reflection_shader.createUniform("lambda");
+  uniform_tau_dz = reflection_shader.createUniform("tau_dz");
+  uniform_duvw_dz = reflection_shader.createUniform("duvw_dz");
+  uniform_randomTexCoordOffset = reflection_shader.createUniform("random_texCoordOffset");
+  uniform_randomTexWidth = reflection_shader.createUniform("random_texWidth");
+  uniform_randomTexHeight = reflection_shader.createUniform("random_texHeight");
+  
+  //Building uniform variables
+  uniform_xfo = reflection_shader.createUniform("xfo");
+  uniform_yfo = reflection_shader.createUniform("yfo");
+  uniform_zfo = reflection_shader.createUniform("zfo");
+  uniform_ht = reflection_shader.createUniform("ht");
+  uniform_wti = reflection_shader.createUniform("wti");
+  uniform_lti = reflection_shader.createUniform("lti");
+
+  GLint ulifeTime = reflection_shader.createUniform("life_time");
+  GLint unx = reflection_shader.createUniform("nx");
+  GLint uny = reflection_shader.createUniform("ny");
+  GLint unz = reflection_shader.createUniform("nz");
+  GLint uNumInRow = reflection_shader.createUniform("numInRow");
+
+  reflection_shader.activate();
+
+  glUniform1fARB(ulifeTime, life_time);
+  glUniform1iARB(unx, nx);
+  glUniform1iARB(uny, ny);
+  glUniform1iARB(unz, nz);
+  glUniform1fARB(uNumInRow, numInRow);
+
+  reflection_shader.deactivate();
+}
+void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positions0, 
+			     GLuint positions1, GLuint prime0, GLuint prime1, 
+			     GLuint randomValues,GLuint lambda, GLuint tau_dz, 
+			     GLuint duvw_dz, float time_step, double* buildParam)
+{
+
+  //Prints out the previous prime values
+  if(outputPrime)
+    printPrime(odd, true);
+
+  if (odd){
+    GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT};
+    glDrawBuffers(2,buffers);
+  }
+  else{ 
+    GLenum buffers[] = {GL_COLOR_ATTACHMENT0_EXT,GL_COLOR_ATTACHMENT2_EXT};
+    glDrawBuffers(2,buffers);
+  }
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, twidth, theight);
+  
+  
+  glEnable(texType);
+  reflection_shader.activate();
+
+  //Building varibles
+  glUniform1fARB(uniform_xfo, buildParam[0]);
+  glUniform1fARB(uniform_yfo, buildParam[1]);
+  glUniform1fARB(uniform_zfo, buildParam[2]);
+  glUniform1fARB(uniform_ht, buildParam[3]);
+  glUniform1fARB(uniform_wti, buildParam[4]);
+  glUniform1fARB(uniform_lti, buildParam[5]);
+
+  glUniform1fARB(uniform_timeStep, time_step);
+  // generate and set the random texture coordinate offset
+  // 
+  if (texType == GL_TEXTURE_RECTANGLE_ARB)
+    {
+      // texture coordinates will range from 0 to W in width and 0 to
+      // H in height, so generate random value in this range
+      float f1 = Random::uniform() * twidth;
+      float f2 = Random::uniform() * theight;
+      glUniform2fARB(uniform_randomTexCoordOffset, f1, f2);
+    }
+  else 
+    {
+      // texture coordinates will range from 0 to 1, so generate random value in this range
+      glUniform2fARB(uniform_randomTexCoordOffset, Random::uniform(), Random::uniform());
+    }
+
+  // set the size of the texture width and height for the shader to use
+  glUniform1iARB(uniform_randomTexWidth, twidth);
+  glUniform1iARB(uniform_randomTexHeight, theight);
+
+  //Bind the lambda texture to TEXTURE UNIT 6
+  glActiveTexture(GL_TEXTURE6);
+  glBindTexture(texType, duvw_dz);
+  glUniform1iARB(uniform_duvw_dz, 6);
+
+  //Bind the lambda texture to TEXTURE UNIT 5
+  glActiveTexture(GL_TEXTURE5);
+  glBindTexture(texType, tau_dz);
+  glUniform1iARB(uniform_tau_dz, 5);
+
+  //Bind the lambda texture to TEXTURE UNIT 4
+  glActiveTexture(GL_TEXTURE4);
+  glBindTexture(texType, lambda);
+  glUniform1iARB(uniform_lambda, 4);
+
+  // Bind the random data field to TEXTURE UNIT 3
+  glActiveTexture(GL_TEXTURE3);
+  glBindTexture(texType, randomValues);
+  glUniform1iARB(uniform_random, 3);
+
+  
+  //Bind previous prime values to TEXTURE UNIT 2
+  glActiveTexture(GL_TEXTURE2);
+  glUniform1iARB(uniform_primePrev, 2);
+  if(odd)
+    glBindTexture(texType, prime0);
+  else
+    glBindTexture(texType, prime1);
+
+
+  // wind field can be stored here
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(texType, windField);
+  glUniform1iARB(uniform_wind, 1);
+    
+  glActiveTexture(GL_TEXTURE0);
+  glUniform1iARB(uniform_postex, 0);
+
+  if (odd)
+    glBindTexture(texType, positions0);  // read from texture 0
+  else 
+    glBindTexture(texType, positions1);  // read from texture 1
+ 
+  glBegin(GL_QUADS);
+  {
+    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+  }
+  glEnd();
+  
+  reflection_shader.deactivate();
+ 
+  glBindTexture(texType, 0);
+  
+  //Prints out the updated prime values
+  if(outputPrime)
+    printPrime(odd,false);
+
+}
 void ParticleControl::setupNonGaussianShader(int numInRow, float life_time){
   nonGaussian_shader.addShader("Shaders/nonGaussianAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
   nonGaussian_shader.addShader("Shaders/nonGaussianAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -47,7 +205,6 @@ void ParticleControl::setupNonGaussianShader(int numInRow, float life_time){
   uniform_randomTexWidth = nonGaussian_shader.createUniform("random_texWidth");
   uniform_randomTexHeight = nonGaussian_shader.createUniform("random_texHeight");
 
-
   GLint ulifeTime = nonGaussian_shader.createUniform("life_time");
   GLint unx = nonGaussian_shader.createUniform("nx");
   GLint uny = nonGaussian_shader.createUniform("ny");
@@ -64,10 +221,10 @@ void ParticleControl::setupNonGaussianShader(int numInRow, float life_time){
 
   nonGaussian_shader.deactivate();
 }
-void ParticleControl::nonGaussianAdvect(FramebufferObject* fbo, bool odd, 
-			     GLuint windField, GLuint positions0, GLuint positions1, 
-			     GLuint prime0, GLuint prime1, GLuint randomValues, 
-				  GLuint lambda, GLuint tau_dz, GLuint duvw_dz, float time_step)
+void ParticleControl::nonGaussianAdvect(bool odd, GLuint windField, GLuint positions0, 
+			     GLuint positions1, GLuint prime0, GLuint prime1, 
+			     GLuint randomValues,GLuint lambda, GLuint tau_dz, 
+			     GLuint duvw_dz, float time_step)
 {
 
   //Prints out the previous prime values
@@ -209,7 +366,7 @@ void ParticleControl::setupPrime_and_AdvectShader(int numInRow,float life_time){
 
 
 }
-void ParticleControl::updatePrimeAndAdvect(FramebufferObject* fbo, bool odd, 
+void ParticleControl::updatePrimeAndAdvect(bool odd, 
 			     GLuint windField, GLuint positions0, GLuint positions1, 
 			     GLuint prime0, GLuint prime1, GLuint randomValues, 
 				  GLuint lambda, float time_step)
@@ -342,7 +499,7 @@ void ParticleControl::setupPrimeShader(int numInRow){  //Included argument -- Ba
   prime_shader.deactivate();
   //End --Balli(04/12/07)
 }
-void ParticleControl::updatePrime(FramebufferObject* fbo, bool odd, GLuint positions0,GLuint positions1,GLuint prime0, 
+void ParticleControl::updatePrime(bool odd, GLuint positions0,GLuint positions1,GLuint prime0, 
 				  GLuint prime1, GLuint windField, GLuint randomValues, 
 				  GLuint lambda, float time_step){  // included two more argument for position--Balli(04/12/07)
 
@@ -493,7 +650,7 @@ void ParticleControl::setupAdvectShader(int numInRow, float life_time){
   pass1_shader.deactivate();
 
 }
-void ParticleControl::advect(FramebufferObject* fbo, bool odd, 
+void ParticleControl::advect(bool odd, 
 			     GLuint windField, GLuint positions0, GLuint positions1, 
 			     GLuint prime0, GLuint prime1, float time_step)
 {
