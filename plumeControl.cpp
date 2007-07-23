@@ -11,105 +11,36 @@
 
 #endif
 
-// //////////////////////////////////////
-// BEGIN -----> QUIC PLUME FORTRAN REFERENCES
-// //////////////////////////////////////
+PlumeControl::~PlumeControl(){}
 
-#ifdef USE_PLUME_DATA
+/*PlumeControl::PlumeControl(Util* u){
 
-extern "C"
-{
-  void readfiles_();
-}
+  util = u;
 
-// Domain size stored in nx, ny, and nz
-extern "C" int __datamodule__nx;
-extern "C" int __datamodule__ny;
-extern "C" int __datamodule__nz;
-
-extern "C" double __datamodule__dx;
-extern "C" double __datamodule__dy;
-extern "C" double __datamodule__dz;
-
-// UVW contains the wind field
-extern "C" double* __datamodule__u;
-extern "C" double* __datamodule__v;
-extern "C" double* __datamodule__w;
-
-extern "C" int __datamodule__inumbuild;   // integer number of buildings
-extern "C" double* __datamodule__xfo;
-extern "C" double* __datamodule__yfo;
-extern "C" double* __datamodule__zfo; 
-extern "C" double* __datamodule__ht;
-extern "C" double* __datamodule__wti;
-extern "C" double* __datamodule__lti; 
-
-#endif
-// //////////////////////////////////////
-// END ----> QUIC PLUME FORTRAN REFERENCES
-// //////////////////////////////////////
-
-
-PlumeControl::PlumeControl(){
- 
-#ifdef USE_PLUME_DATA
-  // Call the PLUME code to read in the data files.
-  std::cout << "Reading data using PLUME code..." << std::endl;
-  readfiles_();
-
-  //QuicPlume data for the domain
-  nx = __datamodule__nx; //domain in the x direction
-  ny = __datamodule__ny; //domain in the y direction
-  nz = __datamodule__nz; //domain in the z direction
-
-  //nx = (__datamodule__nx - 1) * __datamodule__dx; //domain in the x direction
-  //ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction
-  //nz = (__datamodule__ny - 1) * __datamodule__dy; //domain in the z direction
-
-  std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " 
-	    << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
-
-  //QuicPlume data for the windfield
-  u = __datamodule__u;
-  v = __datamodule__v;
-  w = __datamodule__w;
-
-  //QuicPlume data for the buildings
-  numBuild = __datamodule__inumbuild;
-  xfo = __datamodule__xfo;
-  yfo = __datamodule__yfo;
-  zfo = __datamodule__zfo;
-  ht = __datamodule__ht;
-  wti = __datamodule__wti;
-  lti = __datamodule__lti;
-  
-#else
-  nx = 60;
-  ny = 60;//140;
-  nz = 20;
-  u=0;
-  v=0;
-  w=0;
-#endif
-  
-  utility = new Util(this);
-  utility->readInput("Settings/input.txt");
+  //from util
+  twidth = util->twidth;
+  theight = util->theight;
+  nx = util->nx;
+  ny = util->ny;
+  nz = util->nz;
+  advectChoice = util->advectChoice;
+  time_step = util->time_step;
 
   //Sets up the type of simulation to run
-  sim = new Simulation(useRealTime,duration,&time_step);
+  sim = new Simulation(util->useRealTime,util->duration,&time_step);
   
   texType = GL_TEXTURE_RECTANGLE_ARB;
   int_format = GL_RGBA32F_ARB;
   int_format_init = GL_RGBA;
 
-  totalNumPar = 0.0;
+  totalNumPar = 0.0;  
   pos_buffer = new GLfloat[ twidth * theight * 4 ];
 
   //CollectionBox Settings
-  avgTime = averagingTime + startCBoxTime;
+  avgTime = util->averagingTime + util->startCBoxTime;
   //If we want to output concentrations only at end set this
-  avgTime = endCBoxTime;
-  cBoxes[0] = new CollectionBox(numBox_x,numBox_y,numBox_z,bounds,averagingTime);
+  avgTime = util->endCBoxTime;
+  cBoxes[0] = new CollectionBox(util->numBox_x,util->numBox_y,util->numBox_z,util->bounds,util->averagingTime);
   
   num_cBoxes = 1;
   
@@ -135,16 +66,36 @@ PlumeControl::PlumeControl(){
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
    
-}
+    }*/
 
 void PlumeControl::init(bool OSG){
+  /*
   osgPlume = OSG;
 
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,u,v,w);
-  pc->setUstarAndSigmas(ustar);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->u,util->v,util->w);
+  pc->setUstarAndSigmas(util->ustar);
 
   dc = new DisplayControl(nx,ny,nz, texType);  
-  dc->initVars(numBuild,xfo,yfo,zfo,ht,wti,lti);
+  dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
+  buildParam = new double[6];
+  if(util->numBuild == 0){
+    dc->draw_buildings = false;
+    buildParam[0] = 0;
+    buildParam[1] = 0;
+    buildParam[2] = 0;
+    buildParam[3] = 0;
+    buildParam[4] = 0;
+    buildParam[5] = 0;
+  }
+  else{
+    dc->draw_buildings = true;
+    buildParam[0] = util->xfo[0];
+    buildParam[1] = util->yfo[0];
+    buildParam[2] = util->zfo[0];
+    buildParam[3] = util->ht[0];
+    buildParam[4] = util->wti[0];
+    buildParam[5] = util->lti[0];
+  }
 
   if(osgPlume){
     vp = new GLint[4];
@@ -170,7 +121,7 @@ void PlumeControl::init(bool OSG){
   duvw_dz = texid[9];
   /////////////////////////////
   setupTextures();
-
+  
   //
   // set up vertex buffer
   // 
@@ -210,15 +161,15 @@ void PlumeControl::init(bool OSG){
   //pc->initParticlePositions(fbo, texid[2]); 
   CheckErrorsGL("END of init");
 
-  if(useRealTime){
+  if(util->useRealTime){
     display_clock = new Timer(true);
     sim->init();
-  } 
-
+    } 
+  */
 }
 bool imagesDone = false;
 int PlumeControl::display(){ 
-  if(osgPlume){
+  /*if(osgPlume){
     glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
     glGetFloatv(GL_PROJECTION_MATRIX,pm);
     glGetIntegerv(GL_VIEWPORT,vp);
@@ -261,9 +212,9 @@ int PlumeControl::display(){
     particleReuse();
   }
   ////////////////////////////////////////////////////////////
-  // Emit Particles
+   // Emit Particles
   ////////////////////////////////////////////////////////////
-  for(int i = 0; i < numOfPE; i++){
+  for(int i = 0; i < util->numOfPE; i++){
     if(pe[i]->emit){    
       if(pe[i]->releasePerTimeStep){
 	//Releases particles per time step.
@@ -284,17 +235,13 @@ int PlumeControl::display(){
 	pe[i]->emit = false;
       }
       else if(pe[i]->releasePerSecond){
-	/*pe[i]->setNumToEmit(1);
-	pe[i]->setVertices();
-	totalNumPar += (double)pe[i]->EmitParticle(fbo, odd); */
+	
 	//Release particle using the defined particles per second
-	if(pe[i]->timeToEmit(time_step)){
-	  
+	if(pe[i]->timeToEmit(time_step)){	  
 	    pe[i]->setVertices();
 	    pe[i]->setPosTexID(positions0, positions1);
 	    totalNumPar += (double)pe[i]->EmitParticle(fbo, odd); 
 	}
-	//pe[i]->emit = false;
       }
       else if(pe[i]->instantRelease){
 	pe[i]->setNumToEmit(twidth*theight);
@@ -310,15 +257,15 @@ int PlumeControl::display(){
   ////////////////////////////////////////////////////////////
   if(!endCBox){
     
-    if(sim->totalTime >= endCBoxTime){
+    if(sim->totalTime >= util->endCBoxTime){
       sim->curr_timeStep += 1.0;
       endCBox = true;
-      if(endCBoxTime != 0)
+      if(util->endCBoxTime != 0)
 	output_CollectionBox = true;
     }       
   }
 
-  if((sim->totalTime >= startCBoxTime) && !endCBox){
+  if((sim->totalTime >= util->startCBoxTime) && !endCBox){
 
     sim->curr_timeStep +=1.0;
 
@@ -341,7 +288,7 @@ int PlumeControl::display(){
       }
     } 
     if(sim->totalTime >= avgTime){
-      avgTime += averagingTime;
+      avgTime += util->averagingTime;
       output_CollectionBox = true;
     }
 
@@ -352,22 +299,24 @@ int PlumeControl::display(){
   ////////////////////////////////////////////////////////////
    
   if(advectChoice == 1){
-    pc->updatePrimeAndAdvect(fbo,odd,windField,positions0,positions1,
+    pc->updatePrimeAndAdvect(odd,windField,positions0,positions1,
   			   prime0,prime1,randomValues,lambda,time_step);
   }
+  //NOTE: The framebuffer object is no longer passed as an argument.
+  //I don't think it's needed.
   else if(advectChoice == 2){
-    pc->nonGaussianAdvect(fbo,odd,windField,positions0,positions1,
-  			   prime0,prime1,randomValues,lambda,tau_dz,duvw_dz,time_step);
+    pc->nonGaussianAdvect(odd,windField,positions0,positions1,prime0,prime1,
+			  randomValues,lambda,tau_dz,duvw_dz,time_step);
   }
   else{
-    pc->updatePrime(fbo, odd,positions0, positions1, prime0, prime1, 
+    pc->updatePrime(odd,positions0, positions1, prime0, prime1, 
   		    windField, randomValues, lambda,time_step);
  
-    pc->advect(fbo, odd, windField, positions0, positions1, 
+    pc->advect(odd, windField, positions0, positions1, 
   	       prime0,prime1,time_step);  
   }  
   
-  /*if(sim->totalTime >= 10.0 && !imagesDone){
+  if(sim->totalTime >= 10.0 && !imagesDone){
     createImages = true;
     imagesDone = true;
   }
@@ -376,7 +325,7 @@ int PlumeControl::display(){
     pc->createPrimeImages(odd);
     
     createImages = false;
-    }*/
+    }
   ////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////
@@ -416,7 +365,7 @@ int PlumeControl::display(){
   if(output_CollectionBox)
      {
        for(int j = 0; j < num_cBoxes; j++){
-		cBoxes[j]->outputConc(output_file,sim->totalTime,sim->curr_timeStep);
+		cBoxes[j]->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
        }
        output_CollectionBox = false;
      }
@@ -429,7 +378,7 @@ int PlumeControl::display(){
   // screen will make the simulation run more slowly. This feature is
   // mainly included to allow some idea of how much faster the
   // simulation can run if left to run on the GPU.
-  if (show_particle_visuals)
+  if (util->show_particle_visuals)
     {
       
       // //////////////////////////////////////////////////////////////
@@ -482,11 +431,11 @@ int PlumeControl::display(){
       dc->drawLayers(windField, numInRow);
 
       if(!osgPlume){
-	for(int i=0; i < numOfPE; i++){
+	for(int i=0; i < util->numOfPE; i++){
 	  pe[i]->Draw();
 	}
 
-	if(show_collectionBox_visuals){
+	if(util->show_collectionBox_visuals){
 	  cBoxes[0]->sort(dc->eye_pos[0],dc->eye_pos[1],dc->eye_pos[2]);
 	  cBoxes[0]->draw(sim->curr_timeStep);
 	}
@@ -517,31 +466,36 @@ int PlumeControl::display(){
     // glutDestroyWindow(winid);
     return 0;
   }
+  */
   return 1;
+  
 }
 void PlumeControl::setupEmitters(){
-  if(testcase == 3){   
-    numOfPE = 1;
-    dc->draw_buildings = true;
+  /*
+  if(util->windFieldData == 3){   
+    util->numOfPE = 1;
+    //dc->draw_buildings = true;
     //Creates a point emitter with position(10,10,10) , emitting 10 particles per second
     pe[0] = new PointEmitter(10.0,10.0,10.0, 10.0, twidth, theight, &indices, &emit_shader);
   }
   else{
-    dc->draw_buildings = false;
-    for(int i=0; i < numOfPE; i++){
-      if(radius[i] == 0)
-	pe[i] = new PointEmitter(xpos[i],ypos[i],zpos[i], rate[i], twidth, theight, &indices, &emit_shader);
+    //dc->draw_buildings = false;
+    for(int i=0; i < util->numOfPE; i++){
+      if(util->radius[i] == 0)
+	pe[i] = new PointEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
+				 util->rate[i], twidth, theight, &indices, &emit_shader);
       else
-	pe[i] = new SphereEmitter(xpos[i],ypos[i],zpos[i], rate[i], radius[i], twidth, theight, &indices, &emit_shader);
+	pe[i] = new SphereEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
+				  util->rate[i], util->radius[i], twidth, theight, &indices, &emit_shader);
     }
   }
-  for(int i=0; i < numOfPE; i++){
+  for(int i=0; i < util->numOfPE; i++){
     if(reuseParticles)
       pe[i]->setParticleReuse(&indicesInUse, lifeTime);
 
     pe[i]->emit = false;
     //Set for different methods of emitting particles
-    if(emit_method == 0){
+    if(util->emit_method == 0){
       pe[i]->Punch_Hole = true;
     }
     else pe[i]->Punch_Hole = false;
@@ -554,7 +508,7 @@ void PlumeControl::setupEmitters(){
     //Set up the ParticleEmitter method to release particles
     //Release particles per time step only if duration is defined and
     //there is a fixed time step.
-    switch(releaseType){
+    switch(util->releaseType){
     case 0:
       pe[i]->releasePerTimeStep = true;
       break;
@@ -570,11 +524,11 @@ void PlumeControl::setupEmitters(){
 
     if(pe[i]->releasePerTimeStep){
       //set number of particles to emit = (number of particles/ total number of time steps);
-      int num = (int)floor((double)(twidth*theight) / (duration/(double)time_step));
+      int num = (int)floor((double)(twidth*theight) / (util->duration/(double)time_step));
       pe[i]->setNumToEmit(num);
     }
   }
-
+  */
 }
 
 void PlumeControl::initFBO(void){
@@ -598,6 +552,7 @@ void PlumeControl::initFBO(void){
 
 void PlumeControl::setupTextures()
 {
+  /*
 	CheckErrorsGL("BEGIN : Creating textures");
 
 	int sz = 4;
@@ -626,7 +581,7 @@ void PlumeControl::setupTextures()
 	CheckErrorsGL("\tcreated texid[2]...");
 		
 	// Creates wind field data texture
-	pc->initWindTex(windField, &numInRow, testcase);
+	pc->initWindTex(windField, &numInRow, util->windFieldData);
 	CheckErrorsGL("\tcreated texid[3], the wind field texture...");
 
 	if(advectChoice == 2){
@@ -666,15 +621,15 @@ void PlumeControl::setupTextures()
 	//if there's only one source and it's a point emitter.
 	if(advectChoice == 2){
 	
-	  int xs = (int)xpos[0];
-	  int ys = (int)ypos[0];
-	  int zs = (int)zpos[0];
+	  int xs = (int)util->xpos[0];
+	  int ys = (int)util->ypos[0];
+	  int zs = (int)util->zpos[0];
 
 	  int p2idx = zs*ny*nx + ys*nx + xs;
 
-	  sigU = pc->sig[p2idx].u;
-	  sigV = pc->sig[p2idx].v;
-	  sigW = pc->sig[p2idx].w;
+	  util->sigU = pc->sig[p2idx].u;
+	  util->sigV = pc->sig[p2idx].v;
+	  util->sigW = pc->sig[p2idx].w;
 	}
 
 	for (int j=0; j<theight; j++)
@@ -702,9 +657,9 @@ void PlumeControl::setupTextures()
 	      //data[idx+1] = sigV*(data[idx+1]/mag);
 	      //data[idx+2] = sigW*(data[idx+2]/mag);
 
-	      data[idx] = sigU*(data[idx]);   
-	      data[idx+1] = sigV*(data[idx+1]);
-	      data[idx+2] = sigW*(data[idx+2]);
+	      data[idx] = util->sigU*(data[idx]);   
+	      data[idx+1] = util->sigV*(data[idx+1]);
+	      data[idx+2] = util->sigW*(data[idx+2]);
 	    }
 
 	// Sum random values to determine if they have mean of zero and variance of 1
@@ -781,6 +736,7 @@ void PlumeControl::setupTextures()
   delete [] data;
 
   CheckErrorsGL("END : Creating textures");
+  */
 }
 
 void PlumeControl::particleReuse(){
