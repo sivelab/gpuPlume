@@ -18,7 +18,7 @@ show_collectionBox_visuals 0
 #1 = one shader for the Gaussian advection step,
 #0 = the multi pass Gaussian advection technique
 #!!!!!if choice is 2, make sure to set testcase to 5!!!!!!
-advectChoice 2
+advectChoice 3
 
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
@@ -73,7 +73,7 @@ source_info 30.0 30.0 10.0 0.0 1.0
 #source_info 50.0 5.0 3.0 0.0 1.0
 
 #Set the type of Particle Release
-release_type 1
+release_type 2
 
 #Set to 0 and it will release a set number of particles per time step
 #based on simulation duration. 
