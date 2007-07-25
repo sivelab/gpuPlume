@@ -8,12 +8,15 @@ ParticleEmitter::~ParticleEmitter(){
 void ParticleEmitter::setVertices(){
 
 }
-int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
+int ParticleEmitter::EmitParticle(bool odd,GLuint pos0,GLuint pos1,
+				  float time_step){
   int p_index;
-  float x;
-  float y;
-  float z;
-  float l;
+  //float x;
+  //float y;
+  //float z;
+  //float l;
+
+    
  
   if(!indices->empty()){
     //THIS Method *seems* to work now!
@@ -51,6 +54,7 @@ int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	s = (p_index%twidth);
 	t = (p_index/twidth);	  
 
+	/*
 	//Get position value
 	if(posCoord.empty())
 	  std::cout << "Error: PosCoord empty" << std::endl;
@@ -62,7 +66,7 @@ int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	y = posCoord.back();
 	posCoord.pop_back();
 	x = posCoord.back();
-	posCoord.pop_back();
+	posCoord.pop_back();*/
 
 	if(Punch_Hole){
 	  glPointSize(1.0);
@@ -73,7 +77,7 @@ int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  //std::cout << "particle num= " << p_index << "  s = " << s << "  t = " << t << std::endl;
 	  glBegin(GL_POINTS);
 	  {
-	    glColor4f(x, y, z, l);
+	    glColor4f(xpos, ypos, zpos, lifeTime);
 	    glVertex2f(0.5, 0.5);
 	    //glVertex2f(s,t);
 	  }
@@ -87,18 +91,18 @@ int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
 	  // doing 1x1 pixels (but many times).  This operation
 	  // appears to work consistently.
 	  GLfloat value[4];
-	  value[0] = x;
-	  value[1] = y;
-	  value[2] = z;
-	  value[3] = l;
+	  value[0] = xpos;
+	  value[1] = ypos;
+	  value[2] = zpos;
+	  value[3] = lifeTime;
 
 	  // write there via a glTexSubImage2D
 	  if(odd)
 	    // will read from this texture next
-	    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_posTexID0);
+	    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, pos0);
 	  else 
 	    // will read from this texture next
-	    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_posTexID1);
+	    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, pos1);
 
 	  glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, s, t, 1, 1, GL_RGBA, GL_FLOAT, value);
 	}
@@ -116,7 +120,9 @@ int ParticleEmitter::EmitParticle(FramebufferObject* fbo, bool odd){
       glLoadIdentity();
 
     }
+  
   }
+
   return numToEmit;
 
 }
@@ -168,6 +174,7 @@ void ParticleEmitter::setNumToEmit(int num){
 bool ParticleEmitter::timeToEmit(float time_step){
 
   emitTime += time_step*releaseRate;
+  //std::cout << releaseRate << std::endl;
 
   if(emitTime >= 1.0){
     //Sets number of particles to emit
