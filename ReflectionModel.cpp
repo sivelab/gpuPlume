@@ -166,44 +166,10 @@ int ReflectionModel::display(){
    // Emit Particles
   ////////////////////////////////////////////////////////////
   for(int i = 0; i < util->numOfPE; i++){
-    if(pe[i]->emit){    
-      if(pe[i]->releasePerTimeStep){
-	//Releases particles per time step.
-	//This can only be used with a time duration > 0
-	//and a fixed time step
-	pe[i]->setPosTexID(positions0, positions1);
-	pe[i]->setVertices();
-	totalNumPar += (double)pe[i]->EmitParticle(fbo,odd);
-      }
-      else if(pe[i]->releaseOne){
-	//Release one particle every time key is pressed
-	pe[i]->setNumToEmit(1);
-	pe[i]->setVertices();
-	pe[i]->setPosTexID(positions0, positions1);
-	totalNumPar += (double)pe[i]->EmitParticle(fbo,odd);
- 
+     if(pe[i]->emit){    
+      totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step);
+      if(pe[i]->releaseType == onePerKeyPress){
 	stream->addNewStream(pe[i]);
-	pe[i]->emit = false;
-      }
-      else if(pe[i]->releasePerSecond){
-	/*pe[i]->setNumToEmit(1);
-	pe[i]->setVertices();
-	totalNumPar += (double)pe[i]->EmitParticle(fbo, odd); */
-	//Release particle using the defined particles per second
-	if(pe[i]->timeToEmit(time_step)){
-	  
-	    pe[i]->setVertices();
-	    pe[i]->setPosTexID(positions0, positions1);
-	    totalNumPar += (double)pe[i]->EmitParticle(fbo, odd); 
-	}
-	//pe[i]->emit = false;
-      }
-      else if(pe[i]->instantRelease){
-	pe[i]->setNumToEmit(twidth*theight);
-	pe[i]->setVertices();
-	pe[i]->setPosTexID(positions0,positions1);
-	totalNumPar += (double)pe[i]->EmitParticle(fbo, odd);
-	pe[i]->emit = false;
       }
     }
   }
@@ -554,29 +520,24 @@ void ReflectionModel::setupEmitters(){
     }
     else pe[i]->Punch_Hole = false;
 
-    pe[i]->releasePerTimeStep = false;
-    pe[i]->releaseOne = false;
-    pe[i]->releasePerSecond = false;
-    pe[i]->instantRelease = false;
-
     //Set up the ParticleEmitter method to release particles
     //Release particles per time step only if duration is defined and
     //there is a fixed time step.
     switch(util->releaseType){
     case 0:
-      pe[i]->releasePerTimeStep = true;
+      pe[i]->releaseType = perTimeStep;
       break;
     case 1:
-      pe[i]->releasePerSecond = true;
+      pe[i]->releaseType = perSecond;
       break;
     case 2:
-      pe[i]->instantRelease = true;
+      pe[i]->releaseType = instantaneous;
       break;
     default:
       std::cout << "Error in setting up particle release type" << std::endl;
     }
 
-    if(pe[i]->releasePerTimeStep){
+    if(pe[i]->releaseType == perTimeStep){
       //set number of particles to emit = (number of particles/ total number of time steps);
       int num = (int)floor((double)(twidth*theight) / (util->duration/(double)time_step));
       pe[i]->setNumToEmit(num);
