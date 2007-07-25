@@ -13,6 +13,7 @@ typedef struct{
 
 }pIndex;
 
+enum particleReleaseType{perTimeStep,perSecond,onePerKeyPress,instantaneous};
 
 class ParticleEmitter{
 
@@ -29,7 +30,7 @@ class ParticleEmitter{
 
   //Emits numToEmit(number of particles to emit) particles by setting values in
   //the particle position textures to xpos,ypos,zpos.
-  virtual int EmitParticle(FramebufferObject*, bool);
+  virtual int EmitParticle(bool, GLuint, GLuint, float);
 
   //Uses the variables, emitTime and remTime, to emit particles based on the time step
   //and how many particles per second(pps). 
@@ -54,19 +55,15 @@ class ParticleEmitter{
 
   virtual ~ParticleEmitter();
 
-  void setPosTexID(GLuint id0, GLuint id1) { m_posTexID0 = id0; m_posTexID1 = id1; }
+  //void setPosTexID(GLuint id0, GLuint id1) { m_posTexID0 = id0; m_posTexID1 = id1; }
 
   //The position of the particle emitter
   float xpos,ypos,zpos;
 
-  bool releasePerTimeStep;
-  bool releaseOne;
-  bool releasePerSecond;
-  bool instantRelease;
   bool emit;
-
   bool Punch_Hole;
-
+  particleReleaseType releaseType;
+  
  protected:
 
   std::list<float> posCoord;
