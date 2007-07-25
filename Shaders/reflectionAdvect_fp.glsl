@@ -137,72 +137,75 @@ void main(void)
    	pos = pos + vec4(wind,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
 	
-	//Reflection off ground	
-	vec4 n = vec4(0.0,0.0,1.0,0.0);
-	float rdot = dot(pos,n);	
+	//Reflection off ground		
 	vec3 u;
 	vec3 w;
 	//point of intersection
 	vec3 pI;	
 
-	if(pos.z < 0){
-		pos.z = -pos.z;
-		prmCurr.z = -prmCurr.z;
-		//pos = reflect(pos,n);
-		//prmCurr = reflect(prmCurr,vec3(0.0,0.0,1.0));
-	}
 
-	//Reflection off building
-	//Check to see if particle is inside building
-	if((pos.x >= xfo) && (pos.x <= xfo+lti) && (pos.y >= yfo-(wti/2.0)) && (pos.y <= yfo+(wti/2.0)) && (pos.z <= zfo+ht)){
+        while((pos.z < 0) || ((pos.x >= xfo) && (pos.x <= xfo+lti) && (pos.y >= yfo-(wti/2.0)) && 
+		(pos.y <= yfo+(wti/2.0)) && (pos.z <= zfo+ht))){
+
+		if(pos.z < 0){
+			pos.z = -pos.z;
+			prmCurr.z = -prmCurr.z;
+			//pos = reflect(pos,n);
+			//prmCurr = reflect(prmCurr,vec3(0.0,0.0,1.0));
+		}
+
+		//Reflection off building
+		//Check to see if particle is inside building
+		else if((pos.x >= xfo) && (pos.x <= xfo+lti) && (pos.y >= yfo-(wti/2.0)) && (pos.y <= yfo+(wti/2.0)) && (pos.z <= zfo+ht)){
 		
-		u = vec3(pos.x,pos.y,pos.z) - prevPos;	
-		//plane facing -x direction
-		w = prevPos - vec3(xfo,0.0,0.0);
-		float s1 = dot(vec3(1.0,0.0,0.0),w)/dot(vec3(-1.0,0.0,0.0),u);
-		//plane facing +x direction
-		w = prevPos - vec3(xfo+lti,0.0,0.0);
-		float s2 = dot(vec3(-1.0,0.0,0.0),w)/dot(vec3(1.0,0.0,0.0),u);
-		//plane facing +y direction
-		w = prevPos - vec3(xfo,(yfo+wti/2.0),0.0);
-		float s3 = dot(vec3(0.0,-1.0,0.0),w)/dot(vec3(0.0,1.0,0.0),u);
-		//plane facing -y direction
-		w = prevPos - vec3(xfo,(yfo-wti/2.0),0.0);
-		float s4 = dot(vec3(0.0,1.0,0.0),w)/dot(vec3(0.0,-1.0,0.0),u);
-		//plane facing +z direction
-		w = prevPos -vec3(xfo,0.0,(zfo+ht));
-		float s5 = dot(vec3(0.0,0.0,-1.0),w)/dot(vec3(0.0,0.0,1.0),u);
+			u = vec3(pos.x,pos.y,pos.z) - prevPos;	
+			//plane facing -x direction
+			w = prevPos - vec3(xfo,0.0,0.0);
+			float s1 = dot(vec3(1.0,0.0,0.0),w)/dot(vec3(-1.0,0.0,0.0),u);
+			//plane facing +x direction
+			w = prevPos - vec3(xfo+lti,0.0,0.0);
+			float s2 = dot(vec3(-1.0,0.0,0.0),w)/dot(vec3(1.0,0.0,0.0),u);
+			//plane facing +y direction
+			w = prevPos - vec3(xfo,(yfo+wti/2.0),0.0);
+			float s3 = dot(vec3(0.0,-1.0,0.0),w)/dot(vec3(0.0,1.0,0.0),u);
+			//plane facing -y direction
+			w = prevPos - vec3(xfo,(yfo-wti/2.0),0.0);
+			float s4 = dot(vec3(0.0,1.0,0.0),w)/dot(vec3(0.0,-1.0,0.0),u);
+			//plane facing +z direction
+			w = prevPos -vec3(xfo,0.0,(zfo+ht));
+			float s5 = dot(vec3(0.0,0.0,-1.0),w)/dot(vec3(0.0,0.0,1.0),u);
 
-		//incident vector
-		vec3 l;
-		//normal vector
-		vec3 normal;
+			//incident vector
+			vec3 l;
+			//normal vector
+			vec3 normal;
 	
-		if((s1 >= 0.0) && (s1 <= 1.0)){
-			pI = s1*u + prevPos;
-			normal = vec3(-1.0,0.0,0.0);				
-		}
-		else if((s2 >= 0.0) && (s2 <= 1.0)){
-			pI = s2*u + prevPos;
-			normal = vec3(1.0,0.0,0.0);
-		}
-		else if((s3 >= 0.0) && (s3 <= 1.0)){
-			pI = s3*u + prevPos;
-			normal = vec3(0.0,1.0,0.0);
-		}
-		else if((s4 >= 0.0) && (s4 <= 1.0)){
-			pI = s4*u + prevPos;
-			normal = vec3(0.0,-1.0,0.0);
-		}
-		else if((s5 >= 0.0) && (s5 <= 1.0)){
-			pI = s5*u + prevPos;
-			normal = vec3(0.0,0.0,1.0);
-		}
-		l = prevPos - pI;
-		l = normalize(l);
-		pos = vec4(pI,0.0) - vec4(reflect(l,normal),0.0);
-		prmCurr = pI - reflect(l,normal);
+			if((s1 >= 0.0) && (s1 <= 1.0)){
+				pI = s1*u + prevPos;
+				normal = vec3(-1.0,0.0,0.0);				
+			}
+			else if((s2 >= 0.0) && (s2 <= 1.0)){
+				pI = s2*u + prevPos;
+				normal = vec3(1.0,0.0,0.0);
+			}
+			else if((s3 >= 0.0) && (s3 <= 1.0)){
+				pI = s3*u + prevPos;
+				normal = vec3(0.0,1.0,0.0);
+			}
+			else if((s4 >= 0.0) && (s4 <= 1.0)){
+				pI = s4*u + prevPos;
+				normal = vec3(0.0,-1.0,0.0);
+			}
+			else if((s5 >= 0.0) && (s5 <= 1.0)){
+				pI = s5*u + prevPos;
+				normal = vec3(0.0,0.0,1.0);
+			}
+			l = prevPos - pI;
+			l = normalize(l);
+			pos = vec4(pI,0.0) - vec4(reflect(l,normal),0.0);
+			prmCurr = pI - reflect(l,normal);
 
+		}
 	}
 	
    }
