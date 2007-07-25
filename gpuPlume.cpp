@@ -302,15 +302,11 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if( key == 'o')
     {
-      plume->pe[curr]->releasePerSecond = false;
-      plume->pe[curr]->releasePerTimeStep = false;
-      plume->pe[curr]->releaseOne = true;
+      plume->pe[curr]->releaseType = onePerKeyPress;
     }
   else if(key == 'p')
     {
-      plume->pe[curr]->releaseOne = false;
-      plume->pe[curr]->releasePerTimeStep = false;
-      plume->pe[curr]->releasePerSecond = true;
+      plume->pe[curr]->releaseType = perSecond;
     }
   else if (key == 'w')
     {
