@@ -137,16 +137,17 @@ void main(void)
    	pos = pos + vec4(wind,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
 	
-	//Reflection off ground		
+		
 	vec3 u;
 	vec3 w;
 	//point of intersection
 	vec3 pI;	
 
 
-        while((pos.z < 0) || ((pos.x >= xfo) && (pos.x <= xfo+lti) && (pos.y >= yfo-(wti/2.0)) && 
-		(pos.y <= yfo+(wti/2.0)) && (pos.z <= zfo+ht))){
+        while((pos.z < 0) || ((pos.x > xfo) && (pos.x < xfo+lti) && (pos.y > yfo-(wti/2.0)) && 
+		(pos.y < yfo+(wti/2.0)) && (pos.z < zfo+ht))){
 
+		//Reflection off ground
 		if(pos.z < 0){
 			pos.z = -pos.z;
 			prmCurr.z = -prmCurr.z;
@@ -156,7 +157,7 @@ void main(void)
 
 		//Reflection off building
 		//Check to see if particle is inside building
-		else if((pos.x >= xfo) && (pos.x <= xfo+lti) && (pos.y >= yfo-(wti/2.0)) && (pos.y <= yfo+(wti/2.0)) && (pos.z <= zfo+ht)){
+		if((pos.x > xfo) && (pos.x < xfo+lti) && (pos.y > yfo-(wti/2.0)) && (pos.y < yfo+(wti/2.0)) && (pos.z < zfo+ht)){
 		
 			u = vec3(pos.x,pos.y,pos.z) - prevPos;	
 			//plane facing -x direction
@@ -177,12 +178,14 @@ void main(void)
 
 			//incident vector
 			vec3 l;
+			//reflection vector
+			vec3 r;
 			//normal vector
 			vec3 normal;
 	
 			if((s1 >= 0.0) && (s1 <= 1.0)){
 				pI = s1*u + prevPos;
-				normal = vec3(-1.0,0.0,0.0);				
+				normal = vec3(-1.0,0.0,0.0);		
 			}
 			else if((s2 >= 0.0) && (s2 <= 1.0)){
 				pI = s2*u + prevPos;
@@ -200,12 +203,22 @@ void main(void)
 				pI = s5*u + prevPos;
 				normal = vec3(0.0,0.0,1.0);
 			}
-			l = prevPos - pI;
-			l = normalize(l);
-			pos = vec4(pI,0.0) - vec4(reflect(l,normal),0.0);
-			prmCurr = pI - reflect(l,normal);
+			l = normalize(pI-prevPos);
+			r = reflect(l,normal);
+			float d = distance(pI,vec3(pos));
+			
+			//This needs to be done in order for while loop to work!
+			prevPos = vec3(pos);
+			prmPrev = prmCurr;
+
+			pos = vec4(pI+(d*r),pos.a);
+
+			//l = normalize(prmCurr-prmPrev);
+			prmCurr = reflect(prmCurr,normal);
+			//prmCurr = -normalize(prmCurr);
 
 		}
+		
 	}
 	
    }
