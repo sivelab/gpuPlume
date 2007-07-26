@@ -149,10 +149,16 @@ void main(void)
 
 		//Reflection off ground
 		if(pos.z < 0){
+			//Set prevPos to point of intersection
+			prevPos = (pos.x,pos.y,0.0);
+			prmPrev = prmCurr;
+
 			pos.z = -pos.z;
 			prmCurr.z = -prmCurr.z;
 			//pos = reflect(pos,n);
 			//prmCurr = reflect(prmCurr,vec3(0.0,0.0,1.0));
+			
+
 		}
 
 		//Reflection off building
@@ -207,8 +213,10 @@ void main(void)
 			r = reflect(l,normal);
 			float d = distance(pI,vec3(pos));
 			
-			//This needs to be done in order for while loop to work!
-			prevPos = vec3(pos);
+			//This needs to be done in order for while loop to work...maybe
+			//I think this is right???
+			//Set the previous position to the point of intersection.
+			prevPos = pI;
 			prmPrev = prmCurr;
 
 			pos = vec4(pI+(d*r),pos.a);
