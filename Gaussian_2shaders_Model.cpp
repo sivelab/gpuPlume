@@ -400,45 +400,57 @@ void Gaussian_2shaders_Model::setupTextures(){
   //These two textures are to store the prime values(previous and updated values)
   //We will need to initialize some data into prime0
 
-  for (int j=0; j<theight; j++)
-    for (int i=0; i<twidth; i++)
-      {
-	int idx = j*twidth*sz + i*sz;
-
-	data[idx] = Random::normal();
-	data[idx+1] = Random::normal();
-	data[idx+2] = Random::normal();
-	data[idx+3] = 0.0;
-
-	// record the random values to compute a mean, std, and var
-	random_values.push_back( data[idx] );
-	random_values.push_back( data[idx + 1] );
-	random_values.push_back( data[idx + 2] );
-
-	data[idx] = util->sigU*(data[idx]);   
-	data[idx+1] = util->sigV*(data[idx+1]);
-	data[idx+2] = util->sigW*(data[idx+2]);
-      }
-
-  // Sum random values to determine if they have mean of zero and variance of 1
-  double mean = 0.0;
-  // std::cout << "randvalsprime = [" << std::endl;
-  for (unsigned int i=0; i<random_values.size(); i++)
-    {
-      // std::cout << random_values[i] << std::endl;
-      mean += random_values[i];
-    }
-  // std::cout << "];" << std::endl;
-  mean = mean / (double)random_values.size();
-
+  int iterations = 0;
+  double mean = 1.0;
   double stddev = 0.0, variance = 0.0, tmp_sum = 0.0;
-  for (unsigned int i=0; i<random_values.size(); i++)
-    {
-      tmp_sum += ((random_values[i] - mean) * (random_values[i] - mean));
-    }
-  variance = tmp_sum / (double)random_values.size();
-  stddev = sqrt( variance );
+
+  while( !(-0.01 < mean && mean < 0.01 && 0.90 < variance && variance < 1.01) && iterations < 50){
+    iterations++;
+
+    for (int j=0; j<theight; j++)
+      for (int i=0; i<twidth; i++)
+	{
+	  int idx = j*twidth*sz + i*sz;
+
+	  data[idx] = Random::normal();
+	  data[idx+1] = Random::normal();
+	  data[idx+2] = Random::normal();
+	  data[idx+3] = 0.0;
+	  
+	  // record the random values to compute a mean, std, and var
+	  random_values.push_back( data[idx] );
+	  random_values.push_back( data[idx + 1] );
+	  random_values.push_back( data[idx + 2] );
+
+	  data[idx] = util->sigU*(data[idx]);   
+	  data[idx+1] = util->sigV*(data[idx+1]);
+	  data[idx+2] = util->sigW*(data[idx+2]);
+	}
+
+    // Sum random values to determine if they have mean of zero and variance of 1
+    mean = 0.0;
+    // std::cout << "randvalsprime = [" << std::endl;
+    for (unsigned int i=0; i<random_values.size(); i++)
+      {
+	// std::cout << random_values[i] << std::endl;
+	mean += random_values[i];
+      }
+    // std::cout << "];" << std::endl;
+    mean = mean / (double)random_values.size();
+
+    stddev = 0.0;
+    variance = 0.0;
+    tmp_sum = 0.0;
+    for (unsigned int i=0; i<random_values.size(); i++)
+      {
+	tmp_sum += ((random_values[i] - mean) * (random_values[i] - mean));
+      }
+    variance = tmp_sum / (double)random_values.size();
+    stddev = sqrt( variance );
+
+  }
   std::cout << "Prime Textures Random Values: Mean = " << mean << ", Standard Deviation = " << stddev << ", Variance = " << variance << std::endl;
+  std::cout << "Number of iterations to get random values: " << iterations << std::endl;
 
   pc->createTexture(prime0, int_format, twidth, theight, data);
   CheckErrorsGL("\tcreated texid[5], the initial prime value texture...");
@@ -449,44 +461,56 @@ void Gaussian_2shaders_Model::setupTextures(){
   // create random texture for use with particle simulation and turbulence
   //
   random_values.clear();
-  for (int j=0; j<theight; j++)
-    for (int i=0; i<twidth; i++)
-      {
-	int idx = j*twidth*sz + i*sz;
-	
-	//
-	// Generate random values should of normal distribution with zero mean and standard deviation of one.
-	// Need to pull classes from sim_fast that handle this... 
-	// For now, generate random values between -1 and 1.... shader subtracts 1.0
-	//
-	data[idx] = Random::normal();
-	data[idx+1] = Random::normal();
-	data[idx+2] = Random::normal();
-	data[idx+3] = 0.0;
-		
-	random_values.push_back( data[idx] );
-	random_values.push_back( data[idx + 1] );
-	random_values.push_back( data[idx + 2] );
-      }
 
-  // Sum random values to determine if they have mean of zero and variance of 1
-  mean = 0.0;
-  for (unsigned int i=0; i<random_values.size(); i++)
-    {
-      mean += random_values[i];
-    }
-  mean = mean / (double)random_values.size();
+  iterations = 0;
+  mean = 1.0;
+  variance = 0.0;
+
+  while( !(-0.01 < mean && mean < 0.01 && 0.90 < variance && variance < 1.01) && iterations < 50){
+
+    iterations++;
+    for (int j=0; j<theight; j++)
+      for (int i=0; i<twidth; i++)
+	{
+	  int idx = j*twidth*sz + i*sz;
+	
+	  //
+	  // Generate random values should of normal distribution with zero mean and standard deviation of one.
+	  // Need to pull classes from sim_fast that handle this... 
+	  // For now, generate random values between -1 and 1.... shader subtracts 1.0
+	  //
+	  data[idx] = Random::normal();
+	  data[idx+1] = Random::normal();
+	  data[idx+2] = Random::normal();
+	  data[idx+3] = 0.0;
+		
+	  random_values.push_back( data[idx] );
+	  random_values.push_back( data[idx + 1] );
+	  random_values.push_back( data[idx + 2] );
+	}
+
+    // Sum random values to determine if they have mean of zero and variance of 1
+    mean = 0.0;
+    for (unsigned int i=0; i<random_values.size(); i++)
+      {
+	mean += random_values[i];
+      }
+    mean = mean / (double)random_values.size();
   
-  stddev = 0.0;
-  variance = 0.0; 
-  tmp_sum = 0.0;
-  for (unsigned int i=0; i<random_values.size(); i++)
-    {
-      tmp_sum += ((random_values[i] - mean) * (random_values[i] - mean));
-    }
-  variance = tmp_sum / (double)random_values.size();
-  stddev = sqrt( variance );
+    stddev = 0.0;
+    variance = 0.0; 
+    tmp_sum = 0.0;
+    for (unsigned int i=0; i<random_values.size(); i++)
+      {
+	tmp_sum += ((random_values[i] - mean) * (random_values[i] - mean));
+      }
+    variance = tmp_sum / (double)random_values.size();
+    stddev = sqrt( variance );
+
+  }
+
   std::cout << "texid[4] Random Values: Mean = " << mean << ", Standard Deviation = " << stddev << ", Variance = " << variance << std::endl;
+  std::cout << "Number of iterations to get random values: " << iterations << std::endl;
 
   pc->createTexture(texid[4], int_format, twidth, theight, data);
   CheckErrorsGL("\tcreated texid[4], the random number texture...");
