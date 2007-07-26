@@ -20,7 +20,7 @@ CollectionBox::CollectionBox(int x,int y,int z,float* bounds,double time){
   uy = bounds[4];
   uz = bounds[5];
 
-  volume = (double)(ux-lx)*(uy-ly)*(uz-lz);
+  volume = (double)(ux-lx)*(uy-ly)*(uz-lz)/(double)(numBox_x*numBox_y*numBox_z);
   TotRel = (double)1.0;
   concAvgTime = time;
 
@@ -130,7 +130,7 @@ void CollectionBox::draw(double timeStepNum){
      if(timeStepNum == 0)
        alpha = 0.0;
      else
-       alpha = (cBox[idx]/(timeStepNum))/100.0;
+       alpha = (cBox[idx]/(timeStepNum))/10.0;
 
      glBegin(GL_QUADS);
      {
