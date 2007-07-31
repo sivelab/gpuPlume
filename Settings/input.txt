@@ -18,7 +18,7 @@ show_collectionBox_visuals 0
 #1 = one shader for the Gaussian advection step,
 #0 = the multi pass Gaussian advection technique
 #!!!!!if choice is 2, make sure to set testcase to 5!!!!!!
-advectChoice 1
+advectChoice 3
 
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
@@ -30,14 +30,14 @@ time_step 0.012
 #Use value of 4 for uniform in U direction
 #Use value of 2 for random values
 #use value of 5 for the varied in U direction
-windFieldData 4
+windFieldData 5
 
 #output file for the values of the collection boxes
 output_file data.txt
 
 #Total time in seconds to run simulation
 #set to 0 to let user decide when to quit
-duration 30
+duration 0
 
 #Ustar value for prime and lambda calculations
 ustar 0.084
@@ -46,7 +46,7 @@ ustar 0.084
 startCBoxTime 0.0
 
 #Collection box end Time
-endCBoxTime 20.0
+endCBoxTime 0.0
 
 #Collection box averaging Time
 averagingTime 30.0
@@ -57,7 +57,7 @@ bounds 32.0 10.0 8.0 60.0 50.0 12.0
 #Collection box discretization
 
 #number of boxes in x direction 
-numBox_x   2
+numBox_x   3
 #number of boxes in y direction 
 numBox_y   2
 #number of boxes in z direction 
@@ -73,7 +73,7 @@ source_info 30.0 30.0 10.0 0.0 10.0
 #source_info 3.0 30.0 3.0 0.0 1.0
 
 #Set the type of Particle Release
-release_type 0
+release_type 1
 
 #Set to 0 and it will release a set number of particles per time step
 #based on simulation duration. 
