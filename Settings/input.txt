@@ -18,7 +18,7 @@ show_collectionBox_visuals 0
 #1 = one shader for the Gaussian advection step,
 #0 = the multi pass Gaussian advection technique
 #!!!!!if choice is 2, make sure to set testcase to 5!!!!!!
-advectChoice 3
+advectChoice 1
 
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
@@ -30,14 +30,14 @@ time_step 0.012
 #Use value of 4 for uniform in U direction
 #Use value of 2 for random values
 #use value of 5 for the varied in U direction
-windFieldData 5
+windFieldData 4
 
 #output file for the values of the collection boxes
 output_file data.txt
 
 #Total time in seconds to run simulation
 #set to 0 to let user decide when to quit
-duration 0
+duration 30
 
 #Ustar value for prime and lambda calculations
 ustar 0.084
@@ -46,34 +46,34 @@ ustar 0.084
 startCBoxTime 0.0
 
 #Collection box end Time
-endCBoxTime 0.0
+endCBoxTime 20.0
 
 #Collection box averaging Time
-averagingTime 300.0
+averagingTime 30.0
 
 #Collection box bounds; lower_x,lower_y,lower_z, upper_x,upper_y,upper_z
 bounds 32.0 10.0 8.0 60.0 50.0 12.0
 #bounds 25.0 5.0  0.0 60.0 20.0 5.0
 #Collection box discretization
 
-#number of boxes in x direction (z in openGL)
-numBox_x   10
-#number of boxes in y direction (x in openGL)
-numBox_y   10
-#number of boxes in z direction (y in openGL)
-numBox_z   3
+#number of boxes in x direction 
+numBox_x   2
+#number of boxes in y direction 
+numBox_y   2
+#number of boxes in z direction 
+numBox_z   1
 
 #Source/ParticleEmitter information
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius, rate
-source_info 30.0 30.0 10.0 0.0 1.0
+source_info 30.0 30.0 10.0 0.0 10.0
 #source_info 25.0 17.0 1.0 0.0 1.0
-#source_info 20.0 40.0 2.0 0.5 10.0
-#source_info 50.0 5.0 3.0 0.0 1.0
+#source_info 30.0 30.0 1.0 0.0 10.0
+#source_info 3.0 30.0 3.0 0.0 1.0
 
 #Set the type of Particle Release
-release_type 2
+release_type 0
 
 #Set to 0 and it will release a set number of particles per time step
 #based on simulation duration. 
