@@ -98,9 +98,9 @@ void Util::readInput(std::string file){
   lti = __datamodule__lti;
   
 #else
-  nx = 60;
-  ny = 60;//140;
-  nz = 20;
+  //nx = 60;
+  //ny = 60;//140;
+  //nz = 20;
   u=0;
   v=0;
   w=0;
