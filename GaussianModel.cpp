@@ -29,14 +29,9 @@ GaussianModel::GaussianModel(Util* u){
   int_format_init = GL_RGBA;
 
   totalNumPar = 0.0;  
-  pos_buffer = new GLfloat[ twidth * theight * 4 ];
 
   //CollectionBox Settings
-  avgTime = util->averagingTime + util->startCBoxTime;
-  //If we want to output concentrations only at end set this
-  avgTime = util->endCBoxTime;
-  cBoxes[0] = new CollectionBox(util->numBox_x,util->numBox_y,util->numBox_z,util->bounds,util->averagingTime);
-  
+  cBoxes[0] = new CollectionBox(util);
   num_cBoxes = 1;
   
   firstTime = true;
@@ -114,6 +109,7 @@ void GaussianModel::init(bool OSG){
     sim->init();
   } 
 }
+bool once = true;
 
 int GaussianModel::display(){
   if(osgPlume){
@@ -128,6 +124,7 @@ int GaussianModel::display(){
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
+  
 
   //update simulation information such as total time elapsed and current time step
   //if set to run for a total number of time steps and that value has been reached,
@@ -138,7 +135,8 @@ int GaussianModel::display(){
 	quitSimulation = true;
       }
     }
-  }
+  } 
+
   //Store simulation start time and turn on one particle emitter
   if(firstTime){
     if(!osgPlume)
@@ -151,7 +149,7 @@ int GaussianModel::display(){
   glEnable(texType);
   // bind the framebuffer object so we can render to the 2nd texture
   fbo->Bind();
-  
+
   /////////////////////////////////////////////////////////////
   //Reuse particles if their lifespan is up
   /////////////////////////////////////////////////////////////
@@ -161,58 +159,24 @@ int GaussianModel::display(){
   ////////////////////////////////////////////////////////////
    // Emit Particles
   ////////////////////////////////////////////////////////////
-  for(int i = 0; i < util->numOfPE; i++){
-    
+
+  for(int i = 0; i < util->numOfPE; i++){    
     if(pe[i]->emit){    
       totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step);
       if(pe[i]->releaseType == onePerKeyPress){
 	stream->addNewStream(pe[i]);
       }
     }
-
   }
+
   ////////////////////////////////////////////////////////////
   // Collection Boxes
   ////////////////////////////////////////////////////////////
+
   if(!endCBox){
-    
-    if(sim->totalTime >= util->endCBoxTime){
-      sim->curr_timeStep += 1.0;
-      endCBox = true;
-      if(util->endCBoxTime != 0)
-	output_CollectionBox = true;
-    }       
+    output_CollectionBox = cBoxes[0]->findConc(sim,&endCBox,odd);
   }
 
-  if((sim->totalTime >= util->startCBoxTime) && !endCBox){
-
-    sim->curr_timeStep +=1.0;
-
-    glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, pos_buffer); 
-    for(int i = 3; i <= (theight*twidth*4); i+=4){
-      //If particle has been emitted
-      if(pos_buffer[i] == -1){
-	
-	//Get the x,y,z position of the particle
-	float x = pos_buffer[i-3];
-	float y = pos_buffer[i-2];
-	float z = pos_buffer[i-1];
-
-	//Check to see if particle is inside a collection box
-	for(int j = 0; j < num_cBoxes; j++){
-	  //if a particle is in a box the concentration value is updated
-	  //cBoxes[j]->calculateConc(x,y,z,time_step,totalNumPar);
-	  cBoxes[j]->calcSimpleConc(x,y,z);
-	}	
-      }
-    } 
-    if(sim->totalTime >= avgTime){
-      avgTime += util->averagingTime;
-      output_CollectionBox = true;
-    }
-
-  }
-  
   ////////////////////////////////////////////////////////////
   // Update Prime Values and Particle Positions
   ////////////////////////////////////////////////////////////
@@ -259,8 +223,9 @@ int GaussianModel::display(){
   if(output_CollectionBox)
      {
        for(int j = 0; j < num_cBoxes; j++){
-		cBoxes[j]->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
+	 cBoxes[j]->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
        }
+       //cBox->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
        output_CollectionBox = false;
      }
 
@@ -272,6 +237,16 @@ int GaussianModel::display(){
   // screen will make the simulation run more slowly. This feature is
   // mainly included to allow some idea of how much faster the
   // simulation can run if left to run on the GPU.
+
+  if(twidth*theight == 0 && once){
+    std::cout << "w " << twidth << std::endl;
+    std::cout << "h " << theight << std::endl;
+    std::cout << sim->totalTime << std::endl;
+    std::cout << "Total particles " << totalNumPar << std::endl;
+    std::cout << "Curr timestep " << sim->curr_timeStep << std::endl;
+    once = false;
+  }
+
   if (util->show_particle_visuals)
     {
       
@@ -317,7 +292,7 @@ int GaussianModel::display(){
 	glLoadIdentity();	
 	//glClearColor(0.93,0.93,0.93,1.0);	
       }
-      
+
       dc->drawVisuals(vertex_buffer, windField, numInRow, twidth, theight);
       stream->draw();
       dc->drawLayers(windField, numInRow);
