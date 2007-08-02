@@ -71,9 +71,6 @@ class PlumeControl{
   bool osgPlume;
   bool quitSimulation;
 
-  //Set this to 1 to use one shader for rendering to multiple targets.
-  int advectChoice;
-
   //glut window id
   int winid;
 
@@ -108,7 +105,6 @@ class PlumeControl{
   bool odd;
   bool reuseParticles;
 
-  GLfloat* pos_buffer;
   GLSLObject emit_shader;
   GLenum int_format; 
   GLenum int_format_init;
