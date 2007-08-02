@@ -4,6 +4,8 @@
 #include <math.h>
 #include <fstream>
 #include <GL/glew.h>
+#include "simulation.h"
+#include "util.h"
 
 typedef struct{
   float x;
@@ -19,13 +21,9 @@ typedef struct{
 class CollectionBox{
  public:
   
-  //The first three int variables are the number of boxes in
-  //the x,y, and z directions respectively.
-  //The array of floats is the two coordinate bounds of the cuboid.
-  //The first three values is the lower x,y,z coordinate
-  //and the last three is the upper x,y,z coordinate
-  //The last float is the concentration averaging time
-  CollectionBox(int,int,int,float*,double);
+  CollectionBox(Util*);
+
+  bool findConc(Simulation*,bool*,bool);
 
   void calcSimpleConc(float,float,float);
 
@@ -72,7 +70,10 @@ class CollectionBox{
   double TotRel;
   double concAvgTime;
 
-  
+  double endCBoxTime,startCBoxTime,avgTime;
+
+  int twidth,theight;
+  GLfloat* pos_buffer;
 
 };
 
