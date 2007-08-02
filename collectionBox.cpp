@@ -1,32 +1,34 @@
 #include "collectionBox.h"
 #include <iostream>
 
-CollectionBox::CollectionBox(int x,int y,int z,float* bounds,double time){
-  numBox_x = x;
-  numBox_y = y;
-  numBox_z = z;
+CollectionBox::CollectionBox(Util* util){
+  numBox_x = util->numBox_x;
+  numBox_y = util->numBox_y;
+  numBox_z = util->numBox_z;
+
+  twidth = util->twidth;
+  theight = util->theight;
   
-  //Converts from quic-plume coordinate system to openGL: Don't do anymore!
-  /*lx = bounds[1];
-  ly = bounds[2];
-  lz = bounds[0];
-  ux = bounds[4];
-  uy = bounds[5];
-  uz = bounds[3];*/
-  lx = bounds[0];
-  ly = bounds[1];
-  lz = bounds[2];
-  ux = bounds[3];
-  uy = bounds[4];
-  uz = bounds[5];
+  lx = util->bounds[0];
+  ly = util->bounds[1];
+  lz = util->bounds[2];
+  ux = util->bounds[3];
+  uy = util->bounds[4];
+  uz = util->bounds[5];
 
   volume = (double)(ux-lx)*(uy-ly)*(uz-lz)/(double)(numBox_x*numBox_y*numBox_z);
   TotRel = (double)1.0;
-  concAvgTime = time;
+  concAvgTime = util->averagingTime;
 
-  cBox = new double[x*y*z];
-  cPos = new BoxPos[x*y*z];
-  cDis = new BoxDis[x*y*z];
+
+  //avgTime = util->averagingTime + util->startCBoxTime;
+  avgTime = util->endCBoxTime;
+  endCBoxTime = util->endCBoxTime;
+  startCBoxTime = util->startCBoxTime;
+
+  cBox = new double[numBox_x*numBox_y*numBox_z];
+  cPos = new BoxPos[numBox_x*numBox_y*numBox_z];
+  cDis = new BoxDis[numBox_x*numBox_y*numBox_z];
   calcBoxPositions();
 
   //This is used for drawing the collection boxes.
@@ -36,6 +38,7 @@ CollectionBox::CollectionBox(int x,int y,int z,float* bounds,double time){
   dy = ((uy-ly)/(float)numBox_y)/2.0 - 0.1;
   dz = ((uz-lz)/(float)numBox_z)/2.0 - 0.1;
 
+  pos_buffer = new GLfloat[ twidth * theight * 4 ];
 
   clear();
 
@@ -174,16 +177,61 @@ void CollectionBox::draw(double timeStepNum){
   glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
 }
+bool CollectionBox::findConc(Simulation* sim, bool* endCBox,bool odd){
+   if(sim->totalTime >= endCBoxTime){
+     sim->curr_timeStep += 1.0;
+     *endCBox = true;
+     if(endCBoxTime != 0)
+       return true;
+   }  
+   if((sim->totalTime >= startCBoxTime) && !*endCBox){
+
+     sim->curr_timeStep +=1.0;
+
+     if(odd)
+       glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+     else
+       glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+
+     glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, pos_buffer); 
+
+     for(int i = 3; i <= (theight*twidth*4); i+=4){
+       //If particle has been emitted
+       if(pos_buffer[i] == -1){
+	
+	 //Get the x,y,z position of the particle
+	 float x = pos_buffer[i-3];
+	 float y = pos_buffer[i-2];
+	 float z = pos_buffer[i-1];
+
+	 //Check to see if particle is inside a collection box
+	 //if a particle is in a box the concentration value is updated
+	 //cBoxes[j]->calculateConc(x,y,z,time_step,totalNumPar);
+	 calcSimpleConc(x,y,z);	
+       }
+     }    
+
+     if(sim->totalTime >= avgTime){
+       avgTime += concAvgTime;
+       return true;
+     }
+
+   }
+   return false;
+
+}
 
 void CollectionBox::calcSimpleConc(float x, float y, float z){
-  if( (lx <= x)&&(x <= ux)&&(ly <= y)&&(y <= uy)&&(lz <= z)&&(z <= uz) ){
-        
+  if( (lx <= x)&&(x < ux)&&(ly <= y)&&(y < uy)&&(lz <= z)&&(z < uz) ){   
+
     int xBox = (int)floor((x-lx)/((ux-lx)/(float)numBox_x));
     int yBox = (int)floor((y-ly)/((uy-ly)/(float)numBox_y));
     int zBox = (int)floor((z-lz)/((uz-lz)/(float)numBox_z));
+
     int idx = zBox*numBox_y*numBox_x + yBox*numBox_x + xBox;
        
-    cBox[idx] = cBox[idx] + 1.0;   
+    cBox[idx] = cBox[idx] + 1.0;
   }
 
 }
