@@ -29,14 +29,8 @@ NonGaussianModel::NonGaussianModel(Util* u){
   int_format_init = GL_RGBA;
 
   totalNumPar = 0.0;  
-  pos_buffer = new GLfloat[ twidth * theight * 4 ];
-
-  //CollectionBox Settings
-  avgTime = util->averagingTime + util->startCBoxTime;
-  //If we want to output concentrations only at end set this
-  avgTime = util->endCBoxTime;
-  cBoxes[0] = new CollectionBox(util->numBox_x,util->numBox_y,util->numBox_z,util->bounds,util->averagingTime);
-  
+  //Collection Box Settings
+  cBoxes[0] = new CollectionBox(util);  
   num_cBoxes = 1;
   
   firstTime = true;
@@ -182,51 +176,15 @@ int NonGaussianModel::display(){
   ////////////////////////////////////////////////////////////
   // Collection Boxes
   ////////////////////////////////////////////////////////////
+
   if(!endCBox){
-    
-    if(sim->totalTime >= util->endCBoxTime){
-      sim->curr_timeStep += 1.0;
-      endCBox = true;
-      if(util->endCBoxTime != 0)
-	output_CollectionBox = true;
-    }       
-  }
-
-  if((sim->totalTime >= util->startCBoxTime) && !endCBox){
-
-    sim->curr_timeStep +=1.0;
-
-    glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, pos_buffer); 
-    for(int i = 3; i <= (theight*twidth*4); i+=4){
-      //If particle has been emitted
-      if(pos_buffer[i] == -1){
-	
-	//Get the x,y,z position of the particle
-	float x = pos_buffer[i-3];
-	float y = pos_buffer[i-2];
-	float z = pos_buffer[i-1];
-
-	//Check to see if particle is inside a collection box
-	for(int j = 0; j < num_cBoxes; j++){
-	  //if a particle is in a box the concentration value is updated
-	  //cBoxes[j]->calculateConc(x,y,z,time_step,totalNumPar);
-	  cBoxes[j]->calcSimpleConc(x,y,z);
-	}	
-      }
-    } 
-    if(sim->totalTime >= avgTime){
-      avgTime += util->averagingTime;
-      output_CollectionBox = true;
-    }
-
+    output_CollectionBox = cBoxes[0]->findConc(sim,&endCBox,odd); 
   }
   
   ////////////////////////////////////////////////////////////
   // Update Prime Values and Particle Positions
   ////////////////////////////////////////////////////////////
    
-  //NOTE: The framebuffer object is no longer passed as an argument.
-  //I don't think it's needed.
   pc->nonGaussianAdvect(odd,windField,positions0,positions1,prime0,prime1,
 			  randomValues,lambda,tau_dz,duvw_dz,time_step);
  
