@@ -39,6 +39,7 @@ ReflectionModel::ReflectionModel(Util* u){
   output_CollectionBox = false;
   odd = true; 
   dump_contents = false;
+  print_MeanVel = false;
   createImages = false;
   quitSimulation = false;
 	
@@ -89,7 +90,7 @@ void ReflectionModel::init(bool OSG){
   setupEmitters();
   
   glEnable(texType);
-  glGenTextures(10, texid);
+  glGenTextures(12, texid);
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
@@ -101,6 +102,11 @@ void ReflectionModel::init(bool OSG){
   lambda = texid[7];
   tau_dz = texid[8];
   duvw_dz = texid[9];
+
+  //Texture for mean velocities
+  meanVel0 = texid[10];
+  meanVel1 = texid[11];
+
   /////////////////////////////
   setupTextures();
   
@@ -116,6 +122,8 @@ void ReflectionModel::init(bool OSG){
   initFBO();
 
   pc->setupReflectionShader(numInRow,lifeTime);
+
+  pc->setupMeanVel_shader();
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -141,7 +149,7 @@ int ReflectionModel::display(){
   }
   //Store simulation start time and turn on one particle emitter
   if(firstTime){
-    pe[0]->emit = true;
+    //pe[0]->emit = true;
     sim->setStartTime(&time_step);
     firstTime = false;
   }
@@ -184,6 +192,10 @@ int ReflectionModel::display(){
 			  randomValues,lambda,tau_dz,duvw_dz,time_step,buildParam);
  
   ////////////////////////////////////////////////////////////
+  // Update Mean Velocities
+  ////////////////////////////////////////////////////////////
+
+  pc->findMeanVel(odd,prime0,prime1,meanVel0,meanVel1,positions0,positions1);
 
   ////////////////////////////////////////////////////////////
   // Get Position for Streams
@@ -199,26 +211,14 @@ int ReflectionModel::display(){
   // the FBO to a file.
   if (dump_contents)
      {
-       glGetIntegerv(GL_READ_BUFFER, &readbuffer);
-
-       if(odd)
-	 glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-       else
-	 glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
-
-       std::cout << "Previous Positions" << std::endl;
-       pc->dumpContents();
-
-       if(odd)
-	 glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
-       else
-	 glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-       
-       std::cout << "Updated Positions" << std::endl;
-       pc->dumpContents();
-
+       pc->printPositions(odd);
        dump_contents = false;
      }
+  if(print_MeanVel)
+    {
+      pc->printMeanVelocities(odd);
+      print_MeanVel = false;
+    }
   if(output_CollectionBox)
      {
        for(int j = 0; j < num_cBoxes; j++){
@@ -307,6 +307,27 @@ int ReflectionModel::display(){
   }
   return 1;
 
+}
+
+void ReflectionModel::initFBO(void){
+  // Get the Framebuffer Object ready
+  fbo = new FramebufferObject();
+  fbo->Bind();
+      
+  //rb = new Renderbuffer();
+  //rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);
+  //fbo->AttachRenderBuffer(GL_DEPTH_ATTACHMENT_EXT, rb->GetId() );
+
+  //Attach textures to framebuffer object
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, texid[0]);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, texid[1]);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, prime0);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT3_EXT, texType, prime1);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, meanVel0);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
+
+  fbo->IsValid();
+  FramebufferObject::Disable();
 }
 
 void ReflectionModel::setupTextures(){
@@ -417,6 +438,10 @@ void ReflectionModel::setupTextures(){
   CheckErrorsGL("\tcreated texid[5], the initial prime value texture...");
 
   pc->createTexture(prime1, int_format, twidth, theight, data);
+
+  pc->createTexture(meanVel0, int_format, twidth, theight, data);
+  pc->createTexture(meanVel1, int_format, twidth, theight, data);
+  CheckErrorsGL("\tcreated mean velocity textures...");
 
   //
   // create random texture for use with particle simulation and turbulence
