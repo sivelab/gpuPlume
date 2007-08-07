@@ -382,6 +382,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Shaders\meanVel_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\meanVel_vp.glsl"
+				>
+			</File>
+			<File
 				RelativePath="..\Shaders\particleVisualize_fp.glsl"
 				>
 			</File>
