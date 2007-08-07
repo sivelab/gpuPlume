@@ -149,7 +149,7 @@ int ReflectionModel::display(){
   }
   //Store simulation start time and turn on one particle emitter
   if(firstTime){
-    //pe[0]->emit = true;
+    pe[0]->emit = true;
     sim->setStartTime(&time_step);
     firstTime = false;
   }
@@ -195,7 +195,7 @@ int ReflectionModel::display(){
   // Update Mean Velocities
   ////////////////////////////////////////////////////////////
 
-  pc->findMeanVel(odd,prime0,prime1,meanVel0,meanVel1,positions0,positions1);
+  //pc->findMeanVel(odd,prime0,prime1,meanVel0,meanVel1,positions0,positions1);
 
   ////////////////////////////////////////////////////////////
   // Get Position for Streams
@@ -323,9 +323,11 @@ void ReflectionModel::initFBO(void){
   fbo->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, texid[1]);
   fbo->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, prime0);
   fbo->AttachTexture(GL_COLOR_ATTACHMENT3_EXT, texType, prime1);
-  fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, meanVel0);
-  fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
+	
 
+  //fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, meanVel0);
+  //fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
+CheckErrorsGL("FBO init");
   fbo->IsValid();
   FramebufferObject::Disable();
 }
