@@ -57,15 +57,17 @@ class PlumeControl{
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
 
-  GLuint texid[10]; 
+  GLuint texid[12]; 
   GLenum texType,positions0,positions1,windField,randomValues;
   GLenum prime0, prime1, lambda, tau_dz, duvw_dz;
-  
+  GLenum meanVel0,meanVel1;
+
   FramebufferObject* fbo;
   Renderbuffer* rb;
   GLuint vertex_buffer;
 
   bool dump_contents;
+  bool print_MeanVel;
   bool createImages;
   bool output_CollectionBox;
   bool osgPlume;
@@ -89,7 +91,7 @@ class PlumeControl{
   GLint currentbuffer,readbuffer;
   std::list<pIndex>::iterator iter;
 
-  void initFBO();
+  virtual void initFBO();
   void particleReuse();
       
   Timer* display_clock;
