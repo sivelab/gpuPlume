@@ -179,14 +179,14 @@ void CollectionBox::draw(double timeStepNum){
 }
 bool CollectionBox::findConc(Simulation* sim, bool* endCBox,bool odd){
    if(sim->totalTime >= endCBoxTime){
-     sim->curr_timeStep += 1.0;
+     //sim->curr_timeStep += 1.0;
      *endCBox = true;
      if(endCBoxTime != 0)
        return true;
    }  
    if((sim->totalTime >= startCBoxTime) && !*endCBox){
 
-     sim->curr_timeStep +=1.0;
+     //sim->curr_timeStep +=1.0;
 
      if(odd)
        glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
