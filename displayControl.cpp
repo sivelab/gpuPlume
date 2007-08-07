@@ -3,6 +3,9 @@
 #include "displayControl.h"
 
 static char text_buffer[128];
+#ifdef WIN32
+#define M_PI 3.14159
+#endif
 
 DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 {
