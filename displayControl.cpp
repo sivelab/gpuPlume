@@ -13,19 +13,19 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 
   eye_pos[0] = nx+50;
   eye_pos[1] = 0;
-  eye_pos[2] = 0;
+  eye_pos[2] = 5;
   
-  eye_gaze[0] = eye_pos[0] - 5;
+  eye_gaze[0] = -1.0;
   eye_gaze[1] = 0;
-  eye_gaze[2] = 0;
+  eye_gaze[2] = 5;
 
-  //rotate_sphere = false;
-  rotate_object = false;
+  angle = M_PI;
+
+  change_height = false;
   translate_view = false;
   rotate_around = false;
   azimuth = 0.0;
   elevation = 0.0;
-  spin = 0.0;
 
   frame_rate = true;
   visual_layer = -1;
@@ -46,19 +46,16 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRow, 
 				 int twidth, int theight)
 {
+ 
+
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
-	     eye_gaze[0], eye_gaze[1], eye_gaze[2],
-	     0, 0, 1 );
+	     eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], 
+	       eye_gaze[2], 0, 0, 1 );
 
     // allow rotation of this object
-    glRotatef(elevation, 0,1,0);
-    glRotatef(azimuth, 0,0,1);
-
-    glTranslatef(nx/2,ny/2,0);
-    glRotatef(spin, 0,0,1);
-    glTranslatef(-nx/2,-ny/2,0);
-
+    //glRotatef(elevation, 0,1,0);
+    //glRotatef(azimuth, 0,0,1);  
   }
   
   // render the vertices in the VBO (the particle positions) as points in the domain
@@ -97,18 +94,41 @@ void DisplayControl::decreaseVisualLayer(){
   visual_layer--;
   if(visual_layer < -1) visual_layer = -1;
 }
-void DisplayControl::setEyeValues(float change){
-  eye_pos[0] = eye_pos[0] + change;
-  eye_gaze[0] = eye_pos[0] - 5.0;
+void DisplayControl::moveForwardorBack(float change){
+  //eye_pos[0] = eye_pos[0] + change;
+  //eye_gaze[0] = eye_pos[0] - 5.0;
+  if(change < 0.0){
+    eye_pos[0] -= eye_gaze[0];
+    eye_pos[1] -= eye_gaze[1];
+  }
+  else{
+    eye_pos[0] += eye_gaze[0];
+    eye_pos[1] += eye_gaze[1];
+  }
 }
 void DisplayControl::setAzimuth(float change, float rate){
   azimuth = azimuth + change*rate;
 }
 void DisplayControl::setElevation(float change, float rate){
-  elevation = elevation + change*rate;
+  //elevation = elevation + change*rate;
+  eye_pos[2] = eye_pos[2] + change*rate;
+  eye_gaze[2] = eye_gaze[2] + change*rate;
 }
-void DisplayControl::setRotateAround(float change, float rate){
-  spin = spin + change*rate;
+void DisplayControl::setRotateAround(float change, float rate,int x,int y){
+
+  if(change < 0)
+    angle = angle + (M_PI/90.0);
+  else 
+    angle = angle - (M_PI/90.0);
+
+  if(angle > 2*M_PI)
+    angle = 0.0;
+  else if(angle < 0.0)
+    angle = (2*M_PI - M_PI/45.0);
+
+  eye_gaze[0] = cos(angle);
+  eye_gaze[1] = sin(angle);
+
 }
 void DisplayControl::drawGround(){
 
