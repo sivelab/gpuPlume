@@ -87,11 +87,11 @@ int main(int argc, char** argv)
   //  GaussianModel();
   switch(util->advectChoice){
   case 0:
-    util->windFieldData = 4;
+    //util->windFieldData = 4;
     plume = new Gaussian_2shaders_Model(util);
     break;
   case 1:
-    util->windFieldData = 4;
+    //util->windFieldData = 4;
     plume = new GaussianModel(util);
     break;
   case 2:
@@ -343,6 +343,10 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->createImages = true;
     }
+  else if(key == 'm')
+    {
+      plume->print_MeanVel = true;
+    }
 
   glutPostRedisplay();
 }
@@ -353,17 +357,17 @@ void mouse(int button, int state, int x, int y)
   last_x = x;
   last_y = y;
 
-  if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
-    plume->dc->rotate_object = true;
+  if (state == GLUT_DOWN && button == GLUT_MIDDLE_BUTTON)
+    plume->dc->change_height = true;
   else // state == GLUT_UP
-    plume->dc->rotate_object = false;
+    plume->dc->change_height = false;
 
   if (state == GLUT_DOWN && button == GLUT_RIGHT_BUTTON)
     plume->dc->translate_view = true;
   else // state == GLUT_UP
     plume->dc->translate_view = false;
 
-  if (state == GLUT_DOWN && button == GLUT_MIDDLE_BUTTON)
+  if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
     plume->dc->rotate_around = true;
   else
     plume->dc->rotate_around = false;
@@ -374,24 +378,25 @@ void mouse(int button, int state, int x, int y)
 
 void motion(int x, int y)
 {
+
   if (plume->dc->translate_view) 
     {
       // pan view around gaze center...
       // since y is up, move eye in z only to take it into and out of the screen
       float change = y - last_y;
-      plume->dc->setEyeValues(change);
+      plume->dc->moveForwardorBack(change);
       
     }
 
-    if (plume->dc->rotate_object) 
+    if (plume->dc->change_height) 
     {
 	// since y is up, move eye in z only to take it into and out of the screen
 	float change = x - last_x;
 	float rate = 0.1;
 
-	change = x - last_x;
+	/*change = x - last_x;
 	rate = 0.1;
-	plume->dc->setAzimuth(change,rate);
+	plume->dc->setAzimuth(change,rate);*/
 
 	change = y - last_y;
 	rate = 0.1;
@@ -403,7 +408,7 @@ void motion(int x, int y)
       float change = x - last_x;
       float rate = 0.1;
 
-      plume->dc->setRotateAround(change,rate);
+      plume->dc->setRotateAround(change,rate,x,y);
 
 
     }
