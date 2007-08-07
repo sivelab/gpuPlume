@@ -5,7 +5,7 @@ Simulation::Simulation(bool time,double t,float* time_step){
   useRealTime = time;
   simDuration = t;
   totalTime = 0.0; 
-  curr_timeStep = 0;
+  curr_timeStep = 1.0;
 
   //tts = floor(simDuration/(*time_step));
   
@@ -32,7 +32,7 @@ void Simulation::setStartTime(float * time_step){
 bool Simulation::update(float* time_step){ 
 
   //increment the current time step of the simulation
-  //curr_timeStep += 1.0;
+  curr_timeStep += 1.0;
 
   if(useRealTime){
     display_time[1] = sim_clock->tic();
