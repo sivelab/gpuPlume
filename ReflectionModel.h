@@ -15,6 +15,7 @@ class ReflectionModel : public PlumeControl{
   
  protected:
 
+  virtual void initFBO();
   virtual ~ReflectionModel();
 
 
