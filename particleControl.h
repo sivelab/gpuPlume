@@ -61,6 +61,12 @@ class ParticleControl{
   //This will output the values of the current texture being read.
   void dumpContents();
 
+  //Prints out the previous and updated position values
+  void printPositions(bool);
+
+  //Prints out the mean velocity values
+  void printMeanVelocities(bool);
+
   //Writes the texture to a ppm image.
   void writePPM(const std::string&);
   short c2Short(float);
@@ -80,6 +86,9 @@ class ParticleControl{
   
   void createPosImages(bool);
   void createPrimeImages(bool);
+
+  void setupMeanVel_shader();
+  void findMeanVel(bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint);
 
   bool outputPrime;
    
@@ -129,7 +138,7 @@ class ParticleControl{
   float ustar,sigU,sigV,sigW;
 
   GLSLObject init_shader, pass1_shader, prime_shader, mrt_shader;
-  GLSLObject nonGaussian_shader, reflection_shader;
+  GLSLObject nonGaussian_shader, reflection_shader, meanVel_shader;
 
   //Variables for prime shader
   GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;
@@ -143,6 +152,9 @@ class ParticleControl{
   GLint uniform_tau_dz, uniform_duvw_dz;
   //Uniform variables for building
   GLint uniform_xfo, uniform_yfo, uniform_zfo, uniform_ht, uniform_wti, uniform_lti;
+
+  //Uniform variables for Mean Velocity shader
+  GLint uniform_prevMean, uniform_currVel, uniform_position;
 
   GLenum texType;
   GLfloat* buffer_mem;
