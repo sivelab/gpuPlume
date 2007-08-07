@@ -712,16 +712,147 @@ void ParticleControl::advect(bool odd,
   glBindTexture(texType, 0);
 
 }
+void ParticleControl::setupMeanVel_shader(){
+  meanVel_shader.addShader("Shaders/meanVel_vp.glsl", GLSLObject::VERTEX_SHADER);
+  meanVel_shader.addShader("Shaders/meanVel_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  meanVel_shader.createProgram();
+
+  // Get location of the sampler uniform
+  uniform_prevMean = meanVel_shader.createUniform("prevMean");
+  uniform_currVel = meanVel_shader.createUniform("currVel");
+  uniform_position = meanVel_shader.createUniform("position");
+
+  GLint unx = meanVel_shader.createUniform("nx");
+  GLint uny = meanVel_shader.createUniform("ny");
+  GLint unz = meanVel_shader.createUniform("nz");
+
+  meanVel_shader.activate();
+
+  glUniform1iARB(unx, nx);
+  glUniform1iARB(uny, ny);
+  glUniform1iARB(unz, nz);
+
+  meanVel_shader.deactivate();
+
+
+}
+
+void ParticleControl::findMeanVel(bool odd,GLuint prime0,GLuint prime1,
+				  GLuint meanVel0,GLuint meanVel1,
+				  GLuint positions0,GLuint positions1){
+
+  if (odd)
+    glDrawBuffer(GL_COLOR_ATTACHMENT5_EXT);
+  else 
+    glDrawBuffer(GL_COLOR_ATTACHMENT4_EXT);
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, twidth, theight);
+    
+  glEnable(texType);
+  meanVel_shader.activate();
+
+  glActiveTexture(GL_TEXTURE2);
+  if(odd)
+    glBindTexture(texType,positions1);
+  else
+    glBindTexture(texType,positions0);
+  glUniform1iARB(uniform_position,2);
+
+  glActiveTexture(GL_TEXTURE1);
+  if(odd)
+    glBindTexture(texType,prime1);
+  else
+    glBindTexture(texType,prime0);
+  glUniform1iARB(uniform_currVel,1);
+
+  glActiveTexture(GL_TEXTURE0);
+  glUniform1iARB(uniform_prevMean, 0);
+  if(odd)
+    glBindTexture(texType, meanVel0);
+  else
+    glBindTexture(texType, meanVel1);
+
+
+  glBegin(GL_QUADS);
+  {
+    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+  }
+  glEnd();
+
+  meanVel_shader.deactivate();
+
+  glBindTexture(texType,0);
+
+}
 
 void ParticleControl::getDomain(int* x, int* y, int* z){
   *x = nx;
   *y = ny;
   *z = nz;
 }
+void ParticleControl::printPositions(bool odd){
+  
+  glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
+
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+  std::cout << "Previous Positions" << std::endl;
+  dumpContents();
+
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+       
+  std::cout << "Updated Positions" << std::endl;
+  dumpContents();
+
+  glReadBuffer(currentbuffer);
+
+}
+void ParticleControl::printMeanVelocities(bool odd){
+  glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
+  double tts;
+
+  std::cout << "Mean Velocities" << std::endl;
+  if(odd)
+    glReadBuffer(GL_COLOR_ATTACHMENT5_EXT);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT4_EXT);
+
+  buffer_mem = new GLfloat[ twidth * theight * 4 ];  
+  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
+  std::cout << "IDX  X     Y     Z" << std::endl;
+  int pn =0;
+  for (int j=0; j<theight; j++)
+    for (int i=0; i<twidth; i++){
+	  
+       int idx = j*twidth*4 + i*4;
+       
+       tts = buffer_mem[idx+3];
+
+       std::cout << pn << " ";
+       std::cout << buffer_mem[idx]/tts << " ";
+       std::cout << buffer_mem[idx+1]/tts << " ";
+       std::cout << buffer_mem[idx+2]/tts << " ";
+       std::cout << "#ts: " << buffer_mem[idx+3] << std::endl;
+       pn++;
+    }
+  delete [] buffer_mem;
+
+  glReadBuffer(currentbuffer);
+}
 
 void ParticleControl::dumpContents(){
 
-  buffer_mem = new GLfloat[ twidth * theight * 4 ];
+  buffer_mem = new GLfloat[ twidth * theight * 4 ];  
   glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
   std::cout << "IDX  X     Y     Z" << std::endl;
   int pn =0;
@@ -739,6 +870,7 @@ void ParticleControl::dumpContents(){
   delete [] buffer_mem;
 
 }
+
 void ParticleControl::createPrimeImages(bool odd){
   glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
 
