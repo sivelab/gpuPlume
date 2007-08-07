@@ -23,15 +23,14 @@ class DisplayControl{
   void OpenGLText(int, int, char*);
   void increaseVisualLayer();
   void decreaseVisualLayer();
-  void setEyeValues(float);
+  void moveForwardorBack(float);
   void setAzimuth(float, float);
   void setElevation(float, float);
-  void setRotateAround(float, float);
+  void setRotateAround(float, float,int,int);
   void initVars(int,double*,double*,double*,
 		      double*,double*,double*);
-  //void drawStreams(std::vector<std::vector<partPos> >);
 
-  bool rotate_around, rotate_object, translate_view;
+  bool rotate_around, change_height, translate_view;
   bool frame_rate;
 
   bool draw_buildings;
@@ -67,8 +66,11 @@ class DisplayControl{
 
   GLfloat azimuth;
   GLfloat elevation;
-  GLfloat spin;
   
+  double tranx,trany,tranz;
+  double angle;
+  double xlook,ylook,zlook;
+
   GLuint displayTex[3];
 
   GLenum texType;
