@@ -99,7 +99,6 @@ int main(int argc, char** argv)
     plume = new NonGaussianModel(util);
     break;
   case 3:
-    util->windFieldData = 5;
     plume = new ReflectionModel(util);
     break;
   default:
