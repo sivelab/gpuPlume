@@ -15,6 +15,8 @@ class ReflectionModel : public PlumeControl{
   
  protected:
 
+  FramebufferObject* fbo2;
+
   virtual void initFBO();
   virtual ~ReflectionModel();
 
