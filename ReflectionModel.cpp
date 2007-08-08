@@ -194,9 +194,13 @@ int ReflectionModel::display(){
   ////////////////////////////////////////////////////////////
   // Update Mean Velocities
   ////////////////////////////////////////////////////////////
+  FramebufferObject::Disable();
+  fbo2->Bind();
 
-  //pc->findMeanVel(odd,prime0,prime1,meanVel0,meanVel1,positions0,positions1);
+  pc->findMeanVel(odd,prime0,prime1,meanVel0,meanVel1,positions0,positions1);
 
+  FramebufferObject::Disable();
+  fbo->Bind();
   ////////////////////////////////////////////////////////////
   // Get Position for Streams
   ////////////////////////////////////////////////////////////
@@ -216,8 +220,13 @@ int ReflectionModel::display(){
      }
   if(print_MeanVel)
     {
+	  FramebufferObject::Disable();
+	  fbo2->Bind();
       pc->printMeanVelocities(odd);
       print_MeanVel = false;
+	  FramebufferObject::Disable();
+	  fbo->Bind();
+
     }
   if(output_CollectionBox)
      {
@@ -313,6 +322,11 @@ void ReflectionModel::initFBO(void){
   // Get the Framebuffer Object ready
   fbo = new FramebufferObject();
   fbo->Bind();
+ 
+
+//int num;
+//	glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT,&num);
+//	std::cout << num << std::endl;
       
   //rb = new Renderbuffer();
   //rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);
@@ -324,12 +338,20 @@ void ReflectionModel::initFBO(void){
   fbo->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, prime0);
   fbo->AttachTexture(GL_COLOR_ATTACHMENT3_EXT, texType, prime1);
 	
-
-  //fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, meanVel0);
-  //fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
-CheckErrorsGL("FBO init");
   fbo->IsValid();
   FramebufferObject::Disable();
+
+  fbo2 = new FramebufferObject();
+  fbo2->Bind();
+
+  fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0);
+  CheckErrorsGL("FBO init 1");
+  fbo2->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, meanVel1);
+  CheckErrorsGL("FBO init 2");
+
+  fbo2->IsValid();
+  FramebufferObject::Disable();
+
 }
 
 void ReflectionModel::setupTextures(){
