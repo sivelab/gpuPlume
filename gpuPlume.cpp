@@ -346,11 +346,11 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->print_MeanVel = true;
     }
-  else if(key == '+')
+  else if(key == ']')
     {
       plume->dc->slideLeftorRight(1.0);
     }
-  else if(key == '-')
+  else if(key == '[')
     {
       plume->dc->slideLeftorRight(-1.0);
     }
