@@ -24,6 +24,9 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 
   angle = M_PI;
 
+  xslide = 0.0;
+  yslide = 1.0;
+
   change_height = false;
   translate_view = false;
   rotate_around = false;
@@ -109,6 +112,18 @@ void DisplayControl::moveForwardorBack(float change){
     eye_pos[1] += eye_gaze[1];
   }
 }
+void DisplayControl::slideLeftorRight(float direction){
+
+  if(direction < 0.0){
+    eye_pos[0] -= xslide;
+    eye_pos[1] -= yslide;
+  }
+  else{
+    eye_pos[0] += xslide;
+    eye_pos[1] += yslide;
+  }
+
+}
 void DisplayControl::setAzimuth(float change, float rate){
   azimuth = azimuth + change*rate;
 }
@@ -131,6 +146,10 @@ void DisplayControl::setRotateAround(float change, float rate,int x,int y){
 
   eye_gaze[0] = cos(angle);
   eye_gaze[1] = sin(angle);
+
+  xslide = cos(angle-M_PI/2.0);
+  yslide = sin(angle-M_PI/2.0);
+
 
 }
 void DisplayControl::drawGround(){
