@@ -4,6 +4,7 @@
 #include <math.h>
 #include "particleControl.h"
 #include "Random.h"
+#include "glErrorUtil.h"
 
 ParticleControl::ParticleControl(GLenum type,int width,int height,
 				 int x, int y, int z,
@@ -27,7 +28,8 @@ void ParticleControl::setUstarAndSigmas(float u){
   sigU = 2.0*ustar;
   sigV = 2.0*ustar;
   sigW = 1.3*ustar;
-
+	
+  std::cout << ustar << std::endl;
 }
 void ParticleControl::setupReflectionShader(int numInRow, float life_time){
   reflection_shader.addShader("Shaders/reflectionAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -742,9 +744,9 @@ void ParticleControl::findMeanVel(bool odd,GLuint prime0,GLuint prime1,
 				  GLuint positions0,GLuint positions1){
 
   if (odd)
-    glDrawBuffer(GL_COLOR_ATTACHMENT5_EXT);
+    glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
   else 
-    glDrawBuffer(GL_COLOR_ATTACHMENT4_EXT);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, twidth, theight);
@@ -823,9 +825,9 @@ void ParticleControl::printMeanVelocities(bool odd){
 
   std::cout << "Mean Velocities" << std::endl;
   if(odd)
-    glReadBuffer(GL_COLOR_ATTACHMENT5_EXT);
+    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
   else
-    glReadBuffer(GL_COLOR_ATTACHMENT4_EXT);
+    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
   buffer_mem = new GLfloat[ twidth * theight * 4 ];  
   glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
@@ -1422,8 +1424,7 @@ void ParticleControl::initLambdaTex(GLuint lambda, int numInRow){
 	  data[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
 	  data[texidx+2] = tauDetInv*(tau11*tau22);	       //Lam33
 	  data[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
-        }
-
+	  }
   createTexture(lambda, GL_RGBA32F_ARB, width,height, data);
   //Lambda Texture Ends-- Balli (04/12/07)
   delete [] data;
