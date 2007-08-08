@@ -24,6 +24,7 @@ class DisplayControl{
   void increaseVisualLayer();
   void decreaseVisualLayer();
   void moveForwardorBack(float);
+  void slideLeftorRight(float);
   void setAzimuth(float, float);
   void setElevation(float, float);
   void setRotateAround(float, float,int,int);
@@ -70,6 +71,7 @@ class DisplayControl{
   double tranx,trany,tranz;
   double angle;
   double xlook,ylook,zlook;
+  double xslide,yslide;
 
   GLuint displayTex[3];
 
