@@ -822,8 +822,12 @@ void ParticleControl::printPositions(bool odd){
 void ParticleControl::printMeanVelocities(bool odd){
   glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
   double tts;
+  std::ofstream output;
 
-  std::cout << "Mean Velocities" << std::endl;
+  output.open("MeanVel.dat");
+
+  std::cout << "Mean Velocities writing to file MeanVel.dat" << std::endl;
+
   if(odd)
     glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
   else
@@ -831,7 +835,8 @@ void ParticleControl::printMeanVelocities(bool odd){
 
   buffer_mem = new GLfloat[ twidth * theight * 4 ];  
   glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
-  std::cout << "IDX  X     Y     Z" << std::endl;
+  //std::cout << "IDX  X     Y     Z" << std::endl;
+  //output << "IDX  X     Y     Z  \n" ;
   int pn =0;
   for (int j=0; j<theight; j++)
     for (int i=0; i<twidth; i++){
@@ -840,14 +845,23 @@ void ParticleControl::printMeanVelocities(bool odd){
        
        tts = buffer_mem[idx+3];
 
-       std::cout << pn << " ";
+       /*std::cout << pn << " ";
        std::cout << buffer_mem[idx]/tts << " ";
        std::cout << buffer_mem[idx+1]/tts << " ";
        std::cout << buffer_mem[idx+2]/tts << " ";
-       std::cout << "#ts: " << buffer_mem[idx+3] << std::endl;
+       std::cout << "#ts: " << buffer_mem[idx+3] << std::endl;*/
+	   output << pn << " ";
+       output << buffer_mem[idx]/tts << " ";
+       output << buffer_mem[idx+1]/tts << " ";
+       output << buffer_mem[idx+2]/tts << "\n";
+       //output << "#ts: " << buffer_mem[idx+3] << "\n";
+
+
        pn++;
     }
   delete [] buffer_mem;
+
+  output.close();
 
   glReadBuffer(currentbuffer);
 }
