@@ -1,6 +1,9 @@
 uniform samplerRect prevMean;
 uniform samplerRect currVel;
 uniform samplerRect position;
+uniform samplerRect windVel;
+
+uniform float numInRow;
 
 uniform int nx;
 uniform int ny;
@@ -20,7 +23,13 @@ void main(void)
    int k = floor(pos.z);
 
    if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0) && (k >= 0)){
-   	mean = mean + vec4(velocity,1.0);
+	vec2 index;
+	index.s = j + mod(k,numInRow)*nx;
+	index.t = i + floor(k/numInRow)*ny;
+	
+	vec3 wind = vec3(textureRect(windVel,index));
+
+   	mean = mean + vec4(velocity,1.0) + vec4(wind,0.0);
    }
 
    gl_FragColor = mean;
