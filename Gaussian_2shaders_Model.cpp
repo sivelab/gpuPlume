@@ -68,6 +68,13 @@ void Gaussian_2shaders_Model::init(bool OSG){
   dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
   dc->draw_buildings = false;
   
+  if(osgPlume){
+    vp = new GLint[4];
+    mvm = new GLfloat[16];
+    pm = new GLfloat[16];
+    dc->osgPlume = true;
+  }
+
   setupEmitters();
   
   glEnable(texType);
