@@ -168,7 +168,9 @@ void init(void)
   glEnable(GL_DEPTH_TEST);
   
   plume->init(false); 
- 
+  plume->paused = false;
+  plume->inPauseMode = util->pauseMode;
+
 }
 
 void display(void)
@@ -354,6 +356,15 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->dc->slideLeftorRight(-1.0);
     }
+  else if(key == ' ')
+    {
+      plume->paused = false;
+    }
+  else if(key == 'z')
+    {
+      plume->inPauseMode = !plume->inPauseMode;
+    }
+
   glutPostRedisplay();
 }
 
