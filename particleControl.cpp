@@ -83,7 +83,7 @@ void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positi
   if(outputPrime)
     printPrime(odd, true);
 
-  if (odd){
+  if(odd){
     GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT};
     glDrawBuffers(2,buffers);
   }
@@ -164,13 +164,13 @@ void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positi
   glUniform1iARB(uniform_wind, 1);
     
   glActiveTexture(GL_TEXTURE0);
-  glUniform1iARB(uniform_postex, 0);
-
   if (odd)
     glBindTexture(texType, positions0);  // read from texture 0
   else 
     glBindTexture(texType, positions1);  // read from texture 1
  
+  glUniform1iARB(uniform_postex, 0);
+
   glBegin(GL_QUADS);
   {
     glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
@@ -714,7 +714,7 @@ void ParticleControl::advect(bool odd,
   glBindTexture(texType, 0);
 
 }
-void ParticleControl::setupMeanVel_shader(){
+void ParticleControl::setupMeanVel_shader(int numInRow){
   meanVel_shader.addShader("Shaders/meanVel_vp.glsl", GLSLObject::VERTEX_SHADER);
   meanVel_shader.addShader("Shaders/meanVel_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   meanVel_shader.createProgram();
@@ -723,6 +723,9 @@ void ParticleControl::setupMeanVel_shader(){
   uniform_prevMean = meanVel_shader.createUniform("prevMean");
   uniform_currVel = meanVel_shader.createUniform("currVel");
   uniform_position = meanVel_shader.createUniform("position");
+  uniform_windVel = meanVel_shader.createUniform("windVel");
+
+  GLint unir = meanVel_shader.createUniform("numInRow");
 
   GLint unx = meanVel_shader.createUniform("nx");
   GLint uny = meanVel_shader.createUniform("ny");
@@ -733,6 +736,7 @@ void ParticleControl::setupMeanVel_shader(){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
+  glUniform1fARB(unir,numInRow);
 
   meanVel_shader.deactivate();
 
@@ -741,10 +745,12 @@ void ParticleControl::setupMeanVel_shader(){
 
 void ParticleControl::findMeanVel(bool odd,GLuint prime0,GLuint prime1,
 				  GLuint meanVel0,GLuint meanVel1,
-				  GLuint positions0,GLuint positions1){
+				  GLuint positions0,GLuint positions1,
+				  GLuint windField){
 
-  if (odd)
+  if(odd){
     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+  }
   else 
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
@@ -753,6 +759,10 @@ void ParticleControl::findMeanVel(bool odd,GLuint prime0,GLuint prime1,
     
   glEnable(texType);
   meanVel_shader.activate();
+
+  glActiveTexture(GL_TEXTURE3);
+  glBindTexture(texType, windField);
+  glUniform1iARB(uniform_windVel,3);
 
   glActiveTexture(GL_TEXTURE2);
   if(odd)
@@ -822,11 +832,11 @@ void ParticleControl::printPositions(bool odd){
 void ParticleControl::printMeanVelocities(bool odd){
   glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
   double tts;
-  std::ofstream output;
+  //std::ofstream output;
 
-  output.open("MeanVel.dat");
+  //output.open("MeanVel.dat");
 
-  std::cout << "Mean Velocities writing to file MeanVel.dat" << std::endl;
+  std::cout << "Mean Velocities" << std::endl;
 
   if(odd)
     glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
@@ -835,8 +845,10 @@ void ParticleControl::printMeanVelocities(bool odd){
 
   buffer_mem = new GLfloat[ twidth * theight * 4 ];  
   glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
-  //std::cout << "IDX  X     Y     Z" << std::endl;
+
+  std::cout << "IDX  X     Y     Z" << std::endl;
   //output << "IDX  X     Y     Z  \n" ;
+
   int pn =0;
   for (int j=0; j<theight; j++)
     for (int i=0; i<twidth; i++){
@@ -845,23 +857,23 @@ void ParticleControl::printMeanVelocities(bool odd){
        
        tts = buffer_mem[idx+3];
 
-       /*std::cout << pn << " ";
+       std::cout << pn << " ";
        std::cout << buffer_mem[idx]/tts << " ";
        std::cout << buffer_mem[idx+1]/tts << " ";
        std::cout << buffer_mem[idx+2]/tts << " ";
-       std::cout << "#ts: " << buffer_mem[idx+3] << std::endl;*/
-	   output << pn << " ";
+       std::cout << "#ts: " << buffer_mem[idx+3] << std::endl;
+       /*output << pn << " ";
        output << buffer_mem[idx]/tts << " ";
        output << buffer_mem[idx+1]/tts << " ";
        output << buffer_mem[idx+2]/tts << "\n";
-       //output << "#ts: " << buffer_mem[idx+3] << "\n";
+       //output << "#ts: " << buffer_mem[idx+3] << "\n";*/
 
 
        pn++;
     }
   delete [] buffer_mem;
 
-  output.close();
+  //output.close();
 
   glReadBuffer(currentbuffer);
 }
