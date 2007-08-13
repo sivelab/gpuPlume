@@ -174,7 +174,6 @@ void ParticleEmitter::setNumToEmit(int num){
 bool ParticleEmitter::timeToEmit(float time_step){
 
   emitTime += time_step*releaseRate;
-  //std::cout << releaseRate << std::endl;
 
   if(emitTime >= 1.0){
     //Sets number of particles to emit
