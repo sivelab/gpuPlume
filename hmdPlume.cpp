@@ -1,5 +1,9 @@
 /* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
 #include "plumeControl.h"
+#include "nonGaussianModel.h"
+#include "GaussianModel.h"
+#include "Gaussian_2shaders_Model.h"
+#include "ReflectionModel.h"
 #include "emitterTransform.h"
 
 #include <assert.h>
@@ -19,6 +23,7 @@
 
 bool firstTime;
 PlumeControl* plume;
+Util* util;
 
 osg::TessellationHints* hints;
 emitterTransform* peTransform[10];
@@ -41,7 +46,7 @@ class DrawableDrawCallback : public osg::Drawable::DrawCallback
       if(firstTime){
          
 	glewInit();
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);     
 	plume->init(true);
 	firstTime = false;
         srand48( 4 );
@@ -49,7 +54,7 @@ class DrawableDrawCallback : public osg::Drawable::DrawCallback
 
       glDisable(GL_LIGHTING);
       int i = plume->display();     
-
+    
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
       glPopMatrix();
@@ -90,14 +95,14 @@ osg::Node* emitter(){
   osg::Geode* source = new osg::Geode;
   osg::ShapeDrawable* p;
 
-  if(plume->radius[peNum] == 0){
+  if(util->radius[peNum] == 0){
     p = new osg::ShapeDrawable(
-	  new osg::Box(osg::Vec3(plume->xpos[peNum],plume->ypos[peNum],plume->zpos[peNum]),0.25),hints);
+	  new osg::Box(osg::Vec3(util->xpos[peNum],util->ypos[peNum],util->zpos[peNum]),0.25),hints);
   }
   else{
     p = new osg::ShapeDrawable(
-	  new osg::Sphere(osg::Vec3(plume->xpos[peNum],plume->ypos[peNum],
-                                    plume->zpos[peNum]),plume->radius[peNum]),hints);	
+	  new osg::Sphere(osg::Vec3(util->xpos[peNum],util->ypos[peNum],
+                                    util->zpos[peNum]),util->radius[peNum]),hints);	
   
   }
   p->setColor(osg::Vec4(0.0, 0.0, 1.0, 1.0));
@@ -119,8 +124,9 @@ osg::Node* emitter(){
 typedef struct
 {
     float x,y,z;
-    bool releaseOne;
-    bool releasePerSecond;
+    //bool releaseOne;
+    //bool releasePerSecond;
+    particleReleaseType releaseType;
     bool emit;
     bool clear;
     int curr;
@@ -152,6 +158,7 @@ class MyEventHandler : public osgGA::GUIEventHandler
     int curr;
     bool keystroke;
     bool clear;
+    
 
   public:
     MyEventHandler(vissimViewer* viewer,
@@ -177,8 +184,9 @@ class MyEventHandler : public osgGA::GUIEventHandler
             //sharedData->ID = 2;
             
             sharedData->emit = false;
-            sharedData->releaseOne = false;
-            sharedData->releasePerSecond = true;
+            //sharedData->releaseOne = false;
+            //sharedData->releasePerSecond = true;
+            sharedData->releaseType = perSecond;
             sharedData->curr = curr;
             sharedData->clear = false;
 
@@ -189,9 +197,9 @@ class MyEventHandler : public osgGA::GUIEventHandler
             sharedData->keystroke = false;
             sharedData->curr = 0;
             sharedData->emit = false;
-            sharedData->x = plume->xpos[0];
-            sharedData->y = plume->ypos[0];
-            sharedData->z = plume->zpos[0];
+            sharedData->x = util->xpos[0];
+            sharedData->y = util->ypos[0];
+            sharedData->z = util->zpos[0];
             sharedData->clear = false;
             /* Necessary for the slave not to crash ??? (PeteW) */
             // sharedData->ID = 100000;
@@ -263,44 +271,60 @@ class MyEventHandler : public osgGA::GUIEventHandler
             }
             else if( ea.getKey() == 'o')
             {
-                plume->pe[curr]->releasePerSecond = false;
-                plume->pe[curr]->releasePerTimeStep = false;
-                plume->pe[curr]->releaseOne = true;
+                //plume->pe[curr]->releasePerSecond = false;
+                //plume->pe[curr]->releasePerTimeStep = false;
+                //plume->pe[curr]->releaseOne = true;
+                plume->pe[curr]->releaseType = onePerKeyPress;
                 keystroke = true;
                 //return true;
             }
             else if(ea.getKey() == 'i')
             {
-                plume->pe[curr]->releaseOne = false;
-                plume->pe[curr]->releasePerTimeStep = false;
-                plume->pe[curr]->releasePerSecond = true;
+                //plume->pe[curr]->releaseOne = false;
+                //plume->pe[curr]->releasePerTimeStep = false;
+                //plume->pe[curr]->releasePerSecond = true;
+                plume->pe[curr]->releaseType = perSecond;
                 keystroke = true;
                 //return true;
             }
-            else if (ea.getKey() == 'u')
+            else if (ea.getKey() == 'W')
             {
                 plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos-1.0, plume->pe[curr]->zpos);
                 peTransform[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
                 keystroke = true;
                 //return true;
             }
-            else if (ea.getKey() == 'j')
+            else if (ea.getKey() == 'S')
             {
                 plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos+1.0, plume->pe[curr]->zpos);
                 peTransform[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
                 keystroke = true;
                 //return true;
             }
-            else if (ea.getKey() == 'n')
+            else if (ea.getKey() == 'A')
             {
                 plume->pe[curr]->setPosition(plume->pe[curr]->xpos+1.0, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
                 peTransform[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
                 keystroke = true;
                 //return true;
             }
-            else if (ea.getKey() == 'k')
+            else if (ea.getKey() == 'D')
             {
                 plume->pe[curr]->setPosition(plume->pe[curr]->xpos-1.0, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
+                peTransform[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
+                keystroke = true;
+                //return true;
+            }
+            else if (ea.getKey() == 'Q')
+            {
+                plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos+1.0);
+                peTransform[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
+                keystroke = true;
+                //return true;
+            }
+            else if (ea.getKey() == 'E')
+            {
+                plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos-1.0);
                 peTransform[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
                 keystroke = true;
                 //return true;
@@ -308,7 +332,7 @@ class MyEventHandler : public osgGA::GUIEventHandler
             else if (ea.getKey() == '>')
             {
                 curr++;
-                if(curr == plume->numOfPE)
+                if(curr == util->numOfPE)
                     curr = 0;
 
                 keystroke = true;
@@ -332,8 +356,9 @@ class MyEventHandler : public osgGA::GUIEventHandler
             if(keystroke){
                 
                 sharedData->curr = curr;
-                sharedData->releaseOne = plume->pe[curr]->releaseOne;
-                sharedData->releasePerSecond = plume->pe[curr]->releasePerSecond;
+                sharedData->releaseType = plume->pe[curr]->releaseType;
+                //sharedData->releaseOne = plume->pe[curr]->releaseOne;
+                //sharedData->releasePerSecond = plume->pe[curr]->releasePerSecond;
                 if(clear){
                     plume->stream->clear();
                     sharedData->clear = true;
@@ -366,8 +391,9 @@ class MyEventHandler : public osgGA::GUIEventHandler
                 //if(sharedData->keystroke && !firstTime){
                 if(!firstTime){
                     plume->pe[sharedData->curr]->emit = sharedData->emit;
-                    plume->pe[sharedData->curr]->releaseOne = sharedData->releaseOne;
-                    plume->pe[sharedData->curr]->releasePerSecond = sharedData->releasePerSecond;
+                    //plume->pe[sharedData->curr]->releaseOne = sharedData->releaseOne;
+                    //plume->pe[sharedData->curr]->releasePerSecond = sharedData->releasePerSecond;
+                    plume->pe[sharedData->curr]->releaseType = sharedData->releaseType;
                     plume->pe[sharedData->curr]->setPosition(sharedData->x,sharedData->y,sharedData->z);
                     peTransform[sharedData->curr]->setPosition(sharedData->x,sharedData->y,sharedData->z);
 
@@ -470,8 +496,8 @@ void setupModel(vissimViewer *viewer, osg::MatrixTransform* modelRoot)
     
     //const osg::BoundingBox* cbb = new osg::BoundingBox(0,0,0,plume->bounds[3]-plume->bounds[0],
     //                                                  plume->bounds[4]-plume->bounds[1],plume->bounds[5]-plume->bounds[2]);
-    const osg::BoundingBox* cbb = new osg::BoundingBox(plume->bounds[0],plume->bounds[1],plume->bounds[2],plume->bounds[3],
-                                                      plume->bounds[4],plume->bounds[5]);
+    const osg::BoundingBox* cbb = new osg::BoundingBox(util->bounds[0],util->bounds[1],util->bounds[2],util->bounds[3],
+                                                      util->bounds[4],util->bounds[5]);
     boxShape->setInitialBound(*cbb);
 
     cboxes->addDrawable(boxShape);
@@ -486,7 +512,7 @@ void setupModel(vissimViewer *viewer, osg::MatrixTransform* modelRoot)
     osg::StateSet* peState = new osg::StateSet();
     PEGroup->setStateSet(peState);
 
-    for(int i=0; i < plume->numOfPE; i++)
+    for(int i=0; i < util->numOfPE; i++)
       PEGroup->addChild(emitter());  
 
     osg::Group* fGroup = new osg::Group;
@@ -532,13 +558,37 @@ int main( int argc, char **argv )
 {
 
      //This is my plume initialization
-    plume = new PlumeControl();
+    util = new Util();
+    util->readInput("Settings/input.txt");
+    switch(util->advectChoice){
+    case 0:
+        //util->windFieldData = 4;
+        plume = new Gaussian_2shaders_Model(util);
+        break;
+    case 1:
+        //util->windFieldData = 4;
+        plume = new GaussianModel(util);
+        break;
+    case 2:
+        util->windFieldData = 5;
+        plume = new NonGaussianModel(util);
+        break;
+    case 3:
+        plume = new ReflectionModel(util);
+        break;
+    default:
+        std::cout << "Error in advection Choice in Settings file!" << std::endl;
+    }
+
+    //plume = new PlumeControl();
     firstTime = true;
 
-    for(int i=0; i < plume->numOfPE; i++){
-      peTransform[i] = new emitterTransform(plume->xpos[i],plume->ypos[i],plume->zpos[i]);   
-    } 
+    
 
+    for(int i=0; i < util->numOfPE; i++){
+      peTransform[i] = new emitterTransform(util->xpos[i],util->ypos[i],util->zpos[i]);   
+    } 
+   
     // use an ArgumentParser object to manage the program arguments.
     osg::ArgumentParser arguments(&argc,argv);
 
