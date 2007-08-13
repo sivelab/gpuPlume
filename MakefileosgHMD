@@ -2,7 +2,7 @@
 EXEC = hmdPlume
 
 CC = g++ -g -O2 -Wall -DNDEBUG
-CSRC 	= hmdPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp displayControl.cpp Timer.cpp particleEmitter.cpp pointEmitter.cpp sphereEmitter.cpp plumeControl.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp
+CSRC 	= hmdPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp displayControl.cpp Timer.cpp particleEmitter.cpp pointEmitter.cpp sphereEmitter.cpp plumeControl.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp Gaussian_2shaders_Model.cpp GaussianModel.cpp nonGaussianModel.cpp ReflectionModel.cpp
 COBJS   = $(CSRC:.cpp=.o)
 
 HEADERS = framebufferObject.h renderbuffer.h GLSL.h glErrorUtil.h particleControl.h displayControl.h Timer.h particleEmitter.h pointEmitter.h sphereEmitter.h plumeControl.h collectionBox.h util.h simulation.h emitterTransform.h
