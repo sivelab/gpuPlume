@@ -68,6 +68,13 @@ void GaussianModel::init(bool OSG){
   dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
   dc->draw_buildings = false;
   
+  if(osgPlume){
+    vp = new GLint[4];
+    mvm = new GLfloat[16];
+    pm = new GLfloat[16];
+    dc->osgPlume = true;
+  }
+
   setupEmitters();
   
   glEnable(texType);
@@ -112,6 +119,7 @@ void GaussianModel::init(bool OSG){
 bool once = true;
 
 int GaussianModel::display(){
+  
   if(osgPlume){
     glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
     glGetFloatv(GL_PROJECTION_MATRIX,pm);
@@ -125,7 +133,6 @@ int GaussianModel::display(){
     glLoadIdentity();
   }
   
-
   //update simulation information such as total time elapsed and current time step
   //if set to run for a total number of time steps and that value has been reached,
   //clean up anything needed and close the window
