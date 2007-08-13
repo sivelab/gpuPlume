@@ -87,8 +87,8 @@ class ParticleControl{
   void createPosImages(bool);
   void createPrimeImages(bool);
 
-  void setupMeanVel_shader();
-  void findMeanVel(bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint);
+  void setupMeanVel_shader(int);
+  void findMeanVel(bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint);
 
   bool outputPrime;
    
@@ -154,7 +154,8 @@ class ParticleControl{
   GLint uniform_xfo, uniform_yfo, uniform_zfo, uniform_ht, uniform_wti, uniform_lti;
 
   //Uniform variables for Mean Velocity shader
-  GLint uniform_prevMean, uniform_currVel, uniform_position;
+  GLint uniform_prevMean, uniform_currVel, uniform_position, uniform_windVel;
+  GLint unir;
 
   GLenum texType;
   GLfloat* buffer_mem;
