@@ -123,7 +123,7 @@ void ReflectionModel::init(bool OSG){
 
   pc->setupReflectionShader(numInRow,lifeTime);
 
-  pc->setupMeanVel_shader();
+  pc->setupMeanVel_shader(numInRow);
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -142,16 +142,20 @@ int ReflectionModel::display(){
   //update simulation information such as total time elapsed and current time step
   //if set to run for a total number of time steps and that value has been reached,
   //clean up anything needed and close the window
-  if(!firstTime){
-    if(sim->update(&time_step)){
-      quitSimulation = true;
+  if(!paused || !inPauseMode){
+
+    if(!firstTime){
+      if(sim->update(&time_step)){
+	quitSimulation = true;
+      }
     }
-  }
-  //Store simulation start time and turn on one particle emitter
-  if(firstTime){
-    pe[0]->emit = true;
-    sim->setStartTime(&time_step);
-    firstTime = false;
+    //Store simulation start time and turn on one particle emitter
+    if(firstTime){
+      pe[0]->emit = true;
+      sim->setStartTime(&time_step);
+      firstTime = false;
+    }
+
   }
 
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
@@ -159,86 +163,96 @@ int ReflectionModel::display(){
   // bind the framebuffer object so we can render to the 2nd texture
   fbo->Bind();
   
-  /////////////////////////////////////////////////////////////
-  //Reuse particles if their lifespan is up
-  /////////////////////////////////////////////////////////////
-  if(reuseParticles){
-    particleReuse();
-  }
-  ////////////////////////////////////////////////////////////
-   // Emit Particles
-  ////////////////////////////////////////////////////////////
-  for(int i = 0; i < util->numOfPE; i++){
-     if(pe[i]->emit){    
-      totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step);
-      if(pe[i]->releaseType == onePerKeyPress){
-	stream->addNewStream(pe[i]);
+
+  if(!paused || !inPauseMode){
+    /////////////////////////////////////////////////////////////
+    //Reuse particles if their lifespan is up
+    /////////////////////////////////////////////////////////////
+    if(reuseParticles){
+      particleReuse();
+    }
+    ////////////////////////////////////////////////////////////
+    // Emit Particles
+    ////////////////////////////////////////////////////////////
+    for(int i = 0; i < util->numOfPE; i++){
+      if(pe[i]->emit){    
+	totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step);
+	if(pe[i]->releaseType == onePerKeyPress){
+	  stream->addNewStream(pe[i]);
+	}
       }
     }
-  }
-  ////////////////////////////////////////////////////////////
-  // Collection Boxes
-  ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    // Collection Boxes
+    ////////////////////////////////////////////////////////////
 
-  if(!endCBox){
-    output_CollectionBox = cBoxes[0]->findConc(sim,&endCBox,odd); 
-  }
+    if(!endCBox){
+      output_CollectionBox = cBoxes[0]->findConc(sim,&endCBox,odd); 
+    }
+
   
-  ////////////////////////////////////////////////////////////
-  // Update Prime Values and Particle Positions
-  ////////////////////////////////////////////////////////////
+  
+    ////////////////////////////////////////////////////////////
+    // Update Prime Values and Particle Positions
+    ////////////////////////////////////////////////////////////
    
-  pc->reflectionAdvect(odd,windField,positions0,positions1,prime0,prime1,
-			  randomValues,lambda,tau_dz,duvw_dz,time_step,buildParam);
+    pc->reflectionAdvect(odd,windField,positions0,positions1,prime0,prime1,
+			 randomValues,lambda,tau_dz,duvw_dz,time_step,buildParam);
  
-  ////////////////////////////////////////////////////////////
-  // Update Mean Velocities
-  ////////////////////////////////////////////////////////////
-  FramebufferObject::Disable();
-  fbo2->Bind();
+    ////////////////////////////////////////////////////////////
+    // Update Mean Velocities
+    ////////////////////////////////////////////////////////////
+    FramebufferObject::Disable();
+    fbo2->Bind();
 
-  pc->findMeanVel(odd,prime0,prime1,meanVel0,meanVel1,positions0,positions1);
+    pc->findMeanVel(odd,prime0,prime1,meanVel0,meanVel1,positions0,positions1,windField);
 
-  FramebufferObject::Disable();
-  fbo->Bind();
-  ////////////////////////////////////////////////////////////
-  // Get Position for Streams
-  ////////////////////////////////////////////////////////////
-  if(stream->doUpdate()){
-    stream->updateStreamPos();
+    FramebufferObject::Disable();
+    fbo->Bind();
+    ////////////////////////////////////////////////////////////
+    // Get Position for Streams
+    ////////////////////////////////////////////////////////////
+    if(stream->doUpdate()){
+      stream->updateStreamPos();
+    }
+    ///////////////////////////////////////////////////////////
+
   }
-  ///////////////////////////////////////////////////////////
 
   CheckErrorsGL("END : after 1st pass");
   
   // In some circumstances, we may want to dump the contents of
-  // the FBO to a file.
-  if (dump_contents)
-     {
-       pc->printPositions(odd);
-       dump_contents = false;
-     }
-  if(print_MeanVel)
+  // the FBO to a file
+  if(!paused || !inPauseMode){
+
+    if (dump_contents)
     {
-	  FramebufferObject::Disable();
-	  fbo2->Bind();
+      pc->printPositions(odd);
+      dump_contents = false;
+    }
+    if(print_MeanVel)
+    {
+      FramebufferObject::Disable();
+      fbo2->Bind();
       pc->printMeanVelocities(odd);
       print_MeanVel = false;
-	  FramebufferObject::Disable();
-	  fbo->Bind();
+      FramebufferObject::Disable();
+      fbo->Bind();
 
     }
-  if(output_CollectionBox)
-     {
-       for(int j = 0; j < num_cBoxes; j++){
-		cBoxes[j]->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
-       }
-       output_CollectionBox = false;
-     }
+    if(output_CollectionBox)
+    {
+      for(int j = 0; j < num_cBoxes; j++){
+	cBoxes[j]->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
+      }
+      output_CollectionBox = false;
+    }
 
   //Switches the frame buffer and binding texture
-  odd = !odd;
-
+  
+    odd = !odd;
+    paused = true;
+  }
   // We only need to do PASS 2 (copy to VBO) and PASS 3 (visualize) if
   // we actually want to render to the screen.  Rendering to the
   // screen will make the simulation run more slowly. This feature is
@@ -246,17 +260,23 @@ int ReflectionModel::display(){
   // simulation can run if left to run on the GPU.
   if (util->show_particle_visuals)
     {
-      
+      glGetIntegerv(GL_READ_BUFFER, &read_buffer);
       // //////////////////////////////////////////////////////////////
       // PASS 2 - copy the contents of the 2nd texture (the new positions)
       // into the vertex buffer
       // //////////////////////////////////////////////////////////////
-      
+      if(odd){
+	glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+      }
+      else 
+	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
       glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
       CheckErrorsGL("after glReadPixels");
-      
+      glReadBuffer(read_buffer);
+
       // Disable the framebuffer object
       FramebufferObject::Disable();
       glDrawBuffer(draw_buffer); // send it to the original buffer
@@ -322,12 +342,11 @@ void ReflectionModel::initFBO(void){
   // Get the Framebuffer Object ready
   fbo = new FramebufferObject();
   fbo->Bind();
- 
-
-//int num;
-//	glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT,&num);
-//	std::cout << num << std::endl;
       
+
+  //int num;
+  //glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT,&num);
+  //std::cout << num << std::endl;
   //rb = new Renderbuffer();
   //rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);
   //fbo->AttachRenderBuffer(GL_DEPTH_ATTACHMENT_EXT, rb->GetId() );
@@ -338,14 +357,14 @@ void ReflectionModel::initFBO(void){
   fbo->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, prime0);
   fbo->AttachTexture(GL_COLOR_ATTACHMENT3_EXT, texType, prime1);
 	
+
   fbo->IsValid();
   FramebufferObject::Disable();
 
   fbo2 = new FramebufferObject();
   fbo2->Bind();
 
-  fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0);
-  CheckErrorsGL("FBO init 1");
+  fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0); 
   fbo2->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, meanVel1);
   CheckErrorsGL("FBO init 2");
 
@@ -464,7 +483,7 @@ void ReflectionModel::setupTextures(){
   pc->createTexture(prime1, int_format, twidth, theight, data);
 
   pc->createTexture(meanVel0, int_format, twidth, theight, data);
-  pc->createTexture(meanVel1, int_format, twidth, theight, data);
+  pc->createTexture(meanVel1, int_format, twidth, theight, NULL);
   CheckErrorsGL("\tcreated mean velocity textures...");
 
   //
