@@ -86,6 +86,9 @@ class PlumeControl{
   Simulation* sim;
   double* buildParam;
 
+  bool paused;
+  bool inPauseMode;
+
  protected:
   
   GLint currentbuffer,readbuffer;
@@ -111,6 +114,7 @@ class PlumeControl{
   GLenum int_format; 
   GLenum int_format_init;
   GLint draw_buffer;
+  GLint read_buffer;
 
   //Total number of particles released in simulation
   double totalNumPar;
