@@ -49,6 +49,9 @@ class Util{
   bool show_particle_visuals;
   //toggle collection box visuals
   bool show_collectionBox_visuals;
+  
+  //initializes pause mode
+  bool pauseMode;
 
   //type of advection ; i.e. determines which shaders and textures to load.
   int advectChoice;
