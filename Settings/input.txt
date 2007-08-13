@@ -5,7 +5,7 @@ theight 256
 #Set the Domain
 nx 60
 ny 60
-nz 50
+nz 80
 
 #Set this to 1 to show the particle display, else 0
 show_particle_visuals 1
@@ -57,7 +57,7 @@ bounds 32.0 10.0 8.0 60.0 50.0 12.0
 #Collection box discretization
 
 #number of boxes in x direction 
-numBox_x   3
+numBox_x   2
 #number of boxes in y direction 
 numBox_y   2
 #number of boxes in z direction 
@@ -67,7 +67,7 @@ numBox_z   1
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius, rate
-source_info 30.0 30.0 10.0 0.0 10.0
+source_info 30.0 30.0 5.0 0.0 10.0
 #source_info 25.0 17.0 1.0 0.0 1.0
 #source_info 30.0 30.0 1.0 0.0 10.0
 #source_info 3.0 30.0 3.0 0.0 1.0
@@ -89,9 +89,13 @@ emit_method 0
 
 #Number of Buildings
 #Set to 0 for no buildings
-numBuild 1
+numBuild 0
 
 #Building Parameters
 #I'm defining it the same as in QUIC
 #(x,y,z) (height, width, length)
 build_param 40.0 30.0 0.0 10.0 6.0 4.0
+
+#Initialize Pause Mode
+#Set to 0 to start in pause mode; else 1
+pauseMode 1
