@@ -233,9 +233,9 @@ void Util::parseLine(char* line){
   }
   if(read1Float(line, "pauseMode", &f1)){
     if(f1 == 0)
-      pauseMode = false;
-    else
       pauseMode = true;
+    else
+      pauseMode = false;
   }
 
 }
