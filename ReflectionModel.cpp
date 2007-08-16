@@ -90,7 +90,7 @@ void ReflectionModel::init(bool OSG){
   setupEmitters();
   
   glEnable(texType);
-  glGenTextures(12, texid);
+  glGenTextures(13, texid);
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
@@ -106,6 +106,8 @@ void ReflectionModel::init(bool OSG){
   //Texture for mean velocities
   meanVel0 = texid[10];
   meanVel1 = texid[11];
+  //Texture used to hold current velocity
+  currVel = texid[12];
 
   /////////////////////////////
   setupTextures();
@@ -113,9 +115,15 @@ void ReflectionModel::init(bool OSG){
   //
   // set up vertex buffer
   // 
-  glGenBuffersARB(1, &vertex_buffer);
+  glGenBuffersARB(2, vbo_buffer);
+  vertex_buffer = vbo_buffer[0];
+  color_buffer = vbo_buffer[1];
+
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, color_buffer);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
+
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   //Initialize FBO
@@ -139,6 +147,12 @@ void ReflectionModel::init(bool OSG){
 }
 
 int ReflectionModel::display(){
+
+  glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
+  glEnable(texType);
+  // bind the framebuffer object so we can render to the 2nd texture
+  fbo->Bind();
+
   //update simulation information such as total time elapsed and current time step
   //if set to run for a total number of time steps and that value has been reached,
   //clean up anything needed and close the window
@@ -156,15 +170,6 @@ int ReflectionModel::display(){
       firstTime = false;
     }
 
-  }
-
-  glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
-  glEnable(texType);
-  // bind the framebuffer object so we can render to the 2nd texture
-  fbo->Bind();
-  
-
-  if(!paused || !inPauseMode){
     /////////////////////////////////////////////////////////////
     //Reuse particles if their lifespan is up
     /////////////////////////////////////////////////////////////
@@ -190,40 +195,38 @@ int ReflectionModel::display(){
       output_CollectionBox = cBoxes[0]->findConc(sim,&endCBox,odd); 
     }
 
-  
-  
     ////////////////////////////////////////////////////////////
     // Update Prime Values and Particle Positions
     ////////////////////////////////////////////////////////////
    
     pc->reflectionAdvect(odd,windField,positions0,positions1,prime0,prime1,
 			 randomValues,lambda,tau_dz,duvw_dz,time_step,buildParam);
- 
-    ////////////////////////////////////////////////////////////
-    // Update Mean Velocities
-    ////////////////////////////////////////////////////////////
-    FramebufferObject::Disable();
-    fbo2->Bind();
-
-    pc->findMeanVel(odd,prime0,prime1,meanVel0,meanVel1,positions0,positions1,windField);
-
-    FramebufferObject::Disable();
-    fbo->Bind();
+   
     ////////////////////////////////////////////////////////////
     // Get Position for Streams
     ////////////////////////////////////////////////////////////
     if(stream->doUpdate()){
       stream->updateStreamPos();
     }
+    
+    ////////////////////////////////////////////////////////////
+    // Update Mean Velocities
+    ////////////////////////////////////////////////////////////
+    if(util->calculateMeanVel){
+      if(maxColorAttachments <= 4){
+	FramebufferObject::Disable();
+	fbo2->Bind();
+      }
+      pc->findMeanVel(odd,prime0,prime1,meanVel0,meanVel1,positions0,positions1,windField);
+
+      if(maxColorAttachments <= 4){
+	FramebufferObject::Disable();
+	fbo->Bind();
+      }
+    }
     ///////////////////////////////////////////////////////////
-
-  }
-
-  CheckErrorsGL("END : after 1st pass");
-  
-  // In some circumstances, we may want to dump the contents of
-  // the FBO to a file
-  if(!paused || !inPauseMode){
+    // In some circumstances, we may want to dump the contents of
+    // the FBO to a file
 
     if (dump_contents)
     {
@@ -232,13 +235,17 @@ int ReflectionModel::display(){
     }
     if(print_MeanVel)
     {
-      FramebufferObject::Disable();
-      fbo2->Bind();
+      if(maxColorAttachments <= 4){
+	FramebufferObject::Disable();
+	fbo2->Bind();
+      }
       pc->printMeanVelocities(odd);
       print_MeanVel = false;
-      FramebufferObject::Disable();
-      fbo->Bind();
-
+      
+      if(maxColorAttachments <= 4){
+	FramebufferObject::Disable();
+	fbo->Bind();
+      }
     }
     if(output_CollectionBox)
     {
@@ -253,6 +260,8 @@ int ReflectionModel::display(){
     odd = !odd;
     paused = true;
   }
+
+  CheckErrorsGL("END : after 1st pass");
   // We only need to do PASS 2 (copy to VBO) and PASS 3 (visualize) if
   // we actually want to render to the screen.  Rendering to the
   // screen will make the simulation run more slowly. This feature is
@@ -273,6 +282,12 @@ int ReflectionModel::display(){
 
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
+
+      glReadBuffer(GL_COLOR_ATTACHMENT6_EXT);
+      
+      glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
+      glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
+
       glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
       CheckErrorsGL("after glReadPixels");
       glReadBuffer(read_buffer);
@@ -299,7 +314,7 @@ int ReflectionModel::display(){
       glLoadIdentity();	
 	//glClearColor(0.93,0.93,0.93,1.0);	
       
-      dc->drawVisuals(vertex_buffer, windField, numInRow, twidth, theight);
+      dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
       stream->draw();
       dc->drawLayers(windField, numInRow);
 
@@ -343,10 +358,8 @@ void ReflectionModel::initFBO(void){
   fbo = new FramebufferObject();
   fbo->Bind();
       
-
-  //int num;
-  //glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT,&num);
-  //std::cout << num << std::endl;
+  glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT,&maxColorAttachments);
+  std::cout << "Max color attachments: " << maxColorAttachments << std::endl;
   //rb = new Renderbuffer();
   //rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);
   //fbo->AttachRenderBuffer(GL_DEPTH_ATTACHMENT_EXT, rb->GetId() );
@@ -356,21 +369,36 @@ void ReflectionModel::initFBO(void){
   fbo->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, texid[1]);
   fbo->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, prime0);
   fbo->AttachTexture(GL_COLOR_ATTACHMENT3_EXT, texType, prime1);
-	
+
+  if(maxColorAttachments > 4){
+    fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, meanVel0);
+    fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
+    fbo->AttachTexture(GL_COLOR_ATTACHMENT6_EXT, texType, currVel);
+
+    pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT4_EXT;
+    pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT5_EXT;
+
+  }
 
   fbo->IsValid();
   FramebufferObject::Disable();
 
-  fbo2 = new FramebufferObject();
-  fbo2->Bind();
+  //If the max number of textures that can be attached to the fbo 
+  //is <= 4, then we have to use another fbo.
+  if(maxColorAttachments <= 4){
+    fbo2 = new FramebufferObject();
+    fbo2->Bind();
 
-  fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0); 
-  fbo2->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, meanVel1);
-  CheckErrorsGL("FBO init 2");
+    fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0); 
+    fbo2->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, meanVel1);
+    CheckErrorsGL("FBO init 2");
 
-  fbo2->IsValid();
-  FramebufferObject::Disable();
+    pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT0_EXT;
+    pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT1_EXT;
 
+    fbo2->IsValid();
+    FramebufferObject::Disable();
+  }
 }
 
 void ReflectionModel::setupTextures(){
@@ -478,13 +506,32 @@ void ReflectionModel::setupTextures(){
   std::cout << "Number of iterations to get random values: " << iterations << std::endl;
 
   pc->createTexture(prime0, int_format, twidth, theight, data);
-  CheckErrorsGL("\tcreated texid[5], the initial prime value texture...");
-
   pc->createTexture(prime1, int_format, twidth, theight, data);
-
+  CheckErrorsGL("\tcreated texid[5], the initial prime value texture...");
   pc->createTexture(meanVel0, int_format, twidth, theight, data);
-  pc->createTexture(meanVel1, int_format, twidth, theight, NULL);
+  pc->createTexture(meanVel1, int_format, twidth, theight, data);
   CheckErrorsGL("\tcreated mean velocity textures...");
+
+  for (int j=0; j<theight; j++)
+    for (int i=0; i<twidth; i++)
+      {
+	int idx = j*twidth*sz + i*sz;
+
+	if(i%2 == 0){
+	  data[idx] = 1.0;
+	  data[idx+1] = 0.0;
+	  data[idx+2] = 0.0;
+	  data[idx+3] = 1.0;
+	}
+	else{
+	  data[idx] = 1.0;
+	  data[idx+1] = 1.0;
+	  data[idx+2] = 0.0;
+	  data[idx+3] = 1.0;
+	}
+      }
+
+  pc->createTexture(currVel, int_format, twidth, theight, data);
 
   //
   // create random texture for use with particle simulation and turbulence
@@ -549,49 +596,4 @@ void ReflectionModel::setupTextures(){
   CheckErrorsGL("END : Creating textures");
  
 }
-void ReflectionModel::setupEmitters(){
-  
-  for(int i=0; i < util->numOfPE; i++){
-    if(util->radius[i] == 0)
-      pe[i] = new PointEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
-			       util->rate[i], twidth, theight, &indices, &emit_shader);
-    else
-      pe[i] = new SphereEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
-				util->rate[i], util->radius[i], twidth, theight, &indices, &emit_shader);
-  }
- 
-  for(int i=0; i < util->numOfPE; i++){
-    if(reuseParticles)
-      pe[i]->setParticleReuse(&indicesInUse, lifeTime);
 
-    pe[i]->emit = false;
-    //Set for different methods of emitting particles
-    if(util->emit_method == 0){
-      pe[i]->Punch_Hole = true;
-    }
-    else pe[i]->Punch_Hole = false;
-
-    //Set up the ParticleEmitter method to release particles
-    //Release particles per time step only if duration is defined and
-    //there is a fixed time step.
-    switch(util->releaseType){
-    case 0:
-      pe[i]->releaseType = perTimeStep;
-      break;
-    case 1:
-      pe[i]->releaseType = perSecond;
-      break;
-    case 2:
-      pe[i]->releaseType = instantaneous;
-      break;
-    default:
-      std::cout << "Error in setting up particle release type" << std::endl;
-    }
-
-    if(pe[i]->releaseType == perTimeStep){
-      //set number of particles to emit = (number of particles/ total number of time steps);
-      int num = (int)floor((double)(twidth*theight) / (util->duration/(double)time_step));
-      pe[i]->setNumToEmit(num);
-    }
-  }
-}
