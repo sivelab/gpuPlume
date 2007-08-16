@@ -11,11 +11,11 @@ class ReflectionModel : public PlumeControl{
   virtual void init(bool);
   virtual int display();
   virtual void setupTextures();
-  virtual void setupEmitters();
+  //virtual void setupEmitters();
   
  protected:
 
-  FramebufferObject* fbo2;
+  //FramebufferObject* fbo2;
 
   virtual void initFBO();
   virtual ~ReflectionModel();
