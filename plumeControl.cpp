@@ -471,24 +471,15 @@ int PlumeControl::display(){
   
 }
 void PlumeControl::setupEmitters(){
-  /*
-  if(util->windFieldData == 3){   
-    util->numOfPE = 1;
-    //dc->draw_buildings = true;
-    //Creates a point emitter with position(10,10,10) , emitting 10 particles per second
-    pe[0] = new PointEmitter(10.0,10.0,10.0, 10.0, twidth, theight, &indices, &emit_shader);
+  for(int i=0; i < util->numOfPE; i++){
+    if(util->radius[i] == 0)
+      pe[i] = new PointEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
+			       util->rate[i], twidth, theight, &indices, &emit_shader);
+    else
+      pe[i] = new SphereEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
+				util->rate[i], util->radius[i], twidth, theight, &indices, &emit_shader);
   }
-  else{
-    //dc->draw_buildings = false;
-    for(int i=0; i < util->numOfPE; i++){
-      if(util->radius[i] == 0)
-	pe[i] = new PointEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
-				 util->rate[i], twidth, theight, &indices, &emit_shader);
-      else
-	pe[i] = new SphereEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
-				  util->rate[i], util->radius[i], twidth, theight, &indices, &emit_shader);
-    }
-  }
+ 
   for(int i=0; i < util->numOfPE; i++){
     if(reuseParticles)
       pe[i]->setParticleReuse(&indicesInUse, lifeTime);
@@ -500,35 +491,29 @@ void PlumeControl::setupEmitters(){
     }
     else pe[i]->Punch_Hole = false;
 
-    pe[i]->releasePerTimeStep = false;
-    pe[i]->releaseOne = false;
-    pe[i]->releasePerSecond = false;
-    pe[i]->instantRelease = false;
-
     //Set up the ParticleEmitter method to release particles
     //Release particles per time step only if duration is defined and
     //there is a fixed time step.
     switch(util->releaseType){
     case 0:
-      pe[i]->releasePerTimeStep = true;
+      pe[i]->releaseType = perTimeStep;
       break;
     case 1:
-      pe[i]->releasePerSecond = true;
+      pe[i]->releaseType = perSecond;
       break;
     case 2:
-      pe[i]->instantRelease = true;
+      pe[i]->releaseType = instantaneous;
       break;
     default:
       std::cout << "Error in setting up particle release type" << std::endl;
     }
 
-    if(pe[i]->releasePerTimeStep){
+    if(pe[i]->releaseType == perTimeStep){
       //set number of particles to emit = (number of particles/ total number of time steps);
       int num = (int)floor((double)(twidth*theight) / (util->duration/(double)time_step));
       pe[i]->setNumToEmit(num);
     }
   }
-  */
 }
 
 void PlumeControl::initFBO(void){
