@@ -98,6 +98,10 @@ class ParticleControl{
     float w;
   }wind;
 
+  typedef struct{
+    float c;
+     }cellType;
+
   wind* sig;
 
   GLenum meanVelBuffer0, meanVelBuffer1;
@@ -110,10 +114,12 @@ class ParticleControl{
   void quicPlumeWindField();  
   void uniformUWindField();
   void variedUWindField();
+  void QUICWindField();
 
   void printPrime(bool,bool);
  
   wind* wind_vel;
+  cellType* cellQuic;
 
   typedef struct{
     float t11;
