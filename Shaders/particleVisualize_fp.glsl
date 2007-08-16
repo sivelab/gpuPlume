@@ -1,4 +1,5 @@
 //uniform samplerRect render_texunit;
+varying vec4 pcolor;
 
 void main(void)
 {
@@ -10,5 +11,10 @@ void main(void)
 	pos.z = 1.0;
 	pos.a = 1.0;*/
         
-	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+	//Draw particles white
+	//gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+	//Draw particles black
+	//gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+	gl_FragColor = pcolor;
+
 }
