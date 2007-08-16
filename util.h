@@ -53,6 +53,9 @@ class Util{
   //initializes pause mode
   bool pauseMode;
 
+  //Set to do mean velocity calculations
+  bool calculateMeanVel;
+
   //type of advection ; i.e. determines which shaders and textures to load.
   int advectChoice;
 
