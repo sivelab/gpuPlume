@@ -14,7 +14,7 @@ class DisplayControl{
   
   DisplayControl(int, int, int, GLenum);
   
-  void drawVisuals(GLuint, GLuint, int, int, int);
+  void drawVisuals(GLuint, GLuint, GLuint, int, int, int);
   void drawAxes();
   void drawGround();
   void drawLayers(GLuint, int);
@@ -76,5 +76,7 @@ class DisplayControl{
   GLuint displayTex[3];
 
   GLenum texType;
+
+  GLint uniform_vel_color;
 
 };
