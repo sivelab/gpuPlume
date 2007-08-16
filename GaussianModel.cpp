@@ -200,31 +200,12 @@ int GaussianModel::display(){
     stream->updateStreamPos();
   }
   ///////////////////////////////////////////////////////////
-
-  CheckErrorsGL("END : after 1st pass");
   
   // In some circumstances, we may want to dump the contents of
   // the FBO to a file.
   if (dump_contents)
      {
-       glGetIntegerv(GL_READ_BUFFER, &readbuffer);
-
-       if(odd)
-	 glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-       else
-	 glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
-
-       std::cout << "Previous Positions" << std::endl;
-       pc->dumpContents();
-
-       if(odd)
-	 glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
-       else
-	 glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-       
-       std::cout << "Updated Positions" << std::endl;
-       pc->dumpContents();
-
+       pc->printPositions(odd);
        dump_contents = false;
      }
   if(output_CollectionBox)
@@ -239,20 +220,12 @@ int GaussianModel::display(){
   //Switches the frame buffer and binding texture
   odd = !odd;
 
+  CheckErrorsGL("END : after 1st pass");
   // We only need to do PASS 2 (copy to VBO) and PASS 3 (visualize) if
   // we actually want to render to the screen.  Rendering to the
   // screen will make the simulation run more slowly. This feature is
   // mainly included to allow some idea of how much faster the
   // simulation can run if left to run on the GPU.
-
-  if(twidth*theight == 0 && once){
-    std::cout << "w " << twidth << std::endl;
-    std::cout << "h " << theight << std::endl;
-    std::cout << sim->totalTime << std::endl;
-    std::cout << "Total particles " << totalNumPar << std::endl;
-    std::cout << "Curr timestep " << sim->curr_timeStep << std::endl;
-    once = false;
-  }
 
   if (util->show_particle_visuals)
     {
@@ -300,7 +273,7 @@ int GaussianModel::display(){
 	//glClearColor(0.93,0.93,0.93,1.0);	
       }
 
-      dc->drawVisuals(vertex_buffer, windField, numInRow, twidth, theight);
+      dc->drawVisuals(vertex_buffer, windField, 0, numInRow, twidth, theight);
       stream->draw();
       dc->drawLayers(windField, numInRow);
 
@@ -498,50 +471,4 @@ void GaussianModel::setupTextures(){
 
   CheckErrorsGL("END : Creating textures");
  
-}
-void GaussianModel::setupEmitters(){
-  
-  for(int i=0; i < util->numOfPE; i++){
-    if(util->radius[i] == 0)
-      pe[i] = new PointEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
-			       util->rate[i], twidth, theight, &indices, &emit_shader);
-    else
-      pe[i] = new SphereEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
-				util->rate[i], util->radius[i], twidth, theight, &indices, &emit_shader);
-  }
- 
-  for(int i=0; i < util->numOfPE; i++){
-    if(reuseParticles)
-      pe[i]->setParticleReuse(&indicesInUse, lifeTime);
-
-    pe[i]->emit = false;
-    //Set for different methods of emitting particles
-    if(util->emit_method == 0){
-      pe[i]->Punch_Hole = true;
-    }
-    else pe[i]->Punch_Hole = false;
-
-    //Set up the ParticleEmitter method to release particles
-    //Release particles per time step only if duration is defined and
-    //there is a fixed time step.
-    switch(util->releaseType){
-    case 0:
-      pe[i]->releaseType = perTimeStep;
-      break;
-    case 1:
-      pe[i]->releaseType = perSecond;
-      break;
-    case 2:
-      pe[i]->releaseType = instantaneous;
-      break;
-    default:
-      std::cout << "Error in setting up particle release type" << std::endl;
-    }
-
-    if(pe[i]->releaseType == perTimeStep){
-      //set number of particles to emit = (number of particles/ total number of time steps);
-      int num = (int)floor((double)(twidth*theight) / (util->duration/(double)time_step));
-      pe[i]->setNumToEmit(num);
-    }
-  }
 }
