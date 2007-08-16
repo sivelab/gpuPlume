@@ -11,7 +11,7 @@ class GaussianModel : public PlumeControl{
   virtual void init(bool);
   virtual int display();
   virtual void setupTextures();
-  virtual void setupEmitters();
+  //virtual void setupEmitters();
   
  protected:
 
