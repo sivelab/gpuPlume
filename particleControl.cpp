@@ -4,7 +4,7 @@
 #include <math.h>
 #include "particleControl.h"
 #include "Random.h"
-#include "glErrorUtil.h"
+#include <climits>
 
 ParticleControl::ParticleControl(GLenum type,int width,int height,
 				 int x, int y, int z,
@@ -28,8 +28,7 @@ void ParticleControl::setUstarAndSigmas(float u){
   sigU = 2.0*ustar;
   sigV = 2.0*ustar;
   sigW = 1.3*ustar;
-	
-  std::cout << ustar << std::endl;
+
 }
 void ParticleControl::setupReflectionShader(int numInRow, float life_time){
   reflection_shader.addShader("Shaders/reflectionAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -83,7 +82,7 @@ void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positi
   if(outputPrime)
     printPrime(odd, true);
 
-  if(odd){
+  if (odd){
     GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT};
     glDrawBuffers(2,buffers);
   }
@@ -164,13 +163,13 @@ void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positi
   glUniform1iARB(uniform_wind, 1);
     
   glActiveTexture(GL_TEXTURE0);
+  glUniform1iARB(uniform_postex, 0);
+
   if (odd)
     glBindTexture(texType, positions0);  // read from texture 0
   else 
     glBindTexture(texType, positions1);  // read from texture 1
  
-  glUniform1iARB(uniform_postex, 0);
-
   glBegin(GL_QUADS);
   {
     glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
@@ -597,7 +596,7 @@ void ParticleControl::printPrime(bool odd, bool prev){
   glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
   
   if(prev){
-    std::cout << "Previous Prime Values" << std::endl;
+    //std::cout << "Previous Prime Values" << std::endl;
     if(odd)
       glReadBuffer(GL_COLOR_ATTACHMENT2_EXT);
     else
@@ -605,16 +604,16 @@ void ParticleControl::printPrime(bool odd, bool prev){
   }
   else{
 
-    std::cout << "Updated Prime Values" << std::endl;
+   // std::cout << "Updated Prime Values" << std::endl;
     if(odd)
       glReadBuffer(GL_COLOR_ATTACHMENT3_EXT);
     else
       glReadBuffer(GL_COLOR_ATTACHMENT2_EXT);
 
     outputPrime = false;
-
-  }  
+  }
   dumpContents();
+  
    
   glReadBuffer(currentbuffer);
 
@@ -714,7 +713,7 @@ void ParticleControl::advect(bool odd,
   glBindTexture(texType, 0);
 
 }
-void ParticleControl::setupMeanVel_shader(int numInRow){
+void ParticleControl::setupMeanVel_shader(){
   meanVel_shader.addShader("Shaders/meanVel_vp.glsl", GLSLObject::VERTEX_SHADER);
   meanVel_shader.addShader("Shaders/meanVel_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   meanVel_shader.createProgram();
@@ -723,9 +722,6 @@ void ParticleControl::setupMeanVel_shader(int numInRow){
   uniform_prevMean = meanVel_shader.createUniform("prevMean");
   uniform_currVel = meanVel_shader.createUniform("currVel");
   uniform_position = meanVel_shader.createUniform("position");
-  uniform_windVel = meanVel_shader.createUniform("windVel");
-
-  GLint unir = meanVel_shader.createUniform("numInRow");
 
   GLint unx = meanVel_shader.createUniform("nx");
   GLint uny = meanVel_shader.createUniform("ny");
@@ -736,7 +732,6 @@ void ParticleControl::setupMeanVel_shader(int numInRow){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  glUniform1fARB(unir,numInRow);
 
   meanVel_shader.deactivate();
 
@@ -745,24 +740,18 @@ void ParticleControl::setupMeanVel_shader(int numInRow){
 
 void ParticleControl::findMeanVel(bool odd,GLuint prime0,GLuint prime1,
 				  GLuint meanVel0,GLuint meanVel1,
-				  GLuint positions0,GLuint positions1,
-				  GLuint windField){
+				  GLuint positions0,GLuint positions1){
 
-  if(odd){
-    glDrawBuffer(meanVelBuffer1);
-  }
+  if (odd)
+    glDrawBuffer(GL_COLOR_ATTACHMENT5_EXT);
   else 
-    glDrawBuffer(meanVelBuffer0);
+    glDrawBuffer(GL_COLOR_ATTACHMENT4_EXT);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, twidth, theight);
     
   glEnable(texType);
   meanVel_shader.activate();
-
-  glActiveTexture(GL_TEXTURE3);
-  glBindTexture(texType, windField);
-  glUniform1iARB(uniform_windVel,3);
 
   glActiveTexture(GL_TEXTURE2);
   if(odd)
@@ -832,23 +821,16 @@ void ParticleControl::printPositions(bool odd){
 void ParticleControl::printMeanVelocities(bool odd){
   glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
   double tts;
-  //std::ofstream output;
-
-  //output.open("MeanVel.dat");
 
   std::cout << "Mean Velocities" << std::endl;
-
   if(odd)
-    glReadBuffer(meanVelBuffer1);
+    glReadBuffer(GL_COLOR_ATTACHMENT5_EXT);
   else
-    glReadBuffer(meanVelBuffer0);
+    glReadBuffer(GL_COLOR_ATTACHMENT4_EXT);
 
   buffer_mem = new GLfloat[ twidth * theight * 4 ];  
   glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
-
   std::cout << "IDX  X     Y     Z" << std::endl;
-  //output << "IDX  X     Y     Z  \n" ;
-
   int pn =0;
   for (int j=0; j<theight; j++)
     for (int i=0; i<twidth; i++){
@@ -862,18 +844,9 @@ void ParticleControl::printMeanVelocities(bool odd){
        std::cout << buffer_mem[idx+1]/tts << " ";
        std::cout << buffer_mem[idx+2]/tts << " ";
        std::cout << "#ts: " << buffer_mem[idx+3] << std::endl;
-       /*output << pn << " ";
-       output << buffer_mem[idx]/tts << " ";
-       output << buffer_mem[idx+1]/tts << " ";
-       output << buffer_mem[idx+2]/tts << "\n";
-       //output << "#ts: " << buffer_mem[idx+3] << "\n";*/
-
-
        pn++;
     }
   delete [] buffer_mem;
-
-  //output.close();
 
   glReadBuffer(currentbuffer);
 }
@@ -886,14 +859,13 @@ void ParticleControl::dumpContents(){
   int pn =0;
   for (int j=0; j<theight; j++)
     for (int i=0; i<twidth; i++){
-	  
        int idx = j*twidth*4 + i*4;
        std::cout << pn << " ";
        std::cout << buffer_mem[idx] << " ";
        std::cout << buffer_mem[idx+1] << " ";
        std::cout << buffer_mem[idx+2] << " ";
        std::cout << buffer_mem[idx+3] << std::endl;
-       pn++;
+	    pn++;
     }
   delete [] buffer_mem;
 
@@ -1126,6 +1098,7 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
 				  int dataSet){
   // Create wind velocity data texture
   wind_vel = new wind[nx*ny*nz];
+  cellQuic = new cellType[nx*ny*nz];
 
   //Matrix tau11,tau22,tau33,and tau13
   tau = new Matrix[nx*ny*nz];
@@ -1136,19 +1109,22 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
   switch(dataSet){
 
       case 1:
-	 test1();
-	 break;
+	    test1();
+	    break;
       case 2:
-	randomWindField();
-	break;
+	     randomWindField();
+	     break;
       case 3:
-	quicPlumeWindField();
-	break;
+	     quicPlumeWindField();
+	     break;
       case 4:
-	uniformUWindField();
-	break;
+	     uniformUWindField();
+	     break;
       case 5:
-        variedUWindField();
+         variedUWindField();
+         break;
+      case 6:
+		QUICWindField();
         break;
 
   }
@@ -1224,108 +1200,266 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   GLfloat *data = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
   GLfloat *data3 = new GLfloat[width*height*4];
+  GLfloat *data4 = new GLfloat[width*height*4];
+  GLfloat *data5 = new GLfloat[width*height*4];
 
   int qi, qj, qk;
   int p2idx = 0, texidx = 0, texidxBelow = 0;
   int row = 0, rowBelow = 0;
   
   //cell below, cell above, cell two below
-  int idxBelow, idxAbove, idx2Below;
+  int idxBelow, idxAbove, idx2Below,idxRight,idxLeft,idxFront,idxBehind;
 
-  float du_dz;
-
+  float du_dx,du_dy,du_dz,dv_dx,dv_dy,dv_dz,dw_dx,dw_dy,dw_dz;
+  double S11,S22,S33,S21,S12,S31,S13,S23,S32;
   //Cell height
-  float dz = 1.0;
+  float dz = 1.0,dx=1.0,dy=1.0;
   //Surface roughness
   float znaut = 0.01;
   
   for (qk=0; qk<nz; qk++) 
     for (qi=0; qi<ny; qi++)
       for (qj=0; qj<nx; qj++)
-	{
-	  p2idx = qk*ny*nx + qi*nx + qj;
-	    
-	  row = qk / (numInRow);
-	  texidx = row * width * ny * 4 +
-	  qi * width * 4 +
-	  qk % (numInRow) * nx * 4 +
-	  qj * 4;
+	{	
+		p2idx = qk*ny*nx + qi*nx + qj;
+		
+		if(cellQuic[p2idx].c!=0){ //Calculate gradients ONLY if its not a building or ground cell    
 
-	  rowBelow = (qk-1) / (numInRow);
-	  texidxBelow = rowBelow * width * ny * 4 +
-	    qi * width * 4 +
-	    (qk-1) % (numInRow) * nx * 4 +
-	    qj * 4;
+		   // Calculating distance to the wall in all directions.
+
+		   //to look for distance to a building in negative Z-direction (towards the ground)
+		   int disNegZSurf=qk,qkk=qk;
+		   while(qkk>=0){
+		      int p2idx_k = qkk*ny*nx + qi*nx + qj;
+		   	  if(cellQuic[p2idx_k].c==0){
+                 disNegZSurf=qk-qkk;
+		   	     break;
+		   	  }
+		   	  --qkk;
+		   }
+           
+		   //For Y-direction.
+		   int p2idx_i;
+           //to look for a building in negative Y-direction
+		   int disNegYSurf=1000*ny , qii=qi;
+		   while(qii>=0){
+		   	  p2idx_i = qk*ny*nx + qii*nx + qj;
+		   	  if(cellQuic[p2idx_i].c==0){
+                 disNegYSurf=qi-qii;
+		   	     break;
+		   	  }
+		   	  --qii;
+	   	   }
+           //to look for a building in postive Y-direction
+		   int disPosYSurf=1000*ny;
+		   qii=qi;
+		   while(qii<=ny){
+		   	  p2idx_i = qk*ny*nx + qii*nx + qj;
+		   	  if(cellQuic[p2idx_i].c==0){
+                 disPosYSurf=qii-qi;
+		   	     break;
+		   	  }
+		   	  ++qii;
+		   }
+
+		   //For X-direction.
+		   int p2idx_j;
+           //to look for a building in negative X-direction
+		   int disNegXSurf=1000*nx , qjj=qj;
+		   while(qjj>=0){
+		      p2idx_j = qk*ny*nx + qi*nx + qjj;
+		   	  if(cellQuic[p2idx_j].c==0){
+                    disNegXSurf=qj-qjj;
+		   	     break;
+		   	  }
+		   	  --qjj;
+	   	   }
+           //to look for a building in postive X-direction
+		   int disPosXSurf=1000*nx;
+		   qjj=qj;
+		   while(qjj<=nx){
+		   	  p2idx_j = qk*ny*nx + qi*nx + qjj;
+		   	  if(cellQuic[p2idx_j].c==0){
+                  disPosXSurf=qjj-qj;
+		   	      break;
+		   	  }
+		   	  ++qjj;
+		   }
+		   //Calculating "minimum" distance to the wall.
+		   int disArray[]={disNegXSurf,disPosXSurf,disNegYSurf,disPosYSurf,disNegZSurf};
+
+		   int minDistance = disNegXSurf;  //let the lowest value be the first in the array
+
+		   for(int i=0; i<sizeof(disArray)/sizeof*(disArray);++i){//loop for getting the actual minimum distance
+		   	  if(disArray[i] <= minDistance){
+  	             minDistance = disArray[i];
+  	          }
+		   }
+
+	       row = qk / (numInRow);
+	       texidx = row * width * ny * 4 +
+	       qi * width * 4 +
+	       qk % (numInRow) * nx * 4 +
+	       qj * 4;
+
+	       rowBelow = (qk-1) / (numInRow);
+	       texidxBelow = rowBelow * width * ny * 4 +
+	       qi * width * 4 +
+	       (qk-1) % (numInRow) * nx * 4 +
+	       qj * 4;
+	         
+	       //The cells right above and below the current cell
+	       idxBelow = (qk-1)*ny*nx + qi*nx + qj;
+	       idxAbove = (qk+1)*ny*nx + qi*nx + qj;
+
+           
+
+		   //The cells at front and behind of the current cell   
+	       idxBehind = qk*ny*nx + qi*nx + (qj-1);
+	       idxFront  = qk*ny*nx + qi*nx + (qj+1);
+	       //The cell two below the current cell
+	       idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+            
+	       //Calculate du/dz
+
+	       //Cell just above the ground
+	       //du/dz = Uat 1st cell/0.5dz(log(dz/znaut))
+	       if(qk == 0 || (cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
+	          du_dz = wind_vel[p2idx].u/(dz*log(dz/znaut));
+		      dv_dz = wind_vel[p2idx].v/(dz*log(dz/znaut));
+		      dw_dz = wind_vel[p2idx].w/(dz*log(dz/znaut));
+		      ustar = 0.4*(minDistance+1)*du_dz;
+	       }
+	       //Cell at the top of the domain
+	       else if(qk == (nz-1)){
+	          du_dz = data3[texidxBelow];  // du_dz at k-1th cell
+		      dv_dz = data3[texidxBelow+1];
+		      dw_dz = data3[texidxBelow+2];
+		      ustar = 0.4*(minDistance+1)*du_dz;
+	       }
+		   /*
+		   //Cell at the top of the domain
+		   //du/dz = du/dz at k-1th cell
+		   //which is the same as du/dz = Uk-Uk-2/2dz if domain is higher than 2
+		   else if((qk == (nz-1)) && (qk > 1)){
+		 	du_dz = (wind_vel[p2idx].u - wind_vel[idx2Below].u)/(2.0*dz);
+		   }
+		   //Cell at the top of the domain
+		   //which is the same as cell just above ground if domain is only 2 high
+		   else if((qk == (nz-1)) && (qk == 1)){
+	 		du_dz = wind_vel[idxBelow].u/(0.5*dz*log(0.5*dz/znaut));
+ 		   }
+		   */
+
+		   //All other cells. i.e not boundary cells
+		   //du/dz = (Uk+1 - Uk-1)/2dz
+		   else{
+		   	  du_dz = (wind_vel[idxAbove].u - wind_vel[idxBelow].u)/(2.0*dz);
+		   	  dv_dz = (wind_vel[idxAbove].v - wind_vel[idxBelow].v)/(2.0*dz);
+		   	  dw_dz = (wind_vel[idxAbove].w - wind_vel[idxBelow].w)/(2.0*dz);
+		   	  ustar = 0.4*(minDistance+1)*du_dz;
+		   }
+	       
+
+		 
+		  	  
+		   data3[texidx] = du_dz;    //du_dz
+		   data3[texidx+1] = dv_dz;    //eventually dv_dz
+		   data3[texidx+2] = dw_dz;    //eventually dw_dz
+		   data3[texidx+3] = 0.0;
+		  
+		   //For gradient in X-direction
+		   
+		   //Cell at the top of the domain
+		   if(qj == (nx-1) || qj==0){
+		   	  du_dx = 0;  // du_dz at k-1th cell
+		   	  dv_dx = 0;
+		   	  dw_dx = 0;
+		   }
+		   else if((cellQuic[idxBehind].c==0 && cellQuic[p2idx].c==1) || (cellQuic[idxFront].c==0 && cellQuic[p2idx].c==1)){
+		   	  du_dx = wind_vel[p2idx].u/(dx*log(dx/znaut));
+		   	  dv_dx = wind_vel[p2idx].v/(dx*log(dx/znaut));
+		   	  dw_dx = wind_vel[p2idx].w/(dx*log(dx/znaut));
+		   }
+		   else{
+		   	  du_dx = (wind_vel[idxFront].u - wind_vel[idxBehind].u)/(2.0*dx);
+		   	  dv_dx = (wind_vel[idxFront].v - wind_vel[idxBehind].v)/(2.0*dx);
+		   	  dw_dx = (wind_vel[idxFront].w - wind_vel[idxBehind].w)/(2.0*dx);
+		   }
+
+           data4[texidx]   = du_dx;    //du_dx
+		   data4[texidx+1] = dv_dx;    //eventually dv_dx
+		   data4[texidx+2] = dw_dx;    //eventually dw_dx
+		   data4[texidx+3] = 0.0;	      
+
+
+
+		   //For gradient in Y-direction
+		   //The cells at right and left of the current cell 
+	       idxRight = qk*ny*nx + (qi-1)*nx + qj;
+	       idxLeft  = qk*ny*nx + (qi+1)*nx + qj;
+		   
+		   //Cell at the top of the domain
+		   if(qi == (ny-1) || qi==0){
+		   	  du_dy = 0;  // du_dz at k-1th cell
+		   	  dv_dy = 0;
+		   	  dw_dy = 0;
+		   }
+		   else if((cellQuic[idxLeft].c==0 && cellQuic[p2idx].c==1) || (cellQuic[idxRight].c==0 && cellQuic[p2idx].c==1)){
+		   	  du_dy = wind_vel[p2idx].u/(dy*log(dy/znaut));
+		   	  dv_dy = wind_vel[p2idx].v/(dy*log(dy/znaut));
+		   	  dw_dy = wind_vel[p2idx].w/(dy*log(dy/znaut));
+		   }
+		   else{
+		   	  du_dy = (wind_vel[idxLeft].u - wind_vel[idxRight].u)/(2.0*dy);
+		   	  dv_dy = (wind_vel[idxLeft].v - wind_vel[idxRight].v)/(2.0*dy);
+		   	  dw_dy = (wind_vel[idxLeft].w - wind_vel[idxRight].w)/(2.0*dy);
+		   }
+
+		   data5[texidx]   = du_dy;    //du_dy
+		   data5[texidx+1] = dv_dy;    //eventually dv_dy
+		   data5[texidx+2] = dw_dy;    //eventually dw_dy
+		   data5[texidx+3] = 0.0;
+
+
+		   S11=du_dx;
+		   S22=dv_dy;
+		   S33=dw_dz;
+
+		   S12=0.5 * ( du_dy + dv_dz );
+		   S13=0.5 * ( du_dz + dw_dx );
+		   S32=0.5 * ( dw_dy + dv_dz );
+		   
+		   S21=S12;
+		   S31=S13;
+		   S23=S32;
+              
+		   sigU = 2.0*ustar;
+		   sigV = 2.0*ustar;
+		   sigW = 1.3*ustar;
+
+		   sig[p2idx].u = sigU;   //sigU
+		   sig[p2idx].v = sigV;   //sigV
+		   sig[p2idx].w = sigW;   //sigW
+
+		   float tau11=pow(0.4*(minDistance+1)*S11,2);//sigU*sigU;
+		   float tau22=pow(0.4*(minDistance+1)*S22,2);//sigV*sigV;
+		   float tau33=pow(0.4*(minDistance+1)*S33,2);//sigW*sigW;
+		   float tau13=pow(0.4*(minDistance+1)*S13,2);//ustar*ustar;
+		   float tauDetInv=1.0/((tau11*tau22*tau33)-(tau13*tau13*tau22));
+
 	  
-	  //The cells right above and below the current cell
-	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
-	  idxAbove = (qk+1)*ny*nx + qi*nx + qj;
-	  //The cell two below the current cell
-	  idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+		   tau[p2idx].t11   = tau11;             //Tau11
+		   tau[p2idx+1].t22 = tau22;             //Tau22
+		   tau[p2idx+2].t33 = tau33;             //Tau33
+		   tau[p2idx+3].t13 = tau13;             //Tau13
 
-	  //Calculate du/dz
-
-	  //Cell just above the ground
-	  //du/dz = Uat 1st cell/0.5dz(log(dz/znaut))
-	  if(qk == 0){
-	    du_dz = wind_vel[p2idx].u/(dz*log(dz/znaut));
-	  }
-	  //Cell at the top of the domain
-	  else if(qk == (nz-1)){
-	    du_dz = data3[texidxBelow];  // du_dz at k-1th cell
-	  }
-	  /*
-	  //Cell at the top of the domain
-	  //du/dz = du/dz at k-1th cell
-	  //which is the same as du/dz = Uk-Uk-2/2dz if domain is higher than 2
-	  else if((qk == (nz-1)) && (qk > 1)){
-	    du_dz = (wind_vel[p2idx].u - wind_vel[idx2Below].u)/(2.0*dz);
-	  }
-	  //Cell at the top of the domain
-	  //which is the same as cell just above ground if domain is only 2 high
-	  else if((qk == (nz-1)) && (qk == 1)){
-	    du_dz = wind_vel[idxBelow].u/(0.5*dz*log(0.5*dz/znaut));
-	  }
-	  */
-
-	  //All other cells. i.e not boundary cells
-	  //du/dz = (Uk+1 - Uk-1)/2dz
-	  else{
-	    du_dz = (wind_vel[idxAbove].u - wind_vel[idxBelow].u)/(2.0*dz);
-	  }
-	  	  
-	  data3[texidx] = du_dz;    //du_dz
-	  data3[texidx+1] = 0.0;    //eventually dv_dz
-	  data3[texidx+2] = 0.0;    //eventually dw_dz
-	  data3[texidx+3] = 0.0;
-	  
-	  ustar = 0.4*(qk+1)*du_dz;
-
-	  sigU = 2.0*ustar;
-	  sigV = 2.0*ustar;
-	  sigW = 1.3*ustar;
-
-	  sig[p2idx].u = sigU;   //sigU
-	  sig[p2idx].v = sigV;   //sigV
-	  sig[p2idx].w = sigW;   //sigW
-
-	  float tau11=sigU*sigU;
-	  float tau22=sigV*sigV;
-	  float tau33=sigW*sigW;
-	  float tau13=ustar*ustar;
-	  float tauDetInv=1.0/((tau11*tau22*tau33)-(tau13*tau13*tau22));
-	  
-	  tau[p2idx].t11   = tau11;             //Tau11
-	  tau[p2idx+1].t22 = tau22;             //Tau22
-	  tau[p2idx+2].t33 = tau33;             //Tau33
-	  tau[p2idx+3].t13 = tau13;             //Tau13
-
-	  dataTwo[texidx]   = tauDetInv*(tau22*tau33);            //Lam11
-	  dataTwo[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
-	  dataTwo[texidx+2] = tauDetInv*(tau11*tau22);	          //Lam33
-	  dataTwo[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
-        }
-
+		   dataTwo[texidx]   = tauDetInv*(tau22*tau33);            //Lam11
+		   dataTwo[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
+		   dataTwo[texidx+2] = tauDetInv*(tau11*tau22);	          //Lam33
+		   dataTwo[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
+		}
+      }
   createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
   createTexture(duvw_dz, GL_RGBA32F_ARB, width,height, data3);
   
@@ -1364,7 +1498,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  
 	  //Cell just above the ground
 	  //dT/dz = -2(T/(0.5dz)log((0.5dz/znaut)))
-	  if(qk == 0){
+	  if(qk == 0 ||(cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
 	    tau11_dz = -2.0*(tau[p2idx].t11/(dz*log(dz/znaut)));
 	    tau22_dz = -2.0*(tau[p2idx].t22/(dz*log(dz/znaut)));
 	    tau33_dz = -2.0*(tau[p2idx].t33/(dz*log(dz/znaut)));
@@ -1450,7 +1584,8 @@ void ParticleControl::initLambdaTex(GLuint lambda, int numInRow){
 	  data[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
 	  data[texidx+2] = tauDetInv*(tau11*tau22);	       //Lam33
 	  data[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
-	  }
+        }
+
   createTexture(lambda, GL_RGBA32F_ARB, width,height, data);
   //Lambda Texture Ends-- Balli (04/12/07)
   delete [] data;
@@ -1537,6 +1672,59 @@ void ParticleControl::variedUWindField(){
 
 }
 
+void ParticleControl::QUICWindField(){
+	std::ifstream QUICWindField,QUICCellType;
+	
+	QUICWindField.open("settings/QU_velocity.dat"); //opening the wind file  to read
+	if(!QUICWindField){
+		std::cerr<<"Unable to open QUIC Windfield file : QU_velocity.dat ";
+		exit(1);
+	}
+
+    QUICCellType.open("settings/QU_celltype.dat");//opening the Celltype file  to read
+	if(!QUICCellType){
+		std::cerr<<"Unable to open QUIC Celltype file : QU_celltype.dat ";
+		exit(1);
+	}
+
+	std::string header;  //I am just using a very crude method to read the header of the wind file
+	QUICWindField>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header;
+	QUICWindField>>header>>header>>header>>header>>header;
+    
+	double groundVal; // ignoring the ground values, so that k=0 have the first cell having non-zero velocity 
+	for(int k=0;k<(6*nx*ny);++k){ // there are 6 columns in the wind file 
+		QUICWindField>>groundVal;
+	}
+	// ignoring the ground values for the cellype also
+	for(int k=0;k<(4*nx*ny);++k){// there are 4 columns in the wind file
+		 QUICCellType>>groundVal;
+	}
+
+   double quicIndex;
+
+   for(int k = 0; k < nz; k++){   
+    for(int i = 0; i < ny; i++){
+      for(int j = 0; j < nx; j++){
+	     int p2idx = k*nx*ny + i*nx + j;
+	     QUICWindField>>quicIndex; // ignoring the X,Y and Z values
+	     QUICWindField>>quicIndex;
+	     QUICWindField>>quicIndex;
+
+	     QUICWindField>>wind_vel[p2idx].u ;//storing the velocity values in the wind structure
+	     QUICWindField>>wind_vel[p2idx].v ;
+	     QUICWindField>>wind_vel[p2idx].w ;
+
+		 QUICCellType>>quicIndex;// ignoring the X,Y and Z values
+		 QUICCellType>>quicIndex;
+		 QUICCellType>>quicIndex;
+
+		 QUICCellType>>cellQuic[p2idx].c ;//storing the Celltype values in the Cell structure
+		
+      }
+    }
+  }
+
+}
 void ParticleControl::initParticlePositions(FramebufferObject* fbo, GLuint texId){
   
    //This shader is used to initialize the particle positions
