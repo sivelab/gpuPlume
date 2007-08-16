@@ -6,7 +6,7 @@
 // BEGIN -----> QUIC PLUME FORTRAN REFERENCES
 // //////////////////////////////////////
 
-#ifdef USE_PLUME_DATA
+#if 0
 
 extern "C"
 {
@@ -236,6 +236,12 @@ void Util::parseLine(char* line){
       pauseMode = true;
     else
       pauseMode = false;
+  }
+  if(read1Float(line, "calculateMeanVel", &f1)){
+    if(f1 == 0)
+      calculateMeanVel = false;
+    else
+      calculateMeanVel = true;
   }
 
 }
