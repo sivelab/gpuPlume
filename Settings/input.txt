@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 256
-theight 256
+twidth 4
+theight 4
 
 #Set the Domain
 nx 60
@@ -89,7 +89,7 @@ emit_method 0
 
 #Number of Buildings
 #Set to 0 for no buildings
-numBuild 0
+numBuild 1
 
 #Building Parameters
 #I'm defining it the same as in QUIC
@@ -99,3 +99,6 @@ build_param 40.0 30.0 0.0 10.0 6.0 4.0
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
 pauseMode 1
+
+#Set to 1 to do mean velocity calculation; else 0
+calculateMeanVel 1
