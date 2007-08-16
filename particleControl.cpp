@@ -749,10 +749,10 @@ void ParticleControl::findMeanVel(bool odd,GLuint prime0,GLuint prime1,
 				  GLuint windField){
 
   if(odd){
-    glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+    glDrawBuffer(meanVelBuffer1);
   }
   else 
-    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+    glDrawBuffer(meanVelBuffer0);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, twidth, theight);
@@ -839,9 +839,9 @@ void ParticleControl::printMeanVelocities(bool odd){
   std::cout << "Mean Velocities" << std::endl;
 
   if(odd)
-    glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+    glReadBuffer(meanVelBuffer1);
   else
-    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+    glReadBuffer(meanVelBuffer0);
 
   buffer_mem = new GLfloat[ twidth * theight * 4 ];  
   glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, buffer_mem);
