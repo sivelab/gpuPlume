@@ -57,14 +57,18 @@ class PlumeControl{
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
 
-  GLuint texid[12]; 
+  GLuint texid[13]; 
   GLenum texType,positions0,positions1,windField,randomValues;
   GLenum prime0, prime1, lambda, tau_dz, duvw_dz;
-  GLenum meanVel0,meanVel1;
+  GLenum meanVel0,meanVel1,currVel;
 
   FramebufferObject* fbo;
+  FramebufferObject* fbo2;
   Renderbuffer* rb;
-  GLuint vertex_buffer;
+
+  GLuint vbo_buffer[2];
+  GLenum vertex_buffer;
+  GLenum color_buffer;
 
   bool dump_contents;
   bool print_MeanVel;
@@ -124,6 +128,8 @@ class PlumeControl{
   GLint* vp;
   GLfloat* mvm;
   GLfloat* pm;
+
+  int maxColorAttachments;
 
 };
 
