@@ -42,15 +42,19 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   render_shader.createProgram();
   
+  //uniform_vel_color = render_shader.createUniform("vel");
+
   // Create a high resolution clock timer - only works on Linux, x86
   // systems.  The basic timer works on Windows.  Setting the argument
   // to true will have no affect on windows implementations.
   clock_timer = new Timer(true);
+
+  graphics_time[0] = clock_timer->tic();
   
 }
 
-void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRow, 
-				 int twidth, int theight)
+void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
+				 int numInRow, int twidth, int theight)
 {
  
 
@@ -65,13 +69,25 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, int numInRo
   }
   
   // render the vertices in the VBO (the particle positions) as points in the domain
+  
+  if(color_buffer != 0){
+    glEnableClientState(GL_COLOR_ARRAY); 
+    glBindBufferARB(GL_ARRAY_BUFFER, color_buffer);
+    glColorPointer(4, GL_FLOAT, 0, 0);
+  }
   glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
-  glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer(4, GL_FLOAT, 0, 0);
+  
+  glEnableClientState(GL_VERTEX_ARRAY); 
+  
   glPointSize(3.0);
-  render_shader.activate();
+  render_shader.activate();  
+  if(color_buffer == 0)
+    glColor4f(1.0,1.0,1.0,1.0);
+
   glDrawArrays(GL_POINTS, 0, twidth*theight);
   render_shader.deactivate();
+
 
   drawAxes();
   if(!osgPlume){
