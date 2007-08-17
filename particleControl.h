@@ -115,6 +115,8 @@ class ParticleControl{
   void uniformUWindField();
   void variedUWindField();
   void QUICWindField();
+  
+  void initCellType();
 
   void printPrime(bool,bool);
  
