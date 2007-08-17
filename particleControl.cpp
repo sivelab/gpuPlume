@@ -714,6 +714,73 @@ void ParticleControl::advect(bool odd,
   glBindTexture(texType, 0);
 
 }
+void ParticleControl::setupCurrVel_shader(int numInRow){
+  currVel_shader.addShader("Shaders/currVel_vp.glsl",GLSLObject::VERTEX_SHADER);
+  currVel_shader.addShader("Shaders/currVel_fp.glsl",GLSLObject::FRAGMENT_SHADER);
+  currVel_shader.createProgram();
+
+  uniform_currentPrime = currVel_shader.createUniform("currPrime");
+  uniform_windVelocity = currVel_shader.createUniform("windVel");
+  uniform_partPos = currVel_shader.createUniform("position");
+  
+  GLint unir = currVel_shader.createUniform("numInRow");
+
+  GLint unx = currVel_shader.createUniform("nx");
+  GLint uny = currVel_shader.createUniform("ny");
+  GLint unz = currVel_shader.createUniform("nz");
+
+  currVel_shader.activate();
+
+  glUniform1iARB(unx, nx);
+  glUniform1iARB(uny, ny);
+  glUniform1iARB(unz, nz);
+  glUniform1fARB(unir,numInRow);
+
+  currVel_shader.deactivate();
+
+}
+void ParticleControl::updateCurrVel(bool odd, GLuint prime0,GLuint prime1,GLuint windField,
+				    GLuint positions0,GLuint positions1){
+
+  glDrawBuffer(GL_COLOR_ATTACHMENT6_EXT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, twidth, theight);
+    
+  glEnable(texType);
+  currVel_shader.activate();
+
+  glActiveTexture(GL_TEXTURE2);
+  if(odd)
+    glBindTexture(texType,positions1);
+  else
+    glBindTexture(texType,positions0);
+  glUniform1iARB(uniform_partPos,2);
+
+  glActiveTexture(GL_TEXTURE1);
+  glUniform1iARB(uniform_windVelocity, 1);
+  glBindTexture(texType, windField);
+
+  glActiveTexture(GL_TEXTURE0);
+  glUniform1iARB(uniform_currentPrime, 0);
+  if(odd)
+    glBindTexture(texType, prime1);
+  else
+    glBindTexture(texType, prime0);
+
+
+  glBegin(GL_QUADS);
+  {
+    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+  }
+  glEnd();
+
+  currVel_shader.deactivate();
+
+  glBindTexture(texType,0);
+}
 void ParticleControl::setupMeanVel_shader(int numInRow){
   meanVel_shader.addShader("Shaders/meanVel_vp.glsl", GLSLObject::VERTEX_SHADER);
   meanVel_shader.addShader("Shaders/meanVel_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -1420,7 +1487,6 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   createTexture(tau_dz, GL_RGBA32F_ARB, width,height, data);
   
   delete [] data;
-
 
 }
 
