@@ -231,8 +231,16 @@ int ReflectionModel::display(){
     ///////////////////////////////////////////////////////////
     // Update Current Velocities
     ///////////////////////////////////////////////////////////
-    
+    if(maxColorAttachments <= 4){
+      FramebufferObject::Disable();
+      fbo2->Bind();
+    }
     pc->updateCurrVel(odd,prime0,prime1,windField,positions0,positions1);
+
+    if(maxColorAttachments <= 4){
+      FramebufferObject::Disable();
+      fbo->Bind();
+    }
 
     ///////////////////////////////////////////////////////////
     // In some circumstances, we may want to dump the contents of
@@ -293,7 +301,11 @@ int ReflectionModel::display(){
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
 
-      glReadBuffer(GL_COLOR_ATTACHMENT6_EXT);
+      if(maxColorAttachments <= 4){
+	FramebufferObject::Disable();
+	fbo2->Bind();
+      }
+      glReadBuffer(currVelBuffer);
       
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
@@ -385,6 +397,8 @@ void ReflectionModel::initFBO(void){
     fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
     fbo->AttachTexture(GL_COLOR_ATTACHMENT6_EXT, texType, currVel);
 
+    currVelBuffer = GL_COLOR_ATTACHMENT6_EXT;
+    pc->currVelBuffer = GL_COLOR_ATTACHMENT6_EXT;
     pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT4_EXT;
     pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT5_EXT;
 
@@ -401,8 +415,11 @@ void ReflectionModel::initFBO(void){
 
     fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0); 
     fbo2->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, meanVel1);
+    fbo2->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, currVel);
     CheckErrorsGL("FBO init 2");
 
+    currVelBuffer = GL_COLOR_ATTACHMENT2_EXT;
+    pc->currVelBuffer = GL_COLOR_ATTACHMENT2_EXT;
     pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT0_EXT;
     pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT1_EXT;
 
