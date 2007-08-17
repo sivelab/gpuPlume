@@ -109,7 +109,7 @@ class ParticleControl{
 
   wind* sig;
 
-  GLenum meanVelBuffer0, meanVelBuffer1;
+  GLenum meanVelBuffer0, meanVelBuffer1, currVelBuffer;
 
  private:
   float min,max;
