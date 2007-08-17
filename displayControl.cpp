@@ -1,6 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include "displayControl.h"
+#include "glErrorUtil.h"
 
 static char text_buffer[128];
 #ifdef WIN32
@@ -370,7 +371,7 @@ void DisplayControl::drawFeatures(void)
   for (int qi=0; qi<numBuild; qi++) 
     {
       //glPushMatrix();
-      glColor3f(1.0, 1.0, 1.0);
+      glColor4f(1.0, 1.0, 1.0,1.0);
 
       /*glTranslatef(xfo[qi]*grid_scale+ (lti[qi]*grid_scale)/2.0,
 		   yfo[qi]*grid_scale,
@@ -406,20 +407,27 @@ void DisplayControl::drawFeatures(void)
 	glTexCoord2f(1,0);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]);
 	glTexCoord2f(1,1);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
 	glTexCoord2f(0,1);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
+	  }
+	glEnd();
 
-	glBindTexture(texType,0);
-	glColor3f(0.5,0.5,0.5);
-	glVertex3f(xfo[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
-	glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
-	glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
-	glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
-
-      }
-      glEnd();
-
+	glBindTexture(GL_TEXTURE_2D,0);
+	glBegin(GL_QUADS);
+	{
+		glColor4f(0.5,0.5,0.5,1.0);
+		
+		glTexCoord2f(0,0);	glVertex3f(xfo[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
+		glTexCoord2f(1,0);	glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
+		glTexCoord2f(1,1);	glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
+		glTexCoord2f(0,1);	glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
+		
     }
+    glEnd();
+    }
+	
   glDisable(GL_TEXTURE_2D);
+	
   glEnable(texType);
+	
 }
 
 //text: draws a string of text with an 18 point helvetica bitmap font
