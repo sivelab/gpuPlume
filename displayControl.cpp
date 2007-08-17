@@ -335,6 +335,7 @@ void DisplayControl::initVars(int nb,double* x, double* y, double* z,
   glGenTextures(3,displayTex);
   
   createImageTex(displayTex[0], "concrete.ppm");
+  createImageTex(displayTex[1], "building.ppm");
  
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
@@ -361,15 +362,17 @@ void DisplayControl::createImageTex(GLuint texture, char* filename){
 void DisplayControl::drawFeatures(void)
 {
   float grid_scale = 1.0;  // currently, just 1 but likely needs to come from QUICPLUME
-
-  //#ifdef USE_PLUME_DATA
+  glDisable(texType);
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, displayTex[1]);
+  
   // Draw the building
   for (int qi=0; qi<numBuild; qi++) 
     {
-      glPushMatrix();
-      glColor3f(0.5, 0.5, 0.5);
+      //glPushMatrix();
+      glColor3f(1.0, 1.0, 1.0);
 
-      glTranslatef(xfo[qi]*grid_scale+ (lti[qi]*grid_scale)/2.0,
+      /*glTranslatef(xfo[qi]*grid_scale+ (lti[qi]*grid_scale)/2.0,
 		   yfo[qi]*grid_scale,
 		   zfo[qi]*grid_scale + (ht[qi]*grid_scale)/2.0);
 
@@ -377,10 +380,46 @@ void DisplayControl::drawFeatures(void)
 	       wti[qi]*grid_scale,
 	       ht[qi]*grid_scale);
 
-      glutSolidCube(1.0);
-      glPopMatrix();
+
+	       glutSolidCube(1.0);*/
+      //glPopMatrix();
+     
+
+      glBegin(GL_QUADS);
+      {
+	glTexCoord2f(0,0);       glVertex3f(xfo[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]);
+	glTexCoord2f(1,0);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]);
+	glTexCoord2f(1,1);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
+	glTexCoord2f(0,1);       glVertex3f(xfo[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
+	
+	glTexCoord2f(0,0);       glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]);
+	glTexCoord2f(1,0);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]);
+	glTexCoord2f(1,1);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
+	glTexCoord2f(0,1);       glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
+	
+	glTexCoord2f(0,0);       glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]);
+	glTexCoord2f(1,0);       glVertex3f(xfo[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]);
+	glTexCoord2f(1,1);       glVertex3f(xfo[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
+	glTexCoord2f(0,1);       glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
+
+	glTexCoord2f(0,0);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]);
+	glTexCoord2f(1,0);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]);
+	glTexCoord2f(1,1);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
+	glTexCoord2f(0,1);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
+
+	glBindTexture(texType,0);
+	glColor3f(0.5,0.5,0.5);
+	glVertex3f(xfo[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
+	glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
+	glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
+	glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
+
+      }
+      glEnd();
+
     }
-  //#endif
+  glDisable(GL_TEXTURE_2D);
+  glEnable(texType);
 }
 
 //text: draws a string of text with an 18 point helvetica bitmap font
