@@ -91,6 +91,9 @@ class ParticleControl{
   void setupMeanVel_shader(int);
   void findMeanVel(bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint);
 
+  void setupCurrVel_shader(int);
+  void updateCurrVel(bool,GLuint,GLuint,GLuint,GLuint,GLuint);
+
   bool outputPrime;
    
   typedef struct{
@@ -151,6 +154,7 @@ class ParticleControl{
 
   GLSLObject init_shader, pass1_shader, prime_shader, mrt_shader;
   GLSLObject nonGaussian_shader, reflection_shader, meanVel_shader;
+  GLSLObject currVel_shader;
 
   //Variables for prime shader
   GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;
@@ -168,6 +172,10 @@ class ParticleControl{
   //Uniform variables for Mean Velocity shader
   GLint uniform_prevMean, uniform_currVel, uniform_position, uniform_windVel;
   GLint unir;
+  
+  //Uniform variables for the Current Velocity shader
+  GLint uniform_currentPrime, uniform_windVelocity,uniform_partPos;
+
 
   GLenum texType;
   GLfloat* buffer_mem;
