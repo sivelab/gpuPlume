@@ -131,6 +131,8 @@ class PlumeControl{
 
   int maxColorAttachments;
 
+  GLenum currVelBuffer;
+
 };
 
 #endif // __PLUMECONTROL_H__
