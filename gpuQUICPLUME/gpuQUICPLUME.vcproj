@@ -366,6 +366,14 @@
 			Name="Shaders"
 			>
 			<File
+				RelativePath="..\Shaders\currVel_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\currVel_vp.glsl"
+				>
+			</File>
+			<File
 				RelativePath="..\Shaders\emitParticle_fp.glsl"
 				>
 			</File>
@@ -390,6 +398,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Shaders\nonGaussianAdvect_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\nonGaussianAdvect_vp.glsl"
+				>
+			</File>
+			<File
 				RelativePath="..\Shaders\particleVisualize_fp.glsl"
 				>
 			</File>
@@ -406,6 +422,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Shaders\reflectionAdvect_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\reflectionAdvect_vp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\updatePrime_and_Advect_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\updatePrime_and_Advect_vp.glsl"
+				>
+			</File>
+			<File
 				RelativePath="..\Shaders\updatePrime_fp.glsl"
 				>
 			</File>
@@ -419,6 +451,14 @@
 			>
 			<File
 				RelativePath="..\Settings\input.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\Settings\QU_celltype.dat"
+				>
+			</File>
+			<File
+				RelativePath="..\Settings\QU_velocity.dat"
 				>
 			</File>
 		</Filter>
