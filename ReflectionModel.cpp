@@ -64,9 +64,10 @@ void ReflectionModel::init(bool OSG){
 
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->u,util->v,util->w);
   pc->setUstarAndSigmas(util->ustar);
-
+  
   dc = new DisplayControl(nx,ny,nz, texType);  
-  dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
+  dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);  
+
   buildParam = new double[6];
   if(util->numBuild == 0){
     dc->draw_buildings = false;
@@ -132,6 +133,8 @@ void ReflectionModel::init(bool OSG){
   pc->setupReflectionShader(numInRow,lifeTime);
 
   pc->setupMeanVel_shader(numInRow);
+
+  pc->setupCurrVel_shader(numInRow);
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -224,6 +227,13 @@ int ReflectionModel::display(){
 	fbo->Bind();
       }
     }
+    
+    ///////////////////////////////////////////////////////////
+    // Update Current Velocities
+    ///////////////////////////////////////////////////////////
+    
+    pc->updateCurrVel(odd,prime0,prime1,windField,positions0,positions1);
+
     ///////////////////////////////////////////////////////////
     // In some circumstances, we may want to dump the contents of
     // the FBO to a file
@@ -412,7 +422,10 @@ void ReflectionModel::setupTextures(){
   CheckErrorsGL("\tcreated texid[3], the wind field texture...");
 
   //Creates lambda, tau/dz, and duvw/dz textures
-  pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
+  if(util->windFieldData != 6)
+    pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
+  else
+    pc->initLambda_and_TauTex_fromQUICFILES(lambda, tau_dz, duvw_dz, numInRow);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
 
