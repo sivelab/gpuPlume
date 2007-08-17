@@ -742,7 +742,7 @@ void ParticleControl::setupCurrVel_shader(int numInRow){
 void ParticleControl::updateCurrVel(bool odd, GLuint prime0,GLuint prime1,GLuint windField,
 				    GLuint positions0,GLuint positions1){
 
-  glDrawBuffer(GL_COLOR_ATTACHMENT6_EXT);
+  glDrawBuffer(currVelBuffer);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, twidth, theight);
     
