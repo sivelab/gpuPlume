@@ -354,6 +354,7 @@ void DisplayControl::initVars(int nb,double* x, double* y, double* z,
   
   createImageTex(displayTex[0], "concrete.ppm");
   createImageTex(displayTex[1], "building.ppm");
+  createImageTex(displayTex[2], "buildingRoof.ppm");
  
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
@@ -427,7 +428,7 @@ void DisplayControl::drawFeatures(void)
 	  }
 	glEnd();
 
-	glBindTexture(GL_TEXTURE_2D,0);
+	glBindTexture(GL_TEXTURE_2D,displayTex[2]);
 	glBegin(GL_QUADS);
 	{
 		glColor4f(0.5,0.5,0.5,1.0);
