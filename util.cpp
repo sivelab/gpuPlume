@@ -112,6 +112,7 @@ void Util::parseLine(char* line){
   float f1;
   float* b = new float[6];
   float* s = new float[5];
+  float* c = new float[3];
   std::string s1;
 
   if(readComment(line))
@@ -243,7 +244,11 @@ void Util::parseLine(char* line){
     else
       calculateMeanVel = true;
   }
-
+  if(read3Float(line, "back_color", c)){
+    bcolor[0] = c[0];
+    bcolor[1] = c[1];
+    bcolor[2] = c[2];
+  }
 }
 
 bool Util::readSourceInfo(char *line, std::string settingName, float *f)
@@ -265,6 +270,22 @@ bool Util::readSourceInfo(char *line, std::string settingName, float *f)
 	
     return false;
 }
+bool Util::read3Float(char *line, std::string settingName, float *f)
+{
+	std::istringstream ist(line);
+
+	std::string w;
+	ist >> w;
+	if(w == settingName){
+		ist >> f[0];
+		ist >> f[1];
+		ist >> f[2];
+		return true;
+	}
+	
+    return false;
+}
+
 bool Util::read6Float(char *line, std::string settingName, float *f)
 {
 	std::istringstream ist(line);
