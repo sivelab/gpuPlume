@@ -27,11 +27,12 @@ class DisplayControl{
   void slideLeftorRight(float);
   void setAzimuth(float, float);
   void setElevation(float, float);
-  void setRotateAround(float, float,int,int);
+  void setRotateAround(float);
+  void lookUporDown(float);
   void initVars(int,double*,double*,double*,
 		      double*,double*,double*);
 
-  bool rotate_around, change_height, translate_view;
+  bool rotate_around, change_height, change_look;
   bool frame_rate;
 
   bool draw_buildings;
@@ -69,7 +70,7 @@ class DisplayControl{
   GLfloat elevation;
   
   double tranx,trany,tranz;
-  double angle;
+  double angle,yangle;
   double xlook,ylook,zlook;
   double xslide,yslide;
 
