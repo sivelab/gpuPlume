@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 4
-theight 4
+twidth 256
+theight 256
 
 #Set the Domain
 nx 60
@@ -9,6 +9,9 @@ nz 80
 
 #Set this to 1 to show the particle display, else 0
 show_particle_visuals 1
+
+#Change background color; r g b
+back_color 0.2 0.2 0.2
 
 #Set this to 1 to show collection box visuals, else 0
 show_collectionBox_visuals 0
@@ -30,6 +33,7 @@ time_step 0.012
 #Use value of 4 for uniform in U direction
 #Use value of 2 for random values
 #use value of 5 for the varied in U direction
+#use value of 6 for reading file from QUIC-URB
 windFieldData 5
 
 #output file for the values of the collection boxes
@@ -101,4 +105,4 @@ build_param 40.0 30.0 0.0 10.0 6.0 4.0
 pauseMode 1
 
 #Set to 1 to do mean velocity calculation; else 0
-calculateMeanVel 1
+calculateMeanVel 0
