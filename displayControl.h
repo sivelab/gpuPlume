@@ -16,6 +16,7 @@ class DisplayControl{
   
   void drawVisuals(GLuint, GLuint, GLuint, int, int, int);
   void drawAxes();
+  void drawGrid();
   void drawGround();
   void drawLayers(GLuint, int);
   void drawFeatures(void);
