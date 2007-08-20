@@ -30,7 +30,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   yslide = 1.0;
 
   change_height = false;
-  translate_view = false;
+  change_look = false;
   rotate_around = false;
   azimuth = 0.0;
   elevation = 0.0;
@@ -164,7 +164,7 @@ void DisplayControl::setAzimuth(float change, float rate){
 void DisplayControl::setElevation(float change, float rate){
   //elevation = elevation + change*rate;
   eye_pos[2] = eye_pos[2] + change*rate;
-  eye_gaze[2] = eye_gaze[2] + change*rate;
+  //eye_gaze[2] = eye_gaze[2] + change*rate;
 }
 void DisplayControl::setRotateAround(float change){
 
