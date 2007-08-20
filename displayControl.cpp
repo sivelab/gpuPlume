@@ -43,8 +43,6 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
   render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   render_shader.createProgram();
-  
-  //uniform_vel_color = render_shader.createUniform("vel");
 
   // Create a high resolution clock timer - only works on Linux, x86
   // systems.  The basic timer works on Windows.  Setting the argument
@@ -92,6 +90,9 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
 
 
   drawAxes();
+  
+  drawGrid();
+
   //if(!osgPlume){
     if(draw_buildings){
       drawFeatures();
@@ -207,9 +208,34 @@ void DisplayControl::drawGround(){
   glEnable(texType);
 
 }
+void DisplayControl::drawGrid(){
+  GLint lwidth;
+  glGetIntegerv(GL_LINE_WIDTH, &lwidth);
+
+  glLineWidth(0.5);
+  glBegin(GL_LINES);
+  {
+    glColor3f(0.4,0.4,0.4);
+    for(int i=-ny; i <= ny*2; i+=5){
+      glVertex3f(-nx,i,-0.1);
+      glVertex3f(nx*2,i,-0.1);
+    }
+    for(int i=-nx; i <= nx*2; i+=5){
+      glVertex3f(i,-ny,-0.1);
+      glVertex3f(i,ny*2,-0.1);
+    }
+  
+  }
+  glEnd();
+
+  glLineWidth(lwidth);
+}
+
 void DisplayControl::drawAxes(){
   // query the current line width so we can set it back at the end of
   // the function
+  //int numLines = ny + 10;
+
   GLint lwidth;
   glGetIntegerv(GL_LINE_WIDTH, &lwidth);
   glLineWidth(3.0);
@@ -227,6 +253,7 @@ void DisplayControl::drawAxes(){
   glVertex3f(0.0, 0.0, 0.0);
   glVertex3f(0.0, 0.0, nz);
   glEnd();
+
   //This draws a label for the axis by drawing a textured quad.
   /*
   glDisable(texType);
