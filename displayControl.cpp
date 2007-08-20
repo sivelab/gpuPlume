@@ -21,9 +21,10 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   
   eye_gaze[0] = -1.0;
   eye_gaze[1] = 0;
-  eye_gaze[2] = 5;
+  eye_gaze[2] = 0;
 
   angle = M_PI;
+  yangle = 0.0;
 
   xslide = 0.0;
   yslide = 1.0;
@@ -62,7 +63,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
 	     eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], 
-	       eye_gaze[2], 0, 0, 1 );
+	       eye_gaze[2]+eye_pos[2], 0, 0, 1 );
 
     // allow rotation of this object
     //glRotatef(elevation, 0,1,0);
@@ -123,10 +124,12 @@ void DisplayControl::moveForwardorBack(float change){
   if(change < 0.0){
     eye_pos[0] -= eye_gaze[0];
     eye_pos[1] -= eye_gaze[1];
+    eye_pos[2] -= eye_gaze[2];
   }
   else{
     eye_pos[0] += eye_gaze[0];
     eye_pos[1] += eye_gaze[1];
+    eye_pos[2] += eye_gaze[2];
   }
 }
 void DisplayControl::slideLeftorRight(float direction){
@@ -141,6 +144,20 @@ void DisplayControl::slideLeftorRight(float direction){
   }
 
 }
+void DisplayControl::lookUporDown(float change){
+  if(change < 0.0)
+    yangle = yangle + (M_PI/90.0);
+  else
+    yangle = yangle - (M_PI/90.0);
+
+  if(yangle > M_PI/2.0)
+    yangle = yangle - (M_PI/90.0);
+  else if(yangle < -M_PI/2.0)
+    yangle = yangle + (M_PI/90.0);
+
+  eye_gaze[2] = sin(yangle);
+
+}
 void DisplayControl::setAzimuth(float change, float rate){
   azimuth = azimuth + change*rate;
 }
@@ -149,7 +166,7 @@ void DisplayControl::setElevation(float change, float rate){
   eye_pos[2] = eye_pos[2] + change*rate;
   eye_gaze[2] = eye_gaze[2] + change*rate;
 }
-void DisplayControl::setRotateAround(float change, float rate,int x,int y){
+void DisplayControl::setRotateAround(float change){
 
   if(change < 0)
     angle = angle + (M_PI/90.0);
@@ -159,7 +176,7 @@ void DisplayControl::setRotateAround(float change, float rate,int x,int y){
   if(angle > 2*M_PI)
     angle = 0.0;
   else if(angle < 0.0)
-    angle = (2*M_PI - M_PI/45.0);
+    angle = (2*M_PI - M_PI/90.0);
 
   eye_gaze[0] = cos(angle);
   eye_gaze[1] = sin(angle);
