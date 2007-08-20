@@ -47,6 +47,8 @@ void motion(int x, int y);
 
 int winwidth = 512, winheight = 512;
 
+//int last_x, last_y;
+
 int main(int argc, char** argv)
 {
 #ifdef WIN32
@@ -165,6 +167,8 @@ void reshape(int w, int h)
 void init(void)
 {
   curr = 0;
+  //last_x = 0;
+  //last_y = 0;
   glEnable(GL_DEPTH_TEST);
   
   plume->init(false); 
@@ -309,19 +313,19 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->pe[curr]->releaseType = perSecond;
     }
-  else if (key == 'w')
+  else if (key == 'W')
     {
       plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos-1.0, plume->pe[curr]->zpos);
     }
-  else if (key == 's')
+  else if (key == 'S')
     {
       plume->pe[curr]->setPosition(plume->pe[curr]->xpos, plume->pe[curr]->ypos+1.0, plume->pe[curr]->zpos);
     }
-   else if (key == 'a')
+   else if (key == 'A')
     {
       plume->pe[curr]->setPosition(plume->pe[curr]->xpos-1.0, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
     }
-  else if (key == 'd')
+  else if (key == 'D')
     {
       plume->pe[curr]->setPosition(plume->pe[curr]->xpos+1.0, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
     }
@@ -348,11 +352,11 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->print_MeanVel = true;
     }
-  else if(key == ']')
+  else if(key == 'd')
     {
       plume->dc->slideLeftorRight(1.0);
     }
-  else if(key == '[')
+  else if(key == 'a')
     {
       plume->dc->slideLeftorRight(-1.0);
     }
@@ -364,12 +368,20 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->inPauseMode = !plume->inPauseMode;
     }
+  else if(key == 'w')
+    {
+      plume->dc->moveForwardorBack(1.0);
+    }
+  else if(key == 's')
+    {
+      plume->dc->moveForwardorBack(-1.0);
+    }
 
   glutPostRedisplay();
 }
 
 static int last_x, last_y;
-void mouse(int button, int state, int x, int y)
+void mouse(int button, int state,int x, int y)
 {
   last_x = x;
   last_y = y;
@@ -380,14 +392,14 @@ void mouse(int button, int state, int x, int y)
     plume->dc->change_height = false;
 
   if (state == GLUT_DOWN && button == GLUT_RIGHT_BUTTON)
-    plume->dc->translate_view = true;
+    plume->dc->change_look = true;
   else // state == GLUT_UP
-    plume->dc->translate_view = false;
+    plume->dc->change_look = false;
 
   if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
     plume->dc->rotate_around = true;
   else
-    plume->dc->rotate_around = false;
+  plume->dc->rotate_around = false;
 
   glutPostRedisplay();
 }
@@ -395,43 +407,55 @@ void mouse(int button, int state, int x, int y)
 
 void motion(int x, int y)
 {
+  
+  float change_y = y - last_y;
+  float change_x = x - last_x;
 
-  if (plume->dc->translate_view) 
+  //std::cout << "last: " << last_y << "   current: " << y << std::endl;
+
+  //plume->dc->lookUporDown(change_y);
+  //plume->dc->setRotateAround(change_x);
+
+  
+
+  if (plume->dc->change_height) 
     {
       // pan view around gaze center...
       // since y is up, move eye in z only to take it into and out of the screen
-      float change = y - last_y;
-      plume->dc->moveForwardorBack(change);
-      
+      //float change = y - last_y;
+      //plume->dc->moveForwardorBack(change_x);
+      plume->dc->setElevation(change_y,0.1);
     }
 
-    if (plume->dc->change_height) 
+    if (plume->dc->change_look) 
     {
 	// since y is up, move eye in z only to take it into and out of the screen
-	float change = x - last_x;
-	float rate = 0.1;
+	//float change = x - last_x;
+	//float rate = 0.1;
 
-	/*change = x - last_x;
-	rate = 0.1;
-	plume->dc->setAzimuth(change,rate);*/
+	//change = x - last_x;
+	//rate = 0.1;
+	//plume->dc->setAzimuth(change,rate);
 
-	change = y - last_y;
-	rate = 0.1;
-	plume->dc->setElevation(change,rate);
+	//change = y - last_y;
+      //	rate = 0.1;
+      //plume->dc->setElevation(change,rate);
+       plume->dc->lookUporDown(change_y);
+
     }
 
     if (plume->dc->rotate_around)
     {
-      float change = x - last_x;
-      float rate = 0.1;
-
-      plume->dc->setRotateAround(change,rate,x,y);
-
+      //float change = x - last_x;
+      //float rate = 0.1;
+     
+      plume->dc->setRotateAround(change_x);
+      
 
     }
-
     last_x = x;
-    last_y = y;
+      last_y = y;
+    
 
     glutPostRedisplay();
 }
