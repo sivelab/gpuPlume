@@ -270,7 +270,7 @@ int GaussianModel::display(){
 	gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();	
-	//glClearColor(0.93,0.93,0.93,1.0);	
+        glClearColor(util->bcolor[0],util->bcolor[1],util->bcolor[2],1.0);	
       }
 
       dc->drawVisuals(vertex_buffer, windField, 0, numInRow, twidth, theight);
