@@ -92,11 +92,11 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
 
 
   drawAxes();
-  if(!osgPlume){
+  //if(!osgPlume){
     if(draw_buildings){
       drawFeatures();
     }
-  }
+    //}
   drawGround();
 
   //drawLayers(texid3, numInRow);  
