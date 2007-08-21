@@ -42,6 +42,7 @@ extern "C" double* __datamodule__lti;
 
 Util::Util(){
   num = 0;
+  numb = 0;
   bounds = new float[6];
 }
 
@@ -215,14 +216,6 @@ void Util::parseLine(char* line){
   if(read1Float(line, "emit_method", &f1)){
     emit_method = (int)f1;
   }
-  if(read6Float(line, "build_param", b)){
-    xfo[0] = b[0];
-    yfo[0] = b[1];
-    zfo[0] = b[2];
-    ht[0]  = b[3];
-    wti[0] = b[4];
-    lti[0] = b[5];
-  }
   if(read1Float(line, "numBuild", &f1)){
     numBuild = (int)f1;
     xfo = new double[numBuild];
@@ -231,6 +224,15 @@ void Util::parseLine(char* line){
     ht = new double[numBuild];
     wti = new double[numBuild];
     lti = new double[numBuild];
+  }
+  if(read6Float(line, "build_param", b)){
+    xfo[numb] = b[0];
+    yfo[numb] = b[1];
+    zfo[numb] = b[2];
+    ht[numb]  = b[3];
+    wti[numb] = b[4];
+    lti[numb] = b[5];
+    numb++;
   }
   if(read1Float(line, "pauseMode", &f1)){
     if(f1 == 0)
