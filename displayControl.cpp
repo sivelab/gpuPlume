@@ -56,7 +56,8 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight)
 {
- 
+
+  drawSky();
 
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
@@ -185,6 +186,40 @@ void DisplayControl::setRotateAround(float change){
   xslide = cos(angle-M_PI/2.0);
   yslide = sin(angle-M_PI/2.0);
 
+
+}
+void DisplayControl::drawSky(){
+  double skyr = 0.4, skyg = 0.5, skyb = 0.8;
+   
+  glPushAttrib(GL_ALL_ATTRIB_BITS);
+  glDisable ( GL_TEXTURE_2D );
+  glDepthMask(GL_FALSE);
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+ 
+  //Put sky in background
+  glBegin(GL_POLYGON);
+  glColor4f(0.9,0.9,1.0, 1.0); //mid color
+  glVertex3f(-1,-0.5,-1);
+  glColor4f(0.9,0.9,1.0, 1.0); //white
+  glVertex3f(-1,-1,-1);
+  glVertex3f(1,-1,-1);
+  glColor4f(0.9,0.9,1.0, 1.0); //mid color
+  glVertex3f(1,-.5,-1);
+  glColor4f(skyr, skyg, skyb, 1.0);
+  glVertex3f(1,1,-1);
+  glVertex3f(-1,1,-1);
+  glEnd();
+ 
+  glDepthMask(GL_TRUE);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glPopAttrib();
 
 }
 void DisplayControl::drawGround(){
@@ -410,7 +445,6 @@ void DisplayControl::drawFeatures(void)
   float grid_scale = 1.0;  // currently, just 1 but likely needs to come from QUICPLUME
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, displayTex[1]);
   
   // Draw the building
   for (int qi=0; qi<numBuild; qi++) 
@@ -429,7 +463,7 @@ void DisplayControl::drawFeatures(void)
 
 	       glutSolidCube(1.0);*/
       //glPopMatrix();
-     
+      glBindTexture(GL_TEXTURE_2D, displayTex[1]);
 
       glBegin(GL_QUADS);
       {
