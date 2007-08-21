@@ -22,6 +22,7 @@
 #include "simulation.h"
 #include "streamLine.h"
 #include "Random.h"
+#include <string>
 
 class PlumeControl{
  public:
@@ -92,6 +93,8 @@ class PlumeControl{
 
   bool paused;
   bool inPauseMode;
+
+  std::string texFileName;
 
  protected:
   
