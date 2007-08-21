@@ -18,6 +18,7 @@ class DisplayControl{
   void drawAxes();
   void drawGrid();
   void drawGround();
+  void drawSky();
   void drawLayers(GLuint, int);
   void drawFeatures(void);
   void drawFrameRate(int, int);
