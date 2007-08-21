@@ -14,12 +14,20 @@ uniform float time_step;
 uniform float life_time;
 
 //Building variables
+uniform float numBuild;
+
 uniform float xfo;
 uniform float yfo;
 uniform float zfo;
 uniform float ht;
 uniform float wti;
 uniform float lti;
+uniform float xfo2;
+uniform float yfo2;
+uniform float zfo2;
+uniform float ht2;
+uniform float wti2;
+uniform float lti2;
 
 //
 // This variable contains a uniformally generated random 2D vector in
@@ -143,9 +151,9 @@ void main(void)
 	//point of intersection
 	vec3 pI;	
 
-
         while((pos.z < 0) || ((pos.x > xfo) && (pos.x < xfo+lti) && (pos.y > yfo-(wti/2.0)) && 
-		(pos.y < yfo+(wti/2.0)) && (pos.z < zfo+ht))){
+		(pos.y < yfo+(wti/2.0)) && (pos.z < zfo+ht)) || ((pos.x > xfo2) && (pos.x < xfo2+lti2) && (pos.y > yfo2-(wti2/2.0)) && 
+		(pos.y < yfo2+(wti2/2.0)) && (pos.z < zfo2+ht2)) ){
 
 		//Reflection off ground
 		if(pos.z < 0){
@@ -163,7 +171,9 @@ void main(void)
 
 		//Reflection off building
 		//Check to see if particle is inside building
-		if((pos.x > xfo) && (pos.x < xfo+lti) && (pos.y > yfo-(wti/2.0)) && (pos.y < yfo+(wti/2.0)) && (pos.z < zfo+ht)){
+		if(numBuild > 0.0){
+
+		   if((pos.x > xfo) && (pos.x < xfo+lti) && (pos.y > yfo-(wti/2.0)) && (pos.y < yfo+(wti/2.0)) && (pos.z < zfo+ht)){
 		
 			u = vec3(pos.x,pos.y,pos.z) - prevPos;	
 			//plane facing -x direction
@@ -225,6 +235,73 @@ void main(void)
 			prmCurr = reflect(prmCurr,normal);
 			//prmCurr = -normalize(prmCurr);
 
+		   }
+	
+		   if(numBuild > 1.0){
+		      if((pos.x > xfo2) && (pos.x < xfo2+lti2) && (pos.y > yfo2-(wti2/2.0)) && (pos.y < yfo2+(wti2/2.0)) && (pos.z < zfo2+ht2)){
+		
+			u = vec3(pos.x,pos.y,pos.z) - prevPos;	
+			//plane facing -x direction
+			w = prevPos - vec3(xfo2,0.0,0.0);
+			float s1 = dot(vec3(1.0,0.0,0.0),w)/dot(vec3(-1.0,0.0,0.0),u);
+			//plane facing +x direction
+			w = prevPos - vec3(xfo2+lti2,0.0,0.0);
+			float s2 = dot(vec3(-1.0,0.0,0.0),w)/dot(vec3(1.0,0.0,0.0),u);
+			//plane facing +y direction
+			w = prevPos - vec3(xfo2,(yfo2+wti2/2.0),0.0);
+			float s3 = dot(vec3(0.0,-1.0,0.0),w)/dot(vec3(0.0,1.0,0.0),u);
+			//plane facing -y direction
+			w = prevPos - vec3(xfo2,(yfo2-wti2/2.0),0.0);
+			float s4 = dot(vec3(0.0,1.0,0.0),w)/dot(vec3(0.0,-1.0,0.0),u);
+			//plane facing +z direction
+			w = prevPos -vec3(xfo2,0.0,(zfo2+ht2));
+			float s5 = dot(vec3(0.0,0.0,-1.0),w)/dot(vec3(0.0,0.0,1.0),u);
+
+			//incident vector
+			vec3 l;
+			//reflection vector
+			vec3 r;
+			//normal vector
+			vec3 normal;
+	
+			if((s1 >= 0.0) && (s1 <= 1.0)){
+				pI = s1*u + prevPos;
+				normal = vec3(-1.0,0.0,0.0);		
+			}
+			else if((s2 >= 0.0) && (s2 <= 1.0)){
+				pI = s2*u + prevPos;
+				normal = vec3(1.0,0.0,0.0);
+			}
+			else if((s3 >= 0.0) && (s3 <= 1.0)){
+				pI = s3*u + prevPos;
+				normal = vec3(0.0,1.0,0.0);
+			}
+			else if((s4 >= 0.0) && (s4 <= 1.0)){
+				pI = s4*u + prevPos;
+				normal = vec3(0.0,-1.0,0.0);
+			}
+			else if((s5 >= 0.0) && (s5 <= 1.0)){
+				pI = s5*u + prevPos;
+				normal = vec3(0.0,0.0,1.0);
+			}
+			l = normalize(pI-prevPos);
+			r = reflect(l,normal);
+			float d = distance(pI,vec3(pos));
+			
+			//This needs to be done in order for while loop to work...maybe
+			//I think this is right???
+			//Set the previous position to the point of intersection.
+			prevPos = pI;
+			prmPrev = prmCurr;
+
+			pos = vec4(pI+(d*r),pos.a);
+
+			//l = normalize(prmCurr-prmPrev);
+			prmCurr = reflect(prmCurr,normal);
+			//prmCurr = -normalize(prmCurr);
+
+		      }
+		   }
 		}
 		
 	}
