@@ -93,12 +93,13 @@ emit_method 0
 
 #Number of Buildings
 #Set to 0 for no buildings
-numBuild 1
+numBuild 2
 
 #Building Parameters
 #I'm defining it the same as in QUIC
 #(x,y,z) (height, width, length)
 build_param 40.0 30.0 0.0 10.0 6.0 4.0
+build_param 50.0 25.0 0.0 10.0 6.0 4.0
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
