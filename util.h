@@ -102,6 +102,8 @@ class Util{
 
   //keeps track of number of sources
   int num;
+  //keeps track of number of buildings
+  int numb;
 
 };
 
