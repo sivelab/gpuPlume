@@ -2,6 +2,7 @@
 #include "ReflectionModel.h"
 #include "glErrorUtil.h"
 
+
 #ifdef WIN32
 #include <windows.h>
 #include <stdio.h>
@@ -62,31 +63,44 @@ ReflectionModel::~ReflectionModel(){}
 
 void ReflectionModel::init(bool OSG){
   osgPlume = OSG;
-
+ 
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->u,util->v,util->w);
   pc->setUstarAndSigmas(util->ustar);
   
   dc = new DisplayControl(nx,ny,nz, texType);  
-  dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);  
+  dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
 
-  buildParam = new double[6];
+  buildParam = new double[(util->numBuild*6)+1];
   if(util->numBuild == 0){
+    //delete [] buildParam;
+    //buildParam = new double[7];
     dc->draw_buildings = false;
-    buildParam[0] = 0;
+    /*buildParam[0] = 0;
     buildParam[1] = 0;
     buildParam[2] = 0;
     buildParam[3] = 0;
     buildParam[4] = 0;
     buildParam[5] = 0;
+    buildParam[6] = 0;*/
   }
-  else{
+  else{   
     dc->draw_buildings = true;
-    buildParam[0] = util->xfo[0];
-    buildParam[1] = util->yfo[0];
-    buildParam[2] = util->zfo[0];
-    buildParam[3] = util->ht[0];
-    buildParam[4] = util->wti[0];
-    buildParam[5] = util->lti[0];
+    buildParam[0] = util->numBuild;
+    buildParam[1] = util->xfo[0];
+    buildParam[2] = util->yfo[0];
+    buildParam[3] = util->zfo[0];
+    buildParam[4] = util->ht[0];
+    buildParam[5] = util->wti[0];
+    buildParam[6] = util->lti[0];  
+    
+    if(util->numBuild > 1){
+      buildParam[7] = util->xfo[1];
+      buildParam[8] = util->yfo[1];
+      buildParam[9] = util->zfo[1];
+      buildParam[10] = util->ht[1];
+      buildParam[11] = util->wti[1];
+      buildParam[12] = util->lti[1];   
+    }
   }
   
   if(osgPlume){
@@ -465,6 +479,9 @@ void ReflectionModel::initFBO(void){
 }
 
 void ReflectionModel::setupTextures(){
+  std::ofstream out;
+  out.open(texFileName.c_str());
+
   CheckErrorsGL("BEGIN : Creating textures");
 
   int sz = 4;
@@ -536,6 +553,10 @@ void ReflectionModel::setupTextures(){
 	  data[idx+2] = Random::normal();
 	  data[idx+3] = 0.0;
 	  
+	  out << data[idx] << "\n";
+	  out << data[idx+1] << "\n";
+	  out << data[idx+2] << "\n";
+
 	  // record the random values to compute a mean, std, and var
 	  random_values.push_back( data[idx] );
 	  random_values.push_back( data[idx + 1] );
@@ -626,6 +647,11 @@ void ReflectionModel::setupTextures(){
 	  data[idx+2] = Random::normal();
 	  data[idx+3] = 0.0;
 		
+
+	  out << data[idx] << "\n";
+	  out << data[idx+1] << "\n";
+	  out << data[idx+2] << "\n";
+
 	  random_values.push_back( data[idx] );
 	  random_values.push_back( data[idx + 1] );
 	  random_values.push_back( data[idx + 2] );
