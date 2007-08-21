@@ -94,7 +94,11 @@ class ParticleControl{
   void setupCurrVel_shader(int);
   void updateCurrVel(bool,GLuint,GLuint,GLuint,GLuint,GLuint);
 
+  void setRandomTexCoords();
+
   bool outputPrime;
+
+  bool osgPlume;
    
   typedef struct{
     float u;
@@ -111,8 +115,16 @@ class ParticleControl{
 
   GLenum meanVelBuffer0, meanVelBuffer1, currVelBuffer;
 
+  std::string randomFile;
+  bool alreadyOpen;
+
+  //RandomTexCoords;
+  float t1,t2;
+
  private:
   float min,max;
+
+  
 
   void test1();
   void randomWindField();
@@ -167,7 +179,10 @@ class ParticleControl{
 
   GLint uniform_tau_dz, uniform_duvw_dz;
   //Uniform variables for building
+  GLint uniform_numBuild;
+
   GLint uniform_xfo, uniform_yfo, uniform_zfo, uniform_ht, uniform_wti, uniform_lti;
+  GLint uniform_xfo2, uniform_yfo2, uniform_zfo2, uniform_ht2, uniform_wti2, uniform_lti2;
 
   //Uniform variables for Mean Velocity shader
   GLint uniform_prevMean, uniform_currVel, uniform_position, uniform_windVel;
