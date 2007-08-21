@@ -21,6 +21,7 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   w_quicPlumeData = w;
 
   outputPrime = false;
+  alreadyOpen = false;
 
 }
 void ParticleControl::setUstarAndSigmas(float u){
@@ -30,6 +31,10 @@ void ParticleControl::setUstarAndSigmas(float u){
   sigW = 1.3*ustar;
 	
   std::cout << ustar << std::endl;
+}
+void ParticleControl::setRandomTexCoords(){
+  t1 = Random::uniform() * twidth;
+  t2 = Random::uniform() * theight;
 }
 void ParticleControl::setupReflectionShader(int numInRow, float life_time){
   reflection_shader.addShader("Shaders/reflectionAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -50,12 +55,21 @@ void ParticleControl::setupReflectionShader(int numInRow, float life_time){
   uniform_randomTexHeight = reflection_shader.createUniform("random_texHeight");
   
   //Building uniform variables
+  uniform_numBuild = reflection_shader.createUniform("numBuild");
+
   uniform_xfo = reflection_shader.createUniform("xfo");
   uniform_yfo = reflection_shader.createUniform("yfo");
   uniform_zfo = reflection_shader.createUniform("zfo");
   uniform_ht = reflection_shader.createUniform("ht");
   uniform_wti = reflection_shader.createUniform("wti");
   uniform_lti = reflection_shader.createUniform("lti");
+
+  uniform_xfo2 = reflection_shader.createUniform("xfo2");
+  uniform_yfo2 = reflection_shader.createUniform("yfo2");
+  uniform_zfo2 = reflection_shader.createUniform("zfo2");
+  uniform_ht2 = reflection_shader.createUniform("ht2");
+  uniform_wti2 = reflection_shader.createUniform("wti2");
+  uniform_lti2 = reflection_shader.createUniform("lti2");
 
   GLint ulifeTime = reflection_shader.createUniform("life_time");
   GLint unx = reflection_shader.createUniform("nx");
@@ -79,6 +93,16 @@ void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positi
 			     GLuint duvw_dz, float time_step, double* buildParam)
 {
 
+  /*std::ofstream output;
+  if(!alreadyOpen){
+    output.open(randomFile.c_str());
+    alreadyOpen = true;
+  }
+  else{
+    output.open(randomFile.c_str(),std::ios::app);
+    }*/
+  
+
   //Prints out the previous prime values
   if(outputPrime)
     printPrime(odd, true);
@@ -99,13 +123,24 @@ void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positi
   glEnable(texType);
   reflection_shader.activate();
 
+  glUniform1fARB(uniform_numBuild, buildParam[0]);
   //Building varibles
-  glUniform1fARB(uniform_xfo, buildParam[0]);
-  glUniform1fARB(uniform_yfo, buildParam[1]);
-  glUniform1fARB(uniform_zfo, buildParam[2]);
-  glUniform1fARB(uniform_ht, buildParam[3]);
-  glUniform1fARB(uniform_wti, buildParam[4]);
-  glUniform1fARB(uniform_lti, buildParam[5]);
+  if(buildParam[0] > 0){
+    glUniform1fARB(uniform_xfo, buildParam[1]);
+    glUniform1fARB(uniform_yfo, buildParam[2]);
+    glUniform1fARB(uniform_zfo, buildParam[3]);
+    glUniform1fARB(uniform_ht, buildParam[4]);
+    glUniform1fARB(uniform_wti, buildParam[5]);
+    glUniform1fARB(uniform_lti, buildParam[6]);
+  }
+  if(buildParam[0] > 1){
+    glUniform1fARB(uniform_xfo2, buildParam[7]);
+    glUniform1fARB(uniform_yfo2, buildParam[8]);
+    glUniform1fARB(uniform_zfo2, buildParam[9]);
+    glUniform1fARB(uniform_ht2, buildParam[10]);
+    glUniform1fARB(uniform_wti2, buildParam[11]);
+    glUniform1fARB(uniform_lti2, buildParam[12]);
+  }
 
   glUniform1fARB(uniform_timeStep, time_step);
   // generate and set the random texture coordinate offset
@@ -114,8 +149,15 @@ void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positi
     {
       // texture coordinates will range from 0 to W in width and 0 to
       // H in height, so generate random value in this range
+      //float f1 = Random::uniform() * twidth;
+      //float f2 = Random::uniform() * theight;
+      //if(!osgPlume)
+      //setRandomTexCoords();
       float f1 = Random::uniform() * twidth;
       float f2 = Random::uniform() * theight;
+      //output << t1 << "\n";
+      //output << t2 << "\n";
+
       glUniform2fARB(uniform_randomTexCoordOffset, f1, f2);
     }
   else 
