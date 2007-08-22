@@ -33,7 +33,7 @@ void main(void)
    // vec3 color = abs(normalize(pos - prevPos));
 
    // This example assumes the difference in position sits in the
-   // (Helmholtz style) opponent color space.  We then convert the
+   // (Hering-style) opponent color space.  We then convert the
    // opponent color space to RGB to display on the screen.  This
    // should produce colors that oppose each other relative to the
    // direction. In other words, Red/Magenta opposes Green, Blue/Cyan
