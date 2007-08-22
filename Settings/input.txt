@@ -3,9 +3,9 @@ twidth 256
 theight 256
 
 #Set the Domain
-nx 60
-ny 60
-nz 80
+nx 100
+ny 50
+nz 20
 
 #Set this to 1 to show the particle display, else 0
 show_particle_visuals 1
@@ -34,7 +34,7 @@ time_step 0.012
 #Use value of 2 for random values
 #use value of 5 for the varied in U direction
 #use value of 6 for reading file from QUIC-URB
-windFieldData 5
+windFieldData 6
 
 #output file for the values of the collection boxes
 output_file data.txt
@@ -71,7 +71,7 @@ numBox_z   1
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius, rate
-source_info 30.0 30.0 5.0 0.0 10.0
+source_info 5.0 25.0 5.0 0.2 10.0
 #source_info 25.0 17.0 1.0 0.0 1.0
 #source_info 30.0 30.0 1.0 0.0 10.0
 #source_info 3.0 30.0 3.0 0.0 1.0
@@ -93,12 +93,12 @@ emit_method 0
 
 #Number of Buildings
 #Set to 0 for no buildings
-numBuild 2
+numBuild 1
 
 #Building Parameters
 #I'm defining it the same as in QUIC
 #(x,y,z) (height, width, length)
-build_param 40.0 30.0 0.0 10.0 6.0 4.0
+build_param 25.0 25.0 0.0 10.0 10.0 10.0
 build_param 50.0 25.0 0.0 10.0 6.0 4.0
 
 #Initialize Pause Mode
