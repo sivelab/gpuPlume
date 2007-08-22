@@ -764,6 +764,7 @@ void ParticleControl::setupCurrVel_shader(int numInRow){
   uniform_currentPrime = currVel_shader.createUniform("currPrime");
   uniform_windVelocity = currVel_shader.createUniform("windVel");
   uniform_partPos = currVel_shader.createUniform("position");
+  uniform_prevPartPos = currVel_shader.createUniform("position_prev");
   
   GLint unir = currVel_shader.createUniform("numInRow");
 
@@ -790,6 +791,13 @@ void ParticleControl::updateCurrVel(bool odd, GLuint prime0,GLuint prime1,GLuint
     
   glEnable(texType);
   currVel_shader.activate();
+
+  glActiveTexture(GL_TEXTURE3);
+  if(odd)
+    glBindTexture(texType,positions0);
+  else
+    glBindTexture(texType,positions1);
+  glUniform1iARB(uniform_prevPartPos,3);
 
   glActiveTexture(GL_TEXTURE2);
   if(odd)
@@ -2348,7 +2356,9 @@ void ParticleControl::QUICWindField(){
   QUICWindField>>header>>header>>header>>header>>header;
     
   double groundVal; // ignoring the ground values, so that k=0 have the first cell having non-zero velocity 
-  for(int k=0;k<(6*nx*ny);++k){ // there are 6 columns in the wind file 
+  //Balli had ++k?
+
+  for(int k=0;k<(6*nx*ny);k++){ // there are 6 columns in the wind file 
     QUICWindField>>groundVal;
   }
   // ignoring the ground values for the cellype also
@@ -2390,7 +2400,9 @@ void ParticleControl::initCellType(){
   }
   double groundVal;
   // ignoring the ground values for the cellype also
-  for(int k=0;k<(4*nx*ny);++k){// there are 4 columns in the wind file
+  //Balli had ++k ?
+
+  for(int k=0;k<(4*nx*ny);k++){// there are 4 columns in the wind file
     QUICCellType>>groundVal;
   }
   double quicIndex;
