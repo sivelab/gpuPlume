@@ -30,9 +30,19 @@ void main(void)
    //vec3 wind = vec3(textureRect(windVel,index));
    //color = vec4(wind+primeVel,1.0);
    //color = abs(normalize(color));
-   
-   vec3 color = abs(normalize(pos - prevPos));
+   // vec3 color = abs(normalize(pos - prevPos));
 
+   // This example assumes the difference in position sits in the
+   // (Helmholtz style) opponent color space.  We then convert the
+   // opponent color space to RGB to display on the screen.  This
+   // should produce colors that oppose each other relative to the
+   // direction. In other words, Red/Magenta opposes Green, Blue/Cyan
+   // opposes Yellow, and Black opposes White.  We'll see how it
+   // works.
+
+   mat3 opponent2rgb = mat3(1.1677, -6.4315, -0.5044, 0.9014, 2.5970, 0.0159, 0.7214, 0.1257, 2.0517);
+   vec3 opponent_color = normalize(pos - prevPos);
+   vec3 color = opponent2rgb * opponent_color;
    	
    //}
 
