@@ -495,7 +495,7 @@ void ReflectionModel::setupTextures(){
   if(util->windFieldData != 6)
     pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
   else
-    pc->initLambda_and_TauTex_fromQUICFILES(lambda, tau_dz, duvw_dz, numInRow);
+    pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, numInRow);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
 
