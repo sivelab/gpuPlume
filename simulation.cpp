@@ -16,7 +16,12 @@ Simulation::Simulation(bool time,double t,float* time_step){
 }
 void Simulation::init(){
   if(useRealTime){
+#ifdef __APPLE__
+    // Apple hardware does not have a low-latency hardware assisted timer
+    sim_clock = new Timer();
+#else
     sim_clock = new Timer(true);
+#endif
     display_time[0] = sim_clock->tic();
   }
 }
@@ -57,4 +62,3 @@ bool Simulation::update(float* time_step){
   
   return false;
 }
-
