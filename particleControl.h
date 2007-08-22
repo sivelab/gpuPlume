@@ -51,7 +51,7 @@ class ParticleControl{
   void initLambdaTex(GLuint, int);
   
   void initLambda_and_TauTex(GLuint,GLuint,GLuint,int);
-  void initLambda_and_TauTex_fromQUICFILES(GLuint,GLuint,GLuint,int);
+  void initLambda_and_TauTex_fromQUICFILES(GLuint,GLuint,GLuint,GLuint,int);
 
   //This function is used to initialize the particle positions.
   //It was needed when we weren't able to directly put 32-bit floating point
