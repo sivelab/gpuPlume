@@ -2,7 +2,6 @@
 #define __SPHERE_EMITTER_H__
 
 #include "particleEmitter.h"
-#include <GL/glut.h>
 
 class SphereEmitter : public ParticleEmitter{
 

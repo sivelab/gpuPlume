@@ -430,7 +430,7 @@ void ReflectionModel::initFBO(void){
   fbo = new FramebufferObject();
   fbo->Bind();
       
-  glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT,&maxColorAttachments);
+  glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, (GLint*)&maxColorAttachments);
   std::cout << "Max color attachments: " << maxColorAttachments << std::endl;
   //rb = new Renderbuffer();
   //rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);

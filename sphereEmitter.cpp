@@ -2,6 +2,11 @@
 #include "sphereEmitter.h"
 #include "Random.h"
 
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
 
 SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
 	       int w,int h,std::list<int>* ind, GLSLObject* emit_shader){
