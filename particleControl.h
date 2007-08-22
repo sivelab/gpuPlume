@@ -189,7 +189,7 @@ class ParticleControl{
   GLint unir;
   
   //Uniform variables for the Current Velocity shader
-  GLint uniform_currentPrime, uniform_windVelocity,uniform_partPos;
+  GLint uniform_currentPrime, uniform_windVelocity,uniform_partPos, uniform_prevPartPos;
 
 
   GLenum texType;
