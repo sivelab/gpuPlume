@@ -1,18 +1,22 @@
 EXEC	= gpuPlume
 
-CC	= g++ -g -O2 -Wall
+CC	= g++ -O2 -Wall -DNDEBUG
 
 CSRC	= collectionBox.cpp \
 	  displayControl.cpp \
 	  framebufferObject.cpp \
+	  Gaussian_2shaders_Model.cpp \
+	  GaussianModel.cpp \
 	  gpuPlume.cpp \
 	  glErrorUtil.cpp \
 	  GLSL.cpp \
+	  nonGaussianModel.cpp \
 	  particleControl.cpp \
 	  particleEmitter.cpp \
 	  plumeControl.cpp \
 	  pointEmitter.cpp \
 	  Random.cpp \
+	  ReflectionModel.cpp \
 	  renderbuffer.cpp \
 	  simulation.cpp \
 	  sphereEmitter.cpp \
