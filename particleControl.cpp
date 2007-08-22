@@ -1304,33 +1304,36 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
   (*numInRow) = (width - (width % nx))/nx;
   //std::cout << width << " " << *numInRow << std::endl;
 
-  int qi, qj, qk;
-  int p2idx = 0, texidx = 0;
-  int row = 0;
+  if(dataSet != 6){
+
+    int qi, qj, qk;
+    int p2idx = 0, texidx = 0;
+    int row = 0;
   
-  GLfloat *data = new GLfloat[ width * height * 4 ];
-  for (qk=0; qk<nz; qk++) 
-    for (qi=0; qi<ny; qi++)
-      for (qj=0; qj<nx; qj++)
-	{
-	  p2idx = qk*ny*nx + qi*nx + qj;
+    GLfloat *data = new GLfloat[ width * height * 4 ];
+    for (qk=0; qk<nz; qk++) 
+      for (qi=0; qi<ny; qi++)
+	for (qj=0; qj<nx; qj++)
+	  {
+	    p2idx = qk*ny*nx + qi*nx + qj;
 	    
-	  row = qk / (*numInRow);
-	  texidx = row * width * ny * 4 +
-	  qi * width * 4 +
-	  qk % (*numInRow) * nx * 4 +
-	  qj * 4;
+	    row = qk / (*numInRow);
+	    texidx = row * width * ny * 4 +
+	      qi * width * 4 +
+	      qk % (*numInRow) * nx * 4 +
+	      qj * 4;
 	  
-	  data[texidx] = wind_vel[p2idx].u;
-	  data[texidx+1] = wind_vel[p2idx].v;
-	  data[texidx+2] = wind_vel[p2idx].w;	  
-	  data[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)/(0.4*(qk+1));//This value is the '0.5*CoEps' value	
+	    data[texidx] = wind_vel[p2idx].u;
+	    data[texidx+1] = wind_vel[p2idx].v;
+	    data[texidx+2] = wind_vel[p2idx].w;	  
+	    data[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)/(0.4*(qk+1));//This value is the '0.5*CoEps' value	
 
-        }
+	  }
 
-  createTexture(windField, GL_RGBA32F_ARB, width, height, data);
+    createTexture(windField, GL_RGBA32F_ARB, width, height, data);
 
-  delete [] data;
+    delete [] data;
+  }
 
 }
 void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint duvw_dz, int numInRow){
@@ -1531,8 +1534,365 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   delete [] data;
 
 }
+void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, int numInRow){
+  GLfloat *data = new GLfloat[ width * height * 4 ];
+   GLfloat *dataWind = new GLfloat[ width * height * 4 ];
+  GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
+  GLfloat *data3 = new GLfloat[width*height*4];
+  GLfloat *data4 = new GLfloat[width*height*4];
+  GLfloat *data5 = new GLfloat[width*height*4];
 
-void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint lambda, GLuint tau_dz, GLuint duvw_dz, int numInRow){
+  int qi, qj, qk;
+  int p2idx = 0, texidx = 0, texidxBelow = 0;
+  int row = 0, rowBelow = 0;
+  
+  //cell below, cell above, cell two below
+  int idxBelow, idxAbove, idx2Below,idxRight,idxLeft,idxFront,idxBehind;
+
+  float du_dx,du_dy,du_dz,dv_dx,dv_dy,dv_dz,dw_dx,dw_dy,dw_dz;
+  double S11,S22,S33,S21,S12,S31,S13,S23,S32;
+  //Cell height
+  float dz = 1.0,dx=1.0,dy=1.0;
+  //Surface roughness
+  float znaut = 0.01;
+
+  //initializes the array cellQuic[]
+  initCellType();
+ 
+  
+  for (qk=0; qk<nz; qk++) 
+    for (qi=0; qi<ny; qi++)
+      for (qj=0; qj<nx; qj++)
+	{	
+	  double Lam11=0;
+	  double Lam22=0;
+	  double Lam33=0;
+	  double Lam13=0;
+
+	  p2idx = qk*ny*nx + qi*nx + qj;
+		
+	  if(cellQuic[p2idx].c!=0){ //Calculate gradients ONLY if its not a building or ground cell    
+
+	    // Calculating distance to the wall in all directions.
+
+	    //to look for distance to a building in negative Z-direction (towards the ground)
+	    int disNegZSurf=qk,qkk=qk;
+	    while(qkk>=0){
+	      int p2idx_k = qkk*ny*nx + qi*nx + qj;
+	      if(cellQuic[p2idx_k].c==0){
+		     disNegZSurf=(qk-qkk)+1;
+		     break;
+	      }
+		  if(qkk==0){
+		     disNegZSurf=qk+1;
+		     break;
+	      }
+	      --qkk;
+	    }
+           
+	    //For Y-direction.
+	    int p2idx_i;
+	    //to look for a building in negative Y-direction
+	    int disNegYSurf=1000*ny , qii=qi;
+	    while(qii>=0){
+	      p2idx_i = qk*ny*nx + qii*nx + qj;
+	      if(cellQuic[p2idx_i].c==0){
+		disNegYSurf=qi-qii;
+		break;
+	      }
+	      --qii;
+	    }
+	    //to look for a building in postive Y-direction
+	    int disPosYSurf=1000*ny;
+	    qii=qi;
+	    while(qii<=ny){
+	      p2idx_i = qk*ny*nx + qii*nx + qj;
+	      if(cellQuic[p2idx_i].c==0){
+		disPosYSurf=qii-qi;
+		break;
+	      }
+	      ++qii;
+	    }
+
+	    //For X-direction.
+	    int p2idx_j;
+	    //to look for a building in negative X-direction
+	    int disNegXSurf=1000*nx , qjj=qj;
+	    while(qjj>=0){
+	      p2idx_j = qk*ny*nx + qi*nx + qjj;
+	      if(cellQuic[p2idx_j].c==0){
+		disNegXSurf=qj-qjj;
+		break;
+	      }
+	      --qjj;
+	    }
+	    //to look for a building in postive X-direction
+	    int disPosXSurf=1000*nx;
+	    qjj=qj;
+	    while(qjj<=nx){
+	      p2idx_j = qk*ny*nx + qi*nx + qjj;
+	      if(cellQuic[p2idx_j].c==0){
+		disPosXSurf=qjj-qj;
+		break;
+	      }
+	      ++qjj;
+	    }
+	    //Calculating "minimum" distance to the wall.
+	    int disArray[]={disNegXSurf,disPosXSurf,disNegYSurf,disPosYSurf,disNegZSurf};
+
+	    int minDistance = disNegXSurf;  //let the lowest value be the first in the array
+
+	    for(int i=1; i<(int)(sizeof(disArray)/sizeof*(disArray));i++){//loop for getting the actual minimum distance
+	      if(disArray[i] <= minDistance){
+		minDistance = disArray[i];
+	      }
+	    }
+
+	    row = qk / (numInRow);
+	    texidx = row * width * ny * 4 +
+	      qi * width * 4 +
+	      qk % (numInRow) * nx * 4 +
+	      qj * 4;
+
+	    rowBelow = (qk-1) / (numInRow);
+	    texidxBelow = rowBelow * width * ny * 4 +
+	      qi * width * 4 +
+	      (qk-1) % (numInRow) * nx * 4 +
+	      qj * 4;
+	         
+	    //The cells right above and below the current cell
+	    idxBelow = (qk-1)*ny*nx + qi*nx + qj;
+	    idxAbove = (qk+1)*ny*nx + qi*nx + qj;         
+
+	    //The cells at front and behind of the current cell   
+	    idxBehind = qk*ny*nx + qi*nx + (qj-1);
+	    idxFront  = qk*ny*nx + qi*nx + (qj+1);
+	    //The cell two below the current cell
+	    idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+            
+	    //Calculate du/dz
+
+	    //Cell just above the ground
+	    //du/dz = Uat 1st cell/0.5dz(log(dz/znaut))
+	    if(qk == 0 || (cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
+	      du_dz = wind_vel[p2idx].u/(dz*log(dz/znaut));
+	      dv_dz = wind_vel[p2idx].v/(dz*log(dz/znaut));
+	      dw_dz = wind_vel[p2idx].w/(dz*log(dz/znaut));
+	      ustar = 0.4*(minDistance+1)*du_dz;
+	    }
+	    //Cell at the top of the domain
+	    else if(qk == (nz-1)){
+	      du_dz = data3[texidxBelow];  // du_dz at k-1th cell
+	      dv_dz = data3[texidxBelow+1];
+	      dw_dz = data3[texidxBelow+2];
+	      ustar = 0.4*(minDistance+1)*du_dz;
+	    }
+
+	    //All other cells. i.e not boundary cells
+	    //du/dz = (Uk+1 - Uk-1)/2dz
+	    else{
+	      du_dz = (wind_vel[idxAbove].u - wind_vel[idxBelow].u)/(2.0*dz);
+	      dv_dz = (wind_vel[idxAbove].v - wind_vel[idxBelow].v)/(2.0*dz);
+	      dw_dz = (wind_vel[idxAbove].w - wind_vel[idxBelow].w)/(2.0*dz);
+	      ustar = 0.4*(minDistance+1)*du_dz;
+	    }
+	       				  	  
+	    data3[texidx] = du_dz;      //du_dz
+	    data3[texidx+1] = dv_dz;    //dv_dz
+	    data3[texidx+2] = dw_dz;    //dw_dz
+	    data3[texidx+3] = 0.0;
+		  
+	    //For gradient in X-direction
+		   
+	    //Cell at the top of the domain
+	    if(qj == (nx-1) || qj==0){
+	      du_dx = 0;  // du_dz at k-1th cell
+	      dv_dx = 0;
+	      dw_dx = 0;
+	    }
+	    else if((cellQuic[idxBehind].c==0 && cellQuic[p2idx].c==1) || (cellQuic[idxFront].c==0 && cellQuic[p2idx].c==1)){
+	      du_dx = wind_vel[p2idx].u/(dx*log(dx/znaut));
+	      dv_dx = wind_vel[p2idx].v/(dx*log(dx/znaut));
+	      dw_dx = wind_vel[p2idx].w/(dx*log(dx/znaut));
+	    }
+	    else{
+	      du_dx = (wind_vel[idxFront].u - wind_vel[idxBehind].u)/(2.0*dx);
+	      dv_dx = (wind_vel[idxFront].v - wind_vel[idxBehind].v)/(2.0*dx);
+	      dw_dx = (wind_vel[idxFront].w - wind_vel[idxBehind].w)/(2.0*dx);
+	    }
+
+	    data4[texidx]   = du_dx;    //du_dx
+	    data4[texidx+1] = dv_dx;    //eventually dv_dx
+	    data4[texidx+2] = dw_dx;    //eventually dw_dx
+	    data4[texidx+3] = 0.0;	      
+
+	    //For gradient in Y-direction
+	    //The cells at right and left of the current cell 
+	    idxRight = qk*ny*nx + (qi-1)*nx + qj;
+	    idxLeft  = qk*ny*nx + (qi+1)*nx + qj;
+		   
+	    //Cell at the top of the domain
+	    if(qi == (ny-1) || qi==0){
+	      du_dy = 0;  // du_dz at k-1th cell
+	      dv_dy = 0;
+	      dw_dy = 0;
+	    }
+	    else if((cellQuic[idxLeft].c==0 && cellQuic[p2idx].c==1) || (cellQuic[idxRight].c==0 && cellQuic[p2idx].c==1)){
+	      du_dy = wind_vel[p2idx].u/(dy*log(dy/znaut));
+	      dv_dy = wind_vel[p2idx].v/(dy*log(dy/znaut));
+	      dw_dy = wind_vel[p2idx].w/(dy*log(dy/znaut));
+	    }
+	    else{
+	      du_dy = (wind_vel[idxLeft].u - wind_vel[idxRight].u)/(2.0*dy);
+	      dv_dy = (wind_vel[idxLeft].v - wind_vel[idxRight].v)/(2.0*dy);
+	      dw_dy = (wind_vel[idxLeft].w - wind_vel[idxRight].w)/(2.0*dy);
+	    }
+
+	    data5[texidx]   = du_dy;    //du_dy
+	    data5[texidx+1] = dv_dy;    //eventually dv_dy
+	    data5[texidx+2] = dw_dy;    //eventually dw_dy
+	    data5[texidx+3] = 0.0;
+		
+
+		double velGrad[]={du_dx,dv_dx,dw_dx,du_dy,dv_dy,dw_dy,du_dz,dv_dz,dw_dz};
+        double maxVelGradAbs=abs(du_dx);
+		double maxVelGrad;
+
+		for(int i=1; i<(int)(sizeof(velGrad)/sizeof*(velGrad));i++){//loop for getting the actual max velocity gradient
+	      if(abs(velGrad[i]) >= maxVelGradAbs){
+		     maxVelGradAbs = abs(velGrad[i]);
+		     maxVelGrad = velGrad[i];
+	      }
+	    }
+	    
+        double VertGradFactor=pow( (1-(minDistance/20)) ,3.0/2.0); 
+		ustar=0.4*minDistance*maxVelGrad*VertGradFactor;
+
+	    //S11=du_dx;
+	    //S22=dv_dy;
+	    //S33=dw_dz;
+
+	    //S12=0.5 * ( du_dy + dv_dz );
+	    //S13=0.5 * ( du_dz + dw_dx );
+	    //S32=0.5 * ( dw_dy + dv_dz );
+		   
+	    //S21=S12;
+	    //S31=S13;
+	    //S23=S32;
+              
+	    sigU = 2.0*ustar;
+	    sigV = 2.0*ustar;
+	    sigW = 1.3*ustar;
+
+	    sig[p2idx].u = sigU;   //sigU
+	    sig[p2idx].v = sigV;   //sigV
+	    sig[p2idx].w = sigW;   //sigW
+
+	    float tau11=sigU*sigU;
+	    float tau22=sigV*sigV;
+	    float tau33=sigW*sigW;
+	    float tau13=ustar*ustar;
+	    float tauDetInv=1.0/((tau11*tau22*tau33)-(tau13*tau13*tau22));
+
+	  
+	    tau[p2idx].t11   = tau11;             //Tau11
+	    tau[p2idx+1].t22 = tau22;             //Tau22
+	    tau[p2idx+2].t33 = tau33;             //Tau33
+	    tau[p2idx+3].t13 = tau13;             //Tau13
+
+		Lam11=tauDetInv*(tau22*tau33);
+		Lam22=tauDetInv*(tau11*tau33-tau13*tau13);
+		Lam33=tauDetInv*(tau11*tau22);
+		Lam13=tauDetInv*(-tau13*tau22);
+
+	    dataTwo[texidx]   = 0.0;//tauDetInv*(tau22*tau33);            //Lam11
+	    dataTwo[texidx+1] = 0.0;//tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
+	    dataTwo[texidx+2] = 0.0;//tauDetInv*(tau11*tau22);	          //Lam33
+	    dataTwo[texidx+3] = 0.0;//tauDetInv*(-tau13*tau22);           //Lam13
+        
+		dataWind[texidx] = wind_vel[p2idx].u;
+	    dataWind[texidx+1] = wind_vel[p2idx].v;
+	    dataWind[texidx+2] = wind_vel[p2idx].w;	  
+	    dataWind[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
+	  }
+
+	}
+  
+	createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
+    createTexture(duvw_dz, GL_RGBA32F_ARB, width,height, data3);
+    createTexture(windField, GL_RGBA32F_ARB, width, height, dataWind);
+  
+  delete [] dataWind;
+  delete [] data3;
+  delete [] dataTwo;
+
+  //Create the Tau/dz texture
+  float tau11_dz, tau22_dz, tau33_dz, tau13_dz;
+  
+  for (qk=0; qk<nz; qk++) 
+    for (qi=0; qi<ny; qi++)
+      for (qj=0; qj<nx; qj++)
+	{
+	  p2idx = qk*ny*nx + qi*nx + qj;
+	    
+	  row = qk / (numInRow);
+	  texidx = row * width * ny * 4 +
+	    qi * width * 4 +
+	    qk % (numInRow) * nx * 4 +
+	    qj * 4;
+
+	  rowBelow = (qk-1) / (numInRow);
+	  texidxBelow = rowBelow * width * ny * 4 +
+	    qi * width * 4 +
+	    (qk-1) % (numInRow) * nx * 4 +
+	    qj * 4;
+	  
+	  //The cells right above and below the current cell
+	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
+	  idxAbove = (qk+1)*ny*nx + qi*nx + qj;
+
+	  //The cell two below the current cell
+	  idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+
+	  //Calculate Tau/dz
+	  
+	  //Cell just above the ground
+	  //dT/dz = -2(T/(0.5dz)log((0.5dz/znaut)))
+	  if(qk == 0 || (cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
+	    tau11_dz = -2.0*(tau[p2idx].t11/(dz*log(dz/znaut)));
+	    tau22_dz = -2.0*(tau[p2idx].t22/(dz*log(dz/znaut)));
+	    tau33_dz = -2.0*(tau[p2idx].t33/(dz*log(dz/znaut)));
+	    tau13_dz = -2.0*(tau[p2idx].t13/(dz*log(dz/znaut)));
+	  }
+	  //Cell at the top of the domain
+	  else if(qk == (nz-1)){
+	    tau11_dz = data[texidxBelow];
+	    tau22_dz = data[texidxBelow+1];
+	    tau33_dz = data[texidxBelow+2];
+	    tau13_dz = data[texidxBelow+3];
+	  }
+	  //All other cells
+	  //dT/dz = (Tk+1 - Tk-1)/2dz
+	  else{
+	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0*dz);
+	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0*dz);
+	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0*dz);
+	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0*dz);
+	  }
+
+	  data[texidx] = tau11_dz;
+	  data[texidx+1] = tau22_dz;
+	  data[texidx+2] = tau33_dz;
+	  data[texidx+3] = tau13_dz;
+
+	}
+
+  createTexture(tau_dz, GL_RGBA32F_ARB, width,height, data);
+  
+  delete [] data;
+
+}
+/*void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint lambda, GLuint tau_dz, GLuint duvw_dz, int numInRow){
   GLfloat *data = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
   GLfloat *data3 = new GLfloat[width*height*4];
@@ -1850,7 +2210,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint lambda, GLuint 
   
   delete [] data;
 
-}
+  }*/
 void ParticleControl::initLambdaTex(GLuint lambda, int numInRow){
 
   GLfloat *data = new GLfloat[ width * height * 4 ];
