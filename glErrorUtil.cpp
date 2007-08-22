@@ -46,7 +46,7 @@ void CheckErrorsGL(const char* location, ostream& ostr)
 {
 	GLuint errnum;
 	const char *errstr;
-	while (errnum = glGetError()) 
+	while ((errnum = glGetError()) == 1)
 	{
 		errstr = reinterpret_cast<const char *>(gluErrorString(errnum));
 		ostr << errstr; 
