@@ -90,6 +90,10 @@ double Timer::deltas( Timer_t t1, Timer_t t2 ) const
 Timer::Timer( bool enable_high_res_timer )
   : _use_high_res_timer(enable_high_res_timer)
 {
+  //
+  // The high res timer will NOT work on Macs, so don't even allow it..
+  //
+#ifndef __APPLE__
   if (_use_high_res_timer)
     {
       char buff[128];
@@ -128,23 +132,30 @@ Timer::Timer( bool enable_high_res_timer )
     }
   else 
     {
+#endif
       // use standard, gettimeofday timing mechanism
       _secsPerTic = (1.0 / (double) 1000000);
+#ifndef __APPLE__
     }
+#endif
 }
 
 Timer_t Timer::tic() const
 {
+#ifndef __APPLE__
   if (_use_high_res_timer)
     {
       Timer_t x;CLK(x);return x;
     }
   else
     {
+#endif
       struct timeval tv;
       gettimeofday(&tv, NULL);
       return ((Timer_t)tv.tv_sec)*1000000+(Timer_t)tv.tv_usec;
+#ifndef __APPLE__
     }
+#endif
 }
 
 double Timer::deltas( Timer_t t1, Timer_t t2 ) const
