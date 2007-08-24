@@ -58,6 +58,8 @@ void main(void)
    oRGB = vec2(color.y, color.z);
    mat2 rot = mat2(cos(theta), sin(theta), sin(theta), -cos(theta));
    oRGB_new = rot * oRGB;
+   
+   color.x = abs(color.x);
    color.y = oRGB_new.x;
    color.z = oRGB_new.y;
 
