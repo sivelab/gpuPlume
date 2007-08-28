@@ -688,8 +688,8 @@ GLubyte* DisplayControl::readPPM(char* filename, int* width, int* height)
 
 void DisplayControl::createPointSpriteTextures()
 {
-  uint width = 128;
-  uint height = 128;
+  unsigned int width = 128;
+  unsigned int height = 128;
 
   // for this, I want width & height to be the same
   assert(width == height);
@@ -706,8 +706,8 @@ void DisplayControl::createPointSpriteTextures()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
   // make the shape/intensity map
-  for (uint y=0; y<height; y++)
-    for (uint x=0; x<width; x++)
+  for (unsigned int y=0; y<height; y++)
+    for (unsigned int x=0; x<width; x++)
       {
 	int idx = y*width*4 + x*4;
 
@@ -744,8 +744,8 @@ void DisplayControl::createPointSpriteTextures()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  for (uint y=0; y<height; y++)
-    for (uint x=0; x<width; x++)
+  for (unsigned int y=0; y<height; y++)
+    for (unsigned int x=0; x<width; x++)
       {
 	int idx = y*width*4 + x*4;
 
