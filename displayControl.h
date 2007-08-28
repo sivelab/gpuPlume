@@ -45,6 +45,15 @@ class DisplayControl{
   bool draw_buildings;
   bool osgPlume;
 
+  // Determine which visual state to draw the particles.  The default
+  // should probably be point.
+  enum ParticleVisualState
+    {
+      PARTICLE_POINT,
+      PARTICLE_SPRITE
+    };
+  ParticleVisualState particle_visual_state;
+
   int visual_layer;
   float eye_pos[3];
   float eye_gaze[3];
@@ -87,4 +96,15 @@ class DisplayControl{
 
   GLint uniform_vel_color;
 
+  //
+  // Point Sprite visual data
+  //
+  GLuint point_sprite_textures[2];
+
+  // * variable to reference the texture units for the point sprite
+  // * and normal map textures
+  GLint uniform_pointsprite_tex, uniform_normalmap_tex, uniform_pointsprite_visuals;
+
+  // * function to create point sprite textures
+  void createPointSpriteTextures();
 };

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <math.h>
+#include <assert.h>
 #include "displayControl.h"
 #include "glErrorUtil.h"
 
@@ -38,12 +39,40 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   frame_rate = true;
   visual_layer = -1;
   osgPlume = false;
-  
+
+  // Set particle visual state to point based particles initially
+  particle_visual_state = PARTICLE_POINT;
+
   //This shader is used to make final changes before rendering to the screen
   render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
   render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   render_shader.createProgram();
 
+  // for point sprites, we need the uniform variables for the texture
+  // units that hold the point sprite and the normal map
+  uniform_pointsprite_tex = render_shader.createUniform("pointsprite_texunit");
+  uniform_normalmap_tex = render_shader.createUniform("pointspritenormal_texunit");
+
+  // determine which visual to use
+  uniform_pointsprite_visuals = render_shader.createUniform("point_visuals");
+
+  // POINT_SPRITE
+  //
+  // Initialize the texture data used for sprite based particle
+  // visuals.  This currently means creating two textures: one
+  // representing the base shape/color of the particle (white circle),
+  // and a second to represent a normal map for a sphere to provide
+  // Phong based lighting to the particle representations in a shader.
+  createPointSpriteTextures();
+
+  // float quadratic[] =  { 0.0f, 0.0f, 0.1f };
+  // glPointParameterfvARB( GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic );
+  float maxSize = 0.0f, currSize = 1.0f;
+  glGetFloatv(GL_POINT_SIZE_MAX_ARB, &maxSize);
+  glGetFloatv(GL_POINT_SIZE, &currSize);
+  glPointParameterfARB(GL_POINT_SIZE_MAX_ARB, currSize + 3.0);
+  glPointParameterfARB(GL_POINT_SIZE_MIN_ARB, 1.0);
+  
   // Create a high resolution clock timer - only works on Linux, x86
   // systems.  The basic timer works on Windows.  Setting the argument
   // to true will have no affect on windows implementations.
@@ -56,7 +85,6 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight)
 {
-
   drawSky();
 
   if(!osgPlume){
@@ -69,6 +97,18 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     //glRotatef(azimuth, 0,0,1);  
   }
   
+  drawAxes();
+  
+  drawGrid();
+
+  if(draw_buildings){
+    drawFeatures();
+  }
+  
+  drawGround();
+
+  // drawLayers(texid3, numInRow);  
+
   // render the vertices in the VBO (the particle positions) as points in the domain
   
   if(color_buffer != 0){
@@ -81,27 +121,49 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   
   glEnableClientState(GL_VERTEX_ARRAY); 
   
-  glPointSize(3.0);
   render_shader.activate();  
   if(color_buffer == 0)
     glColor4f(1.0,1.0,1.0,1.0);
 
+  if (particle_visual_state == PARTICLE_SPRITE)
+    {
+      glPointSize(6.0);
+      glUniform1iARB(uniform_pointsprite_visuals, 1);
+
+      glEnable(GL_TEXTURE_2D);
+
+      glActiveTextureARB(GL_TEXTURE0_ARB);
+      glUniform1iARB(uniform_pointsprite_tex, 0);
+      glBindTexture(GL_TEXTURE_2D, displayTex[0]); // point_sprite_textures[0]);
+
+      glActiveTextureARB(GL_TEXTURE1_ARB);
+      glUniform1iARB(uniform_normalmap_tex, 1);
+      glBindTexture(GL_TEXTURE_2D, point_sprite_textures[1]);
+
+      glActiveTextureARB(GL_TEXTURE0_ARB);
+
+      glTexEnvf(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
+      glEnable(GL_POINT_SPRITE_ARB);
+      glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    }
+  else 
+    {
+      glPointSize(3.0);
+      glUniform1iARB(uniform_pointsprite_visuals, 0);
+    }
+
   glDrawArrays(GL_POINTS, 0, twidth*theight);
+
+  if (particle_visual_state == PARTICLE_SPRITE)
+    {
+      glDisable(GL_POINT_SPRITE_ARB);
+
+      // glBindTexture(GL_TEXTURE_2D, 0);
+      glDisable(GL_TEXTURE_2D);
+    }
+
   render_shader.deactivate();
 
-
-  drawAxes();
-  
-  drawGrid();
-
-  //if(!osgPlume){
-    if(draw_buildings){
-      drawFeatures();
-    }
-    //}
-  drawGround();
-
-  //drawLayers(texid3, numInRow);  
 
   // spit out frame rate
   if(!osgPlume){
@@ -189,7 +251,8 @@ void DisplayControl::setRotateAround(float change){
 
 }
 void DisplayControl::drawSky(){
-  double skyr = 0.4, skyg = 0.5, skyb = 0.8;
+  // double skyr = 0.4, skyg = 0.5, skyb = 0.8;
+  double skyr = 0.5, skyg = 0.5, skyb = 0.6;
    
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   glDisable ( GL_TEXTURE_2D );
@@ -275,17 +338,26 @@ void DisplayControl::drawAxes(){
   glGetIntegerv(GL_LINE_WIDTH, &lwidth);
   glLineWidth(3.0);
 
+  // Modified colors of axes to represent the manner in which
+  // direction is being visualized.
+  // 
+  // Which makes me think we might want to make the axes' colors
+  // dependent on what is being visualized.
+
   glBegin(GL_LINES);
-  glColor3f(1.0, 0.0, 0.0);
+  glColor3f(0.0, 0.0, 1.0);
   glVertex3f(0.0, 0.0, 0.0);
+  glColor3f(1.0, 1.0, 0.0);
   glVertex3f(nx, 0.0, 0.0);
 
   glColor3f(0.0, 1.0, 0.0);
   glVertex3f(0.0, 0.0, 0.0);
+  glColor3f(1.0, 0.0, 0.0);
   glVertex3f(0.0, ny, 0.0);
 
-  glColor3f(0.0, 0.0, 1.0);
+  glColor3f(0.0, 0.0, 0.0);
   glVertex3f(0.0, 0.0, 0.0);
+  glColor3f(1.0, 1.0, 1.0);
   glVertex3f(0.0, 0.0, nz);
   glEnd();
 
@@ -614,3 +686,110 @@ GLubyte* DisplayControl::readPPM(char* filename, int* width, int* height)
     return image;
 }
 
+void DisplayControl::createPointSpriteTextures()
+{
+  int width = 128;
+  int height = 128;
+
+  // for this, I want width & height to be the same
+  assert(width == height);
+  GLfloat *data = new GLfloat[ width * height * 4 ];
+
+  glEnable(GL_TEXTURE_2D);
+  glGenTextures(2, point_sprite_textures);
+
+  glBindTexture(GL_TEXTURE_2D, point_sprite_textures[0]);
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  // make the shape/intensity map
+  for (uint y=0; y<height; y++)
+    for (uint x=0; x<width; x++)
+      {
+	int idx = y*width*4 + x*4;
+
+	// convert to sphere coordinates with radius half of width/height
+	double r = (double)width/2.0;
+	double xr = x - r;
+	double yr = y - r;
+
+	// if coordinate is on or inside the circle, keep going
+	double mag = sqrt(xr*xr + yr*yr);
+	if (mag <= r)
+	  {
+	    // White for now... may use later
+	    data[idx] = 1.0; data[idx+1] = 1.0; data[idx+2] = 1.0; data[idx+3] = 1.0;
+	  }
+	else 
+	  {
+	    // store transparent white in image space
+	    data[idx] = data[idx+1] = data[idx+2] = 1.0;
+	    data[idx+3] = 0.0;
+	  }
+      }
+
+  gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_FLOAT, data);
+  // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, data);
+  
+  // 
+  // make the normal map
+  //
+  glBindTexture(GL_TEXTURE_2D, point_sprite_textures[1]);
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  for (uint y=0; y<height; y++)
+    for (uint x=0; x<width; x++)
+      {
+	int idx = y*width*4 + x*4;
+
+	// convert to sphere coordinates with radius half of width/height
+	double r = (double)width/2.0;
+	double xr = x - r;
+	double yr = y - r;
+
+	// if coordinate is on or inside the circle, keep going
+	double mag = sqrt(xr*xr + yr*yr);
+	if (mag <= r)
+	  {
+	    // calculate what z would be for this x, y, radius combination
+	    double z = sqrt( r*r - xr*xr - yr*yr );
+
+	    // convert to positive half space since some x and y will
+	    // be negative (bad for RGBA values)
+	    xr /= r;
+	    xr = (xr + 1.0) / 2.0;
+
+	    yr /= r;
+	    yr = (yr + 1.0) / 2.0;
+
+	    z /= r;
+	    z = (z + 1.0) / 2.0;
+
+	    // store in image space
+	    data[idx] = xr;
+	    data[idx+1] = yr;
+	    data[idx+2] = z;
+	    data[idx+3] = 1.0;
+	  }
+	else 
+	  {
+	    // store transparent white in image space
+	    data[idx] = data[idx+1] = data[idx+2] = 1.0;
+	    data[idx+3] = 0.0;
+	  }
+      }
+	
+  // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, data);
+  gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_FLOAT, data);
+
+  glDisable(GL_TEXTURE_2D);
+
+  delete [] data;
+}
