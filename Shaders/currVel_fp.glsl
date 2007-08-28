@@ -42,16 +42,16 @@ void main(void)
                                1.0,  0.1140, -0.4111, 
                                1.0, -0.8860, 0.1663);
       vec3 opponent_color = normalize(pos - prevPos);
-      opponent_color.x = abs(opponent_color.x);
 
-      // wind field
+      // or, get the wind field
       // opponent_color = normalize(wind);
 
+      opponent_color.x = abs(opponent_color.x);
       color = opponent2rgb * opponent_color;
 
       // now, we need to apply a non-affine transform to make the red/green axis perpendicular to the blue/yellow axis
       float pi = 3.14159;
-      float theta = atan2(color.z, color.y);
+      float theta = atan(color.z, color.y);
       float theta_0 = 0.0;
       if (theta < (pi/3.0))
 	theta_0 = (3.0 / 2.0) * theta;
