@@ -29,8 +29,6 @@ void ParticleControl::setUstarAndSigmas(float u){
   sigU = 2.0*ustar;
   sigV = 2.0*ustar;
   sigW = 1.3*ustar;
-	
-  std::cout << ustar << std::endl;
 }
 void ParticleControl::setRandomTexCoords(){
   t1 = Random::uniform() * twidth;
