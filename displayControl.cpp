@@ -41,7 +41,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   osgPlume = false;
 
   // Set particle visual state to point based particles initially
-  particle_visual_state = PARTICLE_POINT;
+  particle_visual_state = PARTICLE_SPRITE;  // POINT;
 
   //This shader is used to make final changes before rendering to the screen
   render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -688,8 +688,8 @@ GLubyte* DisplayControl::readPPM(char* filename, int* width, int* height)
 
 void DisplayControl::createPointSpriteTextures()
 {
-  int width = 128;
-  int height = 128;
+  uint width = 128;
+  uint height = 128;
 
   // for this, I want width & height to be the same
   assert(width == height);
