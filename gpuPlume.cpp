@@ -126,11 +126,10 @@ int main(int argc, char** argv)
       std::cout << "Error: " << glewGetErrorString(err) << std::endl;
     }
 
-  if (GL_ARB_vertex_buffer_object) 
-    {
-      std::cout << "GL_ARB_vertex_buffer_object available!" << std::endl;
-    }
-  else 
+  // We really should place a function call here to do a scan and
+  // check over the various OpenGL extensions and states that we
+  // require for this code to function.
+  if (!GL_ARB_vertex_buffer_object) 
     {
       std::cout << "GL_ARB_vertex_buffer_object is NOT available!  Exiting!" << std::endl;
       exit(-1);
