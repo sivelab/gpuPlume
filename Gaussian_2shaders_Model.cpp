@@ -61,7 +61,7 @@ Gaussian_2shaders_Model::~Gaussian_2shaders_Model(){}
 void Gaussian_2shaders_Model::init(bool OSG){
   osgPlume = OSG;
 
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->u,util->v,util->w);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz);
   pc->setUstarAndSigmas(util->ustar);
 
   dc = new DisplayControl(nx,ny,nz, texType);  
