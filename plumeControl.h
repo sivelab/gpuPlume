@@ -62,10 +62,10 @@ class PlumeControl{
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
 
-  GLuint texid[13]; 
+  GLuint texid[15]; 
   GLenum texType,positions0,positions1,windField,randomValues;
   GLenum prime0, prime1, lambda, tau_dz, duvw_dz;
-  GLenum meanVel0,meanVel1,currVel;
+  GLenum meanVel0,meanVel1,currVel,buildings,cellType;
 
   FramebufferObject* fbo;
   FramebufferObject* fbo2;
@@ -93,7 +93,7 @@ class PlumeControl{
   }
  
   Simulation* sim;
-  double* buildParam;
+  float* buildParam;
 
   bool paused;
   bool inPauseMode;
