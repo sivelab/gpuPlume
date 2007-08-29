@@ -36,8 +36,8 @@ class DisplayControl{
   void setElevation(float, float);
   void setRotateAround(float);
   void lookUporDown(float);
-  void initVars(int,double*,double*,double*,
-		      double*,double*,double*);
+  void initVars(int,float*,float*,float*,
+		      float*,float*,float*);
 
   bool rotate_around, change_height, change_look;
   bool frame_rate;
@@ -69,12 +69,12 @@ class DisplayControl{
 
   //Feature Variables
   int numBuild;
-  double* xfo;
-  double* yfo;
-  double* zfo;
-  double* ht;
-  double* wti;
-  double* lti;
+  float* xfo;
+  float* yfo;
+  float* zfo;
+  float* ht;
+  float* wti;
+  float* lti;
   
 
   GLSLObject render_shader;
