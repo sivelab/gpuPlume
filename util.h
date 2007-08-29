@@ -74,18 +74,18 @@ class Util{
   int emit_method;
 
   //building paramters
-  double* xfo;
-  double* yfo;
-  double* zfo;
-  double* ht;
-  double* wti;
-  double* lti;
+  float* xfo;
+  float* yfo;
+  float* zfo;
+  float* ht;
+  float* wti;
+  float* lti;
   int numBuild;
 
   //holds the quicPlume Data for the wind field
-  double* u;
-  double* v;
-  double* w;
+  //double* u;
+  //double* v;
+  //double* w;
 
   //Background color
   float bcolor[3];
