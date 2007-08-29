@@ -61,7 +61,7 @@ NonGaussianModel::~NonGaussianModel(){}
 void NonGaussianModel::init(bool OSG){
   osgPlume = OSG;
 
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->u,util->v,util->w);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz);
   pc->setUstarAndSigmas(util->ustar);
 
   dc = new DisplayControl(nx,ny,nz, texType);  
