@@ -2,44 +2,6 @@
 #include <stdio.h>
 #include "gpuPlume.h"
 
-// //////////////////////////////////////
-// BEGIN -----> QUIC PLUME FORTRAN REFERENCES
-// //////////////////////////////////////
-
-#if 0
-
-extern "C"
-{
-  void readfiles_();
-}
-
-// Domain size stored in nx, ny, and nz
-extern "C" int __datamodule__nx;
-extern "C" int __datamodule__ny;
-extern "C" int __datamodule__nz;
-
-extern "C" double __datamodule__dx;
-extern "C" double __datamodule__dy;
-extern "C" double __datamodule__dz;
-
-// UVW contains the wind field
-extern "C" double* __datamodule__u;
-extern "C" double* __datamodule__v;
-extern "C" double* __datamodule__w;
-
-extern "C" int __datamodule__inumbuild;   // integer number of buildings
-extern "C" double* __datamodule__xfo;
-extern "C" double* __datamodule__yfo;
-extern "C" double* __datamodule__zfo; 
-extern "C" double* __datamodule__ht;
-extern "C" double* __datamodule__wti;
-extern "C" double* __datamodule__lti; 
-
-#endif
-// //////////////////////////////////////
-// END ----> QUIC PLUME FORTRAN REFERENCES
-// //////////////////////////////////////
-
 Util::Util(){
   num = 0;
   numb = 0;
@@ -66,46 +28,6 @@ void Util::readInput(std::string file){
   }
     
   in.close();
-
-#ifdef USE_PLUME_DATA
- // Call the PLUME code to read in the data files.
-  std::cout << "Reading data using PLUME code..." << std::endl;
-  readfiles_();
-
-  //QuicPlume data for the domain
-  nx = __datamodule__nx; //domain in the x direction
-  ny = __datamodule__ny; //domain in the y direction
-  nz = __datamodule__nz; //domain in the z direction
-
-  //nx = (__datamodule__nx - 1) * __datamodule__dx; //domain in the x direction
-  //ny = (__datamodule__nz - 1) * __datamodule__dz; //domain in the y direction
-  //nz = (__datamodule__ny - 1) * __datamodule__dy; //domain in the z direction
-
-  std::cout << "QUIC PLUME domain size: " << nx << " (in X) by " 
-	    << ny << " (in Y) by " << nz << " (in Z)" << std::endl;
-
-  //QuicPlume data for the windfield
-  u = __datamodule__u;
-  v = __datamodule__v;
-  w = __datamodule__w;
-
-  //QuicPlume data for the buildings
-  numBuild = __datamodule__inumbuild;
-  xfo = __datamodule__xfo;
-  yfo = __datamodule__yfo;
-  zfo = __datamodule__zfo;
-  ht = __datamodule__ht;
-  wti = __datamodule__wti;
-  lti = __datamodule__lti;
-  
-#else
-  //nx = 60;
-  //ny = 60;//140;
-  //nz = 20;
-  u=0;
-  v=0;
-  w=0;
-#endif
 
 }
 void Util::parseLine(char* line){
@@ -218,12 +140,12 @@ void Util::parseLine(char* line){
   }
   if(read1Float(line, "numBuild", &f1)){
     numBuild = (int)f1;
-    xfo = new double[numBuild];
-    yfo = new double[numBuild];
-    zfo = new double[numBuild];
-    ht = new double[numBuild];
-    wti = new double[numBuild];
-    lti = new double[numBuild];
+    xfo = new float[numBuild];
+    yfo = new float[numBuild];
+    zfo = new float[numBuild];
+    ht = new float[numBuild];
+    wti = new float[numBuild];
+    lti = new float[numBuild];
   }
   if(read6Float(line, "build_param", b)){
     xfo[numb] = b[0];
