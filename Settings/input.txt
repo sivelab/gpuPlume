@@ -16,12 +16,13 @@ back_color 0.2 0.2 0.2
 #Set this to 1 to show collection box visuals, else 0
 show_collectionBox_visuals 0
 
-#3 = one shader for the reflection non Gaussian setp,
+#4 = one shader for the multiple buildings model
+#3 = one shader for the reflection non Gaussian step,
 #2 = one shader for the non Gaussian advection step,
 #1 = one shader for the Gaussian advection step,
 #0 = the multi pass Gaussian advection technique
-#!!!!!if choice is 2, make sure to set testcase to 5!!!!!!
-advectChoice 3
+#!!!!!if choice is > 2, make sure to set testcase to atleast 4!!!!!!
+advectChoice 4
 
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
@@ -29,12 +30,11 @@ useRealTime 0
 time_step 0.012
 
 #Test case for setting Windfield
-#Use value of 3 for quic Plume data
-#Use value of 4 for uniform in U direction
 #Use value of 2 for random values
-#use value of 5 for the varied in U direction
-#use value of 6 for reading file from QUIC-URB
-windFieldData 6
+#Use value of 3 for uniform in U direction
+#use value of 4 for the varied in U direction
+#use value of 5 for reading file from QUIC-URB
+windFieldData 4
 
 #output file for the values of the collection boxes
 output_file data.txt
@@ -71,7 +71,7 @@ numBox_z   1
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius, rate
-source_info 5.0 25.0 5.0 0.2 10.0
+source_info 5.0 25.0 2.0 0.0 10.0
 #source_info 25.0 17.0 1.0 0.0 1.0
 #source_info 30.0 30.0 1.0 0.0 10.0
 #source_info 3.0 30.0 3.0 0.0 1.0
@@ -93,17 +93,21 @@ emit_method 0
 
 #Number of Buildings
 #Set to 0 for no buildings
-numBuild 1
+numBuild 6
 
 #Building Parameters
 #I'm defining it the same as in QUIC
 #(x,y,z) (height, width, length)
 build_param 25.0 25.0 0.0 10.0 10.0 10.0
-build_param 50.0 25.0 0.0 10.0 6.0 4.0
+build_param 60.0 25.0 0.0 6.0 4.0 4.0
+build_param 40.0 14.0 0.0 6.0 6.0 10.0
+build_param 80.0 20.0 0.0 12.0 4.0 4.0
+build_param 45.0 25.0 0.0 6.0 2.0 4.0
+build_param 50.0 30.0 0.0 14.0 6.0 8.0
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
-pauseMode 1
+pauseMode 0
 
 #Set to 1 to do mean velocity calculation; else 0
 calculateMeanVel 0
