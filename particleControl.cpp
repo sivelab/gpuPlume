@@ -7,8 +7,7 @@
 #include "glErrorUtil.h"
 
 ParticleControl::ParticleControl(GLenum type,int width,int height,
-				 int x, int y, int z,
-				 double* u, double* v, double* w){
+				 int x, int y, int z){
 
   texType = type;
   twidth = width;
@@ -16,13 +15,20 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   nx = x;
   ny = y;
   nz = z;
-  u_quicPlumeData = u;
-  v_quicPlumeData = v;
-  w_quicPlumeData = w;
 
   outputPrime = false;
   alreadyOpen = false;
 
+}
+void ParticleControl::setBuildingParameters(int nB,float* x,float* y,float* z,
+					   float* h,float* w,float* l){
+  numBuild = nB;
+  xfo = x;
+  yfo = y;
+  zfo = z;
+  ht = h;
+  wti = w;
+  lti = l; 
 }
 void ParticleControl::setUstarAndSigmas(float u){
   ustar = u;
@@ -33,6 +39,167 @@ void ParticleControl::setUstarAndSigmas(float u){
 void ParticleControl::setRandomTexCoords(){
   t1 = Random::uniform() * twidth;
   t2 = Random::uniform() * theight;
+}
+void ParticleControl::setupMultipleBuildingsShader(int numInRow, float life_time){
+  multipleBuildings_shader.addShader("Shaders/multipleBuildingsAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
+  multipleBuildings_shader.addShader("Shaders/multipleBuildingsAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  multipleBuildings_shader.createProgram();
+
+  // Get location of the sampler uniform
+  uniform_postex = multipleBuildings_shader.createUniform("pos_texunit");
+  uniform_wind = multipleBuildings_shader.createUniform("wind_texunit");
+  uniform_timeStep = multipleBuildings_shader.createUniform("time_step");
+  uniform_primePrev = multipleBuildings_shader.createUniform("primePrev");
+  uniform_random = multipleBuildings_shader.createUniform("random");
+  uniform_lambda = multipleBuildings_shader.createUniform("lambda");
+  uniform_tau_dz = multipleBuildings_shader.createUniform("tau_dz");
+  uniform_duvw_dz = multipleBuildings_shader.createUniform("duvw_dz");
+  uniform_randomTexCoordOffset = multipleBuildings_shader.createUniform("random_texCoordOffset");
+  uniform_randomTexWidth = multipleBuildings_shader.createUniform("random_texWidth");
+  uniform_randomTexHeight = multipleBuildings_shader.createUniform("random_texHeight");
+  uniform_buildings = multipleBuildings_shader.createUniform("buildings");
+  uniform_cellType = multipleBuildings_shader.createUniform("cellType");
+
+  GLint ulifeTime = multipleBuildings_shader.createUniform("life_time");
+  GLint unx = multipleBuildings_shader.createUniform("nx");
+  GLint uny = multipleBuildings_shader.createUniform("ny");
+  GLint unz = multipleBuildings_shader.createUniform("nz");
+  GLint uNumInRow = multipleBuildings_shader.createUniform("numInRow");
+
+  multipleBuildings_shader.activate();
+
+  glUniform1fARB(ulifeTime, life_time);
+  glUniform1iARB(unx, nx);
+  glUniform1iARB(uny, ny);
+  glUniform1iARB(unz, nz);
+  glUniform1fARB(uNumInRow, numInRow);
+
+  multipleBuildings_shader.deactivate();
+}
+void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint positions0, 
+			     GLuint positions1, GLuint prime0, GLuint prime1, 
+			     GLuint randomValues,GLuint lambda, GLuint tau_dz, 
+			     GLuint duvw_dz, float time_step, GLuint buildings,
+			     GLuint cellType)
+{
+  //Prints out the previous prime values
+  if(outputPrime)
+    printPrime(odd, true);
+
+  if(odd){
+    GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT};
+    glDrawBuffers(2,buffers);
+  }
+  else{ 
+    GLenum buffers[] = {GL_COLOR_ATTACHMENT0_EXT,GL_COLOR_ATTACHMENT2_EXT};
+    glDrawBuffers(2,buffers);
+  }
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, twidth, theight);
+  
+  
+  glEnable(texType);
+  multipleBuildings_shader.activate();
+
+  glUniform1fARB(uniform_timeStep, time_step);
+  // generate and set the random texture coordinate offset
+  // 
+  if (texType == GL_TEXTURE_RECTANGLE_ARB)
+    {
+      // texture coordinates will range from 0 to W in width and 0 to
+      // H in height, so generate random value in this range
+      //float f1 = Random::uniform() * twidth;
+      //float f2 = Random::uniform() * theight;
+      //if(!osgPlume)
+      //setRandomTexCoords();
+      float f1 = Random::uniform() * twidth;
+      float f2 = Random::uniform() * theight;
+      //output << t1 << "\n";
+      //output << t2 << "\n";
+
+      glUniform2fARB(uniform_randomTexCoordOffset, f1, f2);
+    }
+  else 
+    {
+      // texture coordinates will range from 0 to 1, so generate random value in this range
+      glUniform2fARB(uniform_randomTexCoordOffset, Random::uniform(), Random::uniform());
+    }
+
+  // set the size of the texture width and height for the shader to use
+  glUniform1iARB(uniform_randomTexWidth, twidth);
+  glUniform1iARB(uniform_randomTexHeight, theight);
+
+  //Bind the cell type to TEXTURE UNIT 8
+  glActiveTexture(GL_TEXTURE8);
+  glBindTexture(texType, cellType);
+  glUniform1iARB(uniform_cellType, 8);
+
+  //Bind the building to TEXTURE UNIT 7
+  glActiveTexture(GL_TEXTURE7);
+  glBindTexture(texType, buildings);
+  glUniform1iARB(uniform_buildings, 7);
+
+  //Bind the du/dz texture to TEXTURE UNIT 6
+  glActiveTexture(GL_TEXTURE6);
+  glBindTexture(texType, duvw_dz);
+  glUniform1iARB(uniform_duvw_dz, 6);
+
+  //Bind the tau texture to TEXTURE UNIT 5
+  glActiveTexture(GL_TEXTURE5);
+  glBindTexture(texType, tau_dz);
+  glUniform1iARB(uniform_tau_dz, 5);
+
+  //Bind the lambda texture to TEXTURE UNIT 4
+  glActiveTexture(GL_TEXTURE4);
+  glBindTexture(texType, lambda);
+  glUniform1iARB(uniform_lambda, 4);
+
+  // Bind the random data field to TEXTURE UNIT 3
+  glActiveTexture(GL_TEXTURE3);
+  glBindTexture(texType, randomValues);
+  glUniform1iARB(uniform_random, 3);
+
+  
+  //Bind previous prime values to TEXTURE UNIT 2
+  glActiveTexture(GL_TEXTURE2);
+  glUniform1iARB(uniform_primePrev, 2);
+  if(odd)
+    glBindTexture(texType, prime0);
+  else
+    glBindTexture(texType, prime1);
+
+
+  // wind field can be stored here
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(texType, windField);
+  glUniform1iARB(uniform_wind, 1);
+    
+  glActiveTexture(GL_TEXTURE0);
+  if (odd)
+    glBindTexture(texType, positions0);  // read from texture 0
+  else 
+    glBindTexture(texType, positions1);  // read from texture 1
+ 
+  glUniform1iARB(uniform_postex, 0);
+
+  glBegin(GL_QUADS);
+  {
+    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+  }
+  glEnd();
+  
+  multipleBuildings_shader.deactivate();
+ 
+  glBindTexture(texType, 0);
+  
+  //Prints out the updated prime values
+  if(outputPrime)
+    printPrime(odd,false);
+
 }
 void ParticleControl::setupReflectionShader(int numInRow, float life_time){
   reflection_shader.addShader("Shaders/reflectionAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -88,7 +255,7 @@ void ParticleControl::setupReflectionShader(int numInRow, float life_time){
 void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positions0, 
 			     GLuint positions1, GLuint prime0, GLuint prime1, 
 			     GLuint randomValues,GLuint lambda, GLuint tau_dz, 
-			     GLuint duvw_dz, float time_step, double* buildParam)
+			     GLuint duvw_dz, float time_step, float* buildParam)
 {
 
   /*std::ofstream output;
@@ -916,11 +1083,6 @@ void ParticleControl::findMeanVel(bool odd,GLuint prime0,GLuint prime1,
 
 }
 
-void ParticleControl::getDomain(int* x, int* y, int* z){
-  *x = nx;
-  *y = ny;
-  *z = nz;
-}
 void ParticleControl::printPositions(bool odd){
   
   glGetIntegerv(GL_READ_BUFFER, &currentbuffer);
@@ -1221,6 +1383,16 @@ void ParticleControl::createTexture(GLuint texId, GLenum format, int w, int h, G
   glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);
 
 }
+void ParticleControl::createIntTexture(GLuint texId, GLenum format, int w, int h, GLint* data){
+  glBindTexture(texType, texId);
+  glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_INT, data);
+
+}
 
 void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, int h, GLfloat* data)
 {
@@ -1258,15 +1430,12 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
     randomWindField();
     break;
   case 3:
-    quicPlumeWindField();
-    break;
-  case 4:
     uniformUWindField();
     break;
-  case 5:
+  case 4:
     variedUWindField();
     break;
-  case 6:
+  case 5:
     QUICWindField();
     break;
 
@@ -1310,13 +1479,14 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
   (*numInRow) = (width - (width % nx))/nx;
   //std::cout << width << " " << *numInRow << std::endl;
 
-  if(dataSet != 6){
+  if(dataSet != 5){
 
     int qi, qj, qk;
     int p2idx = 0, texidx = 0;
     int row = 0;
   
     GLfloat *data = new GLfloat[ width * height * 4 ];
+
     for (qk=0; qk<nz; qk++) 
       for (qi=0; qi<ny; qi++)
 	for (qj=0; qj<nx; qj++)
@@ -1331,9 +1501,11 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
 	  
 	    data[texidx] = wind_vel[p2idx].u;
 	    data[texidx+1] = wind_vel[p2idx].v;
-	    data[texidx+2] = wind_vel[p2idx].w;	  
+	    data[texidx+2] = wind_vel[p2idx].w;	 
+	    //if(wind_vel[p2idx].id == -1.0)
 	    data[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)/(0.4*(qk+1));//This value is the '0.5*CoEps' value	
-
+	      //else
+	      //data[texidx+3] = wind_vel[p2idx].id;
 	  }
 
     createTexture(windField, GL_RGBA32F_ARB, width, height, data);
@@ -1542,7 +1714,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 }
 void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, int numInRow){
   GLfloat *data = new GLfloat[ width * height * 4 ];
-   GLfloat *dataWind = new GLfloat[ width * height * 4 ];
+  GLfloat *dataWind = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
   GLfloat *data3 = new GLfloat[width*height*4];
   GLfloat *data4 = new GLfloat[width*height*4];
@@ -1586,12 +1758,12 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    while(qkk>=0){
 	      int p2idx_k = qkk*ny*nx + qi*nx + qj;
 	      if(cellQuic[p2idx_k].c==0){
-		     disNegZSurf=(qk-qkk)+1;
-		     break;
+		disNegZSurf=(qk-qkk)+1;
+		break;
 	      }
-		  if(qkk==0){
-		     disNegZSurf=qk+1;
-		     break;
+	      if(qkk==0){
+		disNegZSurf=qk+1;
+		break;
 	      }
 	      --qkk;
 	    }
@@ -1760,19 +1932,19 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    data5[texidx+3] = 0.0;
 		
 
-		double velGrad[]={du_dx,dv_dx,dw_dx,du_dy,dv_dy,dw_dy,du_dz,dv_dz,dw_dz};
-        double maxVelGradAbs=abs(du_dx);
-		double maxVelGrad;
+	    double velGrad[]={du_dx,dv_dx,dw_dx,du_dy,dv_dy,dw_dy,du_dz,dv_dz,dw_dz};
+	    double maxVelGradAbs=fabs(du_dx);
+	    double maxVelGrad;
 
-		for(int i=1; i<(int)(sizeof(velGrad)/sizeof*(velGrad));i++){//loop for getting the actual max velocity gradient
-	      if(abs(velGrad[i]) >= maxVelGradAbs){
-		     maxVelGradAbs = abs(velGrad[i]);
-		     maxVelGrad = velGrad[i];
+	    for(int i=1; i<(int)(sizeof(velGrad)/sizeof*(velGrad));i++){//loop for getting the actual max velocity gradient
+	      if(fabs(velGrad[i]) >= maxVelGradAbs){
+		maxVelGradAbs = fabs(velGrad[i]);
+		maxVelGrad = velGrad[i];
 	      }
 	    }
 	    
-        double VertGradFactor=pow( (1-(minDistance/20)) ,3.0/2.0); 
-		ustar=0.4*minDistance*maxVelGrad*VertGradFactor;
+	    double VertGradFactor=pow( (1-(minDistance/20)) ,3.0/2.0); 
+	    ustar=0.4*minDistance*maxVelGrad*VertGradFactor;
 
 	    //S11=du_dx;
 	    //S22=dv_dy;
@@ -1806,17 +1978,17 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    tau[p2idx+2].t33 = tau33;             //Tau33
 	    tau[p2idx+3].t13 = tau13;             //Tau13
 
-		Lam11=tauDetInv*(tau22*tau33);
-		Lam22=tauDetInv*(tau11*tau33-tau13*tau13);
-		Lam33=tauDetInv*(tau11*tau22);
-		Lam13=tauDetInv*(-tau13*tau22);
+	    Lam11=tauDetInv*(tau22*tau33);
+	    Lam22=tauDetInv*(tau11*tau33-tau13*tau13);
+	    Lam33=tauDetInv*(tau11*tau22);
+	    Lam13=tauDetInv*(-tau13*tau22);
 
 	    dataTwo[texidx]   = 0.0;//tauDetInv*(tau22*tau33);            //Lam11
 	    dataTwo[texidx+1] = 0.0;//tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
 	    dataTwo[texidx+2] = 0.0;//tauDetInv*(tau11*tau22);	          //Lam33
 	    dataTwo[texidx+3] = 0.0;//tauDetInv*(-tau13*tau22);           //Lam13
         
-		dataWind[texidx] = wind_vel[p2idx].u;
+	    dataWind[texidx] = wind_vel[p2idx].u;
 	    dataWind[texidx+1] = wind_vel[p2idx].v;
 	    dataWind[texidx+2] = wind_vel[p2idx].w;	  
 	    dataWind[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
@@ -1824,9 +1996,9 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 
 	}
   
-	createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
-    createTexture(duvw_dz, GL_RGBA32F_ARB, width,height, data3);
-    createTexture(windField, GL_RGBA32F_ARB, width, height, dataWind);
+  createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
+  createTexture(duvw_dz, GL_RGBA32F_ARB, width,height, data3);
+  createTexture(windField, GL_RGBA32F_ARB, width, height, dataWind);
   
   delete [] dataWind;
   delete [] data3;
@@ -2264,11 +2436,13 @@ void ParticleControl::test1(){
 	  wind_vel[p2idx].u = 0;
 	  wind_vel[p2idx].v = 1.0;
 	  wind_vel[p2idx].w = 0;
+	  wind_vel[p2idx].id = -1.0;
 	 }
 	else {
 	  wind_vel[p2idx].u = 0;
 	  wind_vel[p2idx].v = 0;
 	  wind_vel[p2idx].w = 0;
+	  wind_vel[p2idx].id = -1.0;
 	  }
       }
     }
@@ -2286,27 +2460,10 @@ void ParticleControl::randomWindField(){
 	wind_vel[p2idx].u = 0.0;//randVal();
 	wind_vel[p2idx].v = 1.0;//randVal();
 	wind_vel[p2idx].w = 0.0;//randVal();
+	wind_vel[p2idx].id = -1.0;
       }
     }
   }
-}
-//Uses the QUIC_PLUME data for the wind field.
-
-void ParticleControl::quicPlumeWindField()
-{
-  //#ifdef USE_PLUME_DATA
-  for(int k = 0; k < nz; k++){   
-    for(int i = 0; i < ny; i++){
-      for(int j = 0; j < nx; j++){
-	int p2idx = k*(nx)*(ny) + i*(nx) + j;
-	int idx = k*nx*ny + i*nx + j;
-	wind_vel[p2idx].u = u_quicPlumeData[idx];
-	wind_vel[p2idx].v = v_quicPlumeData[idx];
-	wind_vel[p2idx].w = w_quicPlumeData[idx];
-      }
-    }
-  }
-  //#endif
 }
 
 void ParticleControl::uniformUWindField(){
@@ -2317,6 +2474,7 @@ void ParticleControl::uniformUWindField(){
 	wind_vel[p2idx].u = 1.0;
 	wind_vel[p2idx].v = 0.0;
 	wind_vel[p2idx].w = 0.0;
+	wind_vel[p2idx].id = -1.0;
       }
     }
   }
@@ -2329,9 +2487,80 @@ void ParticleControl::variedUWindField(){
 	wind_vel[p2idx].u = 7.52*pow(((k+1)/20.0),0.15);
 	wind_vel[p2idx].v = 0.0;
 	wind_vel[p2idx].w = 0.0;
+	//wind_vel[p2idx].id = -1.0;
       }
     }
-  }
+   }
+   /*if(xfo != NULL)
+     addBuildingsInWindField();
+   else
+   std::cout << "NO BUILDINGS ADDED TO WIND FIELD" << std::endl;*/
+}
+void ParticleControl::addBuildingsInWindField(GLuint cellType,int numInRow){
+
+  GLfloat* data = new GLfloat[width*height*4];
+  wind* cell_type = new wind[nx*ny*nz];
+  
+  for(int k = 0; k < nz; k++){   
+    for(int i = 0; i < ny; i++){
+      for(int j = 0; j < nx; j++){
+	int p2idx = k*nx*ny + i*nx + j;
+	cell_type[p2idx].u = 1.0;
+	cell_type[p2idx].v = 1.0;
+	cell_type[p2idx].w = 1.0;
+	cell_type[p2idx].id = 0.0;
+      }
+    }
+   }
+  
+
+  for(int n=0; n < numBuild; n++){
+
+     for(int k=(int)zfo[n]; k < (int)(zfo[n]+ht[n]); k++){
+       for(int i=(int)(yfo[n]-wti[n]/2.0); i < (int)(yfo[n]+wti[n]/2.0); i++){
+	 for(int j=(int)xfo[n]; j < (int)(xfo[n]+lti[n]); j++){
+	   int p2idx = k*nx*ny + i*nx + j;
+	   
+	   //wind_vel[p2idx].u = 0.0;
+	   //wind_vel[p2idx].v = 0.0;
+	   //wind_vel[p2idx].w = 0.0;
+	   //wind_vel[p2idx].id = n;
+	   cell_type[p2idx].u = 0.0;
+	   cell_type[p2idx].v = 0.0;
+	   cell_type[p2idx].w = 0.0;
+	   cell_type[p2idx].id = n;
+
+	 }
+       }
+     }
+   }
+
+   int qk,qi,qj;
+   int row,texidx,p2idx;
+
+   for (qk=0; qk<nz; qk++) 
+      for (qi=0; qi<ny; qi++)
+	for (qj=0; qj<nx; qj++)
+	  {
+	    p2idx = qk*ny*nx + qi*nx + qj;
+	    
+	    row = qk / (numInRow);
+	    texidx = row * width * ny * 4 +
+	      qi * width * 4 +
+	      qk % (numInRow) * nx * 4 +
+	      qj * 4;
+	  
+	    data[texidx] = cell_type[p2idx].u;
+	    data[texidx+1] = cell_type[p2idx].v;
+	    data[texidx+2] = cell_type[p2idx].w;	    
+	    data[texidx+3] = cell_type[p2idx].id;
+	    
+	  }
+
+    createTexture(cellType, GL_RGBA32F_ARB, width, height, data);
+
+    delete [] data;
+    delete [] cell_type;
 
 }
 void ParticleControl::QUICWindField(){
@@ -2343,12 +2572,6 @@ void ParticleControl::QUICWindField(){
     exit(1);
   }
 
-  /*QUICCellType.open("settings/QU_celltype.dat");//opening the Celltype file  to read
-  if(!QUICCellType){
-    std::cerr<<"Unable to open QUIC Celltype file : QU_celltype.dat ";
-    exit(1);
-    }*/
-
   std::string header;  //I am just using a very crude method to read the header of the wind file
   QUICWindField>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header;
   QUICWindField>>header>>header>>header>>header>>header;
@@ -2356,13 +2579,9 @@ void ParticleControl::QUICWindField(){
   double groundVal; // ignoring the ground values, so that k=0 have the first cell having non-zero velocity 
   //Balli had ++k?
 
-  for(int k=0;k<(6*nx*ny);k++){ // there are 6 columns in the wind file 
+  for(int k=0;k<(6*nx*ny);++k){ // there are 6 columns in the wind file 
     QUICWindField>>groundVal;
   }
-  // ignoring the ground values for the cellype also
-  /*for(int k=0;k<(4*nx*ny);++k){// there are 4 columns in the wind file
-    QUICCellType>>groundVal;
-    }*/
 
   double quicIndex;
 
@@ -2400,7 +2619,7 @@ void ParticleControl::initCellType(){
   // ignoring the ground values for the cellype also
   //Balli had ++k ?
 
-  for(int k=0;k<(4*nx*ny);k++){// there are 4 columns in the wind file
+  for(int k=0;k<(4*nx*ny);++k){// there are 4 columns in the wind file
     QUICCellType>>groundVal;
   }
   double quicIndex;
