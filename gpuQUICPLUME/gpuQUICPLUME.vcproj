@@ -210,6 +210,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\MultipleBuildingsModel.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\nonGaussianModel.cpp"
 				>
 			</File>
@@ -304,6 +308,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\MultipleBuildingsModel.h"
+				>
+			</File>
+			<File
 				RelativePath="..\nonGaussianModel.h"
 				>
 			</File>
@@ -395,6 +403,14 @@
 			</File>
 			<File
 				RelativePath="..\Shaders\meanVel_vp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\multipleBuildingsAdvect_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\multipleBuildingsAdvect_vp.glsl"
 				>
 			</File>
 			<File
