@@ -471,8 +471,8 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
 void instanceCube()
 {
 }
-void DisplayControl::initVars(int nb,double* x, double* y, double* z,
-				    double* h, double* w, double* l)
+void DisplayControl::initVars(int nb,float* x, float* y, float* z,
+				    float* h, float* w, float* l)
 {
   numBuild = nb;
   xfo = x;
@@ -514,7 +514,7 @@ void DisplayControl::createImageTex(GLuint texture, char* filename){
 
 void DisplayControl::drawFeatures(void)
 {
-  float grid_scale = 1.0;  // currently, just 1 but likely needs to come from QUICPLUME
+  //float grid_scale = 1.0;  // currently, just 1 but likely needs to come from QUICPLUME
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
   
