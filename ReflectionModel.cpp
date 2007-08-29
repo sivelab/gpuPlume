@@ -64,24 +64,15 @@ ReflectionModel::~ReflectionModel(){}
 void ReflectionModel::init(bool OSG){
   osgPlume = OSG;
  
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->u,util->v,util->w);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz);
   pc->setUstarAndSigmas(util->ustar);
   
   dc = new DisplayControl(nx,ny,nz, texType);  
   dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
 
-  buildParam = new double[(util->numBuild*6)+1];
+  buildParam = new float[(util->numBuild*6)+1];
   if(util->numBuild == 0){
-    //delete [] buildParam;
-    //buildParam = new double[7];
-    dc->draw_buildings = false;
-    /*buildParam[0] = 0;
-    buildParam[1] = 0;
-    buildParam[2] = 0;
-    buildParam[3] = 0;
-    buildParam[4] = 0;
-    buildParam[5] = 0;
-    buildParam[6] = 0;*/
+    dc->draw_buildings = false;    
   }
   else{   
     dc->draw_buildings = true;
@@ -492,7 +483,7 @@ void ReflectionModel::setupTextures(){
   CheckErrorsGL("\tcreated texid[3], the wind field texture...");
 
   //Creates lambda, tau/dz, and duvw/dz textures
-  if(util->windFieldData != 6)
+  if(util->windFieldData != 5)
     pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
   else
     pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, numInRow);
