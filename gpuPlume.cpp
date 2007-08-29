@@ -20,6 +20,7 @@
 #include "GaussianModel.h"
 #include "Gaussian_2shaders_Model.h"
 #include "ReflectionModel.h"
+#include "MultipleBuildingsModel.h"
 
 #include "Timer.h"
 
@@ -97,11 +98,14 @@ int main(int argc, char** argv)
     plume = new GaussianModel(util);
     break;
   case 2:
-    util->windFieldData = 5;
+    //util->windFieldData = 5;
     plume = new NonGaussianModel(util);
     break;
   case 3:
     plume = new ReflectionModel(util);
+    break;
+  case 4:
+    plume = new MultipleBuildingsModel(util);
     break;
   default:
     std::cout << "Error in advection Choice in Settings file!" << std::endl;
@@ -166,8 +170,6 @@ void reshape(int w, int h)
 void init(void)
 {
   curr = 0;
-  //last_x = 0;
-  //last_y = 0;
   glEnable(GL_DEPTH_TEST);
   
   plume->init(false); 
@@ -453,7 +455,7 @@ void motion(int x, int y)
 
     }
     last_x = x;
-      last_y = y;
+    last_y = y;
     
 
     glutPostRedisplay();
