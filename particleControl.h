@@ -16,7 +16,7 @@ class ParticleControl{
 
  public:
  
-  ParticleControl(GLenum,int,int,int,int,int,double*,double*,double*);
+  ParticleControl(GLenum,int,int,int,int,int);
 
   void setupAdvectShader(int, float);
 
@@ -28,6 +28,11 @@ class ParticleControl{
   
   void setupReflectionShader(int,float);
 
+  void setupMultipleBuildingsShader(int,float);
+
+  void multipleBuildingsAdvect(bool,GLuint,GLuint,GLuint,
+			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float,GLuint,GLuint);
+
   void nonGaussianAdvect(bool,GLuint,GLuint,GLuint,
 			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
 
@@ -36,11 +41,12 @@ class ParticleControl{
 			    GLuint,GLuint,GLuint,GLuint,float);
 
   void reflectionAdvect(bool,GLuint,GLuint,GLuint,
-			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float,double*);
+			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float,float*);
 
   //This function puts the values held in the variable, data, into a 2D texture 
   //on the GPU. 
   void createTexture(GLuint texId, GLenum format,  int w, int h, GLfloat* data); 
+  void createIntTexture(GLuint texId, GLenum format,  int w, int h, GLint* data); 
   void createWrappedTexture(GLuint texId, GLenum format,  int w, int h, GLfloat* data); 
  
   //This function maps the 3D wind field into a 2D texture that can be
@@ -79,7 +85,6 @@ class ParticleControl{
 
   void updatePrime(bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
   // included two more arguments in the above function for position textures. --Balli(04/12/07)
-  void getDomain(int* , int*, int*);
 
   //Sets the ustar and sigma values which can now be used to create
   //the lambda texture and CoE/2 values. 
@@ -96,6 +101,9 @@ class ParticleControl{
 
   void setRandomTexCoords();
 
+  void setBuildingParameters(int,float*,float*,float*,float*,float*,float*);
+  void addBuildingsInWindField(GLuint,int);
+
   bool outputPrime;
 
   bool osgPlume;
@@ -104,7 +112,16 @@ class ParticleControl{
     float u;
     float v;
     float w;
+    float id;
   }wind;
+
+  
+  typedef struct{
+    int u;
+    int v;
+    int w;
+    int id;
+  }intCells;
 
   //!!!ASK BALLI ABOUT THIS!!!!
   typedef struct{
@@ -122,13 +139,10 @@ class ParticleControl{
   float t1,t2;
 
  private:
-  float min,max;
-
-  
+  float min,max; 
 
   void test1();
   void randomWindField();
-  void quicPlumeWindField();  
   void uniformUWindField();
   void variedUWindField();
   void QUICWindField();
@@ -140,6 +154,14 @@ class ParticleControl{
   wind* wind_vel;
   cellType* cellQuic;
 
+  int numBuild;
+  float* xfo;
+  float* yfo;
+  float* zfo;
+  float* ht;
+  float* wti;
+  float* lti;
+
   typedef struct{
     float t11;
     float t22;
@@ -147,10 +169,6 @@ class ParticleControl{
     float t13;
   }Matrix;
   Matrix* tau;
-
-  double* u_quicPlumeData;
-  double* v_quicPlumeData;
-  double* w_quicPlumeData;
 
   int nx;
   int ny;
@@ -166,7 +184,7 @@ class ParticleControl{
 
   GLSLObject init_shader, pass1_shader, prime_shader, mrt_shader;
   GLSLObject nonGaussian_shader, reflection_shader, meanVel_shader;
-  GLSLObject currVel_shader;
+  GLSLObject currVel_shader, multipleBuildings_shader;
 
   //Variables for prime shader
   GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;
@@ -176,13 +194,14 @@ class ParticleControl{
   //Variables for advect shader
   GLint uniform_postex, uniform_wind, uniform_randomTexture;
   GLint uniform_primePrev, uniform_primeCurr, uniform_timeStep;
-
   GLint uniform_tau_dz, uniform_duvw_dz;
+
   //Uniform variables for building
   GLint uniform_numBuild;
-
   GLint uniform_xfo, uniform_yfo, uniform_zfo, uniform_ht, uniform_wti, uniform_lti;
   GLint uniform_xfo2, uniform_yfo2, uniform_zfo2, uniform_ht2, uniform_wti2, uniform_lti2;
+
+  GLint uniform_buildings, uniform_cellType;
 
   //Uniform variables for Mean Velocity shader
   GLint uniform_prevMean, uniform_currVel, uniform_position, uniform_windVel;
