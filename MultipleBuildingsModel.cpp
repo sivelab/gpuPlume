@@ -130,7 +130,10 @@ void MultipleBuildingsModel::init(bool OSG){
   //Initialize FBO
   initFBO();
 
-  pc->setupMultipleBuildingsShader(numInRow,lifeTime);
+  if(util->windFieldData == 5)
+    pc->setupMultipleBuildingsShader(numInRow,lifeTime,0);
+  else
+    pc->setupMultipleBuildingsShader(numInRow,lifeTime,1);
 
   pc->setupMeanVel_shader(numInRow);
 
