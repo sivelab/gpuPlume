@@ -168,23 +168,11 @@ void main(void){
             //generating random number
             rTexCoord.s = rTexCoord.s + 1.0;
             if (rTexCoord.s > random_texWidth)rTexCoord.s = rTexCoord.s - random_texWidth;
-            float randnum = vec3(textureRect(random, rTexCoord));
+            vec3 randnum = vec3(textureRect(random, rTexCoord));
             
-            upPrev = sigU * randnum;
-            
-            //generating random number
-            rTexCoord.s = rTexCoord.s + 1.0;
-            if (rTexCoord.s > random_texWidth)rTexCoord.s = rTexCoord.s - random_texWidth;
-            randnum = vec3(textureRect(random, rTexCoord));        
-            
-            vpPrev = sigV * randnum;
-             
-            //generating random number
-            rTexCoord.s = rTexCoord.s + 1.0;
-            if (rTexCoord.s > random_texWidth)rTexCoord.s = rTexCoord.s - random_texWidth;
-            randnum = vec3(textureRect(random, rTexCoord)); 
-           
-            wpPrev = sigW * randnum;
+            upPrev = sigU * randnum.x;
+            vpPrev = sigV * randnum.y;
+            wpPrev = sigW * randnum.z;
            
             loopThrough=true; //make loopThrough true so that it calculate distance travelled again by new timeStepSim
             check=check+1.0;
@@ -210,7 +198,7 @@ void main(void){
 	           //Reflection off ground
 	   	       if(pos.z < 0){
 		          //Set prevPos to point of intersection
-		  	      prevPos = (pos.x,pos.y,0.0);
+		  	      prevPos = vec3(pos.x,pos.y,0.0);
 		  	      prmPrev = prmCurr;
                   
 		   	      pos.z = -pos.z;

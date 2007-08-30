@@ -1739,7 +1739,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
  
   //Reading turbulence data from the QUIC generated file
   std::ifstream turbulence;
-  turbulence.open("settings/QP_turbfield.dat");
+  turbulence.open("Settings/QP_turbfield.dat");
   
   std::string header;
   
