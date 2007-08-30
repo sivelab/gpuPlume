@@ -21,8 +21,8 @@ CollectionBox::CollectionBox(Util* util){
   concAvgTime = util->averagingTime;
 
 
-  //avgTime = util->averagingTime + util->startCBoxTime;
-  avgTime = util->endCBoxTime;
+  avgTime = util->averagingTime + util->startCBoxTime;
+  //avgTime = util->endCBoxTime;
   endCBoxTime = util->endCBoxTime;
   startCBoxTime = util->startCBoxTime;
 
