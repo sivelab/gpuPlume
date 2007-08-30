@@ -28,7 +28,7 @@ class ParticleControl{
   
   void setupReflectionShader(int,float);
 
-  void setupMultipleBuildingsShader(int,float);
+  void setupMultipleBuildingsShader(int,float,int);
 
   void multipleBuildingsAdvect(bool,GLuint,GLuint,GLuint,
 			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float,GLuint,GLuint);
