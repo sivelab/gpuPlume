@@ -1732,20 +1732,49 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   //Cell height
   float dz = 1.0,dx=1.0,dy=1.0;
   //Surface roughness
-  float znaut = 0.01;
+  float znaut = 0.1;
 
   //initializes the array cellQuic[]
   initCellType();
  
+  //Reading turbulence data from the QUIC generated file
+  std::ifstream turbulence;
+  turbulence.open("settings/QP_turbfield.dat");
   
+  std::string header;
+  
+  turbulence>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header;
+  turbulence>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header;
+  turbulence>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header;
+  turbulence>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header;
+  turbulence>>header>>header>>header;
+  //End reading the header, Now the values are read in the loop
+
+  double indexVal,extraVal,elz,eps; // indexVal is for x,y and z locations , eps and elz are required for ustar calculations.
+
   for (qk=0; qk<nz; qk++) 
     for (qi=0; qi<ny; qi++)
       for (qj=0; qj<nx; qj++)
 	{	
-	  double Lam11=0;
-	  double Lam22=0;
-	  double Lam33=0;
-	  double Lam13=0;
+	  sigU=0;
+	  sigV=0;
+	  sigW=0;
+
+	  turbulence>>indexVal; // reading the X value from the file
+	  turbulence>>indexVal; // reading the Y value from the file
+	  turbulence>>indexVal; // reading the Z value from the file
+             
+	  turbulence>>sigU;// = 2.5*ustar;
+	  turbulence>>sigV;// = 2.0*ustar;
+	  turbulence>>sigW;// = 1.3*ustar;
+
+      turbulence>>extraVal;// this value in not required
+
+	  turbulence>>elz;
+	  turbulence>>eps;
+      turbulence>>extraVal;  //this value in not required
+	  turbulence>>extraVal;  //this value in not required
+	  turbulence>>extraVal;  //this value in not required
 
 	  p2idx = qk*ny*nx + qi*nx + qj;
 		
@@ -1754,7 +1783,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    // Calculating distance to the wall in all directions.
 
 	    //to look for distance to a building in negative Z-direction (towards the ground)
-	    int disNegZSurf=qk,qkk=qk;
+	    /*int disNegZSurf=qk,qkk=qk;
 	    while(qkk>=0){
 	      int p2idx_k = qkk*ny*nx + qi*nx + qj;
 	      if(cellQuic[p2idx_k].c==0){
@@ -1824,7 +1853,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	      if(disArray[i] <= minDistance){
 		minDistance = disArray[i];
 	      }
-	    }
+	    }*/
 
 	    row = qk / (numInRow);
 	    texidx = row * width * ny * 4 +
@@ -1852,7 +1881,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 
 	    //Cell just above the ground
 	    //du/dz = Uat 1st cell/0.5dz(log(dz/znaut))
-	    if(qk == 0 || (cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
+	    /*if(qk == 0 || (cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
 	      du_dz = wind_vel[p2idx].u/(dz*log(dz/znaut));
 	      dv_dz = wind_vel[p2idx].v/(dz*log(dz/znaut));
 	      dw_dz = wind_vel[p2idx].w/(dz*log(dz/znaut));
@@ -1873,17 +1902,17 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	      dv_dz = (wind_vel[idxAbove].v - wind_vel[idxBelow].v)/(2.0*dz);
 	      dw_dz = (wind_vel[idxAbove].w - wind_vel[idxBelow].w)/(2.0*dz);
 	      ustar = 0.4*(minDistance+1)*du_dz;
-	    }
+	    }*/
 	       				  	  
-	    data3[texidx] = du_dz;      //du_dz
-	    data3[texidx+1] = dv_dz;    //dv_dz
-	    data3[texidx+2] = dw_dz;    //dw_dz
+	    data3[texidx] = (sigU/2.5)/elz;  //du_dz;      //du_dz
+	    data3[texidx+1] = 0.0;    //dv_dz
+	    data3[texidx+2] = 0.0;    //dw_dz
 	    data3[texidx+3] = 0.0;
 		  
 	    //For gradient in X-direction
 		   
 	    //Cell at the top of the domain
-	    if(qj == (nx-1) || qj==0){
+	    /*if(qj == (nx-1) || qj==0){
 	      du_dx = 0;  // du_dz at k-1th cell
 	      dv_dx = 0;
 	      dw_dx = 0;
@@ -1945,22 +1974,15 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    
 	    double VertGradFactor=pow( (1-(minDistance/20)) ,3.0/2.0); 
 	    ustar=0.4*minDistance*maxVelGrad*VertGradFactor;
+        */
+	   
+        ustar=sigU/2.5;
+		data3[texidx+3] = ustar;//temporarily used for the ustar.
 
-	    //S11=du_dx;
-	    //S22=dv_dy;
-	    //S33=dw_dz;
 
-	    //S12=0.5 * ( du_dy + dv_dz );
-	    //S13=0.5 * ( du_dz + dw_dx );
-	    //S32=0.5 * ( dw_dy + dv_dz );
-		   
-	    //S21=S12;
-	    //S31=S13;
-	    //S23=S32;
-              
-	    sigU = 2.0*ustar;
+	    /*sigU = 2.0*ustar;
 	    sigV = 2.0*ustar;
-	    sigW = 1.3*ustar;
+	    sigW = 1.3*ustar;*/
 
 	    sig[p2idx].u = sigU;   //sigU
 	    sig[p2idx].v = sigV;   //sigV
@@ -1978,20 +2000,16 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    tau[p2idx+2].t33 = tau33;             //Tau33
 	    tau[p2idx+3].t13 = tau13;             //Tau13
 
-	    Lam11=tauDetInv*(tau22*tau33);
-	    Lam22=tauDetInv*(tau11*tau33-tau13*tau13);
-	    Lam33=tauDetInv*(tau11*tau22);
-	    Lam13=tauDetInv*(-tau13*tau22);
 
-	    dataTwo[texidx]   = 0.0;//tauDetInv*(tau22*tau33);            //Lam11
-	    dataTwo[texidx+1] = 0.0;//tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
-	    dataTwo[texidx+2] = 0.0;//tauDetInv*(tau11*tau22);	          //Lam33
-	    dataTwo[texidx+3] = 0.0;//tauDetInv*(-tau13*tau22);           //Lam13
+	    dataTwo[texidx]   =  1.0/(tau11-tau13*tau13/tau33);// tauDetInv*(tau22*tau33);            //Lam11
+	    dataTwo[texidx+1] =  1.0/tau22;// tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
+	    dataTwo[texidx+2] =  1.0/(tau33-tau13*tau13/tau11);//tauDetInv*(tau11*tau22);	          //Lam33
+	    dataTwo[texidx+3] =  -tau13/(tau11*tau33-tau13*tau13);//tauDetInv*(-tau13*tau22);           //Lam13
         
 	    dataWind[texidx] = wind_vel[p2idx].u;
 	    dataWind[texidx+1] = wind_vel[p2idx].v;
 	    dataWind[texidx+2] = wind_vel[p2idx].w;	  
-	    dataWind[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
+	    dataWind[texidx+3] = (0.5*5.7)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
 	  }
 
 	}
