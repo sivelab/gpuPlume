@@ -282,18 +282,20 @@ void main(void)
 	      d = -dot(n,vec3(xfo,yfo-(wti/2.0),0.0));
 	      denom = dot(n,u);
 	      numer = dot(n,prevPos) + d;
-	      float s4 = numer/denom;
+	      float s4 = -numer/denom;
       	
 	      //+z normal
 	      n = vec3(0.0,0.0,1.0);
 	      d = -dot(n,vec3(xfo,0.0,zfo+ht));
 	      denom = dot(n,u);
 	      numer = dot(n,prevPos) + d;
-	      float s5 = numer/denom;
+	      float s5 = -numer/denom;
            
-	      smallestS = s1;
-	      normal = vec3(-1.0,0.0,0.0);
-		
+	      smallestS = 500.0;
+	      if(s1 >= 0.0){
+		smallestS = s1;
+		normal = vec3(-1.0,0.0,0.0);
+	      }
 	      if(s2 < smallestS && s2 >=0.0){
 		normal = vec3(1.0,0.0,0.0);
 		smallestS = s2;
@@ -318,9 +320,7 @@ void main(void)
 		l = normalize(pI-prevPos);
 		r = reflect(l,normal);
 	      }
-	      //pI = smallestS*u + prevPos;
-	      //l = normalize(pI-prevPos);
-	      //r = reflect(l,normal);
+	      
 	      dis = distance(pI,vec3(pos));		
       	
 	      prevPos = pI;
