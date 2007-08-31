@@ -130,7 +130,7 @@ void main(void)
     //Now move the particle by adding the direction.
     pos = pos + vec4(wind.x,wind.y,wind.z,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
-    
+    pos.a = -50.0;
     //Now do Reflection		
     vec3 u;
     //point of intersection
@@ -154,7 +154,7 @@ void main(void)
     k = int(floor(pos.z));
     int count = 0;	
     float eps = 0.0;
-    float eps_S = 0.00001;
+    float eps_S = 0.0001;
     //float eps_d = 0.001;
     float smallestS = 500.0;
 
@@ -169,7 +169,7 @@ void main(void)
 	cell_type = vec4(textureRect(cellType, cIndex));  
       }
 
-      while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) && count < 20){
+      while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) ){
 	count = count + 1;
 	u = vec3(pos) - prevPos;
 
@@ -181,7 +181,7 @@ void main(void)
 	  float s = -numer/denom;
 
 	  pI = s*u + prevPos;
-	  if(s > -eps_S && s < eps_S){
+	  if((s >= 0.0) && (s < eps_S)){
 	    r = normal;
 	  }
 	  else{
@@ -191,7 +191,7 @@ void main(void)
 	  dis = distance(pI,vec3(pos));		
       	
 	  prevPos = pI;
-	  pos = vec4(pI+(dis*r),pos.a);
+	  pos = vec4(pI+(dis*r),pI.x);
 	  prmCurr = reflect(prmCurr,normal);
 
 	}
@@ -251,7 +251,7 @@ void main(void)
 	  float s5 = -numer/denom;
            
 	  smallestS = 500.0;
-	  if(s1 >= 0.0){
+	  if(s1 >= 0.0 && s1 <=1.0){
 	    smallestS = s1;
 	    normal = vec3(-1.0,0.0,0.0);
 	  }	
@@ -273,8 +273,9 @@ void main(void)
 	  }	 
 	  
       	  pI = smallestS*u + prevPos;
-	  if(smallestS > -eps_S && smallestS < eps_S){
-	    r = normal;
+	  if(smallestS < eps_S){
+	    //r = normal;
+	    r = vec3(-1.0,0.0,1.0);
 	  }	
 	  else{
 	    l = normalize(pI-prevPos);
@@ -284,21 +285,23 @@ void main(void)
 	  dis = distance(pI,vec3(pos));		
       	
 	  prevPos = pI;
-	  pos = vec4(pI+(dis*r),pos.a);
+	  pos = vec4(pI+(dis*r),smallestS);
 	  prmCurr = reflect(prmCurr,normal);
       
-	  i = int(floor(pos.y));
-	  j = int(floor(pos.x));
-	  k = int(floor(pos.z));
+	 
+	}
+	//After Reflection, see where the particle is in preparation for continuing while loop or not
+	i = int(floor(pos.y));
+	j = int(floor(pos.x));
+	k = int(floor(pos.z));
 
-	  //NOTE: Consider what happens if building is too close to domain.
-	  //Do check to make sure i,j,k's are valid;
-	  cell_type = vec4(1.0,0.0,0.0,1.0);
-	  if(k >= 0){
-	    cIndex.s = float(j) + float(mod(float(k),numInRow))*float(nx);
-	    cIndex.t = float(i) + float(floor(float(k)/numInRow))*float(ny);
-	    cell_type = vec4(textureRect(cellType, cIndex));
-	  }
+	//NOTE: Consider what happens if building is too close to domain.
+	//Do check to make sure i,j,k's are valid;
+	cell_type = vec4(1.0,1.0,1.0,1.0);
+	if(k >= 0){
+	  cIndex.s = float(j) + float(mod(float(k),numInRow))*float(nx);
+	  cIndex.t = float(i) + float(floor(float(k)/numInRow))*float(ny);
+	  cell_type = vec4(textureRect(cellType, cIndex));
 	}
       }
     }
