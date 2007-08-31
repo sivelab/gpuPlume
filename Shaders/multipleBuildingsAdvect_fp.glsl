@@ -327,19 +327,20 @@ void main(void)
 	      pos = vec4(pI+(dis*r),pos.a);
 	      prmCurr = reflect(prmCurr,normal);
       
-	      i = int(floor(pos.y));
-	      j = int(floor(pos.x));
-	      k = int(floor(pos.z));
-
-	      //NOTE: Consider what happens if building is too close to domain.
-	      //Do check to make sure i,j,k's are valid;
-	      cell_type = vec4(1.0,0.0,0.0,1.0);
-	      if(k >= 0){
-		cIndex.s = float(j) + float(mod(float(k),numInRow))*float(nx);
-		cIndex.t = float(i) + float(floor(float(k)/numInRow))*float(ny);
-		cell_type = vec4(textureRect(cellType, cIndex));
-	      }
+	      
 	    }//else on buildings
+	    i = int(floor(pos.y));
+	    j = int(floor(pos.x));
+	    k = int(floor(pos.z));
+
+	    //NOTE: Consider what happens if building is too close to domain.
+	    //Do check to make sure i,j,k's are valid;
+	    cell_type = vec4(1.0,0.0,0.0,1.0);
+	    if(k >= 0){
+	      cIndex.s = float(j) + float(mod(float(k),numInRow))*float(nx);
+	      cIndex.t = float(i) + float(floor(float(k)/numInRow))*float(ny);
+	      cell_type = vec4(textureRect(cellType, cIndex));
+	    }
 	  }//while loop for reflection
 	}//make sure particle is in domain still
 
