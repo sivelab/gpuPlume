@@ -10,6 +10,7 @@ CSRC	= collectionBox.cpp \
 	  gpuPlume.cpp \
 	  glErrorUtil.cpp \
 	  GLSL.cpp \
+	  MultipleBuildingsModel.cpp \
 	  nonGaussianModel.cpp \
 	  particleControl.cpp \
 	  particleEmitter.cpp \
@@ -26,10 +27,11 @@ CSRC	= collectionBox.cpp \
 
 COBJS   = $(CSRC:.cpp=.o)
 
-PLUME_DIR = Modular_QUICPLUME
-FSRCS =	$(PLUME_DIR)/DataModule.f90 $(PLUME_DIR)/ReadFiles.f90
-FOBJS =  $(FSRCS:.f90=.o)
-FOBJSS = DataModule.o ReadFiles.o
+# Currently not using the fortran code, so don't include
+# PLUME_DIR = Modular_QUICPLUME
+# FSRCS =	$(PLUME_DIR)/DataModule.f90 $(PLUME_DIR)/ReadFiles.f90
+# FOBJS =  $(FSRCS:.f90=.o)
+# FOBJSS = DataModule.o ReadFiles.o
 
 LIB=-lGLEW -framework GLUT -framework OpenGL -framework Foundation
 LIB_PATH=
