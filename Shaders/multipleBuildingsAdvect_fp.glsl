@@ -213,122 +213,107 @@ void main(void)
 	  while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) && count < 20){
 	    count = count + 1;
 	    u = vec3(pos) - prevPos;
-
-	    if(pos.z < eps){
-	      normal = vec3(0.0,0.0,1.0);
-	      numer = dot(normal,prevPos);
-	      denom = dot(normal,u);
-
-	      float s = -numer/denom;
-
-	      pI = s*u + prevPos;
-	      if(s > -eps_S && s < eps_S){
-		r = normal;
-	      }
-	      else{
-		l = normalize(pI-prevPos);
-		r = reflect(l,normal);
-	      }
-	      dis = distance(pI,vec3(pos));		
-      	
-	      prevPos = pI;
-	      pos = vec4(pI+(dis*r),pos.a);
-	      prmCurr = reflect(prmCurr,normal);
-
-	    }
-	    else{		   
-      		
-	      float id = cell_type.w;
-	      vec2 bindex;
-	      bindex.s = 0.0;
-	      bindex.t = id;
+	       		
+	    float id = cell_type.w;
+	    vec2 bindex;
+	    bindex.s = 0.0;
+	    bindex.t = id;
 		
-	      vec3 bcoords = vec3(textureRect(buildings, bindex));
-	      float xfo = bcoords.x;
-	      float yfo = bcoords.y;
-	      float zfo = bcoords.z;
+	    vec3 bcoords = vec3(textureRect(buildings, bindex));
+	    float xfo = bcoords.x;
+	    float yfo = bcoords.y;
+	    float zfo = bcoords.z;
 
-	      bindex.x = 1.0;
-	      vec3 bdim = vec3(textureRect(buildings,bindex));
-	      float ht = bdim.x;
-	      float wti = bdim.y;
-	      float lti = bdim.z;
+	    bindex.x = 1.0;
+	    vec3 bdim = vec3(textureRect(buildings,bindex));
+	    float ht = bdim.x;
+	    float wti = bdim.y;
+	    float lti = bdim.z;
 
-	      float d;
-	      vec3 n;
-	      //-x normal  
-	      n = vec3(-1.0,0.0,0.0);
-	      d = -dot(n,vec3(xfo,0.0,0.0));
-	      denom = dot(n,u);
-	      numer = dot(n,prevPos) + d;
-	      float s1 = -numer/denom;
+	    float d;
+	    vec3 n;
+	    //-x normal  
+	    n = vec3(-1.0,0.0,0.0);
+	    d = -dot(n,vec3(xfo,0.0,0.0));
+	    denom = dot(n,u);
+	    numer = dot(n,prevPos) + d;
+	    float s1 = -numer/denom;
       
-	      //+x normal
-	      n = vec3(1.0,0.0,0.0);
-	      d = -dot(n,vec3(xfo+lti,0.0,0.0));
-	      denom = dot(n,u);
-	      numer = dot(n,prevPos) + d;
-	      float s2 = -numer/denom;
+	    //+x normal
+	    n = vec3(1.0,0.0,0.0);
+	    d = -dot(n,vec3(xfo+lti,0.0,0.0));
+	    denom = dot(n,u);
+	    numer = dot(n,prevPos) + d;
+	    float s2 = -numer/denom;
         
-	      //+y normal
-	      n = vec3(0.0,1.0,0.0);
-	      d = -dot(n,vec3(xfo,yfo+(wti/2.0),0.0));
-	      denom = dot(n,u);
-	      numer = dot(n,prevPos) + d;
-	      float s3 = -numer/denom;
+	    //+y normal
+	    n = vec3(0.0,1.0,0.0);
+	    d = -dot(n,vec3(xfo,yfo+(wti/2.0),0.0));
+	    denom = dot(n,u);
+	    numer = dot(n,prevPos) + d;
+	    float s3 = -numer/denom;
            
-	      //-y normal
-	      n = vec3(0.0,-1.0,0.0);
-	      d = -dot(n,vec3(xfo,yfo-(wti/2.0),0.0));
-	      denom = dot(n,u);
-	      numer = dot(n,prevPos) + d;
-	      float s4 = -numer/denom;
+	    //-y normal
+	    n = vec3(0.0,-1.0,0.0);
+	    d = -dot(n,vec3(xfo,yfo-(wti/2.0),0.0));
+	    denom = dot(n,u);
+	    numer = dot(n,prevPos) + d;
+	    float s4 = -numer/denom;
       	
-	      //+z normal
-	      n = vec3(0.0,0.0,1.0);
-	      d = -dot(n,vec3(xfo,0.0,zfo+ht));
-	      denom = dot(n,u);
-	      numer = dot(n,prevPos) + d;
-	      float s5 = -numer/denom;
+	    //+z normal
+	    n = vec3(0.0,0.0,1.0);
+	    d = -dot(n,vec3(xfo,0.0,zfo+ht));
+	    denom = dot(n,u);
+	    numer = dot(n,prevPos) + d;
+	    float s5 = -numer/denom;
+	      
+	    //Ground plane
+	    n = vec3(0.0,0.0,1.0);
+	    numer = dot(n,prevPos);
+	    denom = dot(n,u);
+	    float s6 = -numer/denom;
            
-	      smallestS = 500.0;
-	      if(s1 >= 0.0){
-		smallestS = s1;
-		normal = vec3(-1.0,0.0,0.0);
-	      }
-	      if(s2 < smallestS && s2 >=0.0){
-		normal = vec3(1.0,0.0,0.0);
-		smallestS = s2;
-	      }
-	      if(s3 < smallestS && s3 >=0.0){
-		normal = vec3(0.0,1.0,0.0);
-		smallestS = s3;
-	      }	
-	      if(s4 < smallestS && s4 >=0.0){
-		normal = vec3(0.0,-1.0,0.0);
-		smallestS = s4;
-	      }	   
-	      if(s5 < smallestS && s5 >=0.0){
-		normal = vec3(0.0,0.0,1.0);
-		smallestS = s5;
-	      }	 	
-	      pI = smallestS*u + prevPos;
-	      if(smallestS > -eps_S && smallestS < eps_S){
-		r = normal;
-	      }	
-	      else{
-		l = normalize(pI-prevPos);
-		r = reflect(l,normal);
-	      }
+	    smallestS = 500.0;
+	    if(s1 >= 0.0){
+	      smallestS = s1;
+	      normal = vec3(-1.0,0.0,0.0);
+	    }
+	    if(s2 < smallestS && s2 >=0.0){
+	      normal = vec3(1.0,0.0,0.0);
+	      smallestS = s2;
+	    }
+	    if(s3 < smallestS && s3 >=0.0){
+	      normal = vec3(0.0,1.0,0.0);
+	      smallestS = s3;
+	    }	
+	    if(s4 < smallestS && s4 >=0.0){
+	      normal = vec3(0.0,-1.0,0.0);
+	      smallestS = s4;
+	    }	   
+	    if(s5 < smallestS && s5 >=0.0){
+	      normal = vec3(0.0,0.0,1.0);
+	      smallestS = s5;
+	    }	 
+	    if(s6 < smallestS && s6 >=0.0){
+	      normal = vec3(0.0,0.0,1.0);
+	      smallestS = s6;
+	    }	 
+	
+	    pI = smallestS*u + prevPos;
+	    if(smallestS > -eps_S && smallestS < eps_S){
+	      r = normal;
+	    }	
+	    else{
+	      l = normalize(pI-prevPos);
+	      r = reflect(l,normal);
+	    }
 	      
-	      dis = distance(pI,vec3(pos));		
+	    dis = distance(pI,vec3(pos));		
       	
-	      prevPos = pI;
-	      pos = vec4(pI+(dis*r),pos.a);
-	      prmCurr = reflect(prmCurr,normal);
-      
-	      
-	    }//else on buildings
+	    prevPos = pI;
+	    pos = vec4(pI+(dis*r),pos.a);
+	    prmCurr = reflect(prmCurr,normal);
+      	      
 	    i = int(floor(pos.y));
 	    j = int(floor(pos.x));
 	    k = int(floor(pos.z));
