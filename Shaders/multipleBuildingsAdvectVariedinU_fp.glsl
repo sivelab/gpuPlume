@@ -130,7 +130,7 @@ void main(void)
     //Now move the particle by adding the direction.
     pos = pos + vec4(wind.x,wind.y,wind.z,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
-    pos.a = -50.0;
+    pos.a = 1.0;
     //Now do Reflection		
     vec3 u;
     //point of intersection
@@ -169,7 +169,7 @@ void main(void)
 	cell_type = vec4(textureRect(cellType, cIndex));  
       }
 
-      while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) ){
+      while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) && (count < 20)){
 	count = count + 1;
 	u = vec3(pos) - prevPos;
 
@@ -261,11 +261,17 @@ void main(void)
 	  normal = vec3(0.0,0.0,1.0);
 	  smallestS = s5;
 	}
-	if(s6 < smallestS && s6 >=0.0){
+	//Detect Edge Collision
+	float edgeS = abs(smallestS-s6);
+	if((edgeS < eps_S) && (edgeS > -eps_S)){
+	  //smallestS = s6;
+	  normal = normalize(normal+vec3(0.0,0.0,1.0));
+	}
+	else if(s6 < smallestS && s6 >=0.0){
 	  normal = vec3(0.0,0.0,1.0);
 	  smallestS = s6;
-	}	 
-	  
+	}	
+       	  
 	pI = smallestS*u + prevPos;
 	if(smallestS < eps_S){
 	  r = normal;
