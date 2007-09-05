@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 100
-theight 100
+twidth 512
+theight 512
 
 #Set the Domain
 nx 100
@@ -8,7 +8,7 @@ ny 50
 nz 20
 
 #Set this to 1 to show the particle display, else 0
-show_particle_visuals 1
+show_particle_visuals 0
 
 #Change background color; r g b
 back_color 0.2 0.2 0.2
@@ -22,7 +22,7 @@ show_collectionBox_visuals 0
 #1 = one shader for the Gaussian advection step,
 #0 = the multi pass Gaussian advection technique
 #!!!!!if choice is > 2, make sure to set testcase to atleast 4!!!!!!
-advectChoice 3
+advectChoice 4
 
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
@@ -41,7 +41,7 @@ output_file data.txt
 
 #Total time in seconds to run simulation
 #set to 0 to let user decide when to quit
-duration 1000
+duration 0
 
 #Ustar value for prime and lambda calculations
 ustar 0.084
@@ -50,10 +50,10 @@ ustar 0.084
 startCBoxTime 0.0
 
 #Collection box end Time
-endCBoxTime 10000.0
+endCBoxTime 0.0
 
 #Collection box averaging Time
-averagingTime 999.0
+averagingTime 0.0
 
 #Collection box bounds; lower_x,lower_y,lower_z, upper_x,upper_y,upper_z
 bounds 5.0 0.0 0.0 100.0 50.0 20.0
@@ -61,21 +61,21 @@ bounds 5.0 0.0 0.0 100.0 50.0 20.0
 #Collection box discretization
 
 #number of boxes in x direction 
-numBox_x   10
+numBox_x   1
 #number of boxes in y direction 
-numBox_y   100
+numBox_y   1
 #number of boxes in z direction 
-numBox_z   20
+numBox_z   2
 
 #Source/ParticleEmitter information
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius, rate
-source_info 5.0 25.0 3.0 0.1 10.0
+source_info 5.0 25.0 3.0 0.0 1.0
 
 
 #Set the type of Particle Release
-release_type 0
+release_type 1
 
 #Set to 0 and it will release a set number of particles per time step
 #based on simulation duration. 
@@ -96,12 +96,17 @@ numBuild 1
 #Building Parameters
 #I'm defining it the same as in QUIC
 #(x,y,z) (height, width, length)
-build_param 25.0 25.0 0.0 10.0 10.0 10.0
-
+build_param 25.0 25.0 0.0 10.0 6.0 10.0
+#build_param 20.0 18.0 0.0 6.0 6.0 10.0
+#build_param 20.0 32.0 0.0 6.0 6.0 10.0
+#build_param 35.0 18.0 0.0 10.0 6.0 10.0
+#build_param 35.0 32.0 0.0 10.0 6.0 10.0
+#build_param 50.0 18.0 0.0 14.0 6.0 10.0
+#build_param 50.0 32.0 0.0 14.0 6.0 10.0
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
-pauseMode 0
+pauseMode 1
 
 #Set to 1 to do mean velocity calculation; else 0
 calculateMeanVel 0
