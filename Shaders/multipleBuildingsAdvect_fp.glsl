@@ -170,8 +170,7 @@ void main(void)
 
 	//Now move the particle by adding the direction.
 	pos = pos + vec4(wind.x,wind.y,wind.z,0.0)*timeStepSim + vec4(0.5*(prmPrev+prmCurr),0.0)*timeStepSim;
-	
-    
+	    
 	//Now do Reflection		
 	vec3 u;
 	//point of intersection
@@ -209,11 +208,20 @@ void main(void)
 	    //Perform lookup into wind texture to see if new position is inside a building
 	    cell_type = vec4(textureRect(cellType, cIndex));  
 	  }
-
-	  while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) && count < 20){
+	  count = 0;
+	  while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) &&(count < 20)){
 	    count = count + 1;
 	    u = vec3(pos) - prevPos;
-	       		
+	       
+	    float d;
+	    vec3 n;
+	    float s1 = -1.0;
+	    float s2 = -1.0;
+	    float s3 = -1.0;
+	    float s4 = -1.0;
+	    float s5 = -1.0;
+	    float s6 = -1.0;
+
 	    float id = cell_type.w;
 	    vec2 bindex;
 	    bindex.s = 0.0;
@@ -230,48 +238,47 @@ void main(void)
 	    float wti = bdim.y;
 	    float lti = bdim.z;
 
-	    float d;
-	    vec3 n;
+	    
 	    //-x normal  
 	    n = vec3(-1.0,0.0,0.0);
 	    d = -dot(n,vec3(xfo,0.0,0.0));
 	    denom = dot(n,u);
 	    numer = dot(n,prevPos) + d;
-	    float s1 = -numer/denom;
+	    s1 = -numer/denom;
       
 	    //+x normal
 	    n = vec3(1.0,0.0,0.0);
 	    d = -dot(n,vec3(xfo+lti,0.0,0.0));
 	    denom = dot(n,u);
 	    numer = dot(n,prevPos) + d;
-	    float s2 = -numer/denom;
+	    s2 = -numer/denom;
         
 	    //+y normal
 	    n = vec3(0.0,1.0,0.0);
 	    d = -dot(n,vec3(xfo,yfo+(wti/2.0),0.0));
 	    denom = dot(n,u);
 	    numer = dot(n,prevPos) + d;
-	    float s3 = -numer/denom;
+	    s3 = -numer/denom;
            
 	    //-y normal
 	    n = vec3(0.0,-1.0,0.0);
 	    d = -dot(n,vec3(xfo,yfo-(wti/2.0),0.0));
 	    denom = dot(n,u);
 	    numer = dot(n,prevPos) + d;
-	    float s4 = -numer/denom;
+	    s4 = -numer/denom;
       	
 	    //+z normal
 	    n = vec3(0.0,0.0,1.0);
 	    d = -dot(n,vec3(xfo,0.0,zfo+ht));
 	    denom = dot(n,u);
 	    numer = dot(n,prevPos) + d;
-	    float s5 = -numer/denom;
+	    s5 = -numer/denom;
 	      
 	    //Ground plane
 	    n = vec3(0.0,0.0,1.0);
 	    numer = dot(n,prevPos);
 	    denom = dot(n,u);
-	    float s6 = -numer/denom;
+	    s6 = -numer/denom;
            
 	    smallestS = 500.0;
 	    if(s1 >= 0.0){
@@ -294,11 +301,17 @@ void main(void)
 	      normal = vec3(0.0,0.0,1.0);
 	      smallestS = s5;
 	    }	 
-	    if(s6 < smallestS && s6 >=0.0){
+	    
+	    //Detect Edge Collision
+	    float edgeS = abs(smallestS-s6);
+	    if((edgeS < eps_S) && (edgeS > -eps_S)){
+	      //smallestS = s6;
+	      normal = normalize(normal+vec3(0.0,0.0,1.0));
+	    }
+	    else if(s6 < smallestS && s6 >=0.0){
 	      normal = vec3(0.0,0.0,1.0);
 	      smallestS = s6;
-	    }	 
-	
+	    }
 	    pI = smallestS*u + prevPos;
 	    if(smallestS > -eps_S && smallestS < eps_S){
 	      r = normal;
@@ -327,13 +340,18 @@ void main(void)
 	      cell_type = vec4(textureRect(cellType, cIndex));
 	    }
 	  }//while loop for reflection
-	}//make sure particle is in domain still
 
-	timeStepUsed = timeStepUsed + timeStepSim;// stores total time used
-	timeStepRem = time_step - timeStepUsed; //stores time remaining in the time_step
-	timeStepSim = timeStepRem; // time stepfor next iteration
-	if(timeStepRem>epsilon)
-	  loopThrough=true;
+	  timeStepUsed = timeStepUsed + timeStepSim;// stores total time used
+	  timeStepRem = time_step - timeStepUsed; //stores time remaining in the time_step
+	  timeStepSim = timeStepRem; // time stepfor next iteration
+	  if(timeStepRem>epsilon)
+	    loopThrough=true;
+
+	}//make sure particle is in domain still
+	//if it isn't, don't perform any more advection
+	else{
+	  loopThrough = false;
+	}	
 
       }//loopThrough if
      
