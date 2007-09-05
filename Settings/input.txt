@@ -8,7 +8,7 @@ ny 50
 nz 20
 
 #Set this to 1 to show the particle display, else 0
-show_particle_visuals 0
+show_particle_visuals 1
 
 #Change background color; r g b
 back_color 0.2 0.2 0.2
@@ -71,7 +71,7 @@ numBox_z   2
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius, rate
-source_info 5.0 25.0 3.0 0.0 1.0
+source_info 5.0 25.0 3.0 0.0 10.0
 
 
 #Set the type of Particle Release
