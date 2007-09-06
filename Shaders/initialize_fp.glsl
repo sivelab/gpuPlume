@@ -1,7 +1,7 @@
 uniform samplerRect texture;
-uniform float nx;
-uniform float ny;
-uniform float nz;
+uniform int nx;
+uniform int ny;
+uniform int nz;
 
 void main(void){
 		

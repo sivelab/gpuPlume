@@ -11,7 +11,7 @@ uniform samplerRect cellType;
 uniform int nx;
 uniform int ny;
 uniform int nz;
-uniform float numInRow;
+uniform int numInRow;
 uniform float time_step;
 uniform float life_time;
 
@@ -103,8 +103,8 @@ void main(void)
 
       //This is the initial lookup into the 2D texture that holds the wind field.
       vec2 index;
-      index.s = float(j) + float(mod(float(k),numInRow))*float(nx);
-      index.t = float(i) + float(floor(float(k)/numInRow))*float(ny);
+      index.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
+      index.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
 
       vec4 wind = vec4(textureRect(wind_texunit, index));
       vec4 lam = vec4(textureRect(lambda, index));
@@ -202,8 +202,8 @@ void main(void)
 	  vec4 cell_type = vec4(1.0,0.0,0.0,1.0);
 	
 	  if(k >= 0){
-	    cIndex.s = float(j) + float(mod(float(k),numInRow))*float(nx);
-	    cIndex.t = float(i) + float(floor(float(k)/numInRow))*float(ny);
+	    cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
+	    cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
 
 	    //Perform lookup into wind texture to see if new position is inside a building
 	    cell_type = vec4(textureRect(cellType, cIndex));  
@@ -335,8 +335,8 @@ void main(void)
 	    //Do check to make sure i,j,k's are valid;
 	    cell_type = vec4(1.0,0.0,0.0,1.0);
 	    if(k >= 0){
-	      cIndex.s = float(j) + float(mod(float(k),numInRow))*float(nx);
-	      cIndex.t = float(i) + float(floor(float(k)/numInRow))*float(ny);
+	      cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
+	      cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
 	      cell_type = vec4(textureRect(cellType, cIndex));
 	    }
 	  }//while loop for reflection

@@ -11,7 +11,7 @@ uniform samplerRect cellType;
 uniform int nx;
 uniform int ny;
 uniform int nz;
-uniform float numInRow;
+uniform int numInRow;
 uniform float time_step;
 uniform float life_time;
 
@@ -87,8 +87,8 @@ void main(void)
 
     //This is the initial lookup into the 2D texture that holds the wind field.
     vec2 index;
-    index.s = float(j) + float(mod(float(k),numInRow))*float(nx);
-    index.t = float(i) + float(floor(float(k)/numInRow))*float(ny);
+    index.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
+    index.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
 
     vec4 wind = vec4(textureRect(wind_texunit, index));
 

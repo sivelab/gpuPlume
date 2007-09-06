@@ -8,7 +8,7 @@ uniform samplerRect random_texunit;
 uniform int nx;
 uniform int ny;
 uniform int nz;
-uniform float numInRow;
+uniform int numInRow;
 uniform float time_step;
 uniform float life_time;
 
@@ -43,8 +43,8 @@ void main(void)
 
     //This is the initial lookup into the 2D texture that holds the wind field.
  	vec2 index;
-   	index.s = j + mod(k,numInRow)*nx;
-   	index.t = i + floor(k/numInRow)*ny;
+   	index.s = j + mod(k,float(numInRow))*nx;
+   	index.t = i + floor(k/float(numInRow))*ny;
 	int s = index.s;
 	int t = index.t;
 	vec3 wind2;

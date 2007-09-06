@@ -7,7 +7,7 @@ uniform float time_step;
 uniform int nx;
 uniform int ny;
 uniform int nz;
-uniform float numInRow;
+uniform int numInRow;
 
 //
 // This variable contains a uniformally generated random 2D vector in
@@ -66,8 +66,8 @@ void main(void)
 
     //This is the initial lookup into the 2D texture that holds the wind field.
  	vec2 index;
-   	index.s = j + mod(k,numInRow)*nx;
-        index.t = i + floor(k/numInRow)*ny;
+   	index.s = j + mod(k,float(numInRow))*nx;
+        index.t = i + floor(k/float(numInRow))*ny;
 	
 	vec4 windTex = vec4(textureRect(wind, index));
 	vec4 lam = vec4(textureRect(lambda, index));

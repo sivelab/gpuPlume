@@ -3,8 +3,7 @@ uniform samplerRect currVel;
 uniform samplerRect position;
 uniform samplerRect windVel;
 
-uniform float numInRow;
-
+uniform int numInRow;
 uniform int nx;
 uniform int ny;
 uniform int nz;
@@ -16,16 +15,14 @@ void main(void)
    vec4 mean = vec4(textureRect(prevMean, texCoord));
    vec3 pos = vec3(textureRect(position, texCoord));
 
-
-
    int i = floor(pos.y); 
    int j = floor(pos.x);
    int k = floor(pos.z);
 
    if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0) && (k >= 0)){
 	vec2 index;
-	index.s = j + mod(k,numInRow)*nx;
-	index.t = i + floor(k/numInRow)*ny;
+	index.s = j + mod(k,float(numInRow))*nx;
+	index.t = i + floor(k/float(numInRow))*ny;
 	
 	vec3 wind = vec3(textureRect(windVel,index));
 
