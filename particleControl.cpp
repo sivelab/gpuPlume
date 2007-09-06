@@ -32,9 +32,9 @@ void ParticleControl::setBuildingParameters(int nB,float* x,float* y,float* z,
 }
 void ParticleControl::setUstarAndSigmas(float u){
   ustar = u;
-  sigU = 2.0*ustar;
-  sigV = 2.0*ustar;
-  sigW = 1.3*ustar;
+  sigU = float(2.0*ustar);
+  sigV = float(2.0*ustar);
+  sigW = float(1.3*ustar);
 }
 void ParticleControl::setRandomTexCoords(){
   t1 = Random::uniform() * twidth;
@@ -75,7 +75,7 @@ void ParticleControl::setupMultipleBuildingsShader(int numInRow, float life_time
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  glUniform1fARB(uNumInRow, numInRow);
+  glUniform1iARB(uNumInRow, numInRow);
 
   multipleBuildings_shader.deactivate();
 }
@@ -188,10 +188,10 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
 
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
-    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));				glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
   
@@ -242,7 +242,7 @@ void ParticleControl::setupReflectionShader(int numInRow, float life_time){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  glUniform1fARB(uNumInRow, numInRow);
+  glUniform1iARB(uNumInRow, numInRow);
 
   reflection_shader.deactivate();
 }
@@ -365,10 +365,10 @@ void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positi
 
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
-    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));				glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
   
@@ -411,7 +411,7 @@ void ParticleControl::setupNonGaussianShader(int numInRow, float life_time){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  glUniform1fARB(uNumInRow, numInRow);
+  glUniform1iARB(uNumInRow, numInRow);
 
   nonGaussian_shader.deactivate();
 }
@@ -507,10 +507,10 @@ void ParticleControl::nonGaussianAdvect(bool odd, GLuint windField, GLuint posit
  
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
-    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));				glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
   
@@ -554,7 +554,7 @@ void ParticleControl::setupPrime_and_AdvectShader(int numInRow,float life_time){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  glUniform1fARB(uNumInRow, numInRow);
+  glUniform1iARB(uNumInRow, numInRow);
 
   mrt_shader.deactivate();
 
@@ -643,10 +643,10 @@ void ParticleControl::updatePrimeAndAdvect(bool odd,
  
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
-    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));				glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
   
@@ -688,7 +688,7 @@ void ParticleControl::setupPrimeShader(int numInRow){  //Included argument -- Ba
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  glUniform1fARB(uNumInRow, numInRow);
+  glUniform1iARB(uNumInRow, numInRow);
 
   prime_shader.deactivate();
   //End --Balli(04/12/07)
@@ -769,10 +769,10 @@ void ParticleControl::updatePrime(bool odd, GLuint positions0,GLuint positions1,
 
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
-    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));				glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
   
@@ -838,8 +838,7 @@ void ParticleControl::setupAdvectShader(int numInRow, float life_time){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  //glUniform1fARB(uniform_timeStep, *time_step);
-  glUniform1fARB(uNumInRow, numInRow);
+  glUniform1iARB(uNumInRow, numInRow);
 
   pass1_shader.deactivate();
 
@@ -894,10 +893,10 @@ void ParticleControl::advect(bool odd,
  
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
-    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));				glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
   
@@ -927,7 +926,7 @@ void ParticleControl::setupCurrVel_shader(int numInRow){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  glUniform1fARB(unir,numInRow);
+  glUniform1iARB(unir,numInRow);
 
   currVel_shader.deactivate();
 
@@ -970,10 +969,10 @@ void ParticleControl::updateCurrVel(bool odd, GLuint prime0,GLuint prime1,GLuint
 
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
-    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));				glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
 
@@ -1003,7 +1002,7 @@ void ParticleControl::setupMeanVel_shader(int numInRow){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
-  glUniform1fARB(unir,numInRow);
+  glUniform1iARB(unir,numInRow);
 
   meanVel_shader.deactivate();
 
@@ -1055,10 +1054,10 @@ void ParticleControl::findMeanVel(bool odd,GLuint prime0,GLuint prime1,
 
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
-    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));				glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
 
@@ -1487,10 +1486,7 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
 	    data[texidx] = wind_vel[p2idx].u;
 	    data[texidx+1] = wind_vel[p2idx].v;
 	    data[texidx+2] = wind_vel[p2idx].w;	 
-	    //if(wind_vel[p2idx].id == -1.0)
-	    data[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)/(0.4*(qk+1));//This value is the '0.5*CoEps' value	
-	      //else
-	      //data[texidx+3] = wind_vel[p2idx].id;
+	    data[texidx+3] = float((0.5*5.7)*(ustar*ustar*ustar)/(0.4*(qk+1)));//This value is the '0.5*CoEps' value	
 	  }
 
     createTexture(windField, GL_RGBA32F_ARB, width, height, data);
@@ -1516,7 +1512,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   //Cell height
   float dz = 1.0;
   //Surface roughness
-  float znaut = 0.01;
+  float znaut = 0.01f;
   
   for (qk=0; qk<nz; qk++) 
     for (qi=0; qi<ny; qi++)
@@ -1570,19 +1566,19 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  //All other cells. i.e not boundary cells
 	  //du/dz = (Uk+1 - Uk-1)/2dz
 	  else{
-	    du_dz = (wind_vel[idxAbove].u - wind_vel[idxBelow].u)/(2.0*dz);
+	    du_dz = (wind_vel[idxAbove].u - wind_vel[idxBelow].u)/(2.0f*dz);
 	  }
 	  	  
 	  data3[texidx] = du_dz;    //du_dz
-	  data3[texidx+1] = 0.0;    //eventually dv_dz
-	  data3[texidx+2] = 0.0;    //eventually dw_dz
-	  data3[texidx+3] = 0.0;
+	  data3[texidx+1] = 0.0f;    //eventually dv_dz
+	  data3[texidx+2] = 0.0f;    //eventually dw_dz
+	  data3[texidx+3] = 0.0f;
 	  
-	  ustar = 0.4*(qk+1)*du_dz;
+	  ustar = 0.4f*(qk+1)*du_dz;
 
-	  sigU = 2.0*ustar;
-	  sigV = 2.0*ustar;
-	  sigW = 1.3*ustar;
+	  sigU = 2.0f*ustar;
+	  sigV = 2.0f*ustar;
+	  sigW = 1.3f*ustar;
 
 	  sig[p2idx].u = sigU;   //sigU
 	  sig[p2idx].v = sigV;   //sigV
@@ -1592,8 +1588,8 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  float tau22=sigV*sigV;
 	  float tau33=sigW*sigW;
 	  float tau13=ustar*ustar;
-	  float tauDetInv=1.0/((tau11*tau22*tau33)-(tau13*tau13*tau22));
-	  
+	  float tauDetInv= float(1.0/((tau11*tau22*tau33)-(tau13*tau13*tau22)));
+
 	  tau[p2idx].t11   = tau11;             //Tau11
 	  tau[p2idx+1].t22 = tau22;             //Tau22
 	  tau[p2idx+2].t33 = tau33;             //Tau33
@@ -1644,10 +1640,10 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  //Cell just above the ground
 	  //dT/dz = -2(T/(0.5dz)log((0.5dz/znaut)))
 	  if(qk == 0){
-	    tau11_dz = -2.0*(tau[p2idx].t11/(dz*log(dz/znaut)));
-	    tau22_dz = -2.0*(tau[p2idx].t22/(dz*log(dz/znaut)));
-	    tau33_dz = -2.0*(tau[p2idx].t33/(dz*log(dz/znaut)));
-	    tau13_dz = -2.0*(tau[p2idx].t13/(dz*log(dz/znaut)));
+	    tau11_dz = -2.0f*(tau[p2idx].t11/(dz*log(dz/znaut)));
+	    tau22_dz = -2.0f*(tau[p2idx].t22/(dz*log(dz/znaut)));
+	    tau33_dz = -2.0f*(tau[p2idx].t33/(dz*log(dz/znaut)));
+	    tau13_dz = -2.0f*(tau[p2idx].t13/(dz*log(dz/znaut)));
 	  }
 	  //Cell at the top of the domain
 	  else if(qk == (nz-1)){
@@ -1679,10 +1675,10 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  //All other cells
 	  //dT/dz = (Tk+1 - Tk-1)/2dz
 	  else{
-	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0*dz);
-	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0*dz);
-	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0*dz);
-	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0*dz);
+	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0f*dz);
+	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0f*dz);
+	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0f*dz);
+	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0f*dz);
 	  }
 
 	  data[texidx] = tau11_dz;
@@ -1710,14 +1706,14 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   int row = 0, rowBelow = 0;
   
   //cell below, cell above, cell two below
-  int idxBelow, idxAbove, idx2Below,idxRight,idxLeft,idxFront,idxBehind;
-
-  float du_dx,du_dy,du_dz,dv_dx,dv_dy,dv_dz,dw_dx,dw_dy,dw_dz;
-  double S11,S22,S33,S21,S12,S31,S13,S23,S32;
+  int idxBelow, idxAbove, idx2Below, idxFront, idxBehind;
+  //int idxRight, idxLeft;
+  //float du_dx,du_dy,du_dz,dv_dx,dv_dy,dv_dz,dw_dx,dw_dy,dw_dz;
+  //double S11,S22,S33,S21,S12,S31,S13,S23,S32;
   //Cell height
   float dz = 1.0,dx=1.0,dy=1.0;
   //Surface roughness
-  float znaut = 0.1;
+  float znaut = 0.1f;
 
   //initializes the array cellQuic[]
   initCellType();
@@ -1737,7 +1733,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   turbulence>>header>>header>>header;
   //End reading the header, Now the values are read in the loop
 
-  double indexVal,extraVal,elz,eps; // indexVal is for x,y and z locations , eps and elz are required for ustar calculations.
+  float indexVal,extraVal,elz,eps; // indexVal is for x,y and z locations , eps and elz are required for ustar calculations.
 
   for (qk=0; qk<nz; qk++) 
     for (qi=0; qi<ny; qi++)
@@ -1891,7 +1887,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	      ustar = 0.4*(minDistance+1)*du_dz;
 	      }*/
 	       				  	  
-	    data3[texidx] = (sigU/2.5)/elz;  //du_dz;      //du_dz
+	    data3[texidx] = (sigU/2.5f)/elz;  //du_dz;      //du_dz
 	    data3[texidx+1] = 0.0;    //dv_dz
 	    data3[texidx+2] = 0.0;    //dw_dz
 	    data3[texidx+3] = 0.0;
@@ -1963,7 +1959,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	      ustar=0.4*minDistance*maxVelGrad*VertGradFactor;
 	    */
 	   
-	    ustar=sigU/2.5;
+	    ustar=sigU/2.5f;
 	    data3[texidx+3] = ustar;//temporarily used for the ustar.
 
 
@@ -1979,7 +1975,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    float tau22=sigV*sigV;
 	    float tau33=sigW*sigW;
 	    float tau13=ustar*ustar;
-	    float tauDetInv=1.0/((tau11*tau22*tau33)-(tau13*tau13*tau22));
+	    float tauDetInv=1.0f/((tau11*tau22*tau33)-(tau13*tau13*tau22));
 
 	  
 	    tau[p2idx].t11   = tau11;             //Tau11
@@ -1988,15 +1984,15 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    tau[p2idx+3].t13 = tau13;             //Tau13
 
 
-	    dataTwo[texidx]   =  1.0/(tau11-tau13*tau13/tau33);// tauDetInv*(tau22*tau33);            //Lam11
-	    dataTwo[texidx+1] =  1.0/tau22;// tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
-	    dataTwo[texidx+2] =  1.0/(tau33-tau13*tau13/tau11);//tauDetInv*(tau11*tau22);	          //Lam33
+	    dataTwo[texidx]   =  1.0f/(tau11-tau13*tau13/tau33);// tauDetInv*(tau22*tau33);            //Lam11
+	    dataTwo[texidx+1] =  1.0f/tau22;// tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
+	    dataTwo[texidx+2] =  1.0f/(tau33-tau13*tau13/tau11);//tauDetInv*(tau11*tau22);	          //Lam33
 	    dataTwo[texidx+3] =  -tau13/(tau11*tau33-tau13*tau13);//tauDetInv*(-tau13*tau22);           //Lam13
         
 	    dataWind[texidx] = wind_vel[p2idx].u;
 	    dataWind[texidx+1] = wind_vel[p2idx].v;
 	    dataWind[texidx+2] = wind_vel[p2idx].w;	  
-	    dataWind[texidx+3] = (0.5*5.7)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
+	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
 	  }
 
 	}
@@ -2042,10 +2038,10 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	  //Cell just above the ground
 	  //dT/dz = -2(T/(0.5dz)log((0.5dz/znaut)))
 	  if(qk == 0 || (cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
-	    tau11_dz = -2.0*(tau[p2idx].t11/(dz*log(dz/znaut)));
-	    tau22_dz = -2.0*(tau[p2idx].t22/(dz*log(dz/znaut)));
-	    tau33_dz = -2.0*(tau[p2idx].t33/(dz*log(dz/znaut)));
-	    tau13_dz = -2.0*(tau[p2idx].t13/(dz*log(dz/znaut)));
+	    tau11_dz = -2.0f*(tau[p2idx].t11/(dz*log(dz/znaut)));
+	    tau22_dz = -2.0f*(tau[p2idx].t22/(dz*log(dz/znaut)));
+	    tau33_dz = -2.0f*(tau[p2idx].t33/(dz*log(dz/znaut)));
+	    tau13_dz = -2.0f*(tau[p2idx].t13/(dz*log(dz/znaut)));
 	  }
 	  //Cell at the top of the domain
 	  else if(qk == (nz-1)){
@@ -2057,10 +2053,10 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	  //All other cells
 	  //dT/dz = (Tk+1 - Tk-1)/2dz
 	  else{
-	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0*dz);
-	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0*dz);
-	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0*dz);
-	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0*dz);
+	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0f*dz);
+	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0f*dz);
+	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0f*dz);
+	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0f*dz);
 	  }
 
 	  data[texidx] = tau11_dz;
@@ -2489,9 +2485,9 @@ void ParticleControl::variedUWindField(){
     for(int i = 0; i < ny; i++){
       for(int j = 0; j < nx; j++){
 	int p2idx = k*nx*ny + i*nx + j;
-	wind_vel[p2idx].u = 7.52*pow(((k+1)/20.0),0.15);
-	wind_vel[p2idx].v = 0.0;
-	wind_vel[p2idx].w = 0.0;
+	wind_vel[p2idx].u = 7.52f*pow(((k+1)/20.0f),0.15f);
+	wind_vel[p2idx].v = 0.0f;
+	wind_vel[p2idx].w = 0.0f;
 	//wind_vel[p2idx].id = -1.0;
       }
     }
@@ -2533,7 +2529,7 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType,int numInRow){
 	   cell_type[p2idx].u = 0.0;
 	   cell_type[p2idx].v = 0.0;
 	   cell_type[p2idx].w = 0.0;
-	   cell_type[p2idx].id = n;
+	   cell_type[p2idx].id = float(n);
 
 	 }
        }
@@ -2668,16 +2664,16 @@ void ParticleControl::initParticlePositions(FramebufferObject* fbo, GLuint texId
   glBindTexture(texType, texId);
   init_shader.activate();
   glUniform1iARB(texture, 0);
-  glUniform1fARB(u_nx, nx);
-  glUniform1fARB(u_ny, ny);
-  glUniform1fARB(u_nz, nz);
+  glUniform1iARB(u_nx, nx);
+  glUniform1iARB(u_ny, ny);
+  glUniform1iARB(u_nz, nz);
 
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);            glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(twidth, 0);       glVertex3f( 1, -1, -0.5f);
-    glTexCoord2f(twidth, theight); glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, theight);      glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));		glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
 
