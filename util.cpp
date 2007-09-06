@@ -97,9 +97,9 @@ void Util::parseLine(char* line){
   }
   if(read1Float(line, "ustar", &f1)){
     ustar = f1;
-    sigU = 2.0*f1;
-    sigV = 2.0*f1;
-    sigW = 1.3*f1;
+    sigU = 2.0f*f1;
+    sigV = 2.0f*f1;
+    sigW = 1.3f*f1;
   }
   if(read1Float(line, "show_particle_visuals", &f1)){
     if(f1 == 0)
