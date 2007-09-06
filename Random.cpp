@@ -70,12 +70,12 @@ float Random::normal()
     {
       do 
 	{
-	  v1 = 2.0 * randVal() - 1.0;
-	  v2 = 2.0 * randVal() - 1.0;
+	  v1 = 2.0f * randVal() - 1.0f;
+	  v2 = 2.0f * randVal() - 1.0f;
 	  rsq = v1*v1 + v2*v2;
 	} while (rsq >= 1.0);
       
-      rsq = sqrt( (-2.0 * log(rsq) ) / rsq );
+      rsq = sqrt( (-2.0f * log(rsq) ) / rsq );
       
       m_remaining_value = v2 * rsq;
       m_normal_value = true;
