@@ -34,9 +34,9 @@ CollectionBox::CollectionBox(Util* util){
   //This is used for drawing the collection boxes.
   //It is the distance from center to edge, minus
   //a small spacing.
-  dx = ((ux-lx)/(float)numBox_x)/2.0 - 0.1;
-  dy = ((uy-ly)/(float)numBox_y)/2.0 - 0.1;
-  dz = ((uz-lz)/(float)numBox_z)/2.0 - 0.1;
+  dx = float(((ux-lx)/(float)numBox_x)/2.0 - 0.1);
+  dy = float(((uy-ly)/(float)numBox_y)/2.0 - 0.1);
+  dz = float(((uz-lz)/(float)numBox_z)/2.0 - 0.1);
 
   pos_buffer = new GLfloat[ twidth * theight * 4 ];
 
@@ -62,9 +62,9 @@ void CollectionBox::calcBoxPositions(){
 	  x = ((ux-lx)/(float)numBox_x)*xBox + lx;
 	  y = ((uy-ly)/(float)numBox_y)*yBox + ly;
 	  z = ((uz-lz)/(float)numBox_z)*zBox + lz;
-	  offsetx = ((ux-lx)/(float)numBox_x)/2.0;
-	  offsety = ((uy-ly)/(float)numBox_y)/2.0;
-	  offsetz = ((uz-lz)/(float)numBox_z)/2.0;
+	  offsetx = float(((ux-lx)/(float)numBox_x)/2.0);
+	  offsety = float(((uy-ly)/(float)numBox_y)/2.0);
+	  offsetz = float(((uz-lz)/(float)numBox_z)/2.0);
 	  
 	  cPos[idx].x = x+offsetx;
 	  cPos[idx].y = y+offsety;
@@ -78,7 +78,7 @@ void CollectionBox::sort(float eyeX, float eyeY, float eyeZ){
   float xdiff, ydiff, zdiff;
   int size = numBox_z*numBox_y*numBox_x;
   //int max;
-  double temp;
+  float temp;
   int t;
 
   //Calculate and store distance from eye to each box
@@ -133,7 +133,7 @@ void CollectionBox::draw(double timeStepNum){
      if(timeStepNum == 0)
        alpha = 0.0;
      else
-       alpha = (cBox[idx]/(timeStepNum))/10.0;
+       alpha = float((cBox[idx]/timeStepNum)/10.0);
 
      glBegin(GL_QUADS);
      {
@@ -288,9 +288,9 @@ void CollectionBox::outputConc(std::string file,double totalTime,double totalTim
 	  x = ((ux-lx)/(float)numBox_x)*xBox + lx;
 	  y = ((uy-ly)/(float)numBox_y)*yBox + ly;
 	  z = ((uz-lz)/(float)numBox_z)*zBox + lz;
-	  offsetx = ((ux-lx)/(float)numBox_x)/2.0;
-	  offsety = ((uy-ly)/(float)numBox_y)/2.0;
-	  offsetz = ((uz-lz)/(float)numBox_z)/2.0;
+	  offsetx = float(((ux-lx)/(float)numBox_x)/2.0);
+	  offsety = float(((uy-ly)/(float)numBox_y)/2.0);
+	  offsetz = float(((uz-lz)/(float)numBox_z)/2.0);
 	  
 	  output << x+offsetx << "  " << y+offsety << "  " << z+offsetz <<
 	    "  " << cBox[idx]/totalTimeSteps << "\n";
