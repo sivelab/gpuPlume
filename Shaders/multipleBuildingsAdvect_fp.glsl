@@ -194,13 +194,16 @@ void main(void)
 	k = int(floor(pos.z));
 	int count = 0;	
 	float eps = 0.0;
-	float eps_S = 0.00001;
-	//float eps_d = 0.001;
-	float smallestS = 0.0;
+	float eps_S = 0.0001;
+	float eps_d = 0.01;
+	float smallestS = 100.0;
 
 	if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0)){
 	  vec4 cell_type = vec4(1.0,0.0,0.0,1.0);
 	
+	  if(k < 0)
+	    k = 0;
+
 	  if(k >= 0){
 	    cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
 	    cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
@@ -221,6 +224,8 @@ void main(void)
 	    float s4 = -1.0;
 	    float s5 = -1.0;
 	    float s6 = -1.0;
+
+	    smallestS = 100.0;
 
 	    float id = cell_type.w;
 	    vec2 bindex;
@@ -273,15 +278,21 @@ void main(void)
 	    denom = dot(n,u);
 	    numer = dot(n,prevPos) + d;
 	    s5 = -numer/denom;
-	      
+	    //-z normal
+	    /*n = vec3(0.0,0.0,-1.0);
+	      d = -dot(n,vec3(xfo,0.0,zfo));
+	      denom = dot(n,u);
+	      numer = dot(n,prevPos) + d;
+	      s6 = -numer/denom;*/
+
 	    //Ground plane
 	    n = vec3(0.0,0.0,1.0);
 	    numer = dot(n,prevPos);
 	    denom = dot(n,u);
-	    s6 = -numer/denom;
+	    s7 = -numer/denom;
+	   
            
-	    smallestS = 500.0;
-	    if(s1 >= 0.0){
+	    if((s1 < smallestS) && (s1 >= -eps_S)){
 	      smallestS = s1;
 	      normal = vec3(-1.0,0.0,0.0);
 	    }
@@ -303,22 +314,24 @@ void main(void)
 	    }	 
 	    
 	    //Detect Edge Collision
-	    float edgeS = abs(smallestS-s6);
-	    if((edgeS < eps_S) && (edgeS > -eps_S)){
+	    float edgeS = abs(smallestS-s7);
+	    if((edgeS < eps_d)){
 	      //smallestS = s6;
 	      normal = normalize(normal+vec3(0.0,0.0,1.0));
 	    }
-	    else if(s6 < smallestS && s6 >=0.0){
+	    else if((s7 < smallestS) && (s7 >=0.0)){
 	      normal = vec3(0.0,0.0,1.0);
-	      smallestS = s6;
+	      smallestS = s7;
 	    }
+
 	    pI = smallestS*u + prevPos;
 	    if(smallestS > -eps_S && smallestS < eps_S){
+	      pI = prevPos;
 	      r = normal;
 	    }	
 	    else{
 	      l = normalize(pI-prevPos);
-	      r = reflect(l,normal);
+	      r = normalize(reflect(l,normal));
 	    }
 	      
 	    dis = distance(pI,vec3(pos));		
@@ -334,6 +347,8 @@ void main(void)
 	    //NOTE: Consider what happens if building is too close to domain.
 	    //Do check to make sure i,j,k's are valid;
 	    cell_type = vec4(1.0,0.0,0.0,1.0);
+	    if(k < 0)
+	      k = 0;
 	    if(k >= 0){
 	      cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
 	      cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
