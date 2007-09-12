@@ -187,7 +187,7 @@ void main(void)
 	float denom;
 	float numer;
 	
-	vec2 cIndex;	
+	ivec2 cIndex;	
 
 	i = int(floor(pos.y));
 	j = int(floor(pos.x));
@@ -205,8 +205,8 @@ void main(void)
 	    k = 0;
 
 	  if(k >= 0){
-	    cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
-	    cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
+	    cIndex.s = j + mod(k,numInRow)*nx;
+	    cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
 
 	    //Perform lookup into wind texture to see if new position is inside a building
 	    cell_type = vec4(textureRect(cellType, cIndex));  
@@ -227,9 +227,9 @@ void main(void)
 
 	    smallestS = 100.0;
 
-	    float id = cell_type.w;
-	    vec2 bindex;
-	    bindex.s = 0.0;
+	    int id = int(cell_type.w);
+	    ivec2 bindex;
+	    bindex.s = 0;
 	    bindex.t = id;
 		
 	    vec3 bcoords = vec3(textureRect(buildings, bindex));
@@ -237,7 +237,7 @@ void main(void)
 	    float yfo = bcoords.y;
 	    float zfo = bcoords.z;
 
-	    bindex.x = 1.0;
+	    bindex.x = 1;
 	    vec3 bdim = vec3(textureRect(buildings,bindex));
 	    float ht = bdim.x;
 	    float wti = bdim.y;
@@ -350,8 +350,8 @@ void main(void)
 	    if(k < 0)
 	      k = 0;
 	    if(k >= 0){
-	      cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
-	      cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
+	      cIndex.s = j + mod(k,numInRow)*nx;
+	      cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
 	      cell_type = vec4(textureRect(cellType, cIndex));
 	    }
 	  }//while loop for reflection
