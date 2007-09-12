@@ -130,7 +130,6 @@ void main(void)
     //Now move the particle by adding the direction.
     pos = pos + vec4(wind.x,wind.y,wind.z,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
-    pos.a = 50.0;
     //Now do Reflection		
     vec3 u;
     //point of intersection
@@ -173,7 +172,7 @@ void main(void)
 	cell_type = vec4(textureRect(cellType, cIndex));  
       }
 
-      while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) && (count < 100)){
+      while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) && (count < 20)){
 	count = count + 1;
 	u = vec3(pos) - prevPos;
 
@@ -303,10 +302,8 @@ void main(void)
 			
       	
 	prevPos = pI;
-	if(count == 1)
-	  pos.a = k;
-
-	pos = vec4(pI+(dis*r),count);
+	
+	pos = vec4(pI+(dis*r),pos.a);
 	prmCurr = reflect(prmCurr,normal);
       
 	//After Reflection, see where the particle is in preparation for continuing while loop or not
@@ -319,7 +316,6 @@ void main(void)
 	cell_type = vec4(1.0,1.0,1.0,1.0);
 	if(k < 0)
 	  k = 0;
-
 	if(k >= 0){
 	  //cIndex.s = float(j) + float(mod(k,numInRow))*float(nx);
 	  //cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
