@@ -130,7 +130,7 @@ void main(void)
     //Now move the particle by adding the direction.
     pos = pos + vec4(wind.x,wind.y,wind.z,0.0)*time_step + vec4(0.5*(prmPrev+prmCurr),0.0)*time_step;
 	
-    pos.a = 1.0;
+    pos.a = 50.0;
     //Now do Reflection		
     vec3 u;
     //point of intersection
@@ -143,11 +143,11 @@ void main(void)
     vec3 normal;
     //distance from reflected surface
     float dis;
-
+                  
     float denom;
     float numer;
 	
-    vec2 cIndex;	
+    ivec2 cIndex;	
 
     i = int(floor(pos.y));
     j = int(floor(pos.x));
@@ -155,21 +155,25 @@ void main(void)
     int count = 0;	
     float eps = 0.0;
     float eps_S = 0.0001;
-    //float eps_d = 0.001;
+    float eps_d = 0.01;
     float smallestS = 500.0;
 
     if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0)){
       vec4 cell_type = vec4(1.0,0.0,0.0,1.0);
 	
-      if(k >= 0){
-	cIndex.s = float(j) + float(mod(float(k),numInRow))*float(nx);
-	cIndex.t = float(i) + float(floor(float(k)/numInRow))*float(ny);
+      if(k < 0)
+	k = 0;
 
+      if(k >= 0){
+	//cIndex.s = float(j) + float(mod(k,numInRow))*float(nx);
+	//cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
+	cIndex.s = j + mod(k,numInRow)*nx;
+	cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
 	//Perform lookup into wind texture to see if new position is inside a building
 	cell_type = vec4(textureRect(cellType, cIndex));  
       }
 
-      while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) && (count < 20)){
+      while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) && (count < 100)){
 	count = count + 1;
 	u = vec3(pos) - prevPos;
 
@@ -181,10 +185,13 @@ void main(void)
 	float s4 = -1.0;
 	float s5 = -1.0;
 	float s6 = -1.0;
+	float s7 = -1.0;
 	
-	float id = cell_type.w;
-	vec2 bindex;
-	bindex.s = 0.0;
+	smallestS = 100.0;
+	
+	int id = int(cell_type.w);
+	ivec2 bindex;
+	bindex.s = 0;
 	bindex.t = id;
 		
 	vec3 bcoords = vec3(textureRect(buildings, bindex));
@@ -192,7 +199,7 @@ void main(void)
 	float yfo = bcoords.y;
 	float zfo = bcoords.z;
 
-	bindex.x = 1.0;
+	bindex.x = 1;
 	vec3 bdim = vec3(textureRect(buildings,bindex));
 	float ht = bdim.x;
 	float wti = bdim.y;
@@ -232,59 +239,74 @@ void main(void)
 	denom = dot(n,u);
 	numer = dot(n,prevPos) + d;
 	s5 = -numer/denom;
-	 
+	  
+	//-z normal
+	/*n = vec3(0.0,0.0,-1.0);
+	  d = -dot(n,vec3(xfo,0.0,zfo));
+	  denom = dot(n,u);
+	  numer = dot(n,prevPos) + d;
+	  s6 = -numer/denom;*/
 	//Ground plane
 	n = vec3(0.0,0.0,1.0);
 	numer = dot(n,prevPos);
 	denom = dot(n,u);
-	s6 = -numer/denom;
-	  
+	s7 = -numer/denom;
 
-	smallestS = 500.0;
-	if(s1 >= 0.0 && s1 <=1.0){
+	if((s1 < smallestS) && (s1 >= -eps_S)){
 	  smallestS = s1;
 	  normal = vec3(-1.0,0.0,0.0);
 	}	
-	if(s2 < smallestS && s2 >=0.0){
+	if((s2 < smallestS) && (s2 >= -eps_S)){
 	  normal = vec3(1.0,0.0,0.0);
 	  smallestS = s2;
 	}
-	if(s3 < smallestS && s3 >=0.0){
+	if((s3 < smallestS) && (s3 >= -eps_S)){
 	  normal = vec3(0.0,1.0,0.0);
 	  smallestS = s3;
 	}	
-	if(s4 < smallestS && s4 >=0.0){
+	if((s4 < smallestS) && (s4 >= -eps_S)){
 	  normal = vec3(0.0,-1.0,0.0);
 	  smallestS = s4;
 	}	   
-	if(s5 < smallestS && s5 >=0.0){
+	if((s5 < smallestS) && (s5 >= -eps_S)){
 	  normal = vec3(0.0,0.0,1.0);
 	  smallestS = s5;
 	}
+	/*if((s6 < smallestS) && (s6 >= -eps_S)){
+	  normal = vec3(0.0,0.0,-1.0);
+	  smallestS = s6;
+	  }*/
+
 	//Detect Edge Collision
-	float edgeS = abs(smallestS-s6);
-	if((edgeS < eps_S) && (edgeS > -eps_S)){
-	  //smallestS = s6;
+	float edgeS = abs(smallestS-s7);
+	if((edgeS < eps_d)){
+	  //smallestS = (s7 + smallestS)/2.0;
 	  normal = normalize(normal+vec3(0.0,0.0,1.0));
 	}
-	else if(s6 < smallestS && s6 >=0.0){
+	else if((s7 < smallestS) && (s7 >= -eps_S)){
 	  normal = vec3(0.0,0.0,1.0);
-	  smallestS = s6;
+	  smallestS = s7;                  
 	}	
        	  
+
 	pI = smallestS*u + prevPos;
-	if(smallestS < eps_S){
+	if((smallestS >= -eps_S) && (smallestS <= eps_S)){
+	  pI = prevPos;
 	  r = normal;
 	}	
 	else{
 	  l = normalize(pI-prevPos);
 	  r = normalize(reflect(l,normal));
-	}
 	  
-	dis = distance(pI,vec3(pos));		
+	}
+	dis = distance(pI,vec3(pos)); 
+			
       	
 	prevPos = pI;
-	pos = vec4(pI+(dis*r),smallestS);
+	if(count == 1)
+	  pos.a = k;
+
+	pos = vec4(pI+(dis*r),count);
 	prmCurr = reflect(prmCurr,normal);
       
 	//After Reflection, see where the particle is in preparation for continuing while loop or not
@@ -295,9 +317,14 @@ void main(void)
 	//NOTE: Consider what happens if building is too close to domain.
 	//Do check to make sure i,j,k's are valid;
 	cell_type = vec4(1.0,1.0,1.0,1.0);
+	if(k < 0)
+	  k = 0;
+
 	if(k >= 0){
-	  cIndex.s = float(j) + float(mod(float(k),numInRow))*float(nx);
-	  cIndex.t = float(i) + float(floor(float(k)/numInRow))*float(ny);
+	  //cIndex.s = float(j) + float(mod(k,numInRow))*float(nx);
+	  //cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
+	  cIndex.s = j + mod(k,numInRow)*nx;
+	  cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
 	  cell_type = vec4(textureRect(cellType, cIndex));
 	}
       }
