@@ -224,6 +224,7 @@ void main(void)
 	    float s4 = -1.0;
 	    float s5 = -1.0;
 	    float s6 = -1.0;
+	    float s7 = -1.0;
 
 	    smallestS = 100.0;
 
