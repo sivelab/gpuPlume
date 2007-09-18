@@ -158,7 +158,7 @@ void main(void)
     float smallestS = 500.0;
 
     if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0)){
-      vec4 cell_type = vec4(1.0,0.0,0.0,1.0);
+      vec4 cell_type = vec4(1.0,1.0,1.0,1.0);
 	
       if(k < 0)
 	k = 0;
