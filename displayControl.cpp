@@ -16,7 +16,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   nz = z;
   texType = type;
 
-  eye_pos[0] = nx+50;
+  eye_pos[0] = nx;
   eye_pos[1] = 0;
   eye_pos[2] = 5;
   
@@ -41,7 +41,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   osgPlume = false;
 
   // Set particle visual state to point based particles initially
-  particle_visual_state = PARTICLE_SPRITE;  // POINT;
+  particle_visual_state = PARTICLE_SPRITE;  // POINT or SPRITE;
 
   //This shader is used to make final changes before rendering to the screen
   render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -99,7 +99,8 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   
   drawAxes();
   
-  drawGrid();
+  if(!osgPlume)
+    drawGrid();
 
   if(draw_buildings){
     drawFeatures();
