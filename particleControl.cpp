@@ -188,10 +188,10 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
 
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(0, 0);					glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);			glVertex3f( 1, -1, -0.5f);
     glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, float(theight));				glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));			glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
   
@@ -1393,8 +1393,7 @@ void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, i
   glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);
 }
 
-void ParticleControl::initWindTex(GLuint windField, int* numInRow,
-				  int dataSet){
+void ParticleControl::initWindTex(GLuint windField, int* numInRow, int dataSet){
   // Create wind velocity data texture
   wind_vel = new wind[nx*ny*nz];
   cellQuic = new cellType[nx*ny*nz];
@@ -1461,7 +1460,6 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow,
   //that is used to make the 2D texture.
   ///////////////////////////////////////////////////////
   (*numInRow) = (width - (width % nx))/nx;
-  //std::cout << width << " " << *numInRow << std::endl;
 
   if(dataSet != 5){
 
@@ -2509,23 +2507,25 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType,int numInRow){
 	cell_type[p2idx].u = 1.0;
 	cell_type[p2idx].v = 1.0;
 	cell_type[p2idx].w = 1.0;
-	cell_type[p2idx].id = 0.0;
+	cell_type[p2idx].id = -1.0;
       }
     }
    }
   
 
   for(int n=0; n < numBuild; n++){
+    int lk = int(zfo[n]);
+    int uk = int(zfo[n]+ht[n]);
+    int li = int(yfo[n]-(wti[n]/2.0));
+    int ui = int(yfo[n]+(wti[n]/2.0));
+    int lj = int(xfo[n]);
+    int uj = int(xfo[n]+lti[n]);
 
-     for(int k=(int)zfo[n]; k < (int)(zfo[n]+ht[n]); k++){
-       for(int i=(int)(yfo[n]-wti[n]/2.0); i < (int)(yfo[n]+wti[n]/2.0); i++){
-	 for(int j=(int)xfo[n]; j < (int)(xfo[n]+lti[n]); j++){
+     for(int k= lk; k < uk; k++){
+       for(int i= li; i < ui; i++){
+	 for(int j= lj; j < uj; j++){
 	   int p2idx = k*nx*ny + i*nx + j;
 	   
-	   //wind_vel[p2idx].u = 0.0;
-	   //wind_vel[p2idx].v = 0.0;
-	   //wind_vel[p2idx].w = 0.0;
-	   //wind_vel[p2idx].id = n;
 	   cell_type[p2idx].u = 0.0;
 	   cell_type[p2idx].v = 0.0;
 	   cell_type[p2idx].w = 0.0;
@@ -2558,7 +2558,7 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType,int numInRow){
 	    
 	  }
 
-    createTexture(cellType, GL_RGBA32F_ARB, width, height, data);
+    createTexture(cellType, GL_RGBA16F_ARB, width, height, data);
 
     delete [] data;
     delete [] cell_type;
