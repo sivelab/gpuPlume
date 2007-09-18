@@ -26,7 +26,7 @@ uniform float life_time;
 uniform int random_texWidth;
 uniform int random_texHeight;
 uniform vec2 random_texCoordOffset;
-float check; //to check how many times CFL condition got applied
+int check; //to check how many times CFL condition got applied
 
 void main(void)
 {
@@ -57,9 +57,9 @@ void main(void)
   // this timestep
   vec3 randn = vec3(textureRect(random, rTexCoord));
 
-  float xRandom = randn.x;
-  float yRandom = randn.y;
-  float zRandom = randn.z;     
+  //float xRandom = randn.x;
+  //float yRandom = randn.y;
+  //float zRandom = randn.z;     
 
   float upPrev=prmPrev.x;
   float vpPrev=prmPrev.y;
@@ -76,7 +76,7 @@ void main(void)
   float timeStepUsed = 0.0;   //used for storing how much time has been used from a time step during simulation
   bool loopThrough=true; 
    
-  check=1.0;   
+  check=1;   
 
   if(!(life_time <= 0.0)){
     if(pos.a != life_time+1.0){
@@ -86,7 +86,13 @@ void main(void)
     }
   }   
 
+  //vec2 index;
+  //vec4 wind;
+  //vec4 lam;
+  //vec4 tau;
+  //vec4 ddz;
 
+  bool single = true;
   while(loopThrough){
     loopThrough = false;
 
@@ -100,7 +106,7 @@ void main(void)
     //So, the particles inside the domain are the only ones operated on. 
     if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0) && (k >= 0)){
    
-
+      
       //This is the initial lookup into the 2D texture that holds the wind field.
       vec2 index;
       index.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
@@ -110,7 +116,7 @@ void main(void)
       vec4 lam = vec4(textureRect(lambda, index));
       vec4 tau = vec4(textureRect(tau_dz, index));
       vec4 ddz = vec4(textureRect(duvw_dz, index));
-	
+
       float dudz = ddz.x;
       float ustar = ddz.w; //temporarily used to get ustar to calculate sigmas in shader
 
@@ -129,17 +135,41 @@ void main(void)
       float Lam13=lam.w;
 	
       float CoEps_D2=wind.w; // grabing 4th vector,--Co*Eps/2 in the wind texture
-      
+       
       float du = (-CoEps_D2*(Lam11*upPrev+Lam13*wpPrev) + dudz*wpPrev + 0.5*Tau13)*timeStepSim
 	+ (Tau11*(Lam11*upPrev + Lam13*wpPrev) + Tau13*(Lam13*upPrev + Lam33*wpPrev))*
-	(wpPrev/2.0)*timeStepSim + pow((2.0*CoEps_D2*timeStepSim),0.5)*xRandom;
+	(wpPrev/2.0)*timeStepSim + pow((2.0*CoEps_D2*timeStepSim),0.5)*randn.x;
 	
       float dv = (-CoEps_D2*(Lam22*vpPrev) + Tau22*Lam22*vpPrev*(wpPrev/2.0))*timeStepSim + 
-	pow((2.0*CoEps_D2*timeStepSim),0.5)* yRandom;
+	pow((2.0*CoEps_D2*timeStepSim),0.5)*randn.y;
 
       float dw = (-CoEps_D2*(Lam13*upPrev + Lam33*wpPrev) + 0.5*Tau33)*timeStepSim +
 	(Tau13*(Lam11*upPrev + Lam13*wpPrev) + Tau33*(Lam13*upPrev + Lam33*wpPrev))*
-	(wpPrev/2.0)*timeStepSim + pow((2.0*CoEps_D2*timeStepSim),0.5)* zRandom;
+	(wpPrev/2.0)*timeStepSim + pow((2.0*CoEps_D2*timeStepSim),0.5)*randn.z;
+      
+      float totVel= pow((upPrev*upPrev+vpPrev*vpPrev+wpPrev*wpPrev),0.5);
+      float totVelNew=pow( ( (upPrev+du)*(upPrev+du)+(vpPrev+dv)*(vpPrev+dv)+(wpPrev+dw)*(wpPrev+dw)),0.5);
+      float totVelComp = totVel;
+         
+      if(totVelComp<totVelNew)
+	totVelComp = totVelNew;
+      
+      if((totVelComp>2.0*sigU) && single){
+         
+         //generating random number
+         rTexCoord.s = rTexCoord.s + 1.0;
+         if(rTexCoord.s > random_texWidth)
+	   rTexCoord.s = rTexCoord.s - random_texWidth;
+
+         vec3 randnum = vec3(textureRect(random, rTexCoord));
+            
+         upPrev = sigU * randnum.x;
+         vpPrev = sigV * randnum.y;
+         wpPrev = sigW * randnum.z; 
+         loopThrough=true;
+         single=false;     
+      }
+      
 
       float disX = (wind.x+du)*timeStepSim; //calculating distance travelled by the particle
       float disY = (wind.y+dv)*timeStepSim;
@@ -149,28 +179,24 @@ void main(void)
       if(disY<0.0)disY=-disY;
       if(disZ<0.0)disZ=-disZ;
          
-      if( disX>0.7*dx || disY>0.7*dy || disZ>0.7*dz ){  //CFL condition
+      //if( (disX>0.7*dx) || (disY>0.7*dy) || (disZ>0.7*dz) ){  //CFL condition
+      if( disX>1.4*dx || disY>1.4*dy || disZ>1.4*dz 
+         || pow((CoEps_D2*timeStepSim),0.5)*timeStepSim > 1.4*dx 
+         || pow((CoEps_D2*timeStepSim),0.5)*timeStepSim > 1.4*dy
+         || pow((CoEps_D2*timeStepSim),0.5)*timeStepSim > 1.4*dz){  //CFL condition
+	   
+
 	timeStepSim = timeStepSim/2.0;
-          
-	//generating random number
-	rTexCoord.s = rTexCoord.s + 1.0;
-	if (rTexCoord.s > random_texWidth)rTexCoord.s = rTexCoord.s - random_texWidth;
-	vec3 randnum = vec3(textureRect(random, rTexCoord));
-            
-	upPrev = sigU * randnum.x;
-	vpPrev = sigV * randnum.y;
-	wpPrev = sigW * randnum.z;
-           
 	loopThrough=true; //make loopThrough true so that it calculate distance travelled again by new timeStepSim
-	check=check+1.0;
+	check=check+1;
       }
       if(loopThrough == false){
-
+	
 	prmCurr = vec3(upPrev+du,vpPrev+dv,wpPrev+dw);
 
 	//Now move the particle by adding the direction.
 	pos = pos + vec4(wind.x,wind.y,wind.z,0.0)*timeStepSim + vec4(0.5*(prmPrev+prmCurr),0.0)*timeStepSim;
-	    
+   
 	//Now do Reflection		
 	vec3 u;
 	//point of intersection
@@ -187,32 +213,33 @@ void main(void)
 	float denom;
 	float numer;
 	
-	ivec2 cIndex;	
+	vec2 cIndex;	
 
 	i = int(floor(pos.y));
 	j = int(floor(pos.x));
 	k = int(floor(pos.z));
 	int count = 0;	
-	float eps = 0.0;
 	float eps_S = 0.0001;
 	float eps_d = 0.01;
 	float smallestS = 100.0;
 
 	if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0)){
-	  vec4 cell_type = vec4(1.0,0.0,0.0,1.0);
+	  vec4 cell_type = vec4(1.0,1.0,1.0,1.0);
 	
 	  if(k < 0)
 	    k = 0;
 
 	  if(k >= 0){
-	    cIndex.s = j + mod(k,numInRow)*nx;
-	    cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
+	    cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
+	    cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
+	    //cIndex.s = j + mod(k,numInRow)*nx;
+	    //cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
 
 	    //Perform lookup into wind texture to see if new position is inside a building
 	    cell_type = vec4(textureRect(cellType, cIndex));  
 	  }
 	  count = 0;
-	  while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < eps)) &&(count < 20)){
+	  while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < 0.0)) && (count < 20)){
 	    count = count + 1;
 	    u = vec3(pos) - prevPos;
 	       
@@ -243,7 +270,6 @@ void main(void)
 	    float ht = bdim.x;
 	    float wti = bdim.y;
 	    float lti = bdim.z;
-
 	    
 	    //-x normal  
 	    n = vec3(-1.0,0.0,0.0);
@@ -297,19 +323,19 @@ void main(void)
 	      smallestS = s1;
 	      normal = vec3(-1.0,0.0,0.0);
 	    }
-	    if(s2 < smallestS && s2 >=0.0){
+	    if((s2 < smallestS) && (s2 >= -eps_S)){
 	      normal = vec3(1.0,0.0,0.0);
 	      smallestS = s2;
 	    }
-	    if(s3 < smallestS && s3 >=0.0){
+	    if((s3 < smallestS) && (s3 >= -eps_S)){
 	      normal = vec3(0.0,1.0,0.0);
 	      smallestS = s3;
 	    }	
-	    if(s4 < smallestS && s4 >=0.0){
+	    if((s4 < smallestS) && (s4 >= -eps_S)){
 	      normal = vec3(0.0,-1.0,0.0);
 	      smallestS = s4;
 	    }	   
-	    if(s5 < smallestS && s5 >=0.0){
+	    if((s5 < smallestS) && (s5 >= -eps_S)){
 	      normal = vec3(0.0,0.0,1.0);
 	      smallestS = s5;
 	    }	 
@@ -320,13 +346,13 @@ void main(void)
 	      //smallestS = s6;
 	      normal = normalize(normal+vec3(0.0,0.0,1.0));
 	    }
-	    else if((s7 < smallestS) && (s7 >=0.0)){
+	    else if((s7 < smallestS) && (s7 >= -eps_S)){
 	      normal = vec3(0.0,0.0,1.0);
 	      smallestS = s7;
 	    }
 
 	    pI = smallestS*u + prevPos;
-	    if(smallestS > -eps_S && smallestS < eps_S){
+	    if((smallestS >= -eps_S) && (smallestS <= eps_S)){
 	      pI = prevPos;
 	      r = normal;
 	    }	
@@ -347,12 +373,14 @@ void main(void)
 
 	    //NOTE: Consider what happens if building is too close to domain.
 	    //Do check to make sure i,j,k's are valid;
-	    cell_type = vec4(1.0,0.0,0.0,1.0);
+	    cell_type = vec4(1.0,1.0,1.0,1.0);
 	    if(k < 0)
 	      k = 0;
 	    if(k >= 0){
-	      cIndex.s = j + mod(k,numInRow)*nx;
-	      cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
+	      cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
+	      cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
+	      //cIndex.s = j + mod(k,numInRow)*nx;
+	      //cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
 	      cell_type = vec4(textureRect(cellType, cIndex));
 	    }
 	  }//while loop for reflection
@@ -360,8 +388,27 @@ void main(void)
 	  timeStepUsed = timeStepUsed + timeStepSim;// stores total time used
 	  timeStepRem = time_step - timeStepUsed; //stores time remaining in the time_step
 	  timeStepSim = timeStepRem; // time stepfor next iteration
-	  if(timeStepRem>epsilon)
+
+	  if(timeStepRem>epsilon){
 	    loopThrough=true;
+	    //I think we need to do this????
+	    //update prevPos and prevPrime
+	    prevPos = vec3(pos);
+	    prmPrev = prmCurr;
+	    upPrev=prmPrev.x;
+	    vpPrev=prmPrev.y;
+	    wpPrev=prmPrev.z;
+	    //generating random number
+	    rTexCoord.s = rTexCoord.s + 1.0;
+	    rTexCoord.t = rTexCoord.t + 1.0;
+	    if (rTexCoord.s > random_texWidth)
+	      rTexCoord.s = rTexCoord.s - random_texWidth;
+	    if (rTexCoord.t > random_texHeight)
+	      rTexCoord.t = rTexCoord.t - random_texHeight;
+
+	    randn = vec3(textureRect(random, rTexCoord));
+	    //check = 1;
+	  }
 
 	}//make sure particle is in domain still
 	//if it isn't, don't perform any more advection
@@ -375,6 +422,8 @@ void main(void)
     }//if on domain check
 
   }//while loopthrough condition
+  
+
   if(pos.a <= 0.0 && (!(life_time <= 0.0))){
     gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
     gl_FragData[1] = vec4(prmCurr, 1.0);
@@ -385,3 +434,5 @@ void main(void)
   }
    
 }
+//CFL Constant=1.4
+//Other constant 2.0
