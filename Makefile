@@ -1,11 +1,12 @@
 EXEC	= gpuPlume
 
-CC	= g++ -g -O2 -Wall -DNDEBUG
+CC	= g++ -g -O2 -Wall
 
 CSRC 	= gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp
 
 COBJS   = $(CSRC:.cpp=.o)
 
+# No longer using fortran...
 PLUME_DIR = Modular_QUICPLUME
 FSRCS =	$(PLUME_DIR)/DataModule.f90 $(PLUME_DIR)/ReadFiles.f90
 FOBJS =  $(FSRCS:.f90=.o)
@@ -26,8 +27,8 @@ FCFLAGS	= -O3 -fdefault-double-8 -fdefault-real-8 -fdefault-integer-8 -ffree-for
 
 FLAGS = $(INCLUDE_PATH) $(LIB_PATH) $(LIB)
 
-$(EXEC): $(COBJS) $(FOBJS)
-	$(CC) -o $(EXEC) $(COBJS) $(FOBJSS) $(FLAGS) -L$(FLOC)/lib -lgfortran
+$(EXEC): $(COBJS)
+	$(CC) -o $(EXEC) $(COBJS) $(FLAGS) 
 
 %.o : %.cpp
 	$(CC) -c $(INCLUDE_PATH) $<
