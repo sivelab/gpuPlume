@@ -49,7 +49,7 @@ FCFLAGS	= -O3 -fdefault-double-8 -fdefault-real-8 -fdefault-integer-8 -ffree-for
 FLAGS = $(INCLUDE_PATH) $(LIB_PATH) $(LIB)
 
 $(EXEC): $(COBJS) $(FOBJS)
-	$(CC) -o $(EXEC) $(COBJS) $(FOBJSS) $(FLAGS) -L$(FCLOC)/lib -lgfortran
+	$(CC) -o $(EXEC) $(COBJS) $(FOBJSS) $(FLAGS) -L$(FCLOC)/lib
 
 %.o : %.cpp
 	$(CC) -c $(INCLUDE_PATH) $<
