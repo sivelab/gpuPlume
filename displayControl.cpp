@@ -16,7 +16,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   nz = z;
   texType = type;
 
-#if 0
+
   eye_pos[0] = nx+50;
   eye_pos[1] = 0;
   eye_pos[2] = 5;
@@ -24,8 +24,9 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   eye_gaze[0] = -1.0;
   eye_gaze[1] = 0;
   eye_gaze[2] = 0;
-#endif
 
+#if 0
+  // starts the view closer to the particle release
   eye_pos[0] = 20;
   eye_pos[1] = -10;
   eye_pos[2] = 5;
@@ -33,6 +34,8 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   eye_gaze[0] = 0.0;
   eye_gaze[1] = 1.0;
   eye_gaze[2] = 0.0;
+#endif
+
 
   angle = M_PI;
   yangle = 0.0;
@@ -95,7 +98,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight)
 {
-  // drawSky();
+  drawSky();
 
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
