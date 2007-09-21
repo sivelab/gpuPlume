@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 512
-theight 512
+twidth 256
+theight 256
 
 #Set the Domain
 nx 100
@@ -27,7 +27,7 @@ advectChoice 4
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
 
-time_step 1.0
+time_step 0.05
 
 #Test case for setting Windfield
 #Use value of 2 for random values
@@ -71,8 +71,7 @@ numBox_z   2
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius, rate
-source_info 5.0 25.0 3.0 0.0 10.0
-
+source_info 5.0 25.0 3.0 0.0 60.0
 
 #Set the type of Particle Release
 release_type 1
@@ -96,7 +95,7 @@ numBuild 1
 #Building Parameters
 #I'm defining it the same as in QUIC
 #(x,y,z) (height, width, length)
-build_param 25.0 25.0 0.0 10.0 6.0 10.0
+build_param 25.0 25.0 0.0 10.0 10.0 10.0
 #build_param 20.0 18.0 0.0 6.0 6.0 10.0
 #build_param 20.0 32.0 0.0 6.0 6.0 10.0
 #build_param 35.0 18.0 0.0 10.0 6.0 10.0
@@ -106,7 +105,7 @@ build_param 25.0 25.0 0.0 10.0 6.0 10.0
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
-pauseMode 1
+pauseMode 0
 
 #Set to 1 to do mean velocity calculation; else 0
 calculateMeanVel 0
