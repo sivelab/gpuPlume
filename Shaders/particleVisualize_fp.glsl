@@ -12,6 +12,11 @@ void main(void)
 		vec4 normal = vec4(texture2D(pointspritenormal_texunit, gl_TexCoord[0].st));
 		if (normal.w == 0.0)
 			discard;
+		else if (d.x == 0.0 && d.y == 0.0 && d.z == 1.0)
+		{
+		    vec4 color = vec4(0.0, 0.0, 1.0, 1.0);
+		    gl_FragColor = color;
+		}
 		else
 		{
 		    vec4 l = normalize(vec4(1.0, -1.0, 1.0, 0.0));
