@@ -16,13 +16,23 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   nz = z;
   texType = type;
 
-  eye_pos[0] = nx;
+#if 0
+  eye_pos[0] = nx+50;
   eye_pos[1] = 0;
   eye_pos[2] = 5;
   
   eye_gaze[0] = -1.0;
   eye_gaze[1] = 0;
   eye_gaze[2] = 0;
+#endif
+
+  eye_pos[0] = 20;
+  eye_pos[1] = -10;
+  eye_pos[2] = 5;
+  
+  eye_gaze[0] = 0.0;
+  eye_gaze[1] = 1.0;
+  eye_gaze[2] = 0.0;
 
   angle = M_PI;
   yangle = 0.0;
@@ -85,7 +95,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight)
 {
-  drawSky();
+  // drawSky();
 
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
@@ -291,8 +301,9 @@ void DisplayControl::drawGround(){
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, displayTex[0]);
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);  
   
-  glColor4f(1.0,1.0,1.0,1.0);
+  glColor4f(0.5,0.5,0.5,1.0);
   glBegin(GL_QUADS);
   {
     glTexCoord2f(0,0);       glVertex3f(0.0,0.0,0.0);
@@ -689,6 +700,7 @@ GLubyte* DisplayControl::readPPM(char* filename, int* width, int* height)
 
 void DisplayControl::createPointSpriteTextures()
 {
+  unsigned int radius = 32;
   unsigned int width = 128;
   unsigned int height = 128;
 
@@ -713,9 +725,9 @@ void DisplayControl::createPointSpriteTextures()
 	int idx = y*width*4 + x*4;
 
 	// convert to sphere coordinates with radius half of width/height
-	double r = (double)width/2.0;
-	double xr = x - r;
-	double yr = y - r;
+	double r = (double)radius;
+	double xr = x - (double)width/2.0;
+	double yr = y - (double)height/2.0;
 
 	// if coordinate is on or inside the circle, keep going
 	double mag = sqrt(xr*xr + yr*yr);
@@ -723,6 +735,12 @@ void DisplayControl::createPointSpriteTextures()
 	  {
 	    // White for now... may use later
 	    data[idx] = 1.0; data[idx+1] = 1.0; data[idx+2] = 1.0; data[idx+3] = 1.0;
+	  }
+	else if ((mag >= r+(radius*0.20)) && (mag <= r+(radius*0.40)))
+	  {
+	    // store transparent white in image space
+	    data[idx] = 1.0; data[idx+1] = data[idx+2] = 0.0;
+	    data[idx+3] = 1.0;
 	  }
 	else 
 	  {
@@ -751,9 +769,9 @@ void DisplayControl::createPointSpriteTextures()
 	int idx = y*width*4 + x*4;
 
 	// convert to sphere coordinates with radius half of width/height
-	double r = (double)width/2.0;
-	double xr = x - r;
-	double yr = y - r;
+	double r = (double)radius;
+	double xr = x - (double)width/2.0;
+	double yr = y - (double)height/2.0;
 
 	// if coordinate is on or inside the circle, keep going
 	double mag = sqrt(xr*xr + yr*yr);
@@ -777,6 +795,12 @@ void DisplayControl::createPointSpriteTextures()
 	    data[idx] = xr;
 	    data[idx+1] = yr;
 	    data[idx+2] = z;
+	    data[idx+3] = 1.0;
+	  }
+	else if ((mag >= r+(radius*0.20)) && (mag <= r+(radius*0.40)))
+	  {
+	    // store transparent white in image space
+	    data[idx] = 0.0; data[idx+1] = 0.0; data[idx+2] = 1.0;
 	    data[idx+3] = 1.0;
 	  }
 	else 
