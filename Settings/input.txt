@@ -94,7 +94,7 @@ emit_method 0
 
 #Number of Buildings
 #Set to 0 for no buildings
-numBuild 1
+numBuild 6
 
 #Building Parameters
 #I'm defining it the same as in QUIC
