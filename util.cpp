@@ -47,6 +47,12 @@ void Util::parseLine(char* line){
   if(read1Float(line, "theight", &f1)){
 	 theight = (int)f1;
   }
+  if(read1Float(line, "pwidth", &f1)){
+	 pwidth = (int)f1;
+  }
+  if(read1Float(line, "pheight", &f1)){
+	 pheight = (int)f1;
+  }
   if(read1Float(line, "time_step", &f1)){
     time_step = f1;
   }
