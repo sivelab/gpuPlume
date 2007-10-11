@@ -104,7 +104,7 @@ void ReflectionModel::init(bool OSG){
   setupEmitters();
   
   glEnable(texType);
-  glGenTextures(13, texid);
+  glGenTextures(14, texid);
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
@@ -123,6 +123,7 @@ void ReflectionModel::init(bool OSG){
   //Texture used to hold current velocity
   currVel = texid[12];
 
+  tau = texid[13];
   /////////////////////////////
   setupTextures();
   
@@ -486,7 +487,7 @@ void ReflectionModel::setupTextures(){
   if(util->windFieldData != 5)
     pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
   else
-    pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, numInRow);
+    pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau, numInRow);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
 
