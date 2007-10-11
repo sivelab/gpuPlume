@@ -13,6 +13,9 @@
 
 MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   util = u;
+  //pwidth = util->pwidth;
+  //pheight = util->pheight;
+  //pathNum = 0;
 
   //from util
   twidth = util->twidth;
@@ -30,6 +33,7 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   int_format_init = GL_RGBA;
 
   totalNumPar = 0.0;  
+  visualLayer = 0;
 
   //CollectionBox Settings
   cBoxes[0] = new CollectionBox(util);
@@ -44,7 +48,7 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   createImages = false;
   quitSimulation = false;
 	
-  stream = new StreamLine(twidth,theight,nx,ny,nz);
+  //stream = new StreamLine(twidth,theight,nx,ny,nz);
   
   //Set whether to reuse particles or not
   //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
@@ -63,7 +67,9 @@ MultipleBuildingsModel::~MultipleBuildingsModel(){}
 
 void MultipleBuildingsModel::init(bool OSG){
   osgPlume = OSG;
- 
+  
+  pathLines = new PathLine(util->pwidth,util->pheight,texType);
+
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz);
   pc->setUstarAndSigmas(util->ustar);
   pc->setBuildingParameters(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
@@ -88,7 +94,7 @@ void MultipleBuildingsModel::init(bool OSG){
   setupEmitters();
   
   glEnable(texType);
-  glGenTextures(15, texid);
+  glGenTextures(17, texid);
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
@@ -111,6 +117,12 @@ void MultipleBuildingsModel::init(bool OSG){
   //Texture used for cell type information
   cellType = texid[14];
  
+  //Texture to store path lines
+  pathTex = texid[15];
+  
+  //Texture for tau11,tau22,tau33,and tau13
+  tau = texid[16];
+
   /////////////////////////////
   setupTextures(); 
   //
@@ -143,6 +155,11 @@ void MultipleBuildingsModel::init(bool OSG){
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
   emit_shader.addShader("Shaders/emitParticle_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   emit_shader.createProgram();
+
+  /*pathLineShader.addShader("Shaders/pathLine_vp.glsl", GLSLObject::VERTEX_SHADER);
+  pathLineShader.addShader("Shaders/pathLine_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  pathLineShader.createProgram();
+  uniform_posit = pathLineShader.createUniform("positions");*/
 
   CheckErrorsGL("END of init");
 
@@ -209,10 +226,105 @@ int MultipleBuildingsModel::display(){
       if(pe[i]->emit){    
 	totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step);
 	if(pe[i]->releaseType == onePerKeyPress){
-	  stream->addNewStream(pe[i]);
+	  //stream->addNewStream(pe[i]);
+	  pathLines->addNewPath(pe[i]);
+	  /*int xindex,yindex; 
+	  pathIndex pIndex;
+
+	  //pheight is how many path lines that can be generated
+	  if(pathNum < pheight){
+	    pe[i]->getIndex(&xindex,&yindex);
+	    //Need to Punch Hole method to put initial starting position into 
+	    //path line texture
+
+	    
+	    pIndex.x = xindex;
+	    pIndex.y = yindex;
+	    pIndex.s = 0;
+	    pIndex.t = pathNum;
+	    
+	    std::cout << "Path Number: " << pIndex.t << std::endl;
+	    std::cout << "Index emitted: " << pIndex.x << " "<< pIndex.y << std::endl;
+	    std::cout << "pTex coords: " << pIndex.s << " " << pIndex.t << std::endl;
+
+	    pathList.push_front(pIndex);
+	    pathNum++;
+	    }*/
+
 	}
       }
     }
+    ////////////////////////////////////////////////////////////
+    // Update Path Lines
+    ////////////////////////////////////////////////////////////
+    //FramebufferObject::Disable();
+    pathFbo->Bind();
+    pathLines->updatePathLines(positions0,positions1,odd);
+    /*glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, pwidth, 0, pheight);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity(); 
+    
+
+    glActiveTexture(GL_TEXTURE0);
+    if (odd)
+      glBindTexture(texType, positions0);  // read from texture 0
+    else 
+      glBindTexture(texType, positions1);  // read from texture 1
+ 
+    glUniform1iARB(uniform_posit, 0);
+    
+    
+    pathIndex pIndex;
+
+    pathIter = pathList.begin();
+    while(pathIter != pathList.end()){
+
+      pIndex = *pathIter;
+      pathIndex &pIdx = *pathIter;
+
+      //Length of path line is bound to pwidth
+      if(pIndex.s < pwidth){
+	glPointSize(0.5);
+	pathLineShader.activate();
+	//set viewport with s and t
+	glViewport(pIndex.s,pIndex.t,1,1);
+	std::cout << "index being updated: " << pIndex.x << " " << pIndex.y << std::endl;
+	//Punch Hole new point in path line into path line texture
+	
+
+	
+	glBegin(GL_POINTS);
+	{
+	  //pass texture coordinates into position texture to shader
+	  //using the color attribute variable
+	  glColor4f(pIndex.x,pIndex.y,0.0,1.0);
+	  glVertex2f(0.5,0.5);
+	}
+	glEnd();
+	pathLineShader.deactivate();
+	//update s coordinate into path line texture
+	pIdx.s++;
+      }
+
+      pathIter++;
+    }
+   
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-1, 1, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    */
+    //Make sure to bind this fbo, because the pathLines use a
+    //different fbo
+    fbo->Bind();
+
     ////////////////////////////////////////////////////////////
     // Collection Boxes
     ////////////////////////////////////////////////////////////
@@ -231,9 +343,9 @@ int MultipleBuildingsModel::display(){
     ////////////////////////////////////////////////////////////
     // Get Position for Streams
     ////////////////////////////////////////////////////////////
-    if(stream->doUpdate()){
-      stream->updateStreamPos();
-    }
+    //if(stream->doUpdate()){
+    //stream->updateStreamPos();
+    //}
     
     ////////////////////////////////////////////////////////////
     // Update Mean Velocities
@@ -271,7 +383,11 @@ int MultipleBuildingsModel::display(){
 
     if (dump_contents)
     {
-      pc->printPositions(odd);
+      //pc->printPositions(odd);
+      pathFbo->Bind();
+      pathLines->printPathLineTexture();
+
+      fbo->Bind();
       dump_contents = false;
     }
     if(print_MeanVel)
@@ -333,6 +449,10 @@ int MultipleBuildingsModel::display(){
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
 
+      //update path line vbos
+      pathFbo->Bind();
+      pathLines->updateVBOS();
+
       glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
       CheckErrorsGL("after glReadPixels");
       glReadBuffer(read_buffer);
@@ -371,8 +491,13 @@ int MultipleBuildingsModel::display(){
       }		
       
       dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
-      stream->draw();
-      dc->drawLayers(windField, numInRow);
+      //stream->draw();
+      pathLines->draw();
+
+      if(visualLayer == 0)
+	dc->drawLayers(windField, numInRow);
+      else
+	dc->drawTurbulenceLayers(tau,numInRow);
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){
@@ -462,6 +587,14 @@ void MultipleBuildingsModel::initFBO(void){
     fbo2->IsValid();
     FramebufferObject::Disable();
   }
+
+  
+  pathFbo = new FramebufferObject();
+  pathFbo->Bind();
+  pathFbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, pathTex);
+  pathFbo->IsValid();
+  FramebufferObject::Disable();
+
 }
 
 void MultipleBuildingsModel::setupTextures(){
@@ -481,7 +614,7 @@ void MultipleBuildingsModel::setupTextures(){
   if(util->windFieldData != 5)
     pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
   else
-    pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, numInRow);
+    pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau, numInRow);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
   pc->addBuildingsInWindField(cellType, numInRow);
@@ -719,6 +852,24 @@ void MultipleBuildingsModel::setupTextures(){
   CheckErrorsGL("\tcreated texid[13], the building param texture...");
 
   delete [] bdata;
+
+  GLfloat *pdata = new GLfloat[ util->pwidth * util->pheight * 4];
+  for (int j=0; j<util->pheight; j++)
+    for (int i=0; i<util->pwidth; i++)
+      {
+	int idx = j*util->pwidth*4 + i*4;
+	pdata[idx] = 0.0;
+	pdata[idx+1] = 0.0;
+	pdata[idx+2] = 0.0;
+	pdata[idx+3] = 1.0;
+      }
+  
+  glBindTexture(texType, pathTex);
+  
+  pc->createTexture(pathTex,int_format,util->pwidth,util->pheight,pdata);
+  
+  delete [] pdata;
+
 
   CheckErrorsGL("END : Creating textures");
  
