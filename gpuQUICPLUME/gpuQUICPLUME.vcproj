@@ -198,6 +198,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\GeomTest.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\glErrorUtil.cpp"
 				>
 			</File>
@@ -223,6 +227,10 @@
 			</File>
 			<File
 				RelativePath="..\particleEmitter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\PathLine.cpp"
 				>
 			</File>
 			<File
@@ -296,6 +304,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\GeomTest.h"
+				>
+			</File>
+			<File
 				RelativePath="..\glErrorUtil.h"
 				>
 			</File>
@@ -321,6 +333,10 @@
 			</File>
 			<File
 				RelativePath="..\particleEmitter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\PathLine.h"
 				>
 			</File>
 			<File
@@ -434,6 +450,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Shaders\pathLine_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\pathLine_vp.glsl"
+				>
+			</File>
+			<File
 				RelativePath="..\Shaders\plumeAdvect_fp.glsl"
 				>
 			</File>
@@ -447,6 +471,14 @@
 			</File>
 			<File
 				RelativePath="..\Shaders\reflectionAdvect_vp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\turbulenceLayer_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\turbulenceLayer_vp.glsl"
 				>
 			</File>
 			<File
