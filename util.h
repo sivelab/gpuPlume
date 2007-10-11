@@ -15,6 +15,9 @@ class Util{
   //number of particles
   int twidth,theight;
 
+  //path line dimensions
+  int pwidth,pheight;
+
   float time_step;
   //domain
   int nx,ny,nz;
