@@ -61,6 +61,11 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   render_shader.createProgram();
 
+  turbulence_shader.addShader("Shaders/turbulenceLayer_vp.glsl", GLSLObject::VERTEX_SHADER);
+  turbulence_shader.addShader("Shaders/turbulenceLayer_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  turbulence_shader.createProgram();
+  uniform_tauTex = turbulence_shader.createUniform("Tau");
+
   // for point sprites, we need the uniform variables for the texture
   // units that hold the point sprite and the normal map
   uniform_pointsprite_tex = render_shader.createUniform("pointsprite_texunit");
@@ -98,6 +103,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight)
 {
+  
   drawSky();
 
   if(!osgPlume){
@@ -110,6 +116,8 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     //glRotatef(azimuth, 0,0,1);  
   }
   
+  
+
   drawAxes();
   
   if(!osgPlume)
@@ -177,7 +185,6 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     }
 
   render_shader.deactivate();
-
 
   // spit out frame rate
   if(!osgPlume){
@@ -267,7 +274,8 @@ void DisplayControl::setRotateAround(float change){
 void DisplayControl::drawSky(){
   // double skyr = 0.4, skyg = 0.5, skyb = 0.8;
   double skyr = 0.5, skyg = 0.5, skyb = 0.6;
-   
+  glDisable(texType);
+
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   glDisable ( GL_TEXTURE_2D );
   glDepthMask(GL_FALSE);
@@ -298,6 +306,8 @@ void DisplayControl::drawSky(){
   glPopMatrix();
   glPopAttrib();
 
+  glEnable(texType);
+
 }
 void DisplayControl::drawGround(){
 
@@ -324,6 +334,8 @@ void DisplayControl::drawGround(){
 void DisplayControl::drawGrid(){
   GLint lwidth;
   glGetIntegerv(GL_LINE_WIDTH, &lwidth);
+  
+  glDisable(texType);
 
   glLineWidth(0.5);
   glBegin(GL_LINES);
@@ -342,13 +354,15 @@ void DisplayControl::drawGrid(){
   glEnd();
 
   glLineWidth(lwidth);
+ 
+  glEnable(texType);
 }
 
 void DisplayControl::drawAxes(){
   // query the current line width so we can set it back at the end of
   // the function
   //int numLines = ny + 10;
-
+  glDisable(texType);
   GLint lwidth;
   glGetIntegerv(GL_LINE_WIDTH, &lwidth);
   glLineWidth(3.0);
@@ -401,6 +415,34 @@ void DisplayControl::drawAxes(){
 
   // set the line width back to what it was
   glLineWidth(lwidth);
+  glEnable(texType);
+
+}
+void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
+  if (visual_layer >= 0 && visual_layer < nz)
+    {
+      glEnable(texType);
+      glBindTexture(texType, texId); 
+
+      int s = 0;
+      int t = 0;
+
+      s = (int)(visual_layer % numInRow) * nx;
+      t = (int)(floor(visual_layer/(float)numInRow) * ny);
+      
+      turbulence_shader.activate();
+      glUniform1iARB(uniform_tauTex, 0);
+      glBegin(GL_QUADS);
+      {
+	glNormal3f(0.0, 0.0, 1.0);
+	glTexCoord2f(s, t);         glVertex3f(0, 0, visual_layer);
+	glTexCoord2f(s+nx, t);      glVertex3f(nx, 0,visual_layer);
+	glTexCoord2f(s+nx, t+ny);   glVertex3f(nx, ny,visual_layer);
+	glTexCoord2f(s, t+ny);      glVertex3f(0, ny,visual_layer);
+      }
+      glEnd();
+      turbulence_shader.deactivate();
+    }
 
 }
 void DisplayControl::drawLayers(GLuint texId, int numInRow){
