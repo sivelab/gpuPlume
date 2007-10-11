@@ -25,12 +25,13 @@
 #include "util.h"
 #include "simulation.h"
 #include "streamLine.h"
+#include "PathLine.h"
 #include "Random.h"
 #include <string>
 
 class PlumeControl{
  public:
-  
+
   //PlumeControl(Util*);
 
   virtual void init(bool); 
@@ -50,6 +51,8 @@ class PlumeControl{
   int nz;
 
   StreamLine* stream;
+  PathLine* pathLines;
+
   ParticleControl* pc;
   DisplayControl* dc;
   ParticleEmitter* pe[10];
@@ -62,13 +65,15 @@ class PlumeControl{
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
 
-  GLuint texid[15]; 
+  GLuint texid[17]; 
   GLenum texType,positions0,positions1,windField,randomValues;
-  GLenum prime0, prime1, lambda, tau_dz, duvw_dz;
+  GLenum prime0, prime1, lambda, tau_dz, duvw_dz, tau;
   GLenum meanVel0,meanVel1,currVel,buildings,cellType;
+  GLenum pathTex;
 
   FramebufferObject* fbo;
   FramebufferObject* fbo2;
+  FramebufferObject* pathFbo;
   Renderbuffer* rb;
 
   GLuint vbo_buffer[2];
@@ -97,6 +102,10 @@ class PlumeControl{
 
   bool paused;
   bool inPauseMode;
+
+  //Determines which texture to draw in horizontal layers.
+  //Currently the wind field and tau textures are the only options.
+  int visualLayer;
 
   std::string texFileName;
 
