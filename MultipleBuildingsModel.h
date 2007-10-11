@@ -15,8 +15,7 @@ class MultipleBuildingsModel : public PlumeControl{
   
  protected:
 
-  //FramebufferObject* fbo2;
-
+ 
   virtual void initFBO();
   virtual ~MultipleBuildingsModel();
 
@@ -24,4 +23,4 @@ class MultipleBuildingsModel : public PlumeControl{
 
 };
 
-#endif //__MBModel_H__
+#endif 
