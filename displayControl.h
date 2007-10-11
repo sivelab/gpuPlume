@@ -25,6 +25,7 @@ class DisplayControl{
   void drawGround();
   void drawSky();
   void drawLayers(GLuint, int);
+  void drawTurbulenceLayers(GLuint, int);
   void drawFeatures(void);
   void drawFrameRate(int, int);
   void OpenGLText(int, int, char*);
@@ -77,7 +78,7 @@ class DisplayControl{
   float* lti;
   
 
-  GLSLObject render_shader;
+  GLSLObject render_shader, turbulence_shader;
 
   Timer *clock_timer;
   Timer_t graphics_time[2];
@@ -94,7 +95,7 @@ class DisplayControl{
 
   GLenum texType;
 
-  GLint uniform_vel_color;
+  GLint uniform_vel_color, uniform_tauTex;
 
   //
   // Point Sprite visual data
