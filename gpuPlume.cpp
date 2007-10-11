@@ -21,6 +21,7 @@
 #include "Gaussian_2shaders_Model.h"
 #include "ReflectionModel.h"
 #include "MultipleBuildingsModel.h"
+#include "GeomTest.h"
 
 #include "Timer.h"
 
@@ -107,6 +108,9 @@ int main(int argc, char** argv)
   case 4:
     plume = new MultipleBuildingsModel(util);
     break;
+  case 5:
+    plume = new GeomTest(util);
+    break;
   default:
     std::cout << "Error in advection Choice in Settings file!" << std::endl;
   }
@@ -138,6 +142,16 @@ int main(int argc, char** argv)
       std::cout << "GL_ARB_vertex_buffer_object is NOT available!  Exiting!" << std::endl;
       exit(-1);
     }
+
+  if(GL_EXT_geometry_shader4){
+    std::cout << "Ready for geom shader!" << std::endl;
+    int numV;
+    glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &numV);
+    std::cout << numV << " number of output vertices." << std::endl;
+  }
+  else
+    std::cout << "NOT ready for geom shader." << std::endl;
+  
 
   init();
 
@@ -239,6 +253,12 @@ void keyboard_cb(unsigned char key, int x, int y)
   else if (key == 'K')
     {
       plume->dc->increaseVisualLayer();
+    }
+  else if (key == 'l')
+    {
+      plume->visualLayer++;
+      if(plume->visualLayer > 1)
+	plume->visualLayer = 0;
     }
 
   else if (key == 't')
