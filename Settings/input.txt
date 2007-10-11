@@ -2,6 +2,10 @@
 twidth 256
 theight 256
 
+#Path Lines
+pwidth 1000
+pheight 100
+
 #Set the Domain
 nx 100
 ny 50
