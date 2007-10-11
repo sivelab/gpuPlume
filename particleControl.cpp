@@ -18,6 +18,14 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
 
   outputPrime = false;
   alreadyOpen = false;
+  tau11Max = 0;
+  tau22Max = 0;
+  tau33Max = 0;
+  tau13Max = 0;
+  tau11Min = 0;
+  tau22Min = 0;
+  tau33Min = 0;
+  tau13Min = 0;
 
 }
 void ParticleControl::setBuildingParameters(int nB,float* x,float* y,float* z,
@@ -643,10 +651,10 @@ void ParticleControl::updatePrimeAndAdvect(bool odd,
  
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0, 0);								glVertex3f(-1, -1, -0.5f);
-    glTexCoord2f(float(twidth), 0);					glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(0, 0);					glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(float(twidth), 0);			glVertex3f( 1, -1, -0.5f);
     glTexCoord2f(float(twidth), float(theight));	glVertex3f( 1,  1, -0.5f);
-    glTexCoord2f(0, float(theight));				glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, float(theight));			glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
   
@@ -1691,10 +1699,12 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   delete [] data;
 
 }
-void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, int numInRow){
+void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, GLuint tauTex, int numInRow){
   GLfloat *data = new GLfloat[ width * height * 4 ];
   GLfloat *dataWind = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
+  GLfloat *dataTau = new GLfloat[width*height*4];
+
   GLfloat *data3 = new GLfloat[width*height*4];
   GLfloat *data4 = new GLfloat[width*height*4];
   GLfloat *data5 = new GLfloat[width*height*4];
@@ -1976,11 +1986,17 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    float tauDetInv=1.0f/((tau11*tau22*tau33)-(tau13*tau13*tau22));
 
 	  
+	    updateMaxandMinTaus(tau11,tau22,tau33,tau13);
+			    
 	    tau[p2idx].t11   = tau11;             //Tau11
 	    tau[p2idx+1].t22 = tau22;             //Tau22
 	    tau[p2idx+2].t33 = tau33;             //Tau33
 	    tau[p2idx+3].t13 = tau13;             //Tau13
-
+	    //Make tau's a texture so that they can be visualized as horizontal layers in the domain
+	    dataTau[texidx] = tau11;
+	    dataTau[texidx+1] = tau22;
+	    dataTau[texidx+2] = tau33;
+	    dataTau[texidx+3] = tau13;
 
 	    dataTwo[texidx]   =  1.0f/(tau11-tau13*tau13/tau33);// tauDetInv*(tau22*tau33);            //Lam11
 	    dataTwo[texidx+1] =  1.0f/tau22;// tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
@@ -1998,7 +2014,9 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
   createTexture(duvw_dz, GL_RGBA32F_ARB, width,height, data3);
   createTexture(windField, GL_RGBA32F_ARB, width, height, dataWind);
+  createTexture(tauTex, GL_RGBA32F_ARB, width, height, dataTau);
   
+  delete [] dataTau;
   delete [] dataWind;
   delete [] data3;
   delete [] dataTwo;
@@ -2682,5 +2700,28 @@ void ParticleControl::initParticlePositions(FramebufferObject* fbo, GLuint texId
   FramebufferObject::Disable();
   glViewport(vp[0], vp[1], vp[2], vp[3]);
   glDrawBuffer(draw_buffer);
+
+}
+void ParticleControl::updateMaxandMinTaus(float tau11,float tau22,float tau33,float tau13){
+
+  //update Max
+  if(tau11 > tau11Max)
+    tau11Max = tau11;
+  if(tau22 > tau22Max)
+    tau22Max = tau22;
+  if(tau33 > tau33Max)
+    tau33Max = tau33;
+  if(tau13 > tau13Max)
+    tau13Max = tau13;
+
+  //update Min
+  if(tau11 < tau11Min)
+    tau11Min = tau11;
+  if(tau22 < tau22Min)
+    tau22Min = tau22;
+  if(tau33 < tau33Min)
+    tau33Min = tau33;
+  if(tau13 < tau13Min)
+    tau13Min = tau13;
 
 }
