@@ -142,16 +142,16 @@ int main(int argc, char** argv)
       std::cout << "GL_ARB_vertex_buffer_object is NOT available!  Exiting!" << std::endl;
       exit(-1);
     }
-
+/*
   if(GL_EXT_geometry_shader4){
     std::cout << "Ready for geom shader!" << std::endl;
-    int numV;
+    int numV = 0;
     glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &numV);
     std::cout << numV << " number of output vertices." << std::endl;
   }
   else
     std::cout << "NOT ready for geom shader." << std::endl;
-  
+  */
 
   init();
 
