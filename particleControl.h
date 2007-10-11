@@ -57,7 +57,7 @@ class ParticleControl{
   void initLambdaTex(GLuint, int);
   
   void initLambda_and_TauTex(GLuint,GLuint,GLuint,int);
-  void initLambda_and_TauTex_fromQUICFILES(GLuint,GLuint,GLuint,GLuint,int);
+  void initLambda_and_TauTex_fromQUICFILES(GLuint,GLuint,GLuint,GLuint,GLuint,int);
 
   //This function is used to initialize the particle positions.
   //It was needed when we weren't able to directly put 32-bit floating point
@@ -138,6 +138,10 @@ class ParticleControl{
   //RandomTexCoords;
   float t1,t2;
 
+  //Max and Min Tau values
+  float tau11Max,tau22Max,tau33Max,tau13Max;
+  float tau11Min,tau22Min,tau33Min,tau13Min;
+
  private:
   float min,max; 
 
@@ -150,6 +154,8 @@ class ParticleControl{
   void initCellType();
 
   void printPrime(bool,bool);
+
+  void updateMaxandMinTaus(float,float,float,float);
  
   wind* wind_vel;
   cellType* cellQuic;
