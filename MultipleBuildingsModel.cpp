@@ -408,7 +408,8 @@ int MultipleBuildingsModel::display(){
 	glClearColor(util->bcolor[0],util->bcolor[1],util->bcolor[2],1.0);	
       }		
       
-      dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
+      // dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
+      dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
       //stream->draw();
       pathLines->draw();
 
