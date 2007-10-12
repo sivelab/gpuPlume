@@ -70,9 +70,14 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   // units that hold the point sprite and the normal map
   uniform_pointsprite_tex = render_shader.createUniform("pointsprite_texunit");
   uniform_normalmap_tex = render_shader.createUniform("pointspritenormal_texunit");
+  uniform_visualization_tex = render_shader.createUniform("visualization_texunit");
 
   // determine which visual to use
   uniform_pointsprite_visuals = render_shader.createUniform("point_visuals");
+  uniform_nx = render_shader.createUniform("nx");
+  uniform_ny = render_shader.createUniform("ny");
+  uniform_nz = render_shader.createUniform("nz");
+  uniform_numInRow = render_shader.createUniform("numInRow");
 
   // POINT_SPRITE
   //
@@ -97,7 +102,8 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   clock_timer = new Timer(true);
 
   graphics_time[0] = clock_timer->tic();
-  
+  HUP_display_update_time[0] = clock_timer->tic();
+  estimated_rate = 0.0;
 }
 
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
@@ -105,7 +111,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
 {
   
   drawSky();
-
+  
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
 	     eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], 
@@ -151,8 +157,13 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     {
       glPointSize(6.0);
       glUniform1iARB(uniform_pointsprite_visuals, 1);
+      glUniform1iARB(uniform_nx, nx);
+      glUniform1iARB(uniform_ny, ny);
+      glUniform1iARB(uniform_nz, nz);
+      glUniform1iARB(uniform_numInRow, numInRow);
 
       glEnable(GL_TEXTURE_2D);
+      glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
       glActiveTextureARB(GL_TEXTURE0_ARB);
       glUniform1iARB(uniform_pointsprite_tex, 0);
@@ -161,6 +172,10 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
       glActiveTextureARB(GL_TEXTURE1_ARB);
       glUniform1iARB(uniform_normalmap_tex, 1);
       glBindTexture(GL_TEXTURE_2D, point_sprite_textures[1]);
+
+      glActiveTexture(GL_TEXTURE2);
+      glUniform1iARB(uniform_visualization_tex, 2);
+      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texid3);
 
       glActiveTextureARB(GL_TEXTURE0_ARB);
 
@@ -641,11 +656,35 @@ void DisplayControl::drawFeatures(void)
 
 void DisplayControl::drawFrameRate(int twidth, int theight)
 {
+  static bool do_first_time_only = true;
+  double alpha = 0.125;
+  double sampled_rate;
+
   // record end clock time
   graphics_time[1] = clock_timer->tic();
 
-  float avg_frame_rate = 1.0/( clock_timer->deltas( graphics_time[0], graphics_time[1] ) );
-  sprintf(text_buffer, "%d particles, %0d fps", twidth*theight, (int)(avg_frame_rate+0.5));
+  sampled_rate = clock_timer->deltam( graphics_time[0], graphics_time[1] );
+
+  if (do_first_time_only) 
+    {
+      estimated_rate = sampled_rate;
+      last_estimated_rate = sampled_rate;
+      do_first_time_only = false;
+    }
+  else 
+    estimated_rate = (1.0 - alpha) * estimated_rate + alpha * sampled_rate;
+
+  //
+  // update the time on the screen every so often, but sample it more often
+  //
+  HUP_display_update_time[1] = clock_timer->tic();
+  if (clock_timer->deltas( HUP_display_update_time[0], HUP_display_update_time[1] ) > 0.25)
+    {
+      last_estimated_rate = estimated_rate;
+      HUP_display_update_time[0] = clock_timer->tic();
+    }
+
+  sprintf(text_buffer, "%d particles, Sim Step Time: %.2f ms", twidth*theight, last_estimated_rate);
   OpenGLText(5, 5, text_buffer);
 
   // record start clock time

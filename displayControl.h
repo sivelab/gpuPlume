@@ -82,6 +82,9 @@ class DisplayControl{
 
   Timer *clock_timer;
   Timer_t graphics_time[2];
+  Timer_t HUP_display_update_time[2];
+
+  double estimated_rate, last_estimated_rate;
 
   GLfloat azimuth;
   GLfloat elevation;
@@ -104,7 +107,8 @@ class DisplayControl{
 
   // * variable to reference the texture units for the point sprite
   // * and normal map textures
-  GLint uniform_pointsprite_tex, uniform_normalmap_tex, uniform_pointsprite_visuals;
+  GLint uniform_pointsprite_tex, uniform_normalmap_tex, uniform_visualization_tex, uniform_pointsprite_visuals, 
+    uniform_nx, uniform_ny, uniform_nz, uniform_numInRow;
 
   // * function to create point sprite textures
   void createPointSpriteTextures();
