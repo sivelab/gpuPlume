@@ -1469,7 +1469,7 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow, int dataSet){
   ///////////////////////////////////////////////////////
   (*numInRow) = (width - (width % nx))/nx;
 
-  if(dataSet != 5){
+  if(dataSet < 5){
 
     int qi, qj, qk;
     int p2idx = 0, texidx = 0;
@@ -2085,6 +2085,10 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   createTexture(tau_dz, GL_RGBA32F_ARB, width,height, data);
   
   delete [] data;
+
+}
+void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, GLuint tauTex, int numInRow){
+
 
 }
 /*void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint lambda, GLuint tau_dz, GLuint duvw_dz, int numInRow){
