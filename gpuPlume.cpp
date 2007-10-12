@@ -119,8 +119,22 @@ int main(int argc, char** argv)
 
   glutInitDisplayMode( GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE );
   glutInit(&argc, argv);
-  glutInitWindowSize(winwidth, winheight);
-  plume->winid = glutCreateWindow("gpuPLUME");
+
+  // A variable to allow us (eventually) to control full screen, hopefully, SLI rendering.
+  bool use_game_mode = false;
+  if (use_game_mode) 
+    {
+      glutGameModeString("1280x1024");
+      std::cout << "Game Mode Width: " << glutGameModeGet(GLUT_GAME_MODE_WIDTH) << std::endl;
+      std::cout << "Game Mode Height: " << glutGameModeGet(GLUT_GAME_MODE_HEIGHT) << std::endl;
+      glutEnterGameMode();
+    }
+  else 
+    {
+      glutInitWindowSize(winwidth, winheight);
+      plume->winid = glutCreateWindow("gpuPLUME");
+    }
+
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
   glutIdleFunc(idle);
