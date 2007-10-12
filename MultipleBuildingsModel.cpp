@@ -228,28 +228,6 @@ int MultipleBuildingsModel::display(){
 	if(pe[i]->releaseType == onePerKeyPress){
 	  //stream->addNewStream(pe[i]);
 	  pathLines->addNewPath(pe[i]);
-	  /*int xindex,yindex; 
-	  pathIndex pIndex;
-
-	  //pheight is how many path lines that can be generated
-	  if(pathNum < pheight){
-	    pe[i]->getIndex(&xindex,&yindex);
-	    //Need to Punch Hole method to put initial starting position into 
-	    //path line texture
-
-	    
-	    pIndex.x = xindex;
-	    pIndex.y = yindex;
-	    pIndex.s = 0;
-	    pIndex.t = pathNum;
-	    
-	    std::cout << "Path Number: " << pIndex.t << std::endl;
-	    std::cout << "Index emitted: " << pIndex.x << " "<< pIndex.y << std::endl;
-	    std::cout << "pTex coords: " << pIndex.s << " " << pIndex.t << std::endl;
-
-	    pathList.push_front(pIndex);
-	    pathNum++;
-	    }*/
 
 	}
       }
@@ -260,67 +238,7 @@ int MultipleBuildingsModel::display(){
     //FramebufferObject::Disable();
     pathFbo->Bind();
     pathLines->updatePathLines(positions0,positions1,odd);
-    /*glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, pwidth, 0, pheight);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity(); 
     
-
-    glActiveTexture(GL_TEXTURE0);
-    if (odd)
-      glBindTexture(texType, positions0);  // read from texture 0
-    else 
-      glBindTexture(texType, positions1);  // read from texture 1
- 
-    glUniform1iARB(uniform_posit, 0);
-    
-    
-    pathIndex pIndex;
-
-    pathIter = pathList.begin();
-    while(pathIter != pathList.end()){
-
-      pIndex = *pathIter;
-      pathIndex &pIdx = *pathIter;
-
-      //Length of path line is bound to pwidth
-      if(pIndex.s < pwidth){
-	glPointSize(0.5);
-	pathLineShader.activate();
-	//set viewport with s and t
-	glViewport(pIndex.s,pIndex.t,1,1);
-	std::cout << "index being updated: " << pIndex.x << " " << pIndex.y << std::endl;
-	//Punch Hole new point in path line into path line texture
-	
-
-	
-	glBegin(GL_POINTS);
-	{
-	  //pass texture coordinates into position texture to shader
-	  //using the color attribute variable
-	  glColor4f(pIndex.x,pIndex.y,0.0,1.0);
-	  glVertex2f(0.5,0.5);
-	}
-	glEnd();
-	pathLineShader.deactivate();
-	//update s coordinate into path line texture
-	pIdx.s++;
-      }
-
-      pathIter++;
-    }
-   
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-1, 1, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    */
     //Make sure to bind this fbo, because the pathLines use a
     //different fbo
     fbo->Bind();
@@ -611,10 +529,12 @@ void MultipleBuildingsModel::setupTextures(){
   CheckErrorsGL("\tcreated texid[3], the wind field texture...");
 
   //Creates lambda, tau/dz, and duvw/dz textures
-  if(util->windFieldData != 5)
+  if(util->windFieldData < 5)
     pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
-  else
+  else if(util->windFieldData == 5)
     pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau, numInRow);
+  else
+    pc->initLambda_and_Taus_withCalculations(windField, lambda, tau_dz, duvw_dz, tau, numInRow);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
   pc->addBuildingsInWindField(cellType, numInRow);
