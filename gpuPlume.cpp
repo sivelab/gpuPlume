@@ -373,8 +373,9 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if(key == 'c')
     {
-      plume->stream->clear();      
-      }
+      //plume->stream->clear();   
+      plume->pathLines->clear();
+    }
   else if(key == 'g')
     {
       plume->pc->outputPrime = true;
