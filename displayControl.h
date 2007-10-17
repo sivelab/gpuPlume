@@ -19,6 +19,8 @@ class DisplayControl{
   
   DisplayControl(int, int, int, GLenum);
   
+  void setupTurbulenceShader(float [], float []);
+
   void drawVisuals(GLuint, GLuint, GLuint, int, int, int);
   void drawAxes();
   void drawGrid();
@@ -99,6 +101,8 @@ class DisplayControl{
   GLenum texType;
 
   GLint uniform_vel_color, uniform_tauTex;
+  GLint uniform_max11,uniform_max22,uniform_max33,uniform_max13;
+  GLint uniform_min11,uniform_min22,uniform_min33,uniform_min13;
 
   //
   // Point Sprite visual data
