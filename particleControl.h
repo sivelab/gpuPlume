@@ -105,6 +105,8 @@ class ParticleControl{
 
   void setBuildingParameters(int,float*,float*,float*,float*,float*,float*);
   void addBuildingsInWindField(GLuint,int);
+  
+  
 
   bool outputPrime;
 
@@ -140,9 +142,9 @@ class ParticleControl{
   //RandomTexCoords;
   float t1,t2;
 
-  //Max and Min Tau values
-  float tau11Max,tau22Max,tau33Max,tau13Max;
-  float tau11Min,tau22Min,tau33Min,tau13Min;
+  //Max and Min Tau values 
+  float tauMax[4];// tau11Max,tau22Max,tau33Max,tau13Max;  
+  float tauMin[4];// tau11Min,tau22Min,tau33Min,tau13Min;
 
  private:
   float min,max; 
