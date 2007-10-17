@@ -185,6 +185,9 @@ void PathLine::draw(){
   glDisable(GL_COLOR_ARRAY);
   glEnableClientState(GL_VERTEX_ARRAY);
   int i=0;
+
+  //glLineWidth(2.0);
+
   pathIndex pIndex;
   pathIter = pathList.begin();
   while(pathIter != pathList.end()){
