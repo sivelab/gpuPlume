@@ -18,14 +18,10 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
 
   outputPrime = false;
   alreadyOpen = false;
-  tau11Max = 0;
-  tau22Max = 0;
-  tau33Max = 0;
-  tau13Max = 0;
-  tau11Min = 0;
-  tau22Min = 0;
-  tau33Min = 0;
-  tau13Min = 0;
+  for(int i=0; i <4; i++){
+    tauMax[i] = 0;
+    tauMin[i] = 0;
+  }
 
 }
 void ParticleControl::setBuildingParameters(int nB,float* x,float* y,float* z,
@@ -2709,23 +2705,23 @@ void ParticleControl::initParticlePositions(FramebufferObject* fbo, GLuint texId
 void ParticleControl::updateMaxandMinTaus(float tau11,float tau22,float tau33,float tau13){
 
   //update Max
-  if(tau11 > tau11Max)
-    tau11Max = tau11;
-  if(tau22 > tau22Max)
-    tau22Max = tau22;
-  if(tau33 > tau33Max)
-    tau33Max = tau33;
-  if(tau13 > tau13Max)
-    tau13Max = tau13;
+  if(tau11 > tauMax[0])
+    tauMax[0] = tau11;
+  if(tau22 > tauMax[1])
+    tauMax[1] = tau22;
+  if(tau33 > tauMax[2])
+    tauMax[2] = tau33;
+  if(tau13 > tauMax[3])
+    tauMax[3] = tau13;
 
   //update Min
-  if(tau11 < tau11Min)
-    tau11Min = tau11;
-  if(tau22 < tau22Min)
-    tau22Min = tau22;
-  if(tau33 < tau33Min)
-    tau33Min = tau33;
-  if(tau13 < tau13Min)
-    tau13Min = tau13;
+  if(tau11 < tauMin[0])
+    tauMin[0] = tau11;
+  if(tau22 < tauMin[1])
+    tauMin[1] = tau22;
+  if(tau33 < tauMin[2])
+    tauMin[3] = tau33;
+  if(tau13 < tauMin[4])
+    tauMin[4] = tau13;
 
 }
