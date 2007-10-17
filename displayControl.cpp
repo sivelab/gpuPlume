@@ -65,6 +65,14 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   turbulence_shader.addShader("Shaders/turbulenceLayer_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   turbulence_shader.createProgram();
   uniform_tauTex = turbulence_shader.createUniform("Tau");
+  uniform_max11 = turbulence_shader.createUniform("max11");
+  uniform_max22 = turbulence_shader.createUniform("max22");
+  uniform_max33 = turbulence_shader.createUniform("max33");
+  uniform_max13 = turbulence_shader.createUniform("max13");
+  uniform_min11 = turbulence_shader.createUniform("min11");
+  uniform_min22 = turbulence_shader.createUniform("min22");
+  uniform_min33 = turbulence_shader.createUniform("min33");
+  uniform_min13 = turbulence_shader.createUniform("min13");
 
   // for point sprites, we need the uniform variables for the texture
   // units that hold the point sprite and the normal map
@@ -105,7 +113,22 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   HUP_display_update_time[0] = clock_timer->tic();
   estimated_rate = 0.0;
 }
+void DisplayControl::setupTurbulenceShader(float Max[], float Min[]){
+  turbulence_shader.activate();
 
+  glUniform1fARB(uniform_max11, Max[0]);
+  glUniform1fARB(uniform_max22, Max[1]);
+  glUniform1fARB(uniform_max33, Max[2]);
+  glUniform1fARB(uniform_max13, Max[3]);
+  
+  glUniform1fARB(uniform_min11, Min[0]);
+  glUniform1fARB(uniform_min22, Min[1]);
+  glUniform1fARB(uniform_min33, Min[2]);
+  glUniform1fARB(uniform_min13, Min[3]);
+
+
+  turbulence_shader.deactivate();
+}
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight)
 {
@@ -436,8 +459,17 @@ void DisplayControl::drawAxes(){
 void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
   if (visual_layer >= 0 && visual_layer < nz)
     {
+
+      glPushMatrix();
+      glEnable(GL_COLOR_MATERIAL);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
+
       glEnable(texType);
-      glBindTexture(texType, texId); 
+      glBindTexture(texType, texId);
+      //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 
       int s = 0;
       int t = 0;
@@ -446,7 +478,9 @@ void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
       t = (int)(floor(visual_layer/(float)numInRow) * ny);
       
       turbulence_shader.activate();
-      glUniform1iARB(uniform_tauTex, 0);
+
+      glUniform1iARB(uniform_tauTex, 0); 
+
       glBegin(GL_QUADS);
       {
 	glNormal3f(0.0, 0.0, 1.0);
@@ -457,6 +491,15 @@ void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
       }
       glEnd();
       turbulence_shader.deactivate();
+
+      //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glDisable(texType);
+      glDisable(GL_BLEND);
+      glDisable(GL_COLOR_MATERIAL);
+
+      glPopMatrix();
+
     }
 
 }
