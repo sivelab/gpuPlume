@@ -73,7 +73,7 @@ void MultipleBuildingsModel::init(bool OSG){
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz);
   pc->setUstarAndSigmas(util->ustar);
   pc->setBuildingParameters(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
-  
+
   dc = new DisplayControl(nx,ny,nz, texType);  
   dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
 
@@ -83,7 +83,7 @@ void MultipleBuildingsModel::init(bool OSG){
   else{   
     dc->draw_buildings = true;
   }
-  
+
   if(osgPlume){
     vp = new GLint[4];
     mvm = new GLfloat[16];
@@ -125,6 +125,8 @@ void MultipleBuildingsModel::init(bool OSG){
 
   /////////////////////////////
   setupTextures(); 
+  /////////////////////////////
+
   //
   // set up vertex buffer
   // 
@@ -142,7 +144,7 @@ void MultipleBuildingsModel::init(bool OSG){
   //Initialize FBO
   initFBO();
 
-  if(util->windFieldData == 5)
+  if(util->windFieldData >= 5)
     pc->setupMultipleBuildingsShader(numInRow,lifeTime,0);
   else
     pc->setupMultipleBuildingsShader(numInRow,lifeTime,1);
@@ -156,10 +158,7 @@ void MultipleBuildingsModel::init(bool OSG){
   emit_shader.addShader("Shaders/emitParticle_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   emit_shader.createProgram();
 
-  /*pathLineShader.addShader("Shaders/pathLine_vp.glsl", GLSLObject::VERTEX_SHADER);
-  pathLineShader.addShader("Shaders/pathLine_fp.glsl", GLSLObject::FRAGMENT_SHADER);
-  pathLineShader.createProgram();
-  uniform_posit = pathLineShader.createUniform("positions");*/
+  dc->setupTurbulenceShader(pc->tauMax, pc->tauMin);
 
   CheckErrorsGL("END of init");
 
@@ -537,6 +536,14 @@ void MultipleBuildingsModel::setupTextures(){
   else
     pc->initLambda_and_Taus_withCalculations(windField, lambda, tau_dz, duvw_dz, tau, numInRow);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
+
+  //Print out max and min taus
+  /*std::cout << "Max and Min Taus" << std::endl;
+  std::cout << pc->tauMax[0] << " " << pc->tauMax[1] << " " << pc->tauMax[2] << " " << 
+    pc->tauMax[3] << std::endl;
+  
+  std::cout << pc->tauMin[0] << " " << pc->tauMin[1] << " " << pc->tauMin[2] << " " << 
+  pc->tauMin[3] << std::endl;*/
 
   pc->addBuildingsInWindField(cellType, numInRow);
   CheckErrorsGL("\tcreated texid[14], the cell type texture...");
