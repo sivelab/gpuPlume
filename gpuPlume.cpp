@@ -270,11 +270,10 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if (key == 'l')
     {
-      plume->visualLayer++;
-      if(plume->visualLayer > 1)
-	plume->visualLayer = 0;
+      plume->dc->visual_field++;
+      if(plume->dc->visual_field > 5)
+	plume->dc->visual_field = 0;
     }
-
   else if (key == 't')
     {
       // toggle whether to display output

@@ -73,6 +73,8 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   uniform_min22 = turbulence_shader.createUniform("min22");
   uniform_min33 = turbulence_shader.createUniform("min33");
   uniform_min13 = turbulence_shader.createUniform("min13");
+  uniform_controlTau = turbulence_shader.createUniform("controlTau");
+  visual_field = 0;
 
   // for point sprites, we need the uniform variables for the texture
   // units that hold the point sprite and the normal map
@@ -357,10 +359,10 @@ void DisplayControl::drawGround(){
   glColor4f(0.5,0.5,0.5,1.0);
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0,0);       glVertex3f(0.0,0.0,0.0);
-    glTexCoord2f(1,0);       glVertex3f(nx,0.0,0.0);
-    glTexCoord2f(1,1);       glVertex3f(nx,ny,0.0);
-    glTexCoord2f(0,1);       glVertex3f(0.0,ny,0.0);
+    glTexCoord2f(0,0);       glVertex3f(0.0,0.0,-0.05);
+    glTexCoord2f(1,0);       glVertex3f(nx,0.0,-0.05);
+    glTexCoord2f(1,1);       glVertex3f(nx,ny,-0.05);
+    glTexCoord2f(0,1);       glVertex3f(0.0,ny,-0.05);
   }
   glEnd();
 
@@ -478,6 +480,8 @@ void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
       t = (int)(floor(visual_layer/(float)numInRow) * ny);
       
       turbulence_shader.activate();
+      
+      glUniform1iARB(uniform_controlTau, visual_field);
 
       glUniform1iARB(uniform_tauTex, 0); 
 
@@ -503,8 +507,13 @@ void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
     }
 
 }
-void DisplayControl::drawLayers(GLuint texId, int numInRow){
-  if (visual_layer >= 0 && visual_layer < nz)
+void DisplayControl::drawLayers(GLuint texId, GLuint texId2, int numInRow){
+
+  if(visual_field > 0)
+    drawTurbulenceLayers(texId2, numInRow);
+  else{
+
+    if (visual_layer >= 0 && visual_layer < nz)
     {
       glPushMatrix();
       //glEnable(GL_LIGHTING);
@@ -580,7 +589,7 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
 
       glPopMatrix();
     }
-  
+  }
 }
 
 void instanceCube()

@@ -26,7 +26,7 @@ class DisplayControl{
   void drawGrid();
   void drawGround();
   void drawSky();
-  void drawLayers(GLuint, int);
+  void drawLayers(GLuint,GLuint, int);
   void drawTurbulenceLayers(GLuint, int);
   void drawFeatures(void);
   void drawFrameRate(int, int);
@@ -58,8 +58,10 @@ class DisplayControl{
   ParticleVisualState particle_visual_state;
 
   int visual_layer;
+  int visual_field;
   float eye_pos[3];
   float eye_gaze[3];
+  //int tauValue; 
 
  private:
   
@@ -103,6 +105,8 @@ class DisplayControl{
   GLint uniform_vel_color, uniform_tauTex;
   GLint uniform_max11,uniform_max22,uniform_max33,uniform_max13;
   GLint uniform_min11,uniform_min22,uniform_min33,uniform_min13;
+  GLint uniform_controlTau;
+
 
   //
   // Point Sprite visual data
