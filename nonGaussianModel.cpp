@@ -272,7 +272,7 @@ int NonGaussianModel::display(){
       
       dc->drawVisuals(vertex_buffer, windField, 0, numInRow, twidth, theight);
       stream->draw();
-      dc->drawLayers(windField, numInRow);
+      dc->drawLayers(windField, lambda, numInRow);
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){

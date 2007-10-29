@@ -33,7 +33,6 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   int_format_init = GL_RGBA;
 
   totalNumPar = 0.0;  
-  visualLayer = 0;
 
   //CollectionBox Settings
   cBoxes[0] = new CollectionBox(util);
@@ -411,11 +410,7 @@ int MultipleBuildingsModel::display(){
       dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
       //stream->draw();
       pathLines->draw();
-
-      if(visualLayer == 0)
-	dc->drawLayers(windField, numInRow);
-      else
-	dc->drawTurbulenceLayers(tau,numInRow);
+      dc->drawLayers(windField,tau,numInRow);
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){

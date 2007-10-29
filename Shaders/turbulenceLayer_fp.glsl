@@ -10,40 +10,74 @@ uniform float min11;
 uniform float min22;
 uniform float min33;
 uniform float min13;
+uniform int controlTau;
 
 varying vec4 pcolor;
 
 void main(void)
 {
   vec2 texCoord = gl_TexCoord[0].xy;
-  vec4 color = vec4(textureRect(Tau, texCoord));
- 
+  vec4 color = vec4(textureRect(Tau, texCoord)); 
   
-  float max = max11;
-  if(max22>max)
-    max = max22;
-  if(max33>max)
-    max = max33;
-  if(max13>max)
-    max = max13;
-  float min = min11;
-  if(min22>min)
-    min = min22;
-  if(min33>min)
-    min = min33;
-  if(min13>min)
-    min = min13;
+  //Show only Tau11
+  if(controlTau == 1){
+    color.x = (color.x-min11)/(max11-min11);
+    if(color.x > 0.05)
+      gl_FragColor = vec4(color.x,0.0,0.0,1.0);
+    else
+      gl_FragColor = vec4(color.x,0.0,0.0,0.7);
+  }
+  //Show only Tau22
+  else if(controlTau == 2){
+    color.y = (color.y-min22)/(max22-min22);
+    if(color.y > 0.05)
+      gl_FragColor = vec4(0.0,color.y,0.0,1.0);
+    else
+      gl_FragColor = vec4(0.0,color.y,0.0,0.7);
+  }
+  //Show only Tau33
+  else if(controlTau == 3){
+    color.z = (color.z-min33)/(max33-min33);
+    if(color.z > 0.05)
+      gl_FragColor = vec4(0.0,0.0,color.z,1.0);
+    else
+      gl_FragColor = vec4(0.0,0.0,color.z,0.7);
+  }
+  else if(controlTau == 4){
+    color.w = (color.w-min13)/(max13-min13);
+    if(color.w > 0.05)
+      gl_FragColor = vec4(color.w,color.w,0.0,1.0);
+    else
+      gl_FragColor = vec4(color.w,color.w,0.0,0.7);
+  }
+  //Show all together
+  else{
+    
+    float max = max11;
+    if(max22>max)
+      max = max22;
+    if(max33>max)
+      max = max33;
+    if(max13>max)
+      max = max13;
+    float min = min11;
+    if(min22>min)
+      min = min22;
+    if(min33>min)
+      min = min33;
+    if(min13>min)
+      min = min13;
 
-  /*color.x = (color.x + min11)/max11;
-  color.y = (color.y + min22)/max22;
-  color.z = (color.z + min33)/max33;
-  color.w = 1.0-((color.w + min13)/max13);*/
-  color.x = (color.x+min)/max;
-  color.y = (color.y+min)/max;
-  color.z = (color.z+min)/max;
-  color.w = 1.0-(color.w+min)/max;
+    float range = max - min;
 
-  gl_FragColor = color;
+    color.x = (color.x-min)/range;
+    color.y = (color.y-min)/range;
+    color.z = (color.z-min)/range;
+    color.w = 1.0-((color.w-min)/range);
+
+
+    gl_FragColor = color;
+  }
   /*if (point_visuals == 1)
     {
     //vec4 d = vec4(texture2D(pointspritenormal_texunit, gl_TexCoord[0].st));
