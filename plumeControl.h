@@ -103,10 +103,6 @@ class PlumeControl{
   bool paused;
   bool inPauseMode;
 
-  //Determines which texture to draw in horizontal layers.
-  //Currently the wind field and tau textures are the only options.
-  int visualLayer;
-
   std::string texFileName;
 
  protected:
