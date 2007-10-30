@@ -1,9 +1,9 @@
 #Number of particles(twidth*theight)
-twidth 256
-theight 256
+twidth 512
+theight 512
 
 #Path Lines
-pwidth 1000
+pwidth 4000
 pheight 100
 
 #Set the Domain
@@ -96,18 +96,24 @@ emit_method 0
 
 #Number of Buildings
 #Set to 0 for no buildings
-numBuild 1
+numBuild 6
+
+#Path to read QUICFILES
+#6 Buildings case: Settings/MultipleBuildingFiles/
+#Single Building case: Settings/SingleBuildingFiles/
+#quicFilesPath Settings/SingleBuildingFiles/
+quicFilesPath Settings/MultipleBuildingFiles/
 
 #Building Parameters
 #I'm defining it the same as in QUIC
 #(x,y,z) (height, width, length)
-build_param 25.0 25.0 0.0 10.0 10.0 10.0
-#build_param 20.0 18.0 0.0 6.0 6.0 10.0
-#build_param 20.0 32.0 0.0 6.0 6.0 10.0
-#build_param 35.0 18.0 0.0 10.0 6.0 10.0
-#build_param 35.0 32.0 0.0 10.0 6.0 10.0
-#build_param 50.0 18.0 0.0 14.0 6.0 10.0
-#build_param 50.0 32.0 0.0 14.0 6.0 10.0
+#build_param 25.0 25.0 0.0 10.0 10.0 10.0
+build_param 20.0 18.0 0.0 6.0 6.0 10.0
+build_param 20.0 32.0 0.0 6.0 6.0 10.0
+build_param 35.0 18.0 0.0 10.0 6.0 10.0
+build_param 35.0 32.0 0.0 10.0 6.0 10.0
+build_param 50.0 18.0 0.0 14.0 6.0 10.0
+build_param 50.0 32.0 0.0 14.0 6.0 10.0
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1

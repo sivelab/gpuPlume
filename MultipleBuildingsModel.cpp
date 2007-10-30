@@ -72,6 +72,7 @@ void MultipleBuildingsModel::init(bool OSG){
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz);
   pc->setUstarAndSigmas(util->ustar);
   pc->setBuildingParameters(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
+  pc->setQuicFilesPath(util->quicFilesPath);
 
   dc = new DisplayControl(nx,ny,nz, texType);  
   dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);

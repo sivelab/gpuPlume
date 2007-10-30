@@ -85,6 +85,8 @@ class Util{
   float* lti;
   int numBuild;
 
+  std::string quicFilesPath;
+  
   //holds the quicPlume Data for the wind field
   //double* u;
   //double* v;

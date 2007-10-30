@@ -105,9 +105,8 @@ class ParticleControl{
 
   void setBuildingParameters(int,float*,float*,float*,float*,float*,float*);
   void addBuildingsInWindField(GLuint,int);
+  void setQuicFilesPath(std::string);
   
-  
-
   bool outputPrime;
 
   bool osgPlume;
@@ -225,6 +224,8 @@ class ParticleControl{
   GLfloat* buffer_mem;
 
   GLint currentbuffer;
+
+  std::string quicFilesPath;
 
 };
 #endif //__PC_H__

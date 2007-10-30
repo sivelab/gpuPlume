@@ -34,6 +34,9 @@ void ParticleControl::setBuildingParameters(int nB,float* x,float* y,float* z,
   wti = w;
   lti = l; 
 }
+void ParticleControl::setQuicFilesPath(std::string path){
+  quicFilesPath = path;
+}
 void ParticleControl::setUstarAndSigmas(float u){
   ustar = u;
   sigU = float(2.0*ustar);
@@ -1723,9 +1726,16 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   initCellType();
  
   //Reading turbulence data from the QUIC generated file
-
   std::ifstream turbulence;
-  turbulence.open("Settings/QP_turbfield.dat");
+  std::string path;
+  if(quicFilesPath.c_str() != NULL){
+    path = quicFilesPath + "QP_turbfield.dat";
+  }
+  else
+    path = "Settings/QP_turbfield.dat";
+
+  //turbulence.open("Settings/QP_turbfield.dat");
+  turbulence.open(path.c_str());
   
   std::string header;
   
@@ -2585,7 +2595,15 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType,int numInRow){
 void ParticleControl::QUICWindField(){
   std::ifstream QUICWindField;//,QUICCellType;
 	
-  QUICWindField.open("Settings/QU_velocity.dat"); //opening the wind file  to read
+  std::string path;
+  if(quicFilesPath.c_str() != NULL){
+    path = quicFilesPath + "QU_velocity.dat";
+  }
+  else
+    path = "Settings/QU_velocity.dat";
+
+  //QUICWindField.open("Settings/QU_velocity.dat"); //opening the wind file  to read
+  QUICWindField.open(path.c_str()); //opening the wind file  to read
   if(!QUICWindField){
     std::cerr<<"Unable to open QUIC Windfield file : QU_velocity.dat ";
     exit(1);
@@ -2629,7 +2647,16 @@ void ParticleControl::QUICWindField(){
 }
 void ParticleControl::initCellType(){
   std::ifstream QUICCellType;
-  QUICCellType.open("Settings/QU_celltype.dat");//opening the Celltype file  to read
+  std::string path;
+
+  if(quicFilesPath.c_str() != NULL){
+    path = quicFilesPath + "QU_celltype.dat";
+  }
+  else
+    path = "Settings/QU_celltype.dat";
+  
+  QUICCellType.open(path.c_str());//opening the Celltype file  to read
+  //QUICCellType.open("Settings/QU_celltype.dat");//opening the Celltype file  to read
   if(!QUICCellType){
     std::cerr<<"Unable to open QUIC Celltype file : QU_celltype.dat ";
     exit(1);

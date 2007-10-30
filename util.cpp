@@ -162,6 +162,9 @@ void Util::parseLine(char* line){
     lti[numb] = b[5];
     numb++;
   }
+  if(read1String(line, "quicFilesPath", &s1)){
+    quicFilesPath = s1;
+  }
   if(read1Float(line, "pauseMode", &f1)){
     if(f1 == 0)
       pauseMode = true;
