@@ -413,6 +413,7 @@ int MultipleBuildingsModel::display(){
       pathLines->draw();
       dc->drawLayers(windField,tau,numInRow);
 
+      dc->drawScale();
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){
 	  pe[i]->Draw();

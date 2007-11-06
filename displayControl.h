@@ -26,6 +26,7 @@ class DisplayControl{
   void drawGrid();
   void drawGround();
   void drawSky();
+  void drawScale();
   void drawLayers(GLuint,GLuint, int);
   void drawTurbulenceLayers(GLuint, int);
   void drawFeatures(void);
@@ -68,6 +69,11 @@ class DisplayControl{
   void createImageTex(GLuint, char*);
   GLubyte* readPPM(char*, int*, int*);
   
+  float* TauMax;
+  float* TauMin;
+  float tauMin, tauMax;
+  char* Taus[4];
+
   int nx;
   int ny;
   int nz;
@@ -82,7 +88,7 @@ class DisplayControl{
   float* lti;
   
 
-  GLSLObject render_shader, turbulence_shader;
+  GLSLObject render_shader, turbulence_shader, scale_shader;
 
   Timer *clock_timer;
   Timer_t graphics_time[2];
@@ -106,7 +112,7 @@ class DisplayControl{
   GLint uniform_max11,uniform_max22,uniform_max33,uniform_max13;
   GLint uniform_min11,uniform_min22,uniform_min33,uniform_min13;
   GLint uniform_controlTau;
-
+  GLint uniform_xmax, uniform_xmin, uniform_tauMin, uniform_tauMax;
 
   //
   // Point Sprite visual data

@@ -5,6 +5,7 @@
 #include "glErrorUtil.h"
 
 static char text_buffer[128];
+static char number[128];
 #ifdef WIN32
 #define M_PI 3.14159
 #endif
@@ -76,6 +77,15 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   uniform_controlTau = turbulence_shader.createUniform("controlTau");
   visual_field = 0;
 
+  //Turbulence Color Scale
+  scale_shader.addShader("Shaders/scale_vp.glsl", GLSLObject::VERTEX_SHADER);
+  scale_shader.addShader("Shaders/scale_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  scale_shader.createProgram();
+  uniform_xmax = scale_shader.createUniform("xmax");
+  uniform_xmin = scale_shader.createUniform("xmin");
+  uniform_tauMin = scale_shader.createUniform("tauMin");
+  uniform_tauMax = scale_shader.createUniform("tauMax");
+
   // for point sprites, we need the uniform variables for the texture
   // units that hold the point sprite and the normal map
   uniform_pointsprite_tex = render_shader.createUniform("pointsprite_texunit");
@@ -116,6 +126,9 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   estimated_rate = 0.0;
 }
 void DisplayControl::setupTurbulenceShader(float Max[], float Min[]){
+  TauMax = Max;
+  TauMin = Min;
+
   turbulence_shader.activate();
 
   glUniform1fARB(uniform_max11, Max[0]);
@@ -130,6 +143,28 @@ void DisplayControl::setupTurbulenceShader(float Max[], float Min[]){
 
 
   turbulence_shader.deactivate();
+
+  tauMax = Max[0];
+  if(Max[1]>tauMax)
+    tauMax = Max[1];
+  if(Max[2]>tauMax)
+    tauMax = Max[2];
+  if(Max[3]>tauMax)
+    tauMax = Max[3];
+  tauMin = Min[0];
+  if(Min[1]>tauMin)
+    tauMin = Min[1];
+  if(Min[2]>tauMin)
+    tauMin = Min[2];
+  if(Min[3]>tauMin)
+    tauMin = Min[3];
+
+  Taus[0] = "t11";
+  Taus[1] = "t22";
+  Taus[2] = "t33";
+  Taus[3] = "t13";
+
+
 }
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight)
@@ -382,12 +417,12 @@ void DisplayControl::drawGrid(){
   {
     glColor3f(0.4,0.4,0.4);
     for(int i=-ny; i <= ny*2; i+=5){
-      glVertex3f(-nx,i,-0.1);
-      glVertex3f(nx*2,i,-0.1);
+      glVertex3f(-nx,i,-0.15);
+      glVertex3f(nx*2,i,-0.15);
     }
     for(int i=-nx; i <= nx*2; i+=5){
-      glVertex3f(i,-ny,-0.1);
-      glVertex3f(i,ny*2,-0.1);
+      glVertex3f(i,-ny,-0.15);
+      glVertex3f(i,ny*2,-0.15);
     }
   
   }
@@ -701,6 +736,142 @@ void DisplayControl::drawFeatures(void)
 	
   glEnable(texType);
 	
+}
+void DisplayControl::drawScale(){
+  GLint* vp = new GLint[4];
+  glGetIntegerv(GL_VIEWPORT,vp);
+
+  glDisable(texType);
+  glDisable(GL_DEPTH_TEST);
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glOrtho(0, vp[2], 
+	  0, vp[3], -1, 1);
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+
+  
+
+  //Draw Colored Scale
+  //glColor3f(1.0,0.0,0.0);
+  float xstart = 10.0;
+  float xend = 310.0;
+  float ystart = 40.0;
+  float yend = 55.0;
+  char* disp;
+
+  switch(visual_field){
+  case 1:
+    //tauMin = TauMin[0];
+    //tauMax = TauMax[0];
+    disp = "Displaying: Tau11";
+    break;
+  case 2:
+    //tauMin = TauMin[1];
+    //tauMax = TauMax[1];
+    disp = "Displaying: Tau22";
+    break;
+  case 3:
+    //tauMin = TauMin[2];
+    //tauMax = TauMax[2];
+    disp = "Displaying: Tau33";
+    break;
+  case 4:
+    //tauMin = TauMin[3];
+    //tauMax = TauMax[3];
+    disp = "Displaying: Tau13";
+    break;
+  default:
+    //tauMin = 0.0;
+    //tauMax = 0.0;
+    disp = "";
+  }
+
+  glColor3f(0.7,0.7,0.7);
+  glBegin(GL_QUADS);
+  {
+    glVertex3f(xstart-10,ystart-18, 0.0);
+    glVertex3f(xend+35,ystart-18, 0.0);
+    glVertex3f(xend+35,yend+28, 0.0);
+    glVertex3f(xstart-10,yend+28, 0.0);
+  }
+  glEnd();
+ 
+
+  scale_shader.activate();
+  glUniform1fARB(uniform_xmin, xstart);
+  glUniform1fARB(uniform_xmax, xend);
+  //glUniform1fARB(uniform_tauMin, tauMin);
+  //glUniform1fARB(uniform_tauMax, tauMax);
+  glColor3f(1.0,1.0,1.0);
+
+  glBegin(GL_QUADS);
+  {
+    glVertex3f(xstart,ystart, 0.0);
+    glVertex3f(xend,ystart, 0.0);
+    glVertex3f(xend,yend, 0.0);
+    glVertex3f(xstart,yend, 0.0);
+  }
+  glEnd();
+
+  scale_shader.deactivate();
+  int y = (int)yend + 5;
+
+  sprintf(number, "%.2f", tauMin);
+  glColor3ub(255, 255, 0);
+  glRasterPos2i((int)xstart-5, y);
+  for(int i=0; i < (int)strlen(number); i++){
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
+  }
+
+  /*sprintf(number, "%.2f", tauMax);
+  glColor3ub(255, 255, 0);
+  glRasterPos2i((int)xend-(int)strlen(number)-15, y);
+  for(int i=0; i < (int)strlen(number); i++){
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
+    }*/
+
+  //Displaying Tau Text
+  glColor3ub(255,255,0);
+  glRasterPos2i((int)((xstart+xend)/2)- 50, (int)ystart-13);
+  for(int i=0; i < (int)strlen(disp); i++){
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]);
+  }
+ 
+  //Display Max of Taus on Scale
+  for(int j=0; j <= 3; j++){
+    //map tau value onto x position of scale
+    int x = (int)(((TauMax[j]-tauMin)/(tauMax-tauMin))*(xend-xstart)+xstart);
+    sprintf(number, "%.2f", TauMax[j]);
+    glColor3ub(255,255,0);
+    glRasterPos2i(x,y);
+    for(int i=0; i < (int)strlen(number); i++)
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]); 
+
+    glRasterPos2i(x,y+12);
+    disp = Taus[j];
+    for(int i=0; i < (int)strlen(disp); i++)
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]); 
+
+    glColor3f(0.0,0.0,0.0);
+    glBegin(GL_LINES);
+    {
+      glVertex3f(x,y,0.0);
+      glVertex3f(x,yend,0.0);
+    }
+    glEnd();
+  }
+
+
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glEnable(GL_DEPTH_TEST);
+  glEnable(texType);
+
 }
 
 //text: draws a string of text with an 18 point helvetica bitmap font
