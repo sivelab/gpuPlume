@@ -274,6 +274,14 @@ void keyboard_cb(unsigned char key, int x, int y)
       if(plume->dc->visual_field > 5)
 	plume->dc->visual_field = 0;
     }
+  else if (key == '<')
+    {
+      plume->dc->moveSliderDown();
+    }
+  else if (key == '>')
+    {
+      plume->dc->moveSliderUp();
+    }
   else if (key == 't')
     {
       // toggle whether to display output

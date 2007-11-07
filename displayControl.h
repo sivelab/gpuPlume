@@ -34,6 +34,8 @@ class DisplayControl{
   void OpenGLText(int, int, char*);
   void increaseVisualLayer();
   void decreaseVisualLayer();
+  void moveSliderUp();
+  void moveSliderDown();
   void moveForwardorBack(float);
   void slideLeftorRight(float);
   void setAzimuth(float, float);
@@ -73,6 +75,11 @@ class DisplayControl{
   float* TauMin;
   float tauMin, tauMax;
   char* Taus[4];
+  
+  //Controls what value the middle color is
+  //represented at in the scale used for visualizing
+  //the turbulence layers.
+  float slider;
 
   int nx;
   int ny;
@@ -113,6 +120,7 @@ class DisplayControl{
   GLint uniform_min11,uniform_min22,uniform_min33,uniform_min13;
   GLint uniform_controlTau;
   GLint uniform_xmax, uniform_xmin, uniform_tauMin, uniform_tauMax;
+  GLint uniform_sliderScale, uniform_sliderTurb;
 
   //
   // Point Sprite visual data

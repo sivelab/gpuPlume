@@ -75,7 +75,10 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   uniform_min33 = turbulence_shader.createUniform("min33");
   uniform_min13 = turbulence_shader.createUniform("min13");
   uniform_controlTau = turbulence_shader.createUniform("controlTau");
+  uniform_sliderTurb = turbulence_shader.createUniform("slider");
   visual_field = 0;
+
+  slider = 0.2;
 
   //Turbulence Color Scale
   scale_shader.addShader("Shaders/scale_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -85,6 +88,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   uniform_xmin = scale_shader.createUniform("xmin");
   uniform_tauMin = scale_shader.createUniform("tauMin");
   uniform_tauMax = scale_shader.createUniform("tauMax");
+  uniform_sliderScale = scale_shader.createUniform("slider");
 
   // for point sprites, we need the uniform variables for the texture
   // units that hold the point sprite and the normal map
@@ -277,6 +281,14 @@ void DisplayControl::increaseVisualLayer(){
 void DisplayControl::decreaseVisualLayer(){
   visual_layer--;
   if(visual_layer < -1) visual_layer = -1;
+}
+void DisplayControl::moveSliderDown(){
+  slider -= 0.01;
+  if(slider < 0.0) slider = 0.0;
+}
+void DisplayControl::moveSliderUp(){
+  slider += 0.01;
+  if(slider > 1.0) slider = 1.0;
 }
 void DisplayControl::moveForwardorBack(float change){
   //eye_pos[0] = eye_pos[0] + change;
@@ -517,6 +529,7 @@ void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
       turbulence_shader.activate();
       
       glUniform1iARB(uniform_controlTau, visual_field);
+      glUniform1fARB(uniform_sliderTurb, slider);
 
       glUniform1iARB(uniform_tauTex, 0); 
 
@@ -803,6 +816,7 @@ void DisplayControl::drawScale(){
   scale_shader.activate();
   glUniform1fARB(uniform_xmin, xstart);
   glUniform1fARB(uniform_xmax, xend);
+  glUniform1fARB(uniform_sliderScale, slider);
   //glUniform1fARB(uniform_tauMin, tauMin);
   //glUniform1fARB(uniform_tauMax, tauMax);
   glColor3f(1.0,1.0,1.0);
@@ -864,6 +878,14 @@ void DisplayControl::drawScale(){
     glEnd();
   }
 
+  int x = (int)((xend-xstart)*slider+xstart);
+  glColor3f(0.0,0.0,0.0);
+  glBegin(GL_LINES);
+  {
+    glVertex3f(x,ystart,0.0);
+    glVertex3f(x,yend,0.0);
+  }
+  glEnd();
 
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();

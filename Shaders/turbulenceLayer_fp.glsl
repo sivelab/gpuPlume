@@ -11,6 +11,7 @@ uniform float min22;
 uniform float min33;
 uniform float min13;
 uniform int controlTau;
+uniform float slider;
 
 varying vec4 pcolor;
 
@@ -21,6 +22,8 @@ void main(void)
   
   vec3 c1 = vec3(0.0,0.0,1.0);
   vec3 c2 = vec3(1.0,1.0,0.0);
+  vec3 c3 = vec3(1.0,0.0,0.0);
+
   float t;
 
   float max = max11;
@@ -39,7 +42,8 @@ void main(void)
     min = min13;
 
   float range = max - min;
-
+  //float r = ((max-min)/2.0)/(max-min);
+  //r = 0.05;
 
   if(controlTau == 1){
     //t = (color.x-min11)/(max11-min11);
@@ -56,10 +60,23 @@ void main(void)
   }
   else if(controlTau == 4){
     //t = (color.w-min13)/(max13-min13);
-    t = (color.z-min)/range;
+    t = (color.w-min)/range;
   }
 
-  gl_FragColor = vec4((c1*(1-t) + c2*t),0.8);
+  
+  vec3 col;
+  if(t >= slider){
+    t = (t-slider)/(1.0-slider);
+    col = c1*(1.0-t) + c2*t;
+  }
+  else{
+    t = (slider-t)/(slider);   
+    col = c3*(t) + c1*(1.0-t);
+    //gl_FragColor = c3*(1.0-t) + c1*(t);
+  }
+
+  gl_FragColor = vec4(col,0.8);
+  //gl_FragColor = vec4((c1*(1-t) + c2*t),0.8);
 
   /*
   //Show only Tau11
