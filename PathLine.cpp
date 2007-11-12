@@ -10,6 +10,8 @@ PathLine::PathLine(int w, int h, GLenum type){
   startStream = false;
   update = true;
 
+  path_buffer = new GLuint[pheight];
+
   //Set up vbos for the paths
   glGenBuffersARB(pheight, path_buffer);
  
@@ -132,7 +134,7 @@ void PathLine::updatePathLines(GLuint positions0, GLuint positions1, bool odd){
     if(pIndex.s < pwidth){
       //set viewport with s and t
       glViewport(pIndex.s,pIndex.t,1,1);
-      //std::cout << "index being updated: " << pIndex.s << " " << pIndex.t << std::endl;
+      
       //Punch Hole new point in path line into path line texture
       glBegin(GL_POINTS);
       {

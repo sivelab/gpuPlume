@@ -54,7 +54,7 @@ class PathLine{
   GLfloat* buffer;
 
   bool update;
-  GLuint path_buffer[100];
+  GLuint* path_buffer;
   GLint uniform_pos;
 
   GLSLObject pathLineShader;
