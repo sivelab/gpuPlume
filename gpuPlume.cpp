@@ -440,9 +440,18 @@ void mouse(int button, int state,int x, int y)
     plume->dc->change_look = false;
 
   if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
-    plume->dc->rotate_around = true;
-  else
-  plume->dc->rotate_around = false;
+    if(plume->dc->clickedSlider(x,y)){
+      plume->dc->move_slider = true;
+      plume->dc->rotate_around = false;
+    }
+    else{
+      plume->dc->rotate_around = true;
+      plume->dc->move_slider = false;
+    }
+  else{
+    plume->dc->rotate_around = false;
+    plume->dc->move_slider = false;
+  }
 
   glutPostRedisplay();
 }
@@ -459,7 +468,9 @@ void motion(int x, int y)
   //plume->dc->lookUporDown(change_y);
   //plume->dc->setRotateAround(change_x);
 
-  
+  if(plume->dc->move_slider){
+    plume->dc->moveSlider(x);
+  }
 
   if (plume->dc->change_height) 
     {

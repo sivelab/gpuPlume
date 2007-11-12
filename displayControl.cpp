@@ -36,7 +36,12 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   eye_gaze[1] = 1.0;
   eye_gaze[2] = 0.0;
 #endif
-
+  
+  //Color scale position on screen 
+  scale_xstart = 10.0;
+  scale_xend = 310.0;
+  scale_ystart = 40.0;
+  scale_yend = 55.0;
 
   angle = M_PI;
   yangle = 0.0;
@@ -750,6 +755,23 @@ void DisplayControl::drawFeatures(void)
   glEnable(texType);
 	
 }
+bool DisplayControl::clickedSlider(int x,int y){
+  y = glutGet(GLUT_WINDOW_HEIGHT)-y;
+
+  //std::cout << x << " " << y << std::endl;
+  if((x < (slider_x + 5)) && (x > (slider_x - 5)) &&
+     (y <= (int)scale_yend) && ( y >= (int)scale_ystart)){
+    return true;
+  }
+  else return false;
+}
+void DisplayControl::moveSlider(int x){
+  //slider_x = (int)((scale_xend-scale_xstart)*slider+scale_xstart);
+  //slider_x = x;
+  if((x <= scale_xend) && (x >= scale_xstart)) 
+    slider = (float)(x - scale_xstart)/(float)(scale_xend-scale_xstart);
+  
+}
 void DisplayControl::drawScale(){
   GLint* vp = new GLint[4];
   glGetIntegerv(GL_VIEWPORT,vp);
@@ -768,11 +790,6 @@ void DisplayControl::drawScale(){
   
 
   //Draw Colored Scale
-  //glColor3f(1.0,0.0,0.0);
-  float xstart = 10.0;
-  float xend = 310.0;
-  float ystart = 40.0;
-  float yend = 55.0;
   char* disp;
 
   switch(visual_field){
@@ -805,17 +822,17 @@ void DisplayControl::drawScale(){
   glColor3f(0.7,0.7,0.7);
   glBegin(GL_QUADS);
   {
-    glVertex3f(xstart-10,ystart-18, 0.0);
-    glVertex3f(xend+35,ystart-18, 0.0);
-    glVertex3f(xend+35,yend+28, 0.0);
-    glVertex3f(xstart-10,yend+28, 0.0);
+    glVertex3f(scale_xstart-10,scale_ystart-18, 0.0);
+    glVertex3f(scale_xend+35,scale_ystart-18, 0.0);
+    glVertex3f(scale_xend+35,scale_yend+28, 0.0);
+    glVertex3f(scale_xstart-10,scale_yend+28, 0.0);
   }
   glEnd();
  
 
   scale_shader.activate();
-  glUniform1fARB(uniform_xmin, xstart);
-  glUniform1fARB(uniform_xmax, xend);
+  glUniform1fARB(uniform_xmin, scale_xstart);
+  glUniform1fARB(uniform_xmax, scale_xend);
   glUniform1fARB(uniform_sliderScale, slider);
   //glUniform1fARB(uniform_tauMin, tauMin);
   //glUniform1fARB(uniform_tauMax, tauMax);
@@ -823,33 +840,33 @@ void DisplayControl::drawScale(){
 
   glBegin(GL_QUADS);
   {
-    glVertex3f(xstart,ystart, 0.0);
-    glVertex3f(xend,ystart, 0.0);
-    glVertex3f(xend,yend, 0.0);
-    glVertex3f(xstart,yend, 0.0);
+    glVertex3f(scale_xstart,scale_ystart, 0.0);
+    glVertex3f(scale_xend,scale_ystart, 0.0);
+    glVertex3f(scale_xend,scale_yend, 0.0);
+    glVertex3f(scale_xstart,scale_yend, 0.0);
   }
   glEnd();
 
   scale_shader.deactivate();
-  int y = (int)yend + 5;
+  int y = (int)scale_yend + 5;
 
   sprintf(number, "%.2f", tauMin);
   glColor3ub(255, 255, 0);
-  glRasterPos2i((int)xstart-5, y);
+  glRasterPos2i((int)scale_xstart-5, y);
   for(int i=0; i < (int)strlen(number); i++){
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
   }
 
   /*sprintf(number, "%.2f", tauMax);
   glColor3ub(255, 255, 0);
-  glRasterPos2i((int)xend-(int)strlen(number)-15, y);
+  glRasterPos2i((int)scale_xend-(int)strlen(number)-15, y);
   for(int i=0; i < (int)strlen(number); i++){
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
     }*/
 
   //Displaying Tau Text
   glColor3ub(255,255,0);
-  glRasterPos2i((int)((xstart+xend)/2)- 50, (int)ystart-13);
+  glRasterPos2i((int)((scale_xstart+scale_xend)/2)- 50, (int)scale_ystart-13);
   for(int i=0; i < (int)strlen(disp); i++){
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]);
   }
@@ -857,7 +874,7 @@ void DisplayControl::drawScale(){
   //Display Max of Taus on Scale
   for(int j=0; j <= 3; j++){
     //map tau value onto x position of scale
-    int x = (int)(((TauMax[j]-tauMin)/(tauMax-tauMin))*(xend-xstart)+xstart);
+    int x = (int)(((TauMax[j]-tauMin)/(tauMax-tauMin))*(scale_xend-scale_xstart)+scale_xstart);
     sprintf(number, "%.2f", TauMax[j]);
     glColor3ub(255,255,0);
     glRasterPos2i(x,y);
@@ -873,17 +890,17 @@ void DisplayControl::drawScale(){
     glBegin(GL_LINES);
     {
       glVertex3f(x,y,0.0);
-      glVertex3f(x,yend,0.0);
+      glVertex3f(x,scale_yend,0.0);
     }
     glEnd();
   }
 
-  int x = (int)((xend-xstart)*slider+xstart);
+  slider_x = (int)((scale_xend-scale_xstart)*slider+scale_xstart);
   glColor3f(0.0,0.0,0.0);
   glBegin(GL_LINES);
   {
-    glVertex3f(x,ystart,0.0);
-    glVertex3f(x,yend,0.0);
+    glVertex3f(slider_x,scale_ystart,0.0);
+    glVertex3f(slider_x,scale_yend,0.0);
   }
   glEnd();
 

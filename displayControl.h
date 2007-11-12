@@ -36,6 +36,8 @@ class DisplayControl{
   void decreaseVisualLayer();
   void moveSliderUp();
   void moveSliderDown();
+  void moveSlider(int);
+  bool clickedSlider(int,int);
   void moveForwardorBack(float);
   void slideLeftorRight(float);
   void setAzimuth(float, float);
@@ -45,7 +47,7 @@ class DisplayControl{
   void initVars(int,float*,float*,float*,
 		      float*,float*,float*);
 
-  bool rotate_around, change_height, change_look;
+  bool rotate_around, change_height, change_look, move_slider;
   bool frame_rate;
 
   bool draw_buildings;
@@ -66,6 +68,8 @@ class DisplayControl{
   float eye_gaze[3];
   //int tauValue; 
 
+  int slider_x;
+
  private:
   
   void createImageTex(GLuint, char*);
@@ -76,6 +80,9 @@ class DisplayControl{
   float tauMin, tauMax;
   char* Taus[4];
   
+  float scale_xstart,scale_xend;
+  float scale_ystart,scale_yend;
+
   //Controls what value the middle color is
   //represented at in the scale used for visualizing
   //the turbulence layers.
