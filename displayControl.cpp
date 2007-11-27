@@ -333,6 +333,7 @@ void DisplayControl::lookUporDown(float change){
     yangle = yangle + (M_PI/90.0);
 
   eye_gaze[2] = sin(yangle);
+  //eye_gaze[1] = cos(yangle);
 
 }
 void DisplayControl::setAzimuth(float change, float rate){
