@@ -182,6 +182,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Contour.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\displayControl.cpp"
 				>
 			</File>
@@ -281,6 +285,10 @@
 			>
 			<File
 				RelativePath="..\collectionBox.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Contour.h"
 				>
 			</File>
 			<File
