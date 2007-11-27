@@ -20,7 +20,7 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   alreadyOpen = false;
   for(int i=0; i <4; i++){
     tauMax[i] = 0;
-    tauMin[i] = 0;
+    tauMin[i] = 10;
   }
 
 }
@@ -1596,9 +1596,9 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  float tauDetInv= float(1.0/((tau11*tau22*tau33)-(tau13*tau13*tau22)));
 
 	  tau[p2idx].t11   = tau11;             //Tau11
-	  tau[p2idx+1].t22 = tau22;             //Tau22
-	  tau[p2idx+2].t33 = tau33;             //Tau33
-	  tau[p2idx+3].t13 = tau13;             //Tau13
+	  tau[p2idx].t22 = tau22;             //Tau22
+	  tau[p2idx].t33 = tau33;             //Tau33
+	  tau[p2idx].t13 = tau13;             //Tau13
 
 	  dataTwo[texidx]   = tauDetInv*(tau22*tau33);            //Lam11
 	  dataTwo[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
@@ -1777,80 +1777,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 		
 	  if(cellQuic[p2idx].c!=0){ //Calculate gradients ONLY if its not a building or ground cell    
 
-	    // Calculating distance to the wall in all directions.
-
-	    //to look for distance to a building in negative Z-direction (towards the ground)
-	    /*int disNegZSurf=qk,qkk=qk;
-	      while(qkk>=0){
-	      int p2idx_k = qkk*ny*nx + qi*nx + qj;
-	      if(cellQuic[p2idx_k].c==0){
-	      disNegZSurf=(qk-qkk)+1;
-	      break;
-	      }
-	      if(qkk==0){
-	      disNegZSurf=qk+1;
-	      break;
-	      }
-	      --qkk;
-	      }
-           
-	      //For Y-direction.
-	      int p2idx_i;
-	      //to look for a building in negative Y-direction
-	      int disNegYSurf=1000*ny , qii=qi;
-	      while(qii>=0){
-	      p2idx_i = qk*ny*nx + qii*nx + qj;
-	      if(cellQuic[p2idx_i].c==0){
-	      disNegYSurf=qi-qii;
-	      break;
-	      }
-	      --qii;
-	      }
-	      //to look for a building in postive Y-direction
-	      int disPosYSurf=1000*ny;
-	      qii=qi;
-	      while(qii<=ny){
-	      p2idx_i = qk*ny*nx + qii*nx + qj;
-	      if(cellQuic[p2idx_i].c==0){
-	      disPosYSurf=qii-qi;
-	      break;
-	      }
-	      ++qii;
-	      }
-
-	      //For X-direction.
-	      int p2idx_j;
-	      //to look for a building in negative X-direction
-	      int disNegXSurf=1000*nx , qjj=qj;
-	      while(qjj>=0){
-	      p2idx_j = qk*ny*nx + qi*nx + qjj;
-	      if(cellQuic[p2idx_j].c==0){
-	      disNegXSurf=qj-qjj;
-	      break;
-	      }
-	      --qjj;
-	      }
-	      //to look for a building in postive X-direction
-	      int disPosXSurf=1000*nx;
-	      qjj=qj;
-	      while(qjj<=nx){
-	      p2idx_j = qk*ny*nx + qi*nx + qjj;
-	      if(cellQuic[p2idx_j].c==0){
-	      disPosXSurf=qjj-qj;
-	      break;
-	      }
-	      ++qjj;
-	      }
-	      //Calculating "minimum" distance to the wall.
-	      int disArray[]={disNegXSurf,disPosXSurf,disNegYSurf,disPosYSurf,disNegZSurf};
-
-	      int minDistance = disNegXSurf;  //let the lowest value be the first in the array
-
-	      for(int i=1; i<(int)(sizeof(disArray)/sizeof*(disArray));i++){//loop for getting the actual minimum distance
-	      if(disArray[i] <= minDistance){
-	      minDistance = disArray[i];
-	      }
-	      }*/
+	    
 
 	    row = qk / (numInRow);
 	    texidx = row * width * ny * 4 +
@@ -1874,112 +1801,14 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    //The cell two below the current cell
 	    idx2Below = (qk-2)*ny*nx + qi*nx + qj;
             
-	    //Calculate du/dz
-
-	    //Cell just above the ground
-	    //du/dz = Uat 1st cell/0.5dz(log(dz/znaut))
-	    /*if(qk == 0 || (cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
-	      du_dz = wind_vel[p2idx].u/(dz*log(dz/znaut));
-	      dv_dz = wind_vel[p2idx].v/(dz*log(dz/znaut));
-	      dw_dz = wind_vel[p2idx].w/(dz*log(dz/znaut));
-	      ustar = 0.4*(minDistance+1)*du_dz;
-	      }
-	      //Cell at the top of the domain
-	      else if(qk == (nz-1)){
-	      du_dz = data3[texidxBelow];  // du_dz at k-1th cell
-	      dv_dz = data3[texidxBelow+1];
-	      dw_dz = data3[texidxBelow+2];
-	      ustar = 0.4*(minDistance+1)*du_dz;
-	      }
-
-	      //All other cells. i.e not boundary cells
-	      //du/dz = (Uk+1 - Uk-1)/2dz
-	      else{
-	      du_dz = (wind_vel[idxAbove].u - wind_vel[idxBelow].u)/(2.0*dz);
-	      dv_dz = (wind_vel[idxAbove].v - wind_vel[idxBelow].v)/(2.0*dz);
-	      dw_dz = (wind_vel[idxAbove].w - wind_vel[idxBelow].w)/(2.0*dz);
-	      ustar = 0.4*(minDistance+1)*du_dz;
-	      }*/
-	       				  	  
+		  	  
 	    data3[texidx] = (sigU/2.5f)/elz;  //du_dz;      //du_dz
 	    data3[texidx+1] = 0.0;    //dv_dz
 	    data3[texidx+2] = 0.0;    //dw_dz
 	    data3[texidx+3] = 0.0;
 		  
-	    //For gradient in X-direction
-		   
-	    //Cell at the top of the domain
-	    /*if(qj == (nx-1) || qj==0){
-	      du_dx = 0;  // du_dz at k-1th cell
-	      dv_dx = 0;
-	      dw_dx = 0;
-	      }
-	      else if((cellQuic[idxBehind].c==0 && cellQuic[p2idx].c==1) || (cellQuic[idxFront].c==0 && cellQuic[p2idx].c==1)){
-	      du_dx = wind_vel[p2idx].u/(dx*log(dx/znaut));
-	      dv_dx = wind_vel[p2idx].v/(dx*log(dx/znaut));
-	      dw_dx = wind_vel[p2idx].w/(dx*log(dx/znaut));
-	      }
-	      else{
-	      du_dx = (wind_vel[idxFront].u - wind_vel[idxBehind].u)/(2.0*dx);
-	      dv_dx = (wind_vel[idxFront].v - wind_vel[idxBehind].v)/(2.0*dx);
-	      dw_dx = (wind_vel[idxFront].w - wind_vel[idxBehind].w)/(2.0*dx);
-	      }
-
-	      data4[texidx]   = du_dx;    //du_dx
-	      data4[texidx+1] = dv_dx;    //eventually dv_dx
-	      data4[texidx+2] = dw_dx;    //eventually dw_dx
-	      data4[texidx+3] = 0.0;	      
-
-	      //For gradient in Y-direction
-	      //The cells at right and left of the current cell 
-	      idxRight = qk*ny*nx + (qi-1)*nx + qj;
-	      idxLeft  = qk*ny*nx + (qi+1)*nx + qj;
-		   
-	      //Cell at the top of the domain
-	      if(qi == (ny-1) || qi==0){
-	      du_dy = 0;  // du_dz at k-1th cell
-	      dv_dy = 0;
-	      dw_dy = 0;
-	      }
-	      else if((cellQuic[idxLeft].c==0 && cellQuic[p2idx].c==1) || (cellQuic[idxRight].c==0 && cellQuic[p2idx].c==1)){
-	      du_dy = wind_vel[p2idx].u/(dy*log(dy/znaut));
-	      dv_dy = wind_vel[p2idx].v/(dy*log(dy/znaut));
-	      dw_dy = wind_vel[p2idx].w/(dy*log(dy/znaut));
-	      }
-	      else{
-	      du_dy = (wind_vel[idxLeft].u - wind_vel[idxRight].u)/(2.0*dy);
-	      dv_dy = (wind_vel[idxLeft].v - wind_vel[idxRight].v)/(2.0*dy);
-	      dw_dy = (wind_vel[idxLeft].w - wind_vel[idxRight].w)/(2.0*dy);
-	      }
-
-	      data5[texidx]   = du_dy;    //du_dy
-	      data5[texidx+1] = dv_dy;    //eventually dv_dy
-	      data5[texidx+2] = dw_dy;    //eventually dw_dy
-	      data5[texidx+3] = 0.0;
-		
-
-	      double velGrad[]={du_dx,dv_dx,dw_dx,du_dy,dv_dy,dw_dy,du_dz,dv_dz,dw_dz};
-	      double maxVelGradAbs=fabs(du_dx);
-	      double maxVelGrad;
-
-	      for(int i=1; i<(int)(sizeof(velGrad)/sizeof*(velGrad));i++){//loop for getting the actual max velocity gradient
-	      if(fabs(velGrad[i]) >= maxVelGradAbs){
-	      maxVelGradAbs = fabs(velGrad[i]);
-	      maxVelGrad = velGrad[i];
-	      }
-	      }
-	    
-	      double VertGradFactor=pow( (1-(minDistance/20)) ,3.0/2.0); 
-	      ustar=0.4*minDistance*maxVelGrad*VertGradFactor;
-	    */
-	   
 	    ustar=sigU/2.5f;
 	    data3[texidx+3] = ustar;//temporarily used for the ustar.
-
-
-	    /*sigU = 2.0*ustar;
-	      sigV = 2.0*ustar;
-	      sigW = 1.3*ustar;*/
 
 	    sig[p2idx].u = sigU;   //sigU
 	    sig[p2idx].v = sigV;   //sigV
@@ -1994,10 +1823,10 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	  
 	    updateMaxandMinTaus(tau11,tau22,tau33,tau13);
 			    
-	    tau[p2idx].t11   = tau11;             //Tau11
-	    tau[p2idx+1].t22 = tau22;             //Tau22
-	    tau[p2idx+2].t33 = tau33;             //Tau33
-	    tau[p2idx+3].t13 = tau13;             //Tau13
+	    tau[p2idx].t11 = tau11;             //Tau11
+	    tau[p2idx].t22 = tau22;             //Tau22
+	    tau[p2idx].t33 = tau33;             //Tau33
+	    tau[p2idx].t13 = tau13;             //Tau13
 	    //Make tau's a texture so that they can be visualized as horizontal layers in the domain
 	    dataTau[texidx] = tau11;
 	    dataTau[texidx+1] = tau22;
@@ -2012,11 +1841,43 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    dataWind[texidx] = wind_vel[p2idx].u;
 	    dataWind[texidx+1] = wind_vel[p2idx].v;
 	    dataWind[texidx+2] = wind_vel[p2idx].w;	  
-	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
+	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
+	    //This value is the '0.5*CoEps' value	
 	  }
+	  else{
+	    data3[texidx] = 0.0;      //du_dz
+	    data3[texidx+1] = 0.0;    //dv_dz
+	    data3[texidx+2] = 0.0;    //dw_dz
+	    data3[texidx+3] = ustar;
+	    sig[p2idx].u = sigU;   //sigU
+	    sig[p2idx].v = sigV;   //sigV
+	    sig[p2idx].w = sigW;   //sigW
 
+	    tau[p2idx].t11   = 0.0;
+	    tau[p2idx].t22 = 0.0;
+	    tau[p2idx].t33 = 0.0;
+	    tau[p2idx].t13 = 0.0;
+	    dataTau[texidx] = 0.0;
+	    dataTau[texidx+1] = 0.0;
+	    dataTau[texidx+2] = 0.0;
+	    dataTau[texidx+3] = 0.0;
+
+	    dataTwo[texidx]   = 0.0;
+	    dataTwo[texidx+1] =  0.0;
+	    dataTwo[texidx+2] =  0.0;
+	    dataTwo[texidx+3] =  0.0;
+        
+	    dataWind[texidx] = wind_vel[p2idx].u;
+	    dataWind[texidx+1] = wind_vel[p2idx].v;
+	    dataWind[texidx+2] = wind_vel[p2idx].w;	  
+	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
+	    //This value is the '0.5*CoEps' value
+
+	  }
 	}
-  
+
+  find_tauLocalMax();
+
   createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
   createTexture(duvw_dz, GL_RGBA32F_ARB, width,height, data3);
   createTexture(windField, GL_RGBA32F_ARB, width, height, dataWind);
@@ -2747,8 +2608,70 @@ void ParticleControl::updateMaxandMinTaus(float tau11,float tau22,float tau33,fl
   if(tau22 < tauMin[1])
     tauMin[1] = tau22;
   if(tau33 < tauMin[2])
-    tauMin[3] = tau33;
-  if(tau13 < tauMin[4])
-    tauMin[4] = tau13;
+    tauMin[2] = tau33;
+  if(tau13 < tauMin[3])
+    tauMin[3] = tau13;
+
+}
+void ParticleControl::find_tauLocalMax(){
+  tauLocalMax = new float[4*nz];
+  tauLocalMin = new float[4*nz];
+ 
+  //Initialize max and min 
+  for(int k=0; k<nz; k++){
+   
+    int idx = k*ny*nx;
+    int tidx = k*4;
+
+    tauLocalMax[tidx] = tau[idx].t11;
+    tauLocalMax[tidx+1] = tau[idx].t22;
+    tauLocalMax[tidx+2] = tau[idx].t33;
+    tauLocalMax[tidx+3] = tau[idx].t13;
+
+    
+    tauLocalMin[tidx] = tau[idx].t11;
+    tauLocalMin[tidx+1] = tau[idx].t22;
+    tauLocalMin[tidx+2] = tau[idx].t33;
+    tauLocalMin[tidx+3] = tau[idx].t13;
+    
+  }
+
+  //Find max and min tau values for each height value
+
+  for(int k=0; k<nz; k++){
+    for(int i=0; i<ny; i++){
+      for(int j=0; j<nx; j++){
+	int idx = k*ny*nx + i*nx + j;
+	int tidx = k*4;
+
+	if(tau[idx].t11 > tauLocalMax[tidx])
+	  tauLocalMax[tidx] = tau[idx].t11;
+	if(tau[idx].t22 > tauLocalMax[tidx+1])
+	  tauLocalMax[tidx+1] = tau[idx].t22;
+	if(tau[idx].t33 > tauLocalMax[tidx+2])
+	  tauLocalMax[tidx+2] = tau[idx].t33;
+	if(tau[idx].t13 > tauLocalMax[tidx+3])
+	  tauLocalMax[tidx+3] = tau[idx].t13;
+
+	if(tau[idx].t11 < tauLocalMin[tidx])
+	  tauLocalMin[tidx] = tau[idx].t11;
+	if(tau[idx].t22 < tauLocalMin[tidx+1])
+	  tauLocalMin[tidx+1] = tau[idx].t22;
+	if(tau[idx].t33 < tauLocalMin[tidx+2])
+	  tauLocalMin[tidx+2] = tau[idx].t33;
+	if(tau[idx].t13 < tauLocalMin[tidx+3])
+	  tauLocalMin[tidx+3] = tau[idx].t13;
+
+
+
+      }
+    }
+  }
+
+  /* std::cout << "Local Max t11 values" << std::endl;
+  for(int i=0; i < nz; i++){
+    std::cout << tauLocalMin[(i*4)+3] << std::endl;
+    
+    }*/
 
 }

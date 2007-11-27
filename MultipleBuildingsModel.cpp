@@ -127,6 +127,9 @@ void MultipleBuildingsModel::init(bool OSG){
   setupTextures(); 
   /////////////////////////////
 
+  //Create isocontours
+  contours = new Contour(pc);
+
   //
   // set up vertex buffer
   // 
@@ -411,6 +414,11 @@ int MultipleBuildingsModel::display(){
       dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
       //stream->draw();
       pathLines->draw();
+
+      glDisable(texType);
+      contours->draw();
+      glEnable(texType);
+
       dc->drawLayers(windField,tau,numInRow);
 
       dc->drawScale();

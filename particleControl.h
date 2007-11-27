@@ -12,6 +12,14 @@
 #include "GLSL.h"
 #include <string>
 
+typedef struct{
+  float t11;
+  float t22;
+  float t33;
+  float t13;
+}Matrix;
+  
+
 class ParticleControl{
 
  public:
@@ -145,6 +153,16 @@ class ParticleControl{
   float tauMax[4];// tau11Max,tau22Max,tau33Max,tau13Max;  
   float tauMin[4];// tau11Min,tau22Min,tau33Min,tau13Min;
 
+  //Max and Min Tau values per height value(local max and min)
+  float* tauLocalMax;
+  float* tauLocalMin;
+
+  Matrix* tau;
+
+  int nx;
+  int ny;
+  int nz;
+
  private:
   float min,max; 
 
@@ -159,7 +177,8 @@ class ParticleControl{
   void printPrime(bool,bool);
 
   void updateMaxandMinTaus(float,float,float,float);
- 
+  void find_tauLocalMax();
+
   wind* wind_vel;
   cellType* cellQuic;
 
@@ -170,18 +189,6 @@ class ParticleControl{
   float* ht;
   float* wti;
   float* lti;
-
-  typedef struct{
-    float t11;
-    float t22;
-    float t33;
-    float t13;
-  }Matrix;
-  Matrix* tau;
-
-  int nx;
-  int ny;
-  int nz;
 
   //Number of Particles
   int twidth, theight;
