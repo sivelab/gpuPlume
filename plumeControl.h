@@ -27,6 +27,7 @@
 #include "streamLine.h"
 #include "PathLine.h"
 #include "Random.h"
+#include "Contour.h"
 #include <string>
 
 class PlumeControl{
@@ -52,6 +53,7 @@ class PlumeControl{
 
   StreamLine* stream;
   PathLine* pathLines;
+  Contour* contours;
 
   ParticleControl* pc;
   DisplayControl* dc;
