@@ -163,6 +163,8 @@ class ParticleControl{
   int ny;
   int nz;
 
+  GLenum texType;
+
  private:
   float min,max; 
 
@@ -227,7 +229,7 @@ class ParticleControl{
   GLint uniform_currentPrime, uniform_windVelocity,uniform_partPos, uniform_prevPartPos;
 
 
-  GLenum texType;
+  
   GLfloat* buffer_mem;
 
   GLint currentbuffer;

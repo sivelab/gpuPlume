@@ -1844,6 +1844,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
 	    //This value is the '0.5*CoEps' value	
 	  }
+	  /*
 	  else{
 	    data3[texidx] = 0.0;      //du_dz
 	    data3[texidx+1] = 0.0;    //dv_dz
@@ -1873,7 +1874,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
 	    //This value is the '0.5*CoEps' value
 
-	  }
+	    }*/
 	}
 
   find_tauLocalMax();

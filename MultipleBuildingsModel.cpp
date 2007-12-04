@@ -417,9 +417,11 @@ int MultipleBuildingsModel::display(){
 
       glDisable(texType);
       contours->draw();
+      //contours->displayContourLayer(pc,tau,numInRow);
       glEnable(texType);
 
       dc->drawLayers(windField,tau,numInRow);
+      
 
       dc->drawScale();
       if(!osgPlume){
