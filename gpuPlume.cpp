@@ -263,16 +263,26 @@ void keyboard_cb(unsigned char key, int x, int y)
   if (key == 'k') 
     {
       plume->dc->decreaseVisualLayer();
+      plume->contours->decreaseContourLayer();
     }
   else if (key == 'K')
     {
       plume->dc->increaseVisualLayer();
+      plume->contours->increaseContourLayer();
     }
   else if (key == 'l')
     {
       plume->dc->visual_field++;
-      if(plume->dc->visual_field > 5)
+      if(plume->dc->visual_field > 4)
 	plume->dc->visual_field = 0;
+
+      //value of 1 displays Tau11
+      //value of 2 displays Tau22
+      //value of 3 displays Tau33
+      //value of 4 displays Tau13
+      plume->contours->tauValue = plume->dc->visual_field -1;
+      
+
     }
   else if (key == '<')
     {
