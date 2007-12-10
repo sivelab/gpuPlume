@@ -1844,15 +1844,21 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
 	    //This value is the '0.5*CoEps' value	
 	  }
-	  /*
+	  
 	  else{
 	    data3[texidx] = 0.0;      //du_dz
 	    data3[texidx+1] = 0.0;    //dv_dz
 	    data3[texidx+2] = 0.0;    //dw_dz
-	    data3[texidx+3] = ustar;
-	    sig[p2idx].u = sigU;   //sigU
-	    sig[p2idx].v = sigV;   //sigV
-	    sig[p2idx].w = sigW;   //sigW
+		data3[texidx+3] = 0.0;
+		//ustar=sigU/2.5f;
+	    //data3[texidx+3] = ustar;
+	    //sig[p2idx].u = sigU;   //sigU
+	    //sig[p2idx].v = sigV;   //sigV
+	   // sig[p2idx].w = sigW;   //sigW
+		sig[p2idx].u = 0.0;
+		sig[p2idx].v = 0.0;
+		sig[p2idx].w = 0.0;
+
 
 	    tau[p2idx].t11   = 0.0;
 	    tau[p2idx].t22 = 0.0;
@@ -1868,13 +1874,13 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    dataTwo[texidx+2] =  0.0;
 	    dataTwo[texidx+3] =  0.0;
         
-	    dataWind[texidx] = wind_vel[p2idx].u;
-	    dataWind[texidx+1] = wind_vel[p2idx].v;
-	    dataWind[texidx+2] = wind_vel[p2idx].w;	  
-	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
+	    //dataWind[texidx] = wind_vel[p2idx].u;
+	    //dataWind[texidx+1] = wind_vel[p2idx].v;
+	    //dataWind[texidx+2] = wind_vel[p2idx].w;	  
+	    //dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
 	    //This value is the '0.5*CoEps' value
 
-	    }*/
+	  }
 	}
 
   find_tauLocalMax();
