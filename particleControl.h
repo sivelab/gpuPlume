@@ -138,6 +138,8 @@ class ParticleControl{
   typedef struct{
     float c;
   }cellType;
+  
+  float getMinDistance(int,int,int); //Added function for obtaining minimum distance to a surface --Balli
 
   wind* sig;
 
