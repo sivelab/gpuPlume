@@ -1428,6 +1428,9 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow, int dataSet){
   case 5:
     QUICWindField();
     break;
+  case 6:
+    QUICWindField();
+    break;
 
   }
 
@@ -1963,8 +1966,410 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 }
 void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, GLuint tauTex, int numInRow){
 
+  GLfloat *data = new GLfloat[ width * height * 4 ];
+  GLfloat *dataWind = new GLfloat[ width * height * 4 ];
+  GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
+  GLfloat *dataTau = new GLfloat[width*height*4];
+
+  GLfloat *data3 = new GLfloat[width*height*4];
+  GLfloat *data4 = new GLfloat[width*height*4];
+  GLfloat *data5 = new GLfloat[width*height*4];
+
+  int qi, qj, qk;
+  int p2idx = 0, texidx = 0, texidxBelow = 0;
+  int row = 0, rowBelow = 0;
+  
+  //cell below, cell above, cell two below
+  int idxBelow, idxAbove, idx2Below, idxFront, idxBehind;
+  float dz = 1.0,dx=1.0,dy=1.0; //Hardwired** should be in input file
+  //Surface roughness
+  float znaut = 0.1f;//Hardwired** should be in input file
+
+  //initializes the array cellQuic[]
+  initCellType();  
+
+  for (qk=0; qk<nz; qk++) 
+    for (qi=0; qi<ny; qi++)
+      for (qj=0; qj<nx; qj++){
+        
+         float minDistance=0.0f;
+         sigU=0;
+	 sigV=0;
+	 sigW=0;
+         float tau11=0;
+         float tau22=0;
+         float tau33=0;
+         float tau13=0;
+
+         p2idx = qk*ny*nx + qi*nx + qj;
+	
+         if(cellQuic[p2idx].c!=0){ //Calculate gradients ONLY if it is a fluid cell    
+         
+	    minDistance = getMinDistance(qj,qi,qk);
+            row = qk / (numInRow);
+	    texidx = row * width * ny * 4 +
+	      qi * width * 4 +
+	      qk % (numInRow) * nx * 4 +
+	      qj * 4;
+                
+	    rowBelow = (qk-1) / (numInRow);
+	    texidxBelow = rowBelow * width * ny * 4 +
+	      qi * width * 4 +
+	      (qk-1) % (numInRow) * nx * 4 +
+	      qj * 4;
+	         
+	    //The cells right above and below the current cell
+	    idxBelow = (qk-1)*ny*nx + qi*nx + qj;
+	    idxAbove = (qk+1)*ny*nx + qi*nx + qj;         
+          
+	    //The cells at front and behind of the current cell   
+	    idxBehind = qk*ny*nx + qi*nx + (qj-1);
+	    idxFront  = qk*ny*nx + qi*nx + (qj+1);
+	    //The cell two below the current cell
+	    idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+            
+	    //Calculate du/dz
+            
+	    
+	    float du_dz=0.0f;
+            //Cell just above the ground
+
+            if(qk == 0 || (cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
+	      du_dz = wind_vel[p2idx].u/(0.5*dz*log(0.5*dz/znaut));
+            }
+	    
+             //Cell at the top of the domain
+	    
+             else if(qk == (nz-1)){
+	       du_dz = data3[texidxBelow];  // du_dz at k-1th cell
+	     }          
+	     //All other cells. i.e not boundary cells
+	     //du/dz = (Uk+1 - Uk-1)/2dz
+	     else{
+	       du_dz = (wind_vel[idxAbove].u - wind_vel[idxBelow].u)/(2.0f*dz); 
+	     }
+
+		 float VertGradFactor=pow( (1.0-(minDistance/20.0)) ,3.0/4.0); 
+	     ustar=0.4*minDistance*du_dz; //Note: ustar doesn't include the vertGradFactor; sigmas do have vertGradFactor
+
+	     data3[texidx] = du_dz; //du_dz
+	     data3[texidx+1] = 0.0; //dv_dz
+	     data3[texidx+2] = VertGradFactor;    //dw_dz
+	     data3[texidx+3] = ustar;
+         
+	     sigU = 2.5*ustar*VertGradFactor;
+	     sigV = 2.0*ustar*VertGradFactor;
+	     sigW = 1.3*ustar*VertGradFactor;
+          
+	     sig[p2idx].u = sigU;   //sigU
+ 	     sig[p2idx].v = sigV;   //sigV
+	     sig[p2idx].w = sigW;   //sigW
+         
+	     tau11=sigU*sigU;
+	     tau22=sigV*sigV;
+	     tau33=sigW*sigW;
+	     tau13=ustar*ustar;
+	     float tauDetInv=1.0f/((tau11*tau22*tau33)-(tau13*tau13*tau22));
+		
+	     updateMaxandMinTaus(tau11,tau22,tau33,tau13);
+			    
+	     tau[p2idx].t11   = tau11;             //Tau11
+	     tau[p2idx+1].t22 = tau22;             //Tau22
+	     tau[p2idx+2].t33 = tau33;             //Tau33
+	     tau[p2idx+3].t13 = tau13;             //Tau13
+	     //Make tau's a texture so that they can be visualized as horizontal layers in the domain
+	     dataTau[texidx] = tau11;
+	     dataTau[texidx+1] = tau22;
+	     dataTau[texidx+2] = tau33;
+	     dataTau[texidx+3] = tau13;
+         
+	     dataTwo[texidx]   =  1.0f/(tau11-tau13*tau13/tau33);// tauDetInv*(tau22*tau33);            //Lam11
+	     dataTwo[texidx+1] =  1.0f/tau22;// tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
+	     dataTwo[texidx+2] =  1.0f/(tau33-tau13*tau13/tau11);//tauDetInv*(tau11*tau22);	          //Lam33
+	     dataTwo[texidx+3] =  -tau13/(tau11*tau33-tau13*tau13);//tauDetInv*(-tau13*tau22);           //Lam13
+         
+	     dataWind[texidx] = wind_vel[p2idx].u;
+	     dataWind[texidx+1] = wind_vel[p2idx].v;
+	     dataWind[texidx+2] = wind_vel[p2idx].w;	  
+	     dataWind[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)*
+                pow((1.0f-0.85f*minDistance/20.0f),(1.5f))/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
+
+          }
+      }
+      
+      //std::cout<< (static_cast<float>(std::clock()-mytimer))/CLOCKS_PER_SEC<< " seconds" << std::endl;
+     
+	  find_tauLocalMax();
+      createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
+      createTexture(duvw_dz, GL_RGBA32F_ARB, width,height, data3);
+      createTexture(windField, GL_RGBA32F_ARB, width, height, dataWind);
+      createTexture(tauTex, GL_RGBA32F_ARB, width, height, dataTau);
+  
+      delete [] dataTau;
+      delete [] dataWind;
+      delete [] data3;
+      delete [] dataTwo;
+
+      //Create the Tau/dz texture
+      float tau11_dz, tau22_dz, tau33_dz, tau13_dz;
+      for (qk=0; qk<nz; qk++) 
+        for (qi=0; qi<ny; qi++)
+          for (qj=0; qj<nx; qj++){
+             p2idx = qk*ny*nx + qi*nx + qj;
+	    
+	  row = qk / (numInRow);
+	  texidx = row * width * ny * 4 +
+	    qi * width * 4 +
+	    qk % (numInRow) * nx * 4 +
+	    qj * 4;
+
+	  rowBelow = (qk-1) / (numInRow);
+	  texidxBelow = rowBelow * width * ny * 4 +
+	    qi * width * 4 +
+	    (qk-1) % (numInRow) * nx * 4 +
+	    qj * 4;
+	  
+	  //The cells right above and below the current cell
+	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
+	  idxAbove = (qk+1)*ny*nx + qi*nx + qj;
+
+	  //The cell two below the current cell
+	  idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+
+	  //Calculate Tau/dz
+	  
+	  //Cell just above the ground
+	  //dT/dz = -2(T/(0.5dz)log((0.5dz/znaut)))
+          if(qk == 0 || (cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
+	    tau11_dz = -2.0f*(tau[p2idx].t11/(dz*log(dz/znaut)));
+	    tau22_dz = -2.0f*(tau[p2idx].t22/(dz*log(dz/znaut)));
+	    tau33_dz = -2.0f*(tau[p2idx].t33/(dz*log(dz/znaut)));
+	    tau13_dz = -2.0f*(tau[p2idx].t13/(dz*log(dz/znaut)));
+	  }
+	  //Cell at the top of the domain
+	  else if(qk == (nz-1)){
+	    tau11_dz = data[texidxBelow];
+	    tau22_dz = data[texidxBelow+1];
+	    tau33_dz = data[texidxBelow+2];
+	    tau13_dz = data[texidxBelow+3];
+	  }
+	  //All other cells
+	  //dT/dz = (Tk+1 - Tk-1)/2dz
+	  else{
+	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0f*dz);
+	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0f*dz);
+	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0f*dz);
+	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0f*dz);
+	  }
+          data[texidx] = tau11_dz;
+	  data[texidx+1] = tau22_dz;
+	  data[texidx+2] = tau33_dz;
+	  data[texidx+3] = tau13_dz;
+
+	}
+
+  createTexture(tau_dz, GL_RGBA32F_ARB, width,height, data);
+  
+  delete [] data;
+
+
 
 }
+
+float ParticleControl::getMinDistance(int qj, int qi, int qk){
+  
+  //Following is hardwired, but we need to read the building info mentioned in the input file
+  int totBuild=6;
+  int xfo[]={20,20,35,35,50,50};//{25};
+  int yfo[]={18,32,18,32,18,32};//{25};
+  int zfo[]={0,0,0,0,0,0};//{0};
+  int length[]={10,10,10,10,10,10};//{10};
+  int width[]={6,6,6,6,6,6};//{10};
+  int height[]={6,6,10,10,14,14};//{10};
+  float distance[6]; //stores minimum distance to each building
+
+  int dz=1;
+  int dy=1;
+  int dx=1;
+  // Adding 0.5*gridResolution as the QUIC-URB grid is shifted by 0.5*gridResolution 
+  float jCell=qj+0.5*dx; // converting units in meters (original position of the cell in meters)
+  float iCell=qi+0.5*dy;
+  float kCell=qk+0.5*dz;
+
+
+  for(int build=0;build<totBuild;++build){
+  
+  int x=xfo[build]; //storing the building parameters 
+  int y=yfo[build];
+  int z=zfo[build];
+  int l=length[build];
+  int w=width[build];
+  int h=height[build];
+
+ 
+
+  float minDisFaces=0.0; //minimum distance to 4 faces(sides) from a cell
+  float minDisTop=0.0;//minimum distance to the top(roof) of the building from a cell 
+  
+  if(kCell<h){//For this condition we have only 4 planes each building
+          
+    float actualDis[4];// absolute value of the perpendDis or the actual distance, we have 4 faces
+    
+    for(int i=0;i<4;++i){
+      // i=0 is front face 
+      // i=1, back face
+      // i=2, right side face (face towards front face of building)
+      // i=3, left side face:
+
+      float iedge;  // edges of the suface, declared as floats as ...
+      float jedge;  // one of the edge value for cells perpendicular...
+      float kedge;  // to faces can be float 
+
+      if(i==0 ){//front face
+        int edge1=y-(w/2);//right edge of the front plane
+      	int edge2=y+(w/2);//left edge of the front plane
+        jedge=x;// to get the edge in X-Direction
+      	if( iCell<=edge1 || iCell>=edge2 ){//for cells (qj,qi,qk) off the plane			  
+      	  if(abs(edge2-iCell)<abs(edge1-iCell))//for cells which are closer to "edge2"	   	   		  
+       	    iedge=edge2;
+          else
+       	    iedge=edge1;
+		  
+		}
+		else{ //for cells perpendicular to the faces
+		  iedge=iCell;
+		}
+		actualDis[i]=pow( (pow((jCell-jedge),2.0f)) + (pow((iCell-iedge),2.0f)) , 0.5f );
+		
+		
+      }// if condition for i==0 ends
+            
+      if(i==1){//back face
+        int edge1=y-(w/2);
+	    int edge2=y+(w/2);
+	    jedge=x+l; //back face
+		if(iCell<edge1 || iCell>edge2){ 
+	       if(abs(edge2-iCell)<abs(edge1-iCell)) //for cells which are closer to "edge2"	
+	          iedge=edge2;
+	       else
+	          iedge=edge1;           
+	     }
+		 else{
+          iedge=iCell;
+		}
+		actualDis[i]=pow( (pow((jCell-jedge),2.0f)) + (pow((iCell-iedge),2.0f)) , 0.5f );
+      }//if condition for i==1 ends
+
+      if(i==2){//right side face
+        int edge1=x;
+        int edge2=x+l;
+		iedge=y-(w/2);
+	    if(jCell>edge2 || jCell<edge1){
+	       if(abs(edge1-jCell)<abs(edge2-jCell))
+	          jedge=edge1;
+	       else
+	          jedge=edge2;	   
+		}
+		else{
+           jedge=jCell;
+		}
+		actualDis[i]=pow( (pow((jCell-jedge),2.0f)) + (pow((iCell-iedge),2.0f)) , 0.5f );
+      }//if condition for i==2 ends
+      if(i==3){// left side face
+        int edge1=x;
+	    int edge2=x+l;
+		iedge=y+(w/2);
+	    if(jCell>edge2 || jCell<edge1){
+	       if(abs(edge1-jCell)<abs(edge2-jCell))
+	          jedge=edge1;
+    	   else
+      	     jedge=edge2;  
+    	}
+		else{
+           jedge=jCell;
+		}
+		actualDis[i]=pow( (pow((jCell-jedge),2.0f)) + (pow((iCell-iedge),2.0f)) , 0.5f );
+      }//if condition for i==3 ends
+    }// For Loop for number of faces ends
+    minDisFaces=actualDis[1];//assuming one is minimum
+       
+    for(int i=0;i<sizeof(actualDis)/sizeof(*actualDis);++i){  //sizeof() provide number of bytes
+      if(minDisFaces>actualDis[i])
+        minDisFaces=actualDis[i]; 	   
+      }
+
+      if(minDisFaces>kCell) // checking if ground is closer than any of the faces
+        minDisFaces=kCell;
+     
+      distance[build]=minDisFaces;
+  }
+   else{ //if qk>=h
+       
+     float iedge;
+     float jedge;
+     float kedge;
+      
+     int edgeX1=x;
+     int edgeX2=x+l;
+     int edgeY1=y-(w/2);
+     int edgeY2=y+(w/2);
+         
+     if((jCell<edgeX1 || jCell>edgeX2 || iCell<edgeY1 || iCell>edgeY2)  ) { // for all the off plane cells (areas B0 and B1 in the PPT)
+        iedge=iCell;
+	    kedge=h;
+	    if(jCell<=edgeX1){ // cells in front of front face
+	      jedge=edgeX1;
+	      if(iCell<edgeY1)
+	        iedge=edgeY1;
+	      
+	      if(iCell>edgeY2)
+	        iedge=edgeY2;   
+        }
+        if(jCell>=edgeX2){//cells behind the back face
+          jedge=edgeX2;
+	      if(iCell<=edgeY1)
+	        iedge=edgeY1;
+	      if(iCell>edgeY2)
+	        iedge=edgeY2;    
+      }
+      if(jCell>edgeX1 && jCell<edgeX2){ //cells  on either side of side faces
+
+        jedge=jCell;
+        kedge=h;
+        if(iCell<=edgeY1)
+	      iedge=edgeY1;
+	    if(iCell>edgeY2)
+	      iedge=edgeY2;
+      }	
+	
+    }
+    else{//if the prependicular from the cell lies on the roof.
+      iedge=iCell;
+      jedge=jCell;
+      kedge=h;
+    }	  
+	  
+     minDisTop=pow( (pow((jCell-jedge),2.0f)) + (pow((iCell-iedge),2.0f)) + (pow((kCell-kedge),2.0f))  , 0.5f );	
+    if(minDisTop>kCell) // checking if ground is closer than the distance to the roof.
+       minDisTop=kCell;
+    
+    distance[build]=minDisTop;
+
+}//if else of qk>h or qk<h ends
+}//For loop for buildings
+
+float minDisAll=distance[1];//assuming one is minimum
+       
+    for(int i=0;i<(sizeof(distance)/sizeof(*distance));++i){  //sizeof() provide number of bytes
+      if(minDisAll>distance[i])
+        minDisAll=distance[i]; 	   
+    }
+
+return minDisAll;
+ 
+  }
+
+
 /*void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint lambda, GLuint tau_dz, GLuint duvw_dz, int numInRow){
   GLfloat *data = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
