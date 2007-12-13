@@ -95,6 +95,23 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   uniform_tauMax = scale_shader.createUniform("tauMax");
   uniform_sliderScale = scale_shader.createUniform("slider");
 
+  //Wind Field shader
+  windField_shader.addShader("Shaders/windFieldLayer_vp.glsl", GLSLObject::VERTEX_SHADER);
+  windField_shader.addShader("Shaders/windFieldLayer_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  windField_shader.createProgram();
+  uniform_windTex = windField_shader.createUniform("Wind");
+  uniform_max_x = windField_shader.createUniform("max_x");
+  uniform_max_y = windField_shader.createUniform("max_y");
+  uniform_max_z = windField_shader.createUniform("max_z");
+  uniform_max_c = windField_shader.createUniform("max_c");
+  uniform_min_x = windField_shader.createUniform("min_x");
+  uniform_min_y = windField_shader.createUniform("min_y");
+  uniform_min_z = windField_shader.createUniform("min_z");
+  uniform_min_c = windField_shader.createUniform("min_c");
+  uniform_controlWind = windField_shader.createUniform("controlWind");
+  uniform_sliderWind = windField_shader.createUniform("slider");
+
+
   // for point sprites, we need the uniform variables for the texture
   // units that hold the point sprite and the normal map
   uniform_pointsprite_tex = render_shader.createUniform("pointsprite_texunit");
@@ -134,45 +151,87 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   HUP_display_update_time[0] = clock_timer->tic();
   estimated_rate = 0.0;
 }
-void DisplayControl::setupTurbulenceShader(float Max[], float Min[]){
-  TauMax = Max;
-  TauMin = Min;
+void DisplayControl::setupWindFieldShader(float WMax[], float WMin[]){
+  WindMax = WMax;
+  WindMin = WMin;
+
+  windField_shader.activate();
+
+  glUniform1fARB(uniform_max_x, WMax[0]);
+  glUniform1fARB(uniform_max_y, WMax[1]);
+  glUniform1fARB(uniform_max_z, WMax[2]);
+  glUniform1fARB(uniform_max_c, WMax[3]);
+  
+  glUniform1fARB(uniform_min_x, WMin[0]);
+  glUniform1fARB(uniform_min_y, WMin[1]);
+  glUniform1fARB(uniform_min_z, WMin[2]);
+  glUniform1fARB(uniform_min_c, WMin[3]);
+
+  windField_shader.deactivate();
+
+  windMax = WMax[0];
+  if(WMax[1]>windMax)
+    windMax = WMax[1];
+  if(WMax[2]>windMax)
+    windMax = WMax[2];
+  if(WMax[3]>windMax)
+    windMax = WMax[3];
+  windMin = WMin[0];
+  if(WMin[1]<windMin)
+    windMin = WMin[1];
+  if(WMin[2]<windMin)
+    windMin = WMin[2];
+  if(WMin[3]<windMin)
+    windMin = WMin[3];
+
+  windTitle[0] = "x";
+  windTitle[1] = "y";
+  windTitle[2] = "z";
+  windTitle[3] = "CoEps/2";
+
+}
+
+void DisplayControl::setupTurbulenceShader(float TMax[], float TMin[]){
+  TauMax = TMax;
+  TauMin = TMin;
 
   turbulence_shader.activate();
 
-  glUniform1fARB(uniform_max11, Max[0]);
-  glUniform1fARB(uniform_max22, Max[1]);
-  glUniform1fARB(uniform_max33, Max[2]);
-  glUniform1fARB(uniform_max13, Max[3]);
+  glUniform1fARB(uniform_max11, TMax[0]);
+  glUniform1fARB(uniform_max22, TMax[1]);
+  glUniform1fARB(uniform_max33, TMax[2]);
+  glUniform1fARB(uniform_max13, TMax[3]);
   
-  glUniform1fARB(uniform_min11, Min[0]);
-  glUniform1fARB(uniform_min22, Min[1]);
-  glUniform1fARB(uniform_min33, Min[2]);
-  glUniform1fARB(uniform_min13, Min[3]);
+  glUniform1fARB(uniform_min11, TMin[0]);
+  glUniform1fARB(uniform_min22, TMin[1]);
+  glUniform1fARB(uniform_min33, TMin[2]);
+  glUniform1fARB(uniform_min13, TMin[3]);
 
 
   turbulence_shader.deactivate();
 
-  tauMax = Max[0];
-  if(Max[1]>tauMax)
-    tauMax = Max[1];
-  if(Max[2]>tauMax)
-    tauMax = Max[2];
-  if(Max[3]>tauMax)
-    tauMax = Max[3];
-  tauMin = Min[0];
-  if(Min[1]>tauMin)
-    tauMin = Min[1];
-  if(Min[2]>tauMin)
-    tauMin = Min[2];
-  if(Min[3]>tauMin)
-    tauMin = Min[3];
+  tauMax = TMax[0];
+  if(TMax[1]>tauMax)
+    tauMax = TMax[1];
+  if(TMax[2]>tauMax)
+    tauMax = TMax[2];
+  if(TMax[3]>tauMax)
+    tauMax = TMax[3];
+  tauMin = TMin[0];
+  if(TMin[1]>tauMin)
+    tauMin = TMin[1];
+  if(TMin[2]>tauMin)
+    tauMin = TMin[2];
+  if(TMin[3]>tauMin)
+    tauMin = TMin[3];
 
   Taus[0] = "t11";
   Taus[1] = "t22";
   Taus[2] = "t33";
   Taus[3] = "t13";
 
+
+  //std::cout << "Min of Tau is " << tauMin << std::endl;
 
 }
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
@@ -578,17 +637,17 @@ void DisplayControl::drawLayers(GLuint texId, GLuint texId2, int numInRow){
 
       glEnable(texType);
       glBindTexture(texType, texId);
-      glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       
       //Since the alpha value is the epsilon value, we need
       //to make sure alpha value of displayed layer is 1.0;
-      static GLfloat col[4] = {0.0,0.0,0.0,1.0};
+      /*static GLfloat col[4] = {0.0,0.0,0.0,1.0};
       glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, col);
 
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);  
       glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_ADD);
-      glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE);
+      glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE);*/
       
       //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
@@ -621,6 +680,13 @@ void DisplayControl::drawLayers(GLuint texId, GLuint texId2, int numInRow){
       // the texture. 
       t = (int)(floor(visual_layer/(float)numInRow) * ny);
 
+      windField_shader.activate();
+
+      glUniform1iARB(uniform_controlWind, visual_field);
+      glUniform1fARB(uniform_sliderWind, slider);
+
+      glUniform1iARB(uniform_windTex, 0); 
+
       // Create a quad at this layer with 50% transparency
       glColor4f(1.0, 1.0, 1.0, 0.8);
       glBegin(GL_QUADS);
@@ -632,8 +698,11 @@ void DisplayControl::drawLayers(GLuint texId, GLuint texId2, int numInRow){
 	glTexCoord2f(s, t+ny);      glVertex3f(0, ny,visual_layer);
       }
       glEnd();
-      glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+      windField_shader.deactivate();
+
+      //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       //glBindTexture(texType, 0);
       glDisable(texType);
       glDisable(GL_BLEND);
@@ -792,8 +861,35 @@ void DisplayControl::drawScale(){
 
   //Draw Colored Scale
   char* disp;
+  float max[4];
+  float min[4];
+  float globalMin;
+  float globalMax;
+  char* allDisp[4];
+
+  if(visual_field == 0){
+    for(int i=0; i < 4; i++){
+      max[i] = WindMax[i];
+      min[i] = WindMin[i];
+      allDisp[i] = windTitle[i];
+    }
+    globalMin = windMin;
+    globalMax = windMax;
+  }
+  else{
+    for(int i=0; i < 4; i++){
+      max[i] = TauMax[i];
+      min[i] = TauMin[i];
+      allDisp[i] = Taus[i];
+    }
+    globalMin = tauMin;
+    globalMax = tauMax;
+  }
 
   switch(visual_field){
+  case 0:
+    disp = "Displaying: Wind.x";
+    break;
   case 1:
     //tauMin = TauMin[0];
     //tauMax = TauMax[0];
@@ -820,6 +916,8 @@ void DisplayControl::drawScale(){
     disp = "";
   }
 
+  //Grey Background
+  ////////////////////////////////////////////////////
   glColor3f(0.7,0.7,0.7);
   glBegin(GL_QUADS);
   {
@@ -829,8 +927,11 @@ void DisplayControl::drawScale(){
     glVertex3f(scale_xstart-10,scale_yend+28, 0.0);
   }
   glEnd();
- 
+  ////////////////////////////////////////////////////
 
+
+  //Draw Colored scale
+  ////////////////////////////////////////////////////
   scale_shader.activate();
   glUniform1fARB(uniform_xmin, scale_xstart);
   glUniform1fARB(uniform_xmax, scale_xend);
@@ -849,41 +950,40 @@ void DisplayControl::drawScale(){
   glEnd();
 
   scale_shader.deactivate();
+  ///////////////////////////////////////////////////
+
   int y = (int)scale_yend + 5;
 
-  sprintf(number, "%.2f", tauMin);
-  glColor3ub(255, 255, 0);
-  glRasterPos2i((int)scale_xstart-5, y);
-  for(int i=0; i < (int)strlen(number); i++){
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
-  }
-
-  /*sprintf(number, "%.2f", tauMax);
-  glColor3ub(255, 255, 0);
-  glRasterPos2i((int)scale_xend-(int)strlen(number)-15, y);
-  for(int i=0; i < (int)strlen(number); i++){
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
-    }*/
-
-  //Displaying Tau Text
+  //Display Text
   glColor3ub(255,255,0);
   glRasterPos2i((int)((scale_xstart+scale_xend)/2)- 50, (int)scale_ystart-13);
   for(int i=0; i < (int)strlen(disp); i++){
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]);
   }
+
+
+  sprintf(number, "%.2f", globalMin);
+  glColor3ub(255, 255, 0);
+  glRasterPos2i((int)scale_xstart-5, y);
+  for(int i=0; i < (int)strlen(number); i++){
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
+  }
  
-  //Display Max of Taus on Scale
+  //Display Max Values on Scale
+  /////////////////////////////////////////////////////////////////
+  int prev_x = (int)(((max[0]-globalMin)/(globalMax-globalMin))*(scale_xend-scale_xstart)+scale_xstart);
+
   for(int j=0; j <= 3; j++){
     //map tau value onto x position of scale
-    int x = (int)(((TauMax[j]-tauMin)/(tauMax-tauMin))*(scale_xend-scale_xstart)+scale_xstart);
-    sprintf(number, "%.2f", TauMax[j]);
+    int x = (int)(((max[j]-globalMin)/(globalMax-globalMin))*(scale_xend-scale_xstart)+scale_xstart);
+    sprintf(number, "%.2f", max[j]);
     glColor3ub(255,255,0);
     glRasterPos2i(x,y);
     for(int i=0; i < (int)strlen(number); i++)
       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]); 
 
     glRasterPos2i(x,y+12);
-    disp = Taus[j];
+    disp = allDisp[j];
     for(int i=0; i < (int)strlen(disp); i++)
       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]); 
 
@@ -894,8 +994,13 @@ void DisplayControl::drawScale(){
       glVertex3f(x,scale_yend,0.0);
     }
     glEnd();
-  }
 
+    prev_x = x;
+  }
+  ////////////////////////////////////////////////////////////////
+
+  //Find position of slider bar and draw it on scale
+  ////////////////////////////////////////////////////////////////
   slider_x = (int)((scale_xend-scale_xstart)*slider+scale_xstart);
   glColor3f(0.0,0.0,0.0);
   glBegin(GL_LINES);
@@ -904,6 +1009,7 @@ void DisplayControl::drawScale(){
     glVertex3f(slider_x,scale_yend,0.0);
   }
   glEnd();
+  ////////////////////////////////////////////////////////////////
 
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();

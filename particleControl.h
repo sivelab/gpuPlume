@@ -161,6 +161,11 @@ class ParticleControl{
 
   Matrix* tau;
 
+  //Max and Min Wind Field values
+  float windMax[4];
+  float windMin[4];
+
+
   int nx;
   int ny;
   int nz;
@@ -182,6 +187,8 @@ class ParticleControl{
 
   void updateMaxandMinTaus(float,float,float,float);
   void find_tauLocalMax();
+
+  void updateMaxandMinWindVel(float,float,float,float);
 
   wind* wind_vel;
   cellType* cellQuic;

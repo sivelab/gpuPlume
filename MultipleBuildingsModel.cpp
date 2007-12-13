@@ -162,6 +162,7 @@ void MultipleBuildingsModel::init(bool OSG){
   emit_shader.createProgram();
 
   dc->setupTurbulenceShader(pc->tauMax, pc->tauMin);
+  dc->setupWindFieldShader(pc->windMax, pc->windMin);
 
   CheckErrorsGL("END of init");
 

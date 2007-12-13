@@ -20,6 +20,7 @@ class DisplayControl{
   DisplayControl(int, int, int, GLenum);
   
   void setupTurbulenceShader(float [], float []);
+  void setupWindFieldShader(float [], float []);
 
   void drawVisuals(GLuint, GLuint, GLuint, int, int, int);
   void drawAxes();
@@ -75,11 +76,18 @@ class DisplayControl{
   void createImageTex(GLuint, char*);
   GLubyte* readPPM(char*, int*, int*);
   
+  //Global Max and Min values of Tau
   float* TauMax;
   float* TauMin;
   float tauMin, tauMax;
   char* Taus[4];
   
+  //Global Max and Min values of Wind Field
+  float* WindMax;
+  float* WindMin;
+  float windMin, windMax;
+  char* windTitle[4];
+
   float scale_xstart,scale_xend;
   float scale_ystart,scale_yend;
 
@@ -103,6 +111,7 @@ class DisplayControl{
   
 
   GLSLObject render_shader, turbulence_shader, scale_shader;
+  GLSLObject windField_shader;
 
   Timer *clock_timer;
   Timer_t graphics_time[2];
@@ -128,6 +137,10 @@ class DisplayControl{
   GLint uniform_controlTau;
   GLint uniform_xmax, uniform_xmin, uniform_tauMin, uniform_tauMax;
   GLint uniform_sliderScale, uniform_sliderTurb;
+  GLint uniform_max_x,uniform_max_y,uniform_max_z,uniform_max_c;
+  GLint uniform_min_x,uniform_min_y,uniform_min_z,uniform_min_c;
+  GLint uniform_controlWind, uniform_sliderWind, uniform_windTex;
+
 
   //
   // Point Sprite visual data
