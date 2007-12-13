@@ -2111,6 +2111,8 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 	  dataWind[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)*
 	    pow((1.0f-0.85f*minDistance/20.0f),(1.5f))/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
 
+	  updateMaxandMinWindVel(dataWind[texidx],dataWind[texidx+1],dataWind[texidx+2],dataWind[texidx+3]);
+
 	}
 	else{
 	    
