@@ -1779,22 +1779,21 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	  turbulence>>extraVal;  //this value in not required
 
 	  p2idx = qk*ny*nx + qi*nx + qj;
+	  row = qk / (numInRow);
+	  texidx = row * width * ny * 4 +
+	    qi * width * 4 +
+	    qk % (numInRow) * nx * 4 +
+	    qj * 4;
+
+	  rowBelow = (qk-1) / (numInRow);
+	  texidxBelow = rowBelow * width * ny * 4 +
+	    qi * width * 4 +
+	    (qk-1) % (numInRow) * nx * 4 +
+	    qj * 4;
+	  
 		
-	  if(cellQuic[p2idx].c!=0){ //Calculate gradients ONLY if its not a building or ground cell    
-
-	    
-
-	    row = qk / (numInRow);
-	    texidx = row * width * ny * 4 +
-	      qi * width * 4 +
-	      qk % (numInRow) * nx * 4 +
-	      qj * 4;
-
-	    rowBelow = (qk-1) / (numInRow);
-	    texidxBelow = rowBelow * width * ny * 4 +
-	      qi * width * 4 +
-	      (qk-1) % (numInRow) * nx * 4 +
-	      qj * 4;
+	  if(cellQuic[p2idx].c != 0){ //Calculate gradients ONLY if its not a building or ground cell    
+	   
 	         
 	    //The cells right above and below the current cell
 	    idxBelow = (qk-1)*ny*nx + qi*nx + qj;
@@ -1855,6 +1854,8 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	  
 	  else{
 	    
+	    //std::cout << qk << " " << qi << " " << qj << std::endl;
+
 	    data3[texidx] = 0.0;      //du_dz
 	    data3[texidx+1] = 0.0;    //dv_dz
 	    data3[texidx+2] = 0.0;    //dw_dz
@@ -1878,15 +1879,15 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    dataTwo[texidx+2] =  0.0;
 	    dataTwo[texidx+3] =  0.0;
         
-	    /*dataWind[texidx] = 0.0;
-	    dataWind[texidx+1] = 0.0;
-	    dataWind[texidx+2] = 0.0;	 
-	    dataWind[texidx+3] = 0.0;*/
+	    //dataWind[texidx] = -1.0;
+	    //dataWind[texidx+1] = 0.0;
+	    //dataWind[texidx+2] = 0.0;	 
+	    //dataWind[texidx+3] = 0.0;
 
-	    //dataWind[texidx] = wind_vel[p2idx].u;
-	    //dataWind[texidx+1] = wind_vel[p2idx].v;
-	    //dataWind[texidx+2] = wind_vel[p2idx].w;	  
-	    //dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
+	    dataWind[texidx] = wind_vel[p2idx].u;
+	    dataWind[texidx+1] = wind_vel[p2idx].v;
+	    dataWind[texidx+2] = wind_vel[p2idx].w;	  
+	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
 
 	    //This value is the '0.5*CoEps' value
 
@@ -2020,21 +2021,23 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 
 	p2idx = qk*ny*nx + qi*nx + qj;
 	
+
+	row = qk / (numInRow);
+	texidx = row * width * ny * 4 +
+	  qi * width * 4 +
+	  qk % (numInRow) * nx * 4 +
+	  qj * 4;
+                
+	rowBelow = (qk-1) / (numInRow);
+	texidxBelow = rowBelow * width * ny * 4 +
+	  qi * width * 4 +
+	  (qk-1) % (numInRow) * nx * 4 +
+	  qj * 4;
+
 	if(cellQuic[p2idx].c!=0){ //Calculate gradients ONLY if it is a fluid cell    
          
 	  minDistance = getMinDistance(qj,qi,qk);
-	  row = qk / (numInRow);
-	  texidx = row * width * ny * 4 +
-	    qi * width * 4 +
-	    qk % (numInRow) * nx * 4 +
-	    qj * 4;
-                
-	  rowBelow = (qk-1) / (numInRow);
-	  texidxBelow = rowBelow * width * ny * 4 +
-	    qi * width * 4 +
-	    (qk-1) % (numInRow) * nx * 4 +
-	    qj * 4;
-	         
+	  	         
 	  //The cells right above and below the current cell
 	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
 	  idxAbove = (qk+1)*ny*nx + qi*nx + qj;         
@@ -2139,10 +2142,10 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 	  dataTwo[texidx+2] =  0.0;
 	  dataTwo[texidx+3] =  0.0;
         
-	  /*dataWind[texidx] = 0.0;
-	    dataWind[texidx+1] = 0.0;
-	    dataWind[texidx+2] = 0.0;	 
-	    dataWind[texidx+3] = 0.0;*/
+	  dataWind[texidx] = 0.0;
+	  dataWind[texidx+1] = 0.0;
+	  dataWind[texidx+2] = 0.0;	 
+	  dataWind[texidx+3] = 0.0;
 
 	  //dataWind[texidx] = wind_vel[p2idx].u;
 	  //dataWind[texidx+1] = wind_vel[p2idx].v;
@@ -2655,6 +2658,8 @@ void ParticleControl::QUICWindField(){
     }
   }
   
+  QUICWindField.close();
+
 }
 void ParticleControl::initCellType(){
   std::ifstream QUICCellType;
@@ -2691,6 +2696,11 @@ void ParticleControl::initCellType(){
 
 	QUICCellType>>cellQuic[p2idx].c ;//storing the Celltype values in the Cell structure
 		
+	//if(cellQuic[p2idx].c == 0){
+	  //std::cout << k << " " << i << " " << j << std::endl;
+	  
+	//}
+
       }
     }
   }
