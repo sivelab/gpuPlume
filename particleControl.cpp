@@ -1837,10 +1837,10 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    dataTau[texidx+2] = tau33;
 	    dataTau[texidx+3] = tau13;
 
-	    dataTwo[texidx]   =  1.0f/(tau11-tau13*tau13/tau33);// tauDetInv*(tau22*tau33);            //Lam11
+	    dataTwo[texidx]   =  1.0f/(tau11-tau13*tau13/tau33);// tauDetInv*(tau22*tau33);      //Lam11
 	    dataTwo[texidx+1] =  1.0f/tau22;// tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
-	    dataTwo[texidx+2] =  1.0f/(tau33-tau13*tau13/tau11);//tauDetInv*(tau11*tau22);	          //Lam33
-	    dataTwo[texidx+3] =  -tau13/(tau11*tau33-tau13*tau13);//tauDetInv*(-tau13*tau22);           //Lam13
+	    dataTwo[texidx+2] =  1.0f/(tau33-tau13*tau13/tau11);//tauDetInv*(tau11*tau22);	 //Lam33
+	    dataTwo[texidx+3] =  -tau13/(tau11*tau33-tau13*tau13);//tauDetInv*(-tau13*tau22);    //Lam13
         
 	    dataWind[texidx] = wind_vel[p2idx].u;
 	    dataWind[texidx+1] = wind_vel[p2idx].v;
@@ -1878,18 +1878,11 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    dataTwo[texidx+1] =  0.0;
 	    dataTwo[texidx+2] =  0.0;
 	    dataTwo[texidx+3] =  0.0;
-        
-	    //dataWind[texidx] = -1.0;
-	    //dataWind[texidx+1] = 0.0;
-	    //dataWind[texidx+2] = 0.0;	 
-	    //dataWind[texidx+3] = 0.0;
-
+        	   
 	    dataWind[texidx] = wind_vel[p2idx].u;
 	    dataWind[texidx+1] = wind_vel[p2idx].v;
 	    dataWind[texidx+2] = wind_vel[p2idx].w;	  
-	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
-
-	    //This value is the '0.5*CoEps' value
+	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//This value is the '0.5*CoEps' value
 
 	  }
 	}
@@ -1897,14 +1890,14 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   find_tauLocalMax();
 
 
-  std::cout << "WindMax x = " << windMax[0] << std::endl;
+  /*std::cout << "WindMax x = " << windMax[0] << std::endl;
   std::cout << "WindMax y = " << windMax[1] << std::endl;
   std::cout << "WindMax z = " << windMax[2] << std::endl;
   std::cout << "WindMax c = " << windMax[3] << std::endl;
   std::cout << "WindMin x = " << windMin[0] << std::endl;
   std::cout << "WindMin y = " << windMin[1] << std::endl;
   std::cout << "WindMin z = " << windMin[2] << std::endl;
-  std::cout << "WindMin c = " << windMin[3] << std::endl;
+  std::cout << "WindMin c = " << windMin[3] << std::endl;*/
 
   createTexture(lambda, GL_RGBA32F_ARB, width,height, dataTwo);
   createTexture(duvw_dz, GL_RGBA32F_ARB, width,height, data3);
@@ -2469,22 +2462,38 @@ void ParticleControl::initLambdaTex(GLuint lambda, int numInRow){
 }
 
 void ParticleControl::test1(){
+  //int center = (nz/2)*nx*ny + (ny/2)*nx + (nx/2);
+
   for(int k = 0; k < nz; k++){   
     for(int i = 0; i < ny; i++){
       for(int j = 0; j < nx; j++){
 	int p2idx = k*nx*ny + i*nx + j;
-  	if(i%2 == 0){
-	  wind_vel[p2idx].u = 0;
+  	
+	if((j > nx/2) && (k < nz/2)){
+	  wind_vel[p2idx].u = 1.0;
+	  wind_vel[p2idx].v = 0.0;
+	  wind_vel[p2idx].w = 0.0;
+	  wind_vel[p2idx].id = -1.0;
+	}
+	else if ((j < nx/2) && ( k < nz/2)){
+	  wind_vel[p2idx].u = -1.0;
+	  wind_vel[p2idx].v = 0.0;
+	  wind_vel[p2idx].w = 0.0;
+	  wind_vel[p2idx].id = -1.0;
+	}
+	else if((i > ny/2) && (k > nz/2)){
+	  wind_vel[p2idx].u = 0.0;
 	  wind_vel[p2idx].v = 1.0;
-	  wind_vel[p2idx].w = 0;
+	  wind_vel[p2idx].w = 0.0;
 	  wind_vel[p2idx].id = -1.0;
-	 }
-	else {
-	  wind_vel[p2idx].u = 0;
-	  wind_vel[p2idx].v = 0;
-	  wind_vel[p2idx].w = 0;
+	}
+	else{
+	  wind_vel[p2idx].u = 0.0;
+	  wind_vel[p2idx].v = -1.0;
+	  wind_vel[p2idx].w = 0.0;
 	  wind_vel[p2idx].id = -1.0;
-	  }
+	  
+	}
       }
     }
   }
@@ -2695,11 +2704,6 @@ void ParticleControl::initCellType(){
 	QUICCellType>>quicIndex;
 
 	QUICCellType>>cellQuic[p2idx].c ;//storing the Celltype values in the Cell structure
-		
-	//if(cellQuic[p2idx].c == 0){
-	  //std::cout << k << " " << i << " " << j << std::endl;
-	  
-	//}
 
       }
     }
