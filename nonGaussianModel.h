@@ -15,6 +15,7 @@ class NonGaussianModel : public PlumeControl{
   
  protected:
 
+  virtual void initFBO();
   virtual ~NonGaussianModel();
 
 

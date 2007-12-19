@@ -15,6 +15,7 @@ class GaussianModel : public PlumeControl{
   
  protected:
 
+  virtual void initFBO();
   virtual ~GaussianModel();
 
 

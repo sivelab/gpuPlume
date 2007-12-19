@@ -78,7 +78,7 @@ void NonGaussianModel::init(bool OSG){
   setupEmitters();
   
   glEnable(texType);
-  glGenTextures(10, texid);
+  glGenTextures(11, texid);
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
@@ -90,21 +90,34 @@ void NonGaussianModel::init(bool OSG){
   lambda = texid[7];
   tau_dz = texid[8];
   duvw_dz = texid[9];
+  currVel = texid[10];
   /////////////////////////////
   setupTextures();
   
   //
   // set up vertex buffer
   // 
-  glGenBuffersARB(1, &vertex_buffer);
+  glGenBuffersARB(2, vbo_buffer);
+  vertex_buffer = vbo_buffer[0];
+  color_buffer = vbo_buffer[1];
+
+  //glGenBuffersARB(1, &vertex_buffer);
+  //glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
+  //glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, color_buffer);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
+
+
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   //Initialize FBO
   initFBO();
 
   pc->setupNonGaussianShader(numInRow,lifeTime);
+
+  pc->setupCurrVel_shader(numInRow);
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -117,6 +130,11 @@ void NonGaussianModel::init(bool OSG){
     display_clock = new Timer(true);
     sim->init();
   } 
+
+  int maxtextures;
+  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (GLint*)&maxtextures);
+  std::cout << "Max Textures: " << maxtextures << std::endl;
+
 }
 
 int NonGaussianModel::display(){
@@ -133,90 +151,109 @@ int NonGaussianModel::display(){
     glLoadIdentity();
   }
 
-  //update simulation information such as total time elapsed and current time step
-  //if set to run for a total number of time steps and that value has been reached,
-  //clean up anything needed and close the window
-  if(!firstTime){
-    if(sim->update(&time_step)){
-      if(!osgPlume){
-	quitSimulation = true;
-      }
-    }
-  }
-  //Store simulation start time and turn on one particle emitter
-  if(firstTime){
-    if(!osgPlume)
-      pe[0]->emit = true;
-    sim->setStartTime(&time_step);
-    firstTime = false;
-  }
-
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
   glEnable(texType);
   // bind the framebuffer object so we can render to the 2nd texture
   fbo->Bind();
-  
-  /////////////////////////////////////////////////////////////
-  //Reuse particles if their lifespan is up
-  /////////////////////////////////////////////////////////////
-  if(reuseParticles){
-    particleReuse();
-  }
-  ////////////////////////////////////////////////////////////
-   // Emit Particles
-  ////////////////////////////////////////////////////////////
-  for(int i = 0; i < util->numOfPE; i++){
-    if(pe[i]->emit){    
-      totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step);
-      if(pe[i]->releaseType == onePerKeyPress){
-	stream->addNewStream(pe[i]);
+
+  //update simulation information such as total time elapsed and current time step
+  //if set to run for a total number of time steps and that value has been reached,
+  //clean up anything needed and close the window
+  if(!paused || !inPauseMode){
+
+    if(!firstTime){
+      if(sim->update(&time_step)){
+	if(!osgPlume){
+	  quitSimulation = true;
+	}
       }
     }
-  }
-  ////////////////////////////////////////////////////////////
-  // Collection Boxes
-  ////////////////////////////////////////////////////////////
+    //Store simulation start time and turn on one particle emitter
+    if(firstTime){
+      if(!osgPlume)
+	pe[0]->emit = true;
+      sim->setStartTime(&time_step);
+      firstTime = false;
+    }
 
-  if(!endCBox){
-    output_CollectionBox = cBoxes[0]->findConc(sim,&endCBox,odd); 
-  }
+ 
   
-  ////////////////////////////////////////////////////////////
-  // Update Prime Values and Particle Positions
-  ////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////
+    //Reuse particles if their lifespan is up
+    /////////////////////////////////////////////////////////////
+    if(reuseParticles){
+      particleReuse();
+    }
+    ////////////////////////////////////////////////////////////
+    // Emit Particles
+    ////////////////////////////////////////////////////////////
+    for(int i = 0; i < util->numOfPE; i++){
+      if(pe[i]->emit){    
+	totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step);
+	if(pe[i]->releaseType == onePerKeyPress){
+	  stream->addNewStream(pe[i]);
+	}
+      }
+    }
+    ////////////////////////////////////////////////////////////
+    // Collection Boxes
+    ////////////////////////////////////////////////////////////
+
+    if(!endCBox){
+      output_CollectionBox = cBoxes[0]->findConc(sim,&endCBox,odd); 
+    }
+  
+    ////////////////////////////////////////////////////////////
+    // Update Prime Values and Particle Positions
+    ////////////////////////////////////////////////////////////
    
-  pc->nonGaussianAdvect(odd,windField,positions0,positions1,prime0,prime1,
+    pc->nonGaussianAdvect(odd,windField,positions0,positions1,prime0,prime1,
 			  randomValues,lambda,tau_dz,duvw_dz,time_step);
  
-  ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////
-  // Get Position for Streams
-  ////////////////////////////////////////////////////////////
-  if(stream->doUpdate()){
-    stream->updateStreamPos();
+    ////////////////////////////////////////////////////////////
+    // Get Position for Streams
+    ////////////////////////////////////////////////////////////
+    if(stream->doUpdate()){
+      stream->updateStreamPos();
+    }
+    
+    ///////////////////////////////////////////////////////////
+    // Update Current Velocities
+    ///////////////////////////////////////////////////////////
+    if(maxColorAttachments <= 4){
+      FramebufferObject::Disable();
+      fbo2->Bind();
+    }
+    
+    pc->updateCurrVel(odd,prime0,prime1,windField,positions0,positions1);
+
+    if(maxColorAttachments <= 4){
+      FramebufferObject::Disable();
+      fbo->Bind();
+    }
+  
+    ///////////////////////////////////////////////////////////
+    // In some circumstances, we may want to dump the contents of
+    // the FBO to a file.
+    if (dump_contents)
+      {
+	pc->printPositions(odd);
+	dump_contents = false;
+      }
+    if(output_CollectionBox)
+      {
+	for(int j = 0; j < num_cBoxes; j++){
+	  cBoxes[j]->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
+	}
+	output_CollectionBox = false;
+      }
+
+    //Switches the frame buffer and binding texture
+    odd = !odd;
+    paused = true;
   }
-  ///////////////////////////////////////////////////////////
-
-  
-  
-  // In some circumstances, we may want to dump the contents of
-  // the FBO to a file.
-  if (dump_contents)
-     {
-       pc->printPositions(odd);
-       dump_contents = false;
-     }
-  if(output_CollectionBox)
-     {
-       for(int j = 0; j < num_cBoxes; j++){
-		cBoxes[j]->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
-       }
-       output_CollectionBox = false;
-     }
-
-  //Switches the frame buffer and binding texture
-  odd = !odd;
 
   CheckErrorsGL("END : after 1st pass");
   // We only need to do PASS 2 (copy to VBO) and PASS 3 (visualize) if
@@ -231,10 +268,27 @@ int NonGaussianModel::display(){
       // PASS 2 - copy the contents of the 2nd texture (the new positions)
       // into the vertex buffer
       // //////////////////////////////////////////////////////////////
-      
+      if(odd){
+	glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+      }
+      else 
+	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
-      glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
+
+      if(maxColorAttachments <= 4){
+	FramebufferObject::Disable();
+	fbo2->Bind();
+      }
+      glReadBuffer(currVelBuffer);
+      
+      glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
+      glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
+
+      //glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
+      //glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
+      //glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
       CheckErrorsGL("after glReadPixels");
       
       // Disable the framebuffer object
@@ -270,7 +324,7 @@ int NonGaussianModel::display(){
 	glClearColor(util->bcolor[0],util->bcolor[1],util->bcolor[2],1.0);
       }	
       
-      dc->drawVisuals(vertex_buffer, windField, 0, numInRow, twidth, theight);
+      dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
       stream->draw();
       dc->drawLayers(windField, lambda, numInRow);
 
@@ -310,6 +364,61 @@ int NonGaussianModel::display(){
   return 1;
 
 }
+
+void NonGaussianModel::initFBO(void){
+  // Get the Framebuffer Object ready
+  fbo = new FramebufferObject();
+  fbo->Bind();
+      
+  glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, (GLint*)&maxColorAttachments);
+  std::cout << "Max color attachments: " << maxColorAttachments << std::endl;
+  //rb = new Renderbuffer();
+  //rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);
+  //fbo->AttachRenderBuffer(GL_DEPTH_ATTACHMENT_EXT, rb->GetId() );
+
+  //Attach textures to framebuffer object
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, texid[0]);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, texid[1]);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, prime0);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT3_EXT, texType, prime1);
+
+  if(maxColorAttachments > 4){
+    //fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, meanVel0);
+    //fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
+    fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, currVel);
+
+    currVelBuffer = GL_COLOR_ATTACHMENT4_EXT;
+    pc->currVelBuffer = GL_COLOR_ATTACHMENT4_EXT;
+    //pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT4_EXT;
+    //pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT5_EXT;
+
+  }
+
+  fbo->IsValid();
+  FramebufferObject::Disable();
+
+  //If the max number of textures that can be attached to the fbo 
+  //is <= 4, then we have to use another fbo.
+  if(maxColorAttachments <= 4){
+    fbo2 = new FramebufferObject();
+    fbo2->Bind();
+
+    //fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0); 
+    //fbo2->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, meanVel1);
+    fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, currVel);
+    CheckErrorsGL("FBO init 2");
+
+    currVelBuffer = GL_COLOR_ATTACHMENT0_EXT;
+    pc->currVelBuffer = GL_COLOR_ATTACHMENT0_EXT;
+    //pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT0_EXT;
+    //pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT1_EXT;
+
+    fbo2->IsValid();
+    FramebufferObject::Disable();
+  }
+
+}
+
 
 void NonGaussianModel::setupTextures(){
   CheckErrorsGL("BEGIN : Creating textures");
@@ -477,6 +586,9 @@ void NonGaussianModel::setupTextures(){
 
   pc->createTexture(texid[4], int_format, twidth, theight, data);
   CheckErrorsGL("\tcreated texid[4], the random number texture...");
+
+  pc->createTexture(currVel, int_format, twidth, theight, data);
+
 
   delete [] data;
 
