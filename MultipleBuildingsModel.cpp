@@ -161,7 +161,7 @@ void MultipleBuildingsModel::init(bool OSG){
   emit_shader.addShader("Shaders/emitParticle_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   emit_shader.createProgram();
 
-  dc->setupTurbulenceShader(pc->tauMax, pc->tauMin);
+  dc->setupTurbulenceShader(pc->tauMax, pc->tauMin, pc->tauLocalMax, pc->tauLocalMin);
   dc->setupWindFieldShader(pc->windMax, pc->windMin);
 
   CheckErrorsGL("END of init");

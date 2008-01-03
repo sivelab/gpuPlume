@@ -34,11 +34,11 @@ void main(void)
   if(max13>max)
     max = max13;
   float min = min11;
-  if(min22>min)
+  if(min22<min)
     min = min22;
-  if(min33>min)
+  if(min33<min)
     min = min33;
-  if(min13>min)
+  if(min13<min)
     min = min13;
 
   float range = max - min;

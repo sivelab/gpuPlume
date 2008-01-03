@@ -18,126 +18,38 @@ varying vec4 pcolor;
 void main(void)
 {
   vec2 texCoord = gl_TexCoord[0].xy;
-  vec4 color = vec4(textureRect(Wind, texCoord)); 
+  vec4 wind_dir = vec4(textureRect(Wind, texCoord)); 
   
-  vec3 c1 = vec3(0.0,0.0,1.0);
-  vec3 c2 = vec3(1.0,1.0,0.0);
-  vec3 c3 = vec3(1.0,0.0,0.0);
+  mat3 opponent2rgb = mat3(1.0,  0.1140,  0.7436, 
+			   1.0,  0.1140, -0.4111, 
+			   1.0, -0.8860, 0.1663);
+  vec3 opponent_color = normalize(wind_dir);
 
-  float t;
 
-  float max = max_x;
-  if(max_y>max)
-    max = max_y;
-  if(max_z>max)
-    max = max_z;
-  if(max_c>max)
-    max = max_c;
-  float min = min_x;
-  if(min_y>min)
-    min = min_y;
-  if(min_z>min)
-    min = min_z;
-  if(min_c>min)
-    min = min_c;
+  // opponent_color = normalize(wind);
 
-  float range = max - min;
-  //float r = ((max-min)/2.0)/(max-min);
-  //r = 0.05;
+  vec3 color = opponent2rgb * opponent_color;
 
-  if(controlWind == 0){
-    //t = (color.x-min11)/(max11-min11);
-    t = (color.x-min)/range;
-  }
-  //Show only Tau22
-  else if(controlWind == 1){
-    //t = (color.y-min22)/(max22-min22);
-    t = (color.y-min)/range;
-  }
-  else if(controlWind == 2){
-    //t = (color.z-min33)/(max33-min33);
-    t = (color.z-min)/range;
-  }
-  else if(controlWind == 3){
-    //t = (color.w-min13)/(max13-min13);
-    t = (color.w-min)/range;
-  }
+  // now, we need to apply a non-affine transform to make the red/green axis perpendicular to the blue/yellow axis
+  float pi = 3.14159;
+  float theta = atan(color.z, color.y);
+  float theta_0 = 0.0;
+  if (theta < (pi/3.0))
+    theta_0 = (3.0 / 2.0) * theta;
+  else if (theta <= pi && theta >= (pi/3.0))
+    theta_0 = pi/2.0 + 0.75*(theta - pi/3.0);
+      
+  vec2 oRGB_new, oRGB;
+  oRGB = vec2(color.y, color.z);
+  mat2 rot = mat2(cos(theta), -sin(theta), sin(theta), cos(theta));
+  oRGB_new = rot * oRGB;
+      
+  color.y = oRGB_new.x;  
+  color.z = oRGB_new.y;
+
+  gl_FragColor = vec4(color,1.0);
 
   
-  vec3 col;
-  if(t >= slider){
-    t = (t-slider)/(1.0-slider);
-    col = c1*(1.0-t) + c2*t;
-  }
-  else{
-    t = (slider-t)/(slider);   
-    col = c3*(t) + c1*(1.0-t);
-    //gl_FragColor = c3*(1.0-t) + c1*(t);
-  }
-
-  gl_FragColor = vec4(col,0.8);
-  //gl_FragColor = vec4((c1*(1-t) + c2*t),0.8);
-
-  /*
-  //Show only Tau11
-  if(controlTau == 1){
-    color.x = (color.x-min11)/(max11-min11);
-    if(color.x > 0.05)
-      gl_FragColor = vec4(color.x,0.0,0.0,1.0);
-    else
-      gl_FragColor = vec4(color.x,0.0,0.0,0.7);
-  }
-  //Show only Tau22
-  else if(controlTau == 2){
-    color.y = (color.y-min22)/(max22-min22);
-    if(color.y > 0.05)
-      gl_FragColor = vec4(0.0,color.y,0.0,1.0);
-    else
-      gl_FragColor = vec4(0.0,color.y,0.0,0.7);
-  }
-  //Show only Tau33
-  else if(controlTau == 3){
-    color.z = (color.z-min33)/(max33-min33);
-    if(color.z > 0.05)
-      gl_FragColor = vec4(0.0,0.0,color.z,1.0);
-    else
-      gl_FragColor = vec4(0.0,0.0,color.z,0.7);
-  }
-  else if(controlTau == 4){
-    color.w = (color.w-min13)/(max13-min13);
-    if(color.w > 0.05)
-      gl_FragColor = vec4(color.w,color.w,0.0,1.0);
-    else
-      gl_FragColor = vec4(color.w,color.w,0.0,0.7);
-  }
-  //Show all together
-  else{
-    
-    float max = max11;
-    if(max22>max)
-      max = max22;
-    if(max33>max)
-      max = max33;
-    if(max13>max)
-      max = max13;
-    float min = min11;
-    if(min22>min)
-      min = min22;
-    if(min33>min)
-      min = min33;
-    if(min13>min)
-      min = min13;
-
-    float range = max - min;
-
-    color.x = (color.x-min)/range;
-    color.y = (color.y-min)/range;
-    color.z = (color.z-min)/range;
-    color.w = 1.0-((color.w-min)/range);
-
-
-    gl_FragColor = color;
-    }*/
   /*if (point_visuals == 1)
     {
     //vec4 d = vec4(texture2D(pointspritenormal_texunit, gl_TexCoord[0].st));
