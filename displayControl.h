@@ -19,7 +19,7 @@ class DisplayControl{
   
   DisplayControl(int, int, int, GLenum);
   
-  void setupTurbulenceShader(float [], float []);
+  void setupTurbulenceShader(float [], float [], float*, float*);
   void setupWindFieldShader(float [], float []);
 
   void drawVisuals(GLuint, GLuint, GLuint, int, int, int);
@@ -70,6 +70,7 @@ class DisplayControl{
   //int tauValue; 
 
   int slider_x;
+  bool localValues;
 
  private:
   
@@ -79,6 +80,8 @@ class DisplayControl{
   //Global Max and Min values of Tau
   float* TauMax;
   float* TauMin;
+  float* tauLocalMax;
+  float* tauLocalMin;
   float tauMin, tauMax;
   char* Taus[4];
   

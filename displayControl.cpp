@@ -59,6 +59,8 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   visual_layer = -1;
   osgPlume = false;
 
+  localValues = false;
+
   // Set particle visual state to point based particles initially
   particle_visual_state = PARTICLE_SPRITE;  // POINT or SPRITE;
 
@@ -191,9 +193,12 @@ void DisplayControl::setupWindFieldShader(float WMax[], float WMin[]){
 
 }
 
-void DisplayControl::setupTurbulenceShader(float TMax[], float TMin[]){
+void DisplayControl::setupTurbulenceShader(float TMax[], float TMin[],float* max, float* min){
   TauMax = TMax;
   TauMin = TMin;
+
+  tauLocalMax = max;
+  tauLocalMin = min;
 
   turbulence_shader.activate();
 
@@ -218,11 +223,11 @@ void DisplayControl::setupTurbulenceShader(float TMax[], float TMin[]){
   if(TMax[3]>tauMax)
     tauMax = TMax[3];
   tauMin = TMin[0];
-  if(TMin[1]>tauMin)
+  if(TMin[1]<tauMin)
     tauMin = TMin[1];
-  if(TMin[2]>tauMin)
+  if(TMin[2]<tauMin)
     tauMin = TMin[2];
-  if(TMin[3]>tauMin)
+  if(TMin[3]<tauMin)
     tauMin = TMin[3];
 
   Taus[0] = "t11";
@@ -596,6 +601,19 @@ void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
       glUniform1iARB(uniform_controlTau, visual_field);
       glUniform1fARB(uniform_sliderTurb, slider);
 
+      int tidx = visual_layer*4;
+      if(localValues){
+	glUniform1fARB(uniform_max11, tauLocalMax[tidx]);
+	glUniform1fARB(uniform_max22, tauLocalMax[tidx+1]);
+	glUniform1fARB(uniform_max33, tauLocalMax[tidx+2]);
+	glUniform1fARB(uniform_max13, tauLocalMax[tidx+3]);
+  
+	glUniform1fARB(uniform_min11, tauLocalMin[tidx]);
+	glUniform1fARB(uniform_min22, tauLocalMin[tidx+1]);
+	glUniform1fARB(uniform_min33, tauLocalMin[tidx+2]);
+	glUniform1fARB(uniform_min13, tauLocalMin[tidx+3]);
+      }
+
       glUniform1iARB(uniform_tauTex, 0); 
 
       glBegin(GL_QUADS);
@@ -877,13 +895,41 @@ void DisplayControl::drawScale(){
     globalMax = windMax;
   }
   else{
+    int tidx = visual_layer*4;
     for(int i=0; i < 4; i++){
-      max[i] = TauMax[i];
-      min[i] = TauMin[i];
+      
+      if(localValues){
+	max[i] = tauLocalMax[tidx+i];
+	min[i] = tauLocalMin[tidx+i];
+      }
+      else{
+	max[i] = TauMax[i];
+	min[i] = TauMin[i];
+      }
       allDisp[i] = Taus[i];
     }
-    globalMin = tauMin;
-    globalMax = tauMax;
+
+    if(localValues){
+      globalMax = tauLocalMax[tidx];
+      if(tauLocalMax[tidx+1]>globalMax)
+        globalMax = tauLocalMax[tidx+1];
+      if(tauLocalMax[tidx+2]>globalMax)
+	globalMax = tauLocalMax[tidx+2];
+      if(tauLocalMax[tidx+3]>globalMax)
+	globalMax = tauLocalMax[tidx+3];
+
+      globalMin = tauLocalMin[tidx];
+      if(tauLocalMin[tidx+1]<globalMin)
+	globalMin = tauLocalMin[tidx+1];
+      if(tauLocalMin[tidx+2]<globalMin)
+	globalMin = tauLocalMin[tidx+2];
+      if(tauLocalMin[tidx+3]<globalMin)
+	globalMin = tauLocalMin[tidx+3];
+    }
+    else{
+      globalMin = tauMin;
+      globalMax = tauMax;
+    }
   }
 
   switch(visual_field){
