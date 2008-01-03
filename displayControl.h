@@ -39,6 +39,7 @@ class DisplayControl{
   void moveSliderDown();
   void moveSlider(int);
   bool clickedSlider(int,int);
+  void clickedRangeButton(int,int);
   void moveForwardorBack(float);
   void slideLeftorRight(float);
   void setAzimuth(float, float);
@@ -93,6 +94,10 @@ class DisplayControl{
 
   float scale_xstart,scale_xend;
   float scale_ystart,scale_yend;
+
+  int* tauPos_x;
+
+  int rangeButton_x,rangeButton_y;
 
   //Controls what value the middle color is
   //represented at in the scale used for visualizing

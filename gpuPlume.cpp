@@ -449,7 +449,9 @@ void mouse(int button, int state,int x, int y)
   else // state == GLUT_UP
     plume->dc->change_look = false;
 
-  if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
+  if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON) {
+    plume->dc->clickedRangeButton(x,y);
+
     if(plume->dc->clickedSlider(x,y)){
       plume->dc->move_slider = true;
       plume->dc->rotate_around = false;
@@ -458,6 +460,8 @@ void mouse(int button, int state,int x, int y)
       plume->dc->rotate_around = true;
       plume->dc->move_slider = false;
     }
+   
+  }
   else{
     plume->dc->rotate_around = false;
     plume->dc->move_slider = false;

@@ -17,7 +17,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   nz = z;
   texType = type;
 
-
+  tauPos_x = new int[5];
   eye_pos[0] = nx+50;
   eye_pos[1] = 0;
   eye_pos[2] = 5;
@@ -42,6 +42,9 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   scale_xend = 310.0;
   scale_ystart = 40.0;
   scale_yend = 55.0;
+ 
+  rangeButton_x = (int)scale_xstart + 10;
+  rangeButton_y = (int)scale_ystart - 13;
 
   angle = M_PI;
   yangle = 0.0;
@@ -59,7 +62,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   visual_layer = -1;
   osgPlume = false;
 
-  localValues = false;
+  localValues = true;
 
   // Set particle visual state to point based particles initially
   particle_visual_state = PARTICLE_SPRITE;  // POINT or SPRITE;
@@ -613,6 +616,17 @@ void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
 	glUniform1fARB(uniform_min33, tauLocalMin[tidx+2]);
 	glUniform1fARB(uniform_min13, tauLocalMin[tidx+3]);
       }
+      else{
+	glUniform1fARB(uniform_max11, TauMax[0]);
+	glUniform1fARB(uniform_max22, TauMax[1]);
+	glUniform1fARB(uniform_max33, TauMax[2]);
+	glUniform1fARB(uniform_max13, TauMax[3]);
+  
+	glUniform1fARB(uniform_min11, TauMin[0]);
+	glUniform1fARB(uniform_min22, TauMin[1]);
+	glUniform1fARB(uniform_min33, TauMin[2]);
+	glUniform1fARB(uniform_min13, TauMin[3]);
+      }
 
       glUniform1iARB(uniform_tauTex, 0); 
 
@@ -860,6 +874,16 @@ void DisplayControl::moveSlider(int x){
     slider = (float)(x - scale_xstart)/(float)(scale_xend-scale_xstart);
   
 }
+void DisplayControl::clickedRangeButton(int x, int y){
+  y = glutGet(GLUT_WINDOW_HEIGHT)-y;
+  
+  if((x >= rangeButton_x) && ( x <= rangeButton_x + 80) &&
+     (y >= rangeButton_y) && ( y <= rangeButton_y + 10)){
+    localValues = !localValues;
+  }
+		     
+
+}
 void DisplayControl::drawScale(){
   GLint* vp = new GLint[4];
   glGetIntegerv(GL_VIEWPORT,vp);
@@ -1007,6 +1031,16 @@ void DisplayControl::drawScale(){
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]);
   }
 
+  if(localValues)
+    disp = "(Local Range)";
+  else
+    disp = "(Global Range)";
+  //Local or Global Display
+  glColor3ub(255,255,0);
+  glRasterPos2i(rangeButton_x, rangeButton_y);
+  for(int i=0; i < (int)strlen(disp); i++){
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]);
+  }
 
   sprintf(number, "%.2f", globalMin);
   glColor3ub(255, 255, 0);
@@ -1017,22 +1051,34 @@ void DisplayControl::drawScale(){
  
   //Display Max Values on Scale
   /////////////////////////////////////////////////////////////////
-  int prev_x = (int)(((max[0]-globalMin)/(globalMax-globalMin))*(scale_xend-scale_xstart)+scale_xstart);
+  for(int j=0; j <= 3; j++){
+    tauPos_x[j] = (int)(((max[j]-globalMin)/(globalMax-globalMin))*(scale_xend-scale_xstart)+scale_xstart);
+  }
+  tauPos_x[4] = (int)scale_xstart;
 
   for(int j=0; j <= 3; j++){
     //map tau value onto x position of scale
     int x = (int)(((max[j]-globalMin)/(globalMax-globalMin))*(scale_xend-scale_xstart)+scale_xstart);
+
+    int yPos = y;
+        
+    for(int i=j; i <=4; i++){
+      if(abs(x-tauPos_x[i]) < 10 && abs(x-tauPos_x[i]) != 0)
+	yPos += 20;
+    }
+
     sprintf(number, "%.2f", max[j]);
     glColor3ub(255,255,0);
-    glRasterPos2i(x,y);
+    glRasterPos2i(x,yPos);
     for(int i=0; i < (int)strlen(number); i++)
       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]); 
 
-    glRasterPos2i(x,y+12);
+    glRasterPos2i(x,yPos+12);
     disp = allDisp[j];
     for(int i=0; i < (int)strlen(disp); i++)
       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]); 
 
+    
     glColor3f(0.0,0.0,0.0);
     glBegin(GL_LINES);
     {
@@ -1041,7 +1087,6 @@ void DisplayControl::drawScale(){
     }
     glEnd();
 
-    prev_x = x;
   }
   ////////////////////////////////////////////////////////////////
 
