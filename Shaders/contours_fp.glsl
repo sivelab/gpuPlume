@@ -1,15 +1,21 @@
 uniform int numContours;
 uniform int tauValue;
-uniform float contourValues[];
 uniform samplerRect tau;
+uniform samplerRect contourTex;
+uniform int height;
 
 void main(void)
 {
+  vec4 color1 = vec4(0.0,0.0,1.0,1.0);
+  vec4 color2 = vec4(1.0,1.0,0.0,1.0);
+  vec4 color3 = vec4(1.0,0.0,0.0,1.0);
+
   vec2 texCoord = gl_TexCoord[0].xy;
   vec4 value = vec4(textureRect(tau, texCoord));
 
+ 
   float t;
-  vec4 color = vec4(0.0,0.0,0.0,1.0);
+  vec4 color = vec4(1.0,1.0,1.0,1.0);
 
   if(tauValue == 0){
     t = value.x;
@@ -21,51 +27,153 @@ void main(void)
   else t = value.w;
 
   
-
+  vec4 c1;
+  vec4 c2;
   
+  vec2 index;
+  int scale = 0;
+
   int i=0;
-  //Colors all the tau values in between 1st contour line and last contour line
-  /*for(i=0;i<(numContours-1); i++){
-    if( (contourValues[i] < t) && (t < contourValues[(i+1)]) ){
-      color = vec4(0.0,0.0,1.0,1.0);
-      break;
-    }
-    
-    }*/
-  /*while(i < (numContours-1)){
-    if( (contourValues[i] < t) && (t < contourValues[i+1]) ){
-      color = vec4(0.0,0.0,1.0,1.0);
-    }
-    
-    i = i+1;
-    }*/
+  index.s = height*numContours;
+  index.t = 0;
 
-  //Check 1st contour value
-  i = (int)3;
-  if( t < contourValues[0] ){
-    color = vec4(0.0,1.0,0.0,1.0);
-  }
-  else if( t > contourValues[0] && t < contourValues[1]){
-    color = vec4(0.0,0.0,1.0,1.0);
-  }
-  else if( t > contourValues[1] && t < contourValues[2]){
-    color = vec4(1.0,1.0,0.0,1.0);
-  }
-  else if( t > contourValues[2] && t < contourValues[3]){
-    color = vec4(1.0,0.0,1.0,1.0);
-  }
-  else if( t > contourValues[3] ){
-    color = vec4(1.0,0.0,0.0,1.0);
-  }
-
-  /*
-  if(numContours == 3)
-    color.x = 1.0;
-  if(numContours == 4)
-    color.y = 1.0;
-  if(numContours == 2)
-  color.z = 1.0;*/
+  c1 = vec4(textureRect(contourTex,index));
   
+  //Tau11
+  if(tauValue == 0){
+
+    //Colors the smallest contour value
+    if(t < c1.x)
+      color = vec4(1.0,1.0,1.0,1.0);
+
+    //Colors all the tau values in between 1st contour line and last contour line
+    for(i=0;i<(numContours-1); i++){
+      index.s = height*numContours + i;
+      index.t = 0;
+      c1 = vec4(textureRect(contourTex,index));
+		     
+      index.s = height*numContours + i + 1;
+      c2 = vec4(textureRect(contourTex,index));
+
+      if((c1.x < t) && ( t < c2.x)){
+	color = vec4(0.0,0.0,1.0,1.0);
+	scale = i+1;
+      }
+   
+    }
+    //Color the largest contour value
+    index.s = height*numContours + numContours-1;
+    c1 = vec4(textureRect(contourTex,index));
+    if(t > c1.x){
+      color = vec4(0.0,0.0,0.0,1.0);
+      scale = numContours;
+    }
+  }
+  //Tau22
+  else if(tauValue == 1){
+    //Colors the smallest contour value
+
+    if(t < c1.y)
+      color = vec4(1.0,0.0,0.0,1.0);
+
+    //Colors all the tau values in between 1st contour line and last contour line
+    for(i=0;i<(numContours-1); i++){
+      index.s = height*numContours + i;
+      index.t = 0;
+      c1 = vec4(textureRect(contourTex,index));
+		     
+      index.s = height*numContours + i + 1;
+      c2 = vec4(textureRect(contourTex,index));
+
+      if((c1.y < t) && ( t < c2.y)){
+	color = vec4(0.0,0.0,1.0,1.0);
+	scale = i+1;
+      }
+   
+    }
+
+    //Color the largest contour value
+    index.s = height*numContours + numContours-1;
+    c1 = vec4(textureRect(contourTex,index));
+    if(t > c1.y){
+      color = vec4(0.0,0.0,0.0,1.0);
+      scale = numContours;
+    }
+  }
+  //Tau33
+  else if(tauValue == 2){
+    //Colors the smallest contour value
+    if(t < c1.z)
+      color = vec4(1.0,0.0,0.0,1.0);
+
+    //Colors all the tau values in between 1st contour line and last contour line
+    for(i=0;i<(numContours-1); i++){
+      index.s = height*numContours + i;
+      index.t = 0;
+      c1 = vec4(textureRect(contourTex,index));
+		     
+      index.s = height*numContours + i + 1;
+      c2 = vec4(textureRect(contourTex,index));
+
+      if((c1.z < t) && ( t < c2.z)){
+	color = vec4(0.0,0.0,1.0,1.0);
+	scale = i+1;
+      }
+   
+    }
+    //Color the largest contour value
+    index.s = height*numContours + numContours-1;
+    c1 = vec4(textureRect(contourTex,index));
+    if(t > c1.z){
+      color = vec4(0.0,0.0,0.0,1.0);
+      scale = numContours;
+    }
+  }
+  //Tau13
+  else{
+    //Colors the smallest contour value
+    if(t < c1.w)
+      color = vec4(1.0,0.0,0.0,1.0);
+
+    //Colors all the tau values in between 1st contour line and last contour line
+    for(i=0;i<(numContours-1); i++){
+      index.s = height*numContours + i;
+      index.t = 0;
+      c1 = vec4(textureRect(contourTex,index));
+		     
+      index.s = height*numContours + i + 1;
+      c2 = vec4(textureRect(contourTex,index));
+
+      if((c1.w < t) && ( t < c2.w)){
+	color = vec4(0.0,0.0,1.0,1.0);
+	scale = i+1;
+      }
+   
+    }
+    //Color the largest contour value
+    index.s = height*numContours + numContours-1;
+    c1 = vec4(textureRect(contourTex,index));
+    if(t > c1.w){
+      color = vec4(0.0,0.0,0.0,1.0);
+      scale = numContours;
+    }
+  }
+    
+
+  float s = float(scale)/float(numContours);
+  float n = 1.0/2.0;
+
+  if(s >= n){
+    s = (s-n)/(1.0-n);
+
+    color = color1*(1.0-s) + color2*s;
+  }
+  else{
+    s = (n-s)/n;
+
+    color = color3*s + color1*(1.0-s);
+  }
   gl_FragColor = color;
+ 
 
 }

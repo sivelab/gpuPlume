@@ -89,6 +89,9 @@ class PlumeControl{
   bool osgPlume;
   bool quitSimulation;
 
+  bool draw_contours;
+  bool draw_layers;
+
   //glut window id
   int winid;
 

@@ -34,7 +34,6 @@ Contour::Contour(ParticleControl* pc){
 
 	int tidx = k*ny*nx*4 + i*nx*4 + j*4;
 	
-
 	tau[tidx] = pc->tau[idx].t11;
 	tau[tidx+1] = pc->tau[idx].t22;
 	tau[tidx+2] = pc->tau[idx].t33;
@@ -80,19 +79,50 @@ Contour::Contour(ParticleControl* pc){
   contour_shader.addShader("Shaders/contours_vp.glsl",GLSLObject::VERTEX_SHADER);
   contour_shader.addShader("Shaders/contours_fp.glsl",GLSLObject::FRAGMENT_SHADER);
   contour_shader.createProgram();
-  uniform_contours = contour_shader.createUniform("contourValues");
   uniform_numContours = contour_shader.createUniform("numContours");
   uniform_tauTex = contour_shader.createUniform("tau");
   uniform_tauValue = contour_shader.createUniform("tauValue");
+  uniform_contourTex = contour_shader.createUniform("contourTex");
+  uniform_height = contour_shader.createUniform("height");
+  
+  glDisable(GL_TEXTURE_2D);
+  glEnable(pc->texType);
+  glGenTextures(1,tex_id);
 
+  glBindTexture(pc->texType, tex_id[0]);
+  
+  glTexParameteri(pc->texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(pc->texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(pc->texType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(pc->texType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  int cidx = 0;
+  GLfloat *data = new GLfloat[num_cValue*nz*4];
+  for(int k=0; k < nz; k++){
+    for(int i=0; i < num_cValue; i++){
+      for(int j=0; j < 4; j++){
+	int idx = k*4*num_cValue + i*4 + j;
+	data[idx] = contourValues[cidx];
+	cidx++;
+	//std::cout << data[idx] << std::endl;
+      }
+    }
+  }
+
+  glTexImage2D(pc->texType, 0, GL_RGBA32F_ARB, num_cValue*nz*4,1,0, GL_RGBA, GL_FLOAT, data);
+
+  glBindTexture(pc->texType, 0);
+
+  delete [] data;
+  glDisable(pc->texType);
+  
 }
 
 
 void Contour::setContourValuesLocally(ParticleControl* pc,int k){
   int idx = (k*4)+tauValue;
-
-  int cidx = (k*4*num_cValue)+ tauValue*4;
-
+  int cidx;
+  
   //std::cout << "Local Max = " << pc->tauLocalMax[idx] << std::endl;
   //std::cout << "Local Min = " << pc->tauLocalMin[idx] << std::endl;
   
@@ -101,18 +131,24 @@ void Contour::setContourValuesLocally(ParticleControl* pc,int k){
   for(int i=0; i < num_cValue; i++){
     cValue[i] = (i+1)*(((pc->tauLocalMax[idx]-pc->tauLocalMin[idx])/(float)n)) + pc->tauLocalMin[idx];
     //std::cout << "C value " << i << " equals " << cValue[i] << std::endl;
-    contourValues[i+cidx] = cValue[i];
+    
+    cidx = k*4*num_cValue + 4*i + tauValue;
+    contourValues[cidx] = cValue[i];
+
   }
 
 }
 void Contour::setContourValuesGlobally(ParticleControl* pc,int k){
   
-  int cidx = (k*4*num_cValue)+ tauValue*4;
+  int cidx;
 
   for(int i=0; i < n-1; i++){
     cValue[i] = (i+1)*(((pc->tauMax[tauValue]-pc->tauMin[tauValue])/(float)n)) + pc->tauMin[tauValue];
     //std::cout << "C value " << i << " equals " << cValue[i] << std::endl;
-    contourValues[i+cidx] = cValue[i];
+    
+    cidx = k*4*num_cValue + i*4 + tauValue;
+    contourValues[cidx] = cValue[i];
+
   }
 
 }
@@ -504,38 +540,35 @@ void Contour::displayContourLayer(ParticleControl* pc,GLuint texId, int numInRow
 
   if(layer >= 0 && layer < nz && tauValue >= 0){
 
-    glPushMatrix();
+    glPushMatrix();  
+
     //glEnable(GL_COLOR_MATERIAL);
     //glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
 
     glEnable(pc->texType);
-    glBindTexture(pc->texType, texId);
+    
     glTexParameteri(pc->texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(pc->texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
 
     int s = 0;
     int t = 0;
 
     s = (int)(layer % numInRow) * nx;
-    t = (int)(floor(layer/(float)numInRow) * ny);
-    
-   
-    int cidx = (layer*4*num_cValue) + tauValue*4;
-
-    //Find cValues based on layer value
-    for(int i=0; i < num_cValue; i++){
-      cValue[i] = contourValues[i+cidx];
-      //std::cout << cValue[i] << std::endl;
-    }
+    t = (int)(floor(layer/(float)numInRow) * ny);   
 
     contour_shader.activate();
   
     glUniform1iARB(uniform_numContours, num_cValue);
-    glUniform1fvARB(uniform_contours, num_cValue, cValue);
     glUniform1iARB(uniform_tauValue, tauValue);
+    glUniform1iARB(uniform_height, layer);
 
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(pc->texType,tex_id[0]);
+    glUniform1iARB(uniform_contourTex,1);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(pc->texType, texId);
     glUniform1iARB(uniform_tauTex, 0); 
 
     glBegin(GL_QUADS);

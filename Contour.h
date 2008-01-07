@@ -32,7 +32,8 @@ class Contour{
 
   //Stores all the contour values for each height value
   float* contourValues;
-
+  
+  GLuint tex_id[1];
 
   float v0,v1,v2,v3;
   vec2 p0,p1,p2,p3;
@@ -53,8 +54,8 @@ class Contour{
 
   GLSLObject contour_shader;
 
-  GLint uniform_contours, uniform_numContours, uniform_tauTex;
-  GLint uniform_tauValue;
+  GLint uniform_numContours, uniform_tauTex;
+  GLint uniform_tauValue, uniform_contourTex, uniform_height;
   
   void findContours_Averaging(ParticleControl*);
   void find_Multiple_Contours(ParticleControl*);

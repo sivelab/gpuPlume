@@ -2855,7 +2855,7 @@ void ParticleControl::find_tauLocalMax(){
 
   std::cout << "Local Max t11 values" << std::endl;
   for(int i=0; i < nz; i++){
-    std::cout << tauLocalMax[(i*4)+3] << std::endl;
+    //std::cout << tauLocalMax[(i*4)+3] << std::endl;
     
   }
 
