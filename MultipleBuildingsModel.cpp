@@ -47,6 +47,8 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   createImages = false;
   quitSimulation = false;
 	
+  draw_contours = true;
+  draw_layers = false;
   //stream = new StreamLine(twidth,theight,nx,ny,nz);
   
   //Set whether to reuse particles or not
@@ -417,12 +419,14 @@ int MultipleBuildingsModel::display(){
       pathLines->draw();
 
       glDisable(texType);
-      contours->draw();
-      //contours->displayContourLayer(pc,tau,numInRow);
+      if(draw_contours){
+	contours->draw();
+	contours->displayContourLayer(pc,tau,numInRow);
+      }
       glEnable(texType);
 
-      
-      dc->drawLayers(windField,tau,numInRow);
+      if(draw_layers)
+	dc->drawLayers(windField,tau,numInRow);
       
       dc->drawScale();
      
