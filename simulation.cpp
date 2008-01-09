@@ -51,7 +51,8 @@ bool Simulation::update(float* time_step){
     display_time[0] = sim_clock->tic();
   }
   else{
-    totalTime += *time_step;
+    totalTime += (double)*time_step;
+    //std::cout << totalTime << std::endl;
   }
 
   if(!infiniteSim){

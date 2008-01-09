@@ -899,17 +899,20 @@ void DisplayControl::drawScale(){
   glPushMatrix();
   glLoadIdentity();
 
-  
+  if(tau_visual == draw_contours){
+    moveSlider((int)(scale_xstart+scale_xend)/2);
+  }
+
 
   //Draw Colored Scale
   char* disp;
   float max[4];
   float min[4];
-  float globalMin;
-  float globalMax;
+  float globalMin = 0;
+  float globalMax = 0;
   char* allDisp[4];
 
-  if(visual_field == 0){
+  /*if(visual_field == 0){
     for(int i=0; i < 4; i++){
       max[i] = WindMax[i];
       min[i] = WindMin[i];
@@ -917,8 +920,8 @@ void DisplayControl::drawScale(){
     }
     globalMin = windMin;
     globalMax = windMax;
-  }
-  else{
+    }*/
+  if(visual_field != 0){
     int tidx = visual_layer*4;
     for(int i=0; i < 4; i++){
       
@@ -958,31 +961,21 @@ void DisplayControl::drawScale(){
 
   switch(visual_field){
   case 0:
-    disp = "Displaying: Wind.x";
+    disp = "Displaying: Wind Field";
     break;
   case 1:
-    //tauMin = TauMin[0];
-    //tauMax = TauMax[0];
     disp = "Displaying: Tau11";
     break;
   case 2:
-    //tauMin = TauMin[1];
-    //tauMax = TauMax[1];
     disp = "Displaying: Tau22";
     break;
   case 3:
-    //tauMin = TauMin[2];
-    //tauMax = TauMax[2];
     disp = "Displaying: Tau33";
     break;
   case 4:
-    //tauMin = TauMin[3];
-    //tauMax = TauMax[3];
     disp = "Displaying: Tau13";
     break;
   default:
-    //tauMin = 0.0;
-    //tauMax = 0.0;
     disp = "";
   }
 
@@ -1031,65 +1024,68 @@ void DisplayControl::drawScale(){
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]);
   }
 
-  if(localValues)
-    disp = "(Local Range)";
-  else
-    disp = "(Global Range)";
-  //Local or Global Display
-  glColor3ub(255,255,0);
-  glRasterPos2i(rangeButton_x, rangeButton_y);
-  for(int i=0; i < (int)strlen(disp); i++){
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]);
-  }
+  if(visual_field != 0){
 
-  sprintf(number, "%.2f", globalMin);
-  glColor3ub(255, 255, 0);
-  glRasterPos2i((int)scale_xstart-5, y);
-  for(int i=0; i < (int)strlen(number); i++){
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
-  }
- 
-  //Display Max Values on Scale
-  /////////////////////////////////////////////////////////////////
-  for(int j=0; j <= 3; j++){
-    tauPos_x[j] = (int)(((max[j]-globalMin)/(globalMax-globalMin))*(scale_xend-scale_xstart)+scale_xstart);
-  }
-  tauPos_x[4] = (int)scale_xstart;
-
-  for(int j=0; j <= 3; j++){
-    //map tau value onto x position of scale
-    int x = (int)(((max[j]-globalMin)/(globalMax-globalMin))*(scale_xend-scale_xstart)+scale_xstart);
-
-    int yPos = y;
-        
-    for(int i=j; i <=4; i++){
-      if(abs(x-tauPos_x[i]) < 10 && abs(x-tauPos_x[i]) != 0)
-	yPos += 20;
+    if(localValues)
+      disp = "(Local Range)";
+    else
+      disp = "(Global Range)";
+    //Local or Global Display
+    glColor3ub(255,255,0);
+    glRasterPos2i(rangeButton_x, rangeButton_y);
+    for(int i=0; i < (int)strlen(disp); i++){
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]);
     }
 
-    sprintf(number, "%.2f", max[j]);
-    glColor3ub(255,255,0);
-    glRasterPos2i(x,yPos);
-    for(int i=0; i < (int)strlen(number); i++)
-      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]); 
+    sprintf(number, "%.2f", globalMin);
+    glColor3ub(255, 255, 0);
+    glRasterPos2i((int)scale_xstart-5, y);
+    for(int i=0; i < (int)strlen(number); i++){
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
+    }
+ 
+    //Display Max Values on Scale
+    /////////////////////////////////////////////////////////////////
+    for(int j=0; j <= 3; j++){
+      tauPos_x[j] = (int)(((max[j]-globalMin)/(globalMax-globalMin))*(scale_xend-scale_xstart)+scale_xstart);
+    }
+    tauPos_x[4] = (int)scale_xstart;
 
-    glRasterPos2i(x,yPos+12);
-    disp = allDisp[j];
-    for(int i=0; i < (int)strlen(disp); i++)
-      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]); 
+    for(int j=0; j <= 3; j++){
+      //map tau value onto x position of scale
+      int x = (int)(((max[j]-globalMin)/(globalMax-globalMin))*(scale_xend-scale_xstart)+scale_xstart);
+
+      int yPos = y;
+        
+      for(int i=j; i <=4; i++){
+	if(abs(x-tauPos_x[i]) < 10 && abs(x-tauPos_x[i]) != 0)
+	  yPos += 20;
+      }
+
+      sprintf(number, "%.2f", max[j]);
+      glColor3ub(255,255,0);
+      glRasterPos2i(x,yPos);
+      for(int i=0; i < (int)strlen(number); i++)
+	glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]); 
+
+      glRasterPos2i(x,yPos+12);
+      disp = allDisp[j];
+      for(int i=0; i < (int)strlen(disp); i++)
+	glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]); 
 
     
-    glColor3f(0.0,0.0,0.0);
-    glBegin(GL_LINES);
-    {
-      glVertex3f(x,y,0.0);
-      glVertex3f(x,scale_yend,0.0);
+      glColor3f(0.0,0.0,0.0);
+      glBegin(GL_LINES);
+      {
+	glVertex3f(x,y,0.0);
+	glVertex3f(x,scale_yend,0.0);
+      }
+      glEnd();
+
     }
-    glEnd();
+    ////////////////////////////////////////////////////////////////
 
   }
-  ////////////////////////////////////////////////////////////////
-
   //Find position of slider bar and draw it on scale
   ////////////////////////////////////////////////////////////////
   slider_x = (int)((scale_xend-scale_xstart)*slider+scale_xstart);

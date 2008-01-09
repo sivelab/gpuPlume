@@ -13,6 +13,8 @@
 #include "GLSL.h"
 #include "Timer.h"
 
+enum tau_visual_type{draw_contours,draw_layers};
+
 class DisplayControl{
 
  public:
@@ -72,6 +74,8 @@ class DisplayControl{
 
   int slider_x;
   bool localValues;
+
+  tau_visual_type tau_visual;
 
  private:
   
