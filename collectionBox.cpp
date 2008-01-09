@@ -178,7 +178,9 @@ void CollectionBox::draw(double timeStepNum){
 
 }
 bool CollectionBox::findConc(Simulation* sim, bool* endCBox,bool odd){
-   if(sim->totalTime >= endCBoxTime){
+  //if(sim->totalTime >= endCBoxTime){
+
+  if(fabs(sim->totalTime - endCBoxTime) <= 0.000001){
      //sim->curr_timeStep += 1.0;
      *endCBox = true;
      if(endCBoxTime != 0)
@@ -264,6 +266,7 @@ void CollectionBox::outputConc(std::string file,double totalTime,double totalTim
 
   if(!alreadyOpen){
     output.open(file.c_str());
+    std::cout << "File Name: " << file.c_str() << std::endl;
     alreadyOpen = true;
   }
   else{
