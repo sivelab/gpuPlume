@@ -47,8 +47,6 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   createImages = false;
   quitSimulation = false;
 	
-  draw_contours = true;
-  draw_layers = false;
   //stream = new StreamLine(twidth,theight,nx,ny,nz);
   
   //Set whether to reuse particles or not
@@ -130,7 +128,7 @@ void MultipleBuildingsModel::init(bool OSG){
   /////////////////////////////
 
   //Create isocontours
-  contours = new Contour(pc);
+  contours = new Contour(pc,util->num_contour_regions);
 
   //
   // set up vertex buffer
@@ -419,13 +417,13 @@ int MultipleBuildingsModel::display(){
       pathLines->draw();
 
       glDisable(texType);
-      if(draw_contours){
+      if(tau_visual == draw_contours){
 	contours->draw();
 	contours->displayContourLayer(pc,tau,numInRow);
       }
       glEnable(texType);
 
-      if(draw_layers)
+      if(tau_visual == draw_layers)
 	dc->drawLayers(windField,tau,numInRow);
       
       dc->drawScale();

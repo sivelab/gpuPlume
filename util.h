@@ -95,6 +95,9 @@ class Util{
   //Background color
   float bcolor[3];
 
+  //Number of contour regions
+  int num_contour_regions;
+
  private:
 
   void parseLine(char*);

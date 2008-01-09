@@ -13,7 +13,7 @@ typedef struct{
 class Contour{
 
  public:
-  Contour(ParticleControl*);
+  Contour(ParticleControl*, int);
 
   void draw();
   void decreaseContourLayer();

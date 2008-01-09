@@ -182,6 +182,9 @@ void Util::parseLine(char* line){
     bcolor[1] = c[1];
     bcolor[2] = c[2];
   }
+  if(read1Float(line, "contour_regions", &f1)){
+    num_contour_regions = (int)f1;
+  }
 }
 
 bool Util::readSourceInfo(char *line, std::string settingName, float *f)

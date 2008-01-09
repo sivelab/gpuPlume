@@ -1,13 +1,13 @@
 #include "Contour.h"
 #include <math.h>
 
-Contour::Contour(ParticleControl* pc){
+Contour::Contour(ParticleControl* pc, int num){
   nx = pc->nx;
   ny = pc->ny;
   nz = pc->nz;
 
   //n = number of regions, so there will be n-1 contour values
-  n = 5;
+  n = num;
   num_cValue = n-1;
   cValue = new float[num_cValue];
   
@@ -46,6 +46,8 @@ Contour::Contour(ParticleControl* pc){
   for(int i=0; i < 4; i++){
     tauValue = i;
     //findContours_Averaging(pc);
+
+    //This Method works a lot better!
     find_Multiple_Contours(pc);
   }
 
@@ -228,7 +230,7 @@ void Contour::find_Multiple_Contours(ParticleControl* pc){
 	  }
 	  if(localPoints%2 != 0){
 	    c1List.pop_back();
-	    numPoints[tauIdx] -= localPoints;
+	    numPoints[tauIdx]--;
 	    std::cout << "There are " << localPoints << " points in a cell" << std::endl;
 	  }
 	}
@@ -441,7 +443,7 @@ void Contour::findContours_Averaging(ParticleControl* pc){
 	    }
 	    if(localPoints%2 != 0){
 	      c1List.pop_back();
-	      numPoints[tauIdx] -= localPoints;
+	      numPoints[tauIdx]--;
 	      std::cout << "There are " << localPoints << " points in a cell" << std::endl;
 	    }
 	  }
@@ -476,7 +478,7 @@ void Contour::putListinVBO(int k){
 
     data[idx] = p.x;
     data[idx+1] = p.y;
-    data[idx+2] = k+0.1;
+    data[idx+2] = k+0.05;
     data[idx+3] = 1.0;
 
   }

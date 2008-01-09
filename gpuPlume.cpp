@@ -431,13 +431,11 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if(key == '1')
     {
-      plume->draw_contours = true;
-      plume->draw_layers = false;
+      plume->tau_visual = draw_contours;
     }
   else if(key == '2')
     {
-      plume->draw_contours = false;
-      plume->draw_layers = true;
+      plume->tau_visual = draw_layers;
     }
 
   glutPostRedisplay();

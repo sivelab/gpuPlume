@@ -30,6 +30,8 @@
 #include "Contour.h"
 #include <string>
 
+enum tau_visual_type{draw_contours,draw_layers};
+
 class PlumeControl{
  public:
 
@@ -54,6 +56,8 @@ class PlumeControl{
   StreamLine* stream;
   PathLine* pathLines;
   Contour* contours;
+
+  tau_visual_type tau_visual;
 
   ParticleControl* pc;
   DisplayControl* dc;
@@ -88,9 +92,6 @@ class PlumeControl{
   bool output_CollectionBox;
   bool osgPlume;
   bool quitSimulation;
-
-  bool draw_contours;
-  bool draw_layers;
 
   //glut window id
   int winid;

@@ -1,10 +1,10 @@
 #Number of particles(twidth*theight)
-twidth 512
-theight 512
+twidth 400
+theight 100
 
 #Path Lines
-pwidth 4000
-pheight 100
+pwidth 3000
+pheight 1000
 
 #Set the Domain
 nx 100
@@ -25,13 +25,10 @@ show_collectionBox_visuals 0
 #2 = one shader for the non Gaussian advection step,
 #1 = one shader for the Gaussian advection step,
 #0 = the multi pass Gaussian advection technique
-#!!!!!if choice is > 2, make sure to set testcase to atleast 4!!!!!!
+#!!!!!if choice is > 2, make sure to set testcase to atleast 5!!!!!!
 advectChoice 4
 
-#Set useRealTime to 0 for false and 1 for true
-useRealTime 0
-
-time_step 0.05
+#Run advectChoice of 2 with the windFieldData set to 4
 
 #Test case for setting Windfield, lambda, and taus
 #Use value of 2 for random values
@@ -41,6 +38,10 @@ time_step 0.05
 #use value of 6 for creating fields from calculations
 windFieldData 5
 
+#Set useRealTime to 0 for false and 1 for true
+useRealTime 0
+
+time_step 0.005
 
 #output file for the values of the collection boxes
 output_file data.txt
@@ -78,6 +79,7 @@ num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius, rate
 source_info 5.0 25.0 3.0 0.0 60.0
+#source_info 50.0 25.0 10.0 3.0 60.0
 
 #Set the type of Particle Release
 release_type 1
@@ -117,7 +119,10 @@ build_param 50.0 32.0 0.0 14.0 6.0 10.0
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
-pauseMode 0
+pauseMode 1
 
 #Set to 1 to do mean velocity calculation; else 0
 calculateMeanVel 0
+
+#Number of contour regions
+contour_regions 11
