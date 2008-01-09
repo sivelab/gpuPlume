@@ -85,7 +85,7 @@ Contour::Contour(ParticleControl* pc){
   uniform_contourTex = contour_shader.createUniform("contourTex");
   uniform_height = contour_shader.createUniform("height");
   
-  /*
+  
   glDisable(GL_TEXTURE_2D);
   glEnable(pc->texType);
   glGenTextures(1,tex_id);
@@ -96,7 +96,7 @@ Contour::Contour(ParticleControl* pc){
   glTexParameteri(pc->texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(pc->texType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(pc->texType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  */
+  
   /*
   int cidx = 0;
   GLfloat *data = new GLfloat[num_cValue*nz*4];
@@ -111,14 +111,14 @@ Contour::Contour(ParticleControl* pc){
     }
     }*/
 
-  /*
+  
   glTexImage2D(pc->texType, 0, GL_RGBA32F_ARB, num_cValue*nz*4,1,0, GL_RGBA, GL_FLOAT, contourValues);
 
   glBindTexture(pc->texType, 0);
 
   //delete [] data;
   glDisable(pc->texType);
-  */
+  
 }
 
 
@@ -566,9 +566,9 @@ void Contour::displayContourLayer(ParticleControl* pc,GLuint texId, int numInRow
     glUniform1iARB(uniform_tauValue, tauValue);
     glUniform1iARB(uniform_height, layer);
 
-    //glActiveTexture(GL_TEXTURE1);
-    //glBindTexture(pc->texType,tex_id[0]);
-    //glUniform1iARB(uniform_contourTex,1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(pc->texType,tex_id[0]);
+    glUniform1iARB(uniform_contourTex,1);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(pc->texType, texId);
