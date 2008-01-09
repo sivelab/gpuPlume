@@ -85,7 +85,7 @@ Contour::Contour(ParticleControl* pc, int num){
   glBindTexture(pc->texType, 0);
 
   glDisable(pc->texType);
-  
+
 }
 
 
