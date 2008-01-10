@@ -115,9 +115,9 @@ void NonGaussianModel::init(bool OSG){
   //Initialize FBO
   initFBO();
 
-  pc->setupNonGaussianShader(numInRow,lifeTime);
+  pc->setupNonGaussianShader(lifeTime);
 
-  pc->setupCurrVel_shader(numInRow);
+  pc->setupCurrVel_shader();
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -431,7 +431,7 @@ void NonGaussianModel::setupTextures(){
   CheckErrorsGL("\tcreated texid[3], the wind field texture...");
 
   //Creates lambda, tau/dz, and duvw/dz textures
-  pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
+  pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
 

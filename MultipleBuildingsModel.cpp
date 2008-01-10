@@ -94,7 +94,7 @@ void MultipleBuildingsModel::init(bool OSG){
   setupEmitters();
   
   glEnable(texType);
-  glGenTextures(17, texid);
+  glGenTextures(18, texid);
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
@@ -148,13 +148,13 @@ void MultipleBuildingsModel::init(bool OSG){
   initFBO();
 
   if(util->windFieldData >= 5)
-    pc->setupMultipleBuildingsShader(numInRow,lifeTime,0);
+    pc->setupMultipleBuildingsShader(lifeTime,0);
   else
-    pc->setupMultipleBuildingsShader(numInRow,lifeTime,1);
+    pc->setupMultipleBuildingsShader(lifeTime,1);
 
-  pc->setupMeanVel_shader(numInRow);
+  pc->setupMeanVel_shader();
 
-  pc->setupCurrVel_shader(numInRow);
+  pc->setupCurrVel_shader();
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -536,16 +536,17 @@ void MultipleBuildingsModel::setupTextures(){
   GLfloat *data = new GLfloat[ twidth * theight * sz];
 		
   // Creates wind field data texture
+  //The variable numInRow gets set here and should not be changed after being set!
   pc->initWindTex(windField, &numInRow, util->windFieldData);
   CheckErrorsGL("\tcreated texid[3], the wind field texture...");
 
   //Creates lambda, tau/dz, and duvw/dz textures
   if(util->windFieldData < 5)
-    pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
+    pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz);
   else if(util->windFieldData == 5)
-    pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau, numInRow);
+    pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau);
   else
-    pc->initLambda_and_Taus_withCalculations(windField, lambda, tau_dz, duvw_dz, tau, numInRow);
+    pc->initLambda_and_Taus_withCalculations(windField, lambda, tau_dz, duvw_dz, tau);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
   //Print out max and min taus
@@ -556,7 +557,7 @@ void MultipleBuildingsModel::setupTextures(){
   std::cout << pc->tauMin[0] << " " << pc->tauMin[1] << " " << pc->tauMin[2] << " " << 
   pc->tauMin[3] << std::endl;*/
 
-  pc->addBuildingsInWindField(cellType, numInRow);
+  pc->addBuildingsInWindField(cellType);
   CheckErrorsGL("\tcreated texid[14], the cell type texture...");
 
   for (int j=0; j<theight; j++)

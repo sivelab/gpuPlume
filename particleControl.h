@@ -26,17 +26,17 @@ class ParticleControl{
  
   ParticleControl(GLenum,int,int,int,int,int);
 
-  void setupAdvectShader(int, float);
+  void setupAdvectShader(float);
 
-  void setupPrimeShader(int); //Included argument -- Balli(04/12/07)
+  void setupPrimeShader(); //Included argument -- Balli(04/12/07)
 
-  void setupPrime_and_AdvectShader(int,float);
+  void setupPrime_and_AdvectShader(float);
 
-  void setupNonGaussianShader(int,float);
+  void setupNonGaussianShader(float);
   
-  void setupReflectionShader(int,float);
+  void setupReflectionShader(float);
 
-  void setupMultipleBuildingsShader(int,float,int);
+  void setupMultipleBuildingsShader(float,int);
 
   void multipleBuildingsAdvect(bool,GLuint,GLuint,GLuint,
 			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float,GLuint,GLuint);
@@ -59,14 +59,14 @@ class ParticleControl{
  
   //This function maps the 3D wind field into a 2D texture that can be
   //stored on the GPU.
-  void initWindTex(GLuint, int* numInRow, int dataSet);
+  void initWindTex(GLuint, int*, int);
 
   //Call this function for uniform wind field.
-  void initLambdaTex(GLuint, int);
+  void initLambdaTex(GLuint);
   
-  void initLambda_and_TauTex(GLuint,GLuint,GLuint,int);
-  void initLambda_and_TauTex_fromQUICFILES(GLuint,GLuint,GLuint,GLuint,GLuint,int);
-  void initLambda_and_Taus_withCalculations(GLuint,GLuint,GLuint,GLuint,GLuint,int);
+  void initLambda_and_TauTex(GLuint,GLuint,GLuint);
+  void initLambda_and_TauTex_fromQUICFILES(GLuint,GLuint,GLuint,GLuint,GLuint);
+  void initLambda_and_Taus_withCalculations(GLuint,GLuint,GLuint,GLuint,GLuint);
 
 
   //This function is used to initialize the particle positions.
@@ -103,16 +103,16 @@ class ParticleControl{
   void createPosImages(bool);
   void createPrimeImages(bool);
 
-  void setupMeanVel_shader(int);
+  void setupMeanVel_shader();
   void findMeanVel(bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint);
 
-  void setupCurrVel_shader(int);
+  void setupCurrVel_shader();
   void updateCurrVel(bool,GLuint,GLuint,GLuint,GLuint,GLuint);
 
   void setRandomTexCoords();
 
   void setBuildingParameters(int,float*,float*,float*,float*,float*,float*);
-  void addBuildingsInWindField(GLuint,int);
+  void addBuildingsInWindField(GLuint);
   void setQuicFilesPath(std::string);
   
   bool outputPrime;
@@ -165,7 +165,6 @@ class ParticleControl{
   float windMax[4];
   float windMin[4];
 
-
   int nx;
   int ny;
   int nz;
@@ -206,6 +205,9 @@ class ParticleControl{
 
   //Width and height of wind,lambda textures
   int width, height;
+  int numInRow;
+  //Width and height for vertical representations of tau
+  int vWidth, vHeight;
 
   float ustar,sigU,sigV,sigW;
 

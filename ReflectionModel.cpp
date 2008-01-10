@@ -104,7 +104,7 @@ void ReflectionModel::init(bool OSG){
   setupEmitters();
   
   glEnable(texType);
-  glGenTextures(14, texid);
+  glGenTextures(15, texid);
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
@@ -124,6 +124,7 @@ void ReflectionModel::init(bool OSG){
   currVel = texid[12];
 
   tau = texid[13];
+  
   /////////////////////////////
   setupTextures();
   
@@ -144,11 +145,11 @@ void ReflectionModel::init(bool OSG){
   //Initialize FBO
   initFBO();
 
-  pc->setupReflectionShader(numInRow,lifeTime);
+  pc->setupReflectionShader(lifeTime);
 
-  pc->setupMeanVel_shader(numInRow);
+  pc->setupMeanVel_shader();
 
-  pc->setupCurrVel_shader(numInRow);
+  pc->setupCurrVel_shader();
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -485,9 +486,9 @@ void ReflectionModel::setupTextures(){
 
   //Creates lambda, tau/dz, and duvw/dz textures
   if(util->windFieldData != 5)
-    pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz, numInRow);
+    pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz);
   else
-    pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau, numInRow);
+    pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
 

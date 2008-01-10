@@ -112,9 +112,9 @@ void GaussianModel::init(bool OSG){
   //Initialize FBO
   initFBO();
 
-  pc->setupPrime_and_AdvectShader(numInRow,lifeTime);
+  pc->setupPrime_and_AdvectShader(lifeTime);
 
-  pc->setupCurrVel_shader(numInRow);
+  pc->setupCurrVel_shader();
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -420,7 +420,7 @@ void GaussianModel::setupTextures(){
   CheckErrorsGL("\tcreated texid[3], the wind field texture...");
 
   //Creates lambda texture
-  pc->initLambdaTex(lambda, numInRow);
+  pc->initLambdaTex(lambda);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
 
 

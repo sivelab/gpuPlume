@@ -49,7 +49,7 @@ void ParticleControl::setRandomTexCoords(){
   t1 = Random::uniform() * twidth;
   t2 = Random::uniform() * theight;
 }
-void ParticleControl::setupMultipleBuildingsShader(int numInRow, float life_time, int shader){
+void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   multipleBuildings_shader.addShader("Shaders/multipleBuildingsAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
   if(shader == 0)
     multipleBuildings_shader.addShader("Shaders/multipleBuildingsAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -213,7 +213,7 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
     printPrime(odd,false);
 
 }
-void ParticleControl::setupReflectionShader(int numInRow, float life_time){
+void ParticleControl::setupReflectionShader(float life_time){
   reflection_shader.addShader("Shaders/reflectionAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
   reflection_shader.addShader("Shaders/reflectionAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   reflection_shader.createProgram();
@@ -390,7 +390,7 @@ void ParticleControl::reflectionAdvect(bool odd, GLuint windField, GLuint positi
     printPrime(odd,false);
 
 }
-void ParticleControl::setupNonGaussianShader(int numInRow, float life_time){
+void ParticleControl::setupNonGaussianShader(float life_time){
   nonGaussian_shader.addShader("Shaders/nonGaussianAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
   nonGaussian_shader.addShader("Shaders/nonGaussianAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   nonGaussian_shader.createProgram();
@@ -533,7 +533,7 @@ void ParticleControl::nonGaussianAdvect(bool odd, GLuint windField, GLuint posit
 
 }
 
-void ParticleControl::setupPrime_and_AdvectShader(int numInRow,float life_time){
+void ParticleControl::setupPrime_and_AdvectShader(float life_time){
   //This shader is used to move the particles
   mrt_shader.addShader("Shaders/updatePrime_and_Advect_vp.glsl", GLSLObject::VERTEX_SHADER);
   mrt_shader.addShader("Shaders/updatePrime_and_Advect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -669,7 +669,7 @@ void ParticleControl::updatePrimeAndAdvect(bool odd,
 
 }
 
-void ParticleControl::setupPrimeShader(int numInRow){  //Included argument -- Balli(04/12/07)
+void ParticleControl::setupPrimeShader(){  //Included argument -- Balli(04/12/07)
   //This shader is used to update prime values
   prime_shader.addShader("Shaders/updatePrime_vp.glsl", GLSLObject::VERTEX_SHADER);
   prime_shader.addShader("Shaders/updatePrime_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -821,7 +821,7 @@ void ParticleControl::printPrime(bool odd, bool prev){
 
 
 }
-void ParticleControl::setupAdvectShader(int numInRow, float life_time){
+void ParticleControl::setupAdvectShader(float life_time){
 
   //This shader is used to move the particles
   pass1_shader.addShader("Shaders/plumeAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -914,7 +914,7 @@ void ParticleControl::advect(bool odd,
   glBindTexture(texType, 0);
 
 }
-void ParticleControl::setupCurrVel_shader(int numInRow){
+void ParticleControl::setupCurrVel_shader(){
   currVel_shader.addShader("Shaders/currVel_vp.glsl",GLSLObject::VERTEX_SHADER);
   currVel_shader.addShader("Shaders/currVel_fp.glsl",GLSLObject::FRAGMENT_SHADER);
   currVel_shader.createProgram();
@@ -989,7 +989,7 @@ void ParticleControl::updateCurrVel(bool odd, GLuint prime0,GLuint prime1,GLuint
 
   glBindTexture(texType,0);
 }
-void ParticleControl::setupMeanVel_shader(int numInRow){
+void ParticleControl::setupMeanVel_shader(){
   meanVel_shader.addShader("Shaders/meanVel_vp.glsl", GLSLObject::VERTEX_SHADER);
   meanVel_shader.addShader("Shaders/meanVel_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   meanVel_shader.createProgram();
@@ -1402,7 +1402,7 @@ void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, i
   glTexImage2D(texType, 0, format, w, h, 0, GL_RGBA, GL_FLOAT, data);
 }
 
-void ParticleControl::initWindTex(GLuint windField, int* numInRow, int dataSet){
+void ParticleControl::initWindTex(GLuint windField, int* numberInRow, int dataSet){
   // Create wind velocity data texture
   wind_vel = new wind[nx*ny*nz];
   cellQuic = new cellType[nx*ny*nz];
@@ -1464,14 +1464,15 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow, int dataSet){
   }
   if(width%2 != 0) width++;
   height = width;
-
+ 
   ////////////////////////////////////////////////////////
   //Convert this to data array for a texture
   //
   //This will directly put the 3D data into an array
   //that is used to make the 2D texture.
   ///////////////////////////////////////////////////////
-  (*numInRow) = (width - (width % nx))/nx;
+  (*numberInRow) = (width - (width % nx))/nx;
+  numInRow = *numberInRow;
 
   if(dataSet < 5){
 
@@ -1487,10 +1488,10 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow, int dataSet){
 	  {
 	    p2idx = qk*ny*nx + qi*nx + qj;
 	    
-	    row = qk / (*numInRow);
+	    row = qk / (numInRow);
 	    texidx = row * width * ny * 4 +
 	      qi * width * 4 +
-	      qk % (*numInRow) * nx * 4 +
+	      qk % (numInRow) * nx * 4 +
 	      qj * 4;
 	  
 	    data[texidx] = wind_vel[p2idx].u;
@@ -1505,7 +1506,7 @@ void ParticleControl::initWindTex(GLuint windField, int* numInRow, int dataSet){
   }
 
 }
-void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint duvw_dz, int numInRow){
+void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint duvw_dz){
   GLfloat *data = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
   GLfloat *data3 = new GLfloat[width*height*4];
@@ -1703,7 +1704,8 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   delete [] data;
 
 }
-void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, GLuint tauTex, int numInRow){
+void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, 
+							  GLuint tauTex){
   GLfloat *data = new GLfloat[ width * height * 4 ];
   GLfloat *dataWind = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
@@ -1975,7 +1977,8 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   delete [] data;
 
 }
-void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, GLuint tauTex, int numInRow){
+void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, 
+							   GLuint tauTex){
 
   GLfloat *data = new GLfloat[ width * height * 4 ];
   GLfloat *dataWind = new GLfloat[ width * height * 4 ];
@@ -2423,7 +2426,7 @@ float ParticleControl::getMinDistance(int qj, int qi, int qk){
 }
 
 
-void ParticleControl::initLambdaTex(GLuint lambda, int numInRow){
+void ParticleControl::initLambdaTex(GLuint lambda){
 
   GLfloat *data = new GLfloat[ width * height * 4 ];
 
@@ -2546,7 +2549,7 @@ void ParticleControl::variedUWindField(){
    else
    std::cout << "NO BUILDINGS ADDED TO WIND FIELD" << std::endl;*/
 }
-void ParticleControl::addBuildingsInWindField(GLuint cellType,int numInRow){
+void ParticleControl::addBuildingsInWindField(GLuint cellType){
 
   GLfloat* data = new GLfloat[width*height*4];
   wind* cell_type = new wind[nx*ny*nz];
@@ -2860,3 +2863,4 @@ void ParticleControl::find_tauLocalMax(){
   }
 
 }
+

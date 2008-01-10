@@ -579,6 +579,7 @@ void DisplayControl::drawAxes(){
 
 }
 void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
+  
   if (visual_layer >= 0 && visual_layer < nz)
     {
 
@@ -590,15 +591,14 @@ void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
       glEnable(texType);
       glBindTexture(texType, texId);
       //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);    
 
+       int s = 0;
+       int t = 0;
 
-      int s = 0;
-      int t = 0;
+       s = (int)(visual_layer % numInRow) * nx;
+       t = (int)(floor(visual_layer/(float)numInRow) * ny);
 
-      s = (int)(visual_layer % numInRow) * nx;
-      t = (int)(floor(visual_layer/(float)numInRow) * ny);
-      
       turbulence_shader.activate();
       
       glUniform1iARB(uniform_controlTau, visual_field);
@@ -639,6 +639,7 @@ void DisplayControl::drawTurbulenceLayers(GLuint texId, int numInRow){
 	glTexCoord2f(s, t+ny);      glVertex3f(0, ny,visual_layer);
       }
       glEnd();
+      
       turbulence_shader.deactivate();
 
       //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
