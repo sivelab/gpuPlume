@@ -130,6 +130,10 @@ void MultipleBuildingsModel::init(bool OSG){
   //Create isocontours
   contours = new Contour(pc,util->num_contour_regions);
 
+  //Create visual plane class to visualize tau layers in the 3D domain
+  planeVisual = new VisualPlane(pc->tau,nx,ny,nz, pc->tauMax, pc->tauMin,
+				pc->tauLocalMax, pc->tauLocalMin);
+
   //
   // set up vertex buffer
   // 
@@ -160,9 +164,6 @@ void MultipleBuildingsModel::init(bool OSG){
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
   emit_shader.addShader("Shaders/emitParticle_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   emit_shader.createProgram();
-
-  dc->setupTurbulenceShader(pc->tauMax, pc->tauMin, pc->tauLocalMax, pc->tauLocalMin);
-  dc->setupWindFieldShader(pc->windMax, pc->windMin);
 
   CheckErrorsGL("END of init");
 
@@ -423,10 +424,14 @@ int MultipleBuildingsModel::display(){
       }
       glEnable(texType);
 
-      if(dc->tau_visual == draw_layers)
-	dc->drawLayers(windField,tau,numInRow);
-
-      dc->drawScale();
+      if(dc->tau_visual == draw_layers){
+	if(planeVisual->visual_field > 0)
+	  planeVisual->drawPlane();
+	else
+	  dc->drawLayers(windField,numInRow);
+      }
+      
+      planeVisual->drawScale();
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){

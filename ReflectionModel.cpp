@@ -379,7 +379,7 @@ int ReflectionModel::display(){
       
       dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
       stream->draw();
-      dc->drawLayers(windField, lambda, numInRow);
+      dc->drawLayers(windField, numInRow);
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){

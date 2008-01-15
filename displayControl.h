@@ -20,28 +20,18 @@ class DisplayControl{
  public:
   
   DisplayControl(int, int, int, GLenum);
-  
-  void setupTurbulenceShader(float [], float [], float*, float*);
-  void setupWindFieldShader(float [], float []);
 
   void drawVisuals(GLuint, GLuint, GLuint, int, int, int);
   void drawAxes();
   void drawGrid();
   void drawGround();
   void drawSky();
-  void drawScale();
-  void drawLayers(GLuint,GLuint, int);
-  void drawTurbulenceLayers(GLuint, int);
+  void drawLayers(GLuint, int);
   void drawFeatures(void);
   void drawFrameRate(int, int);
   void OpenGLText(int, int, char*);
   void increaseVisualLayer();
   void decreaseVisualLayer();
-  void moveSliderUp();
-  void moveSliderDown();
-  void moveSlider(int);
-  bool clickedSlider(int,int);
-  void clickedRangeButton(int,int);
   void moveForwardorBack(float);
   void slideLeftorRight(float);
   void setAzimuth(float, float);
@@ -51,7 +41,7 @@ class DisplayControl{
   void initVars(int,float*,float*,float*,
 		      float*,float*,float*);
 
-  bool rotate_around, change_height, change_look, move_slider;
+  bool rotate_around, change_height, change_look;
   bool frame_rate;
 
   bool draw_buildings;
@@ -67,46 +57,15 @@ class DisplayControl{
   ParticleVisualState particle_visual_state;
 
   int visual_layer;
-  int visual_field;
   float eye_pos[3];
   float eye_gaze[3];
-  //int tauValue; 
-
-  int slider_x;
-  bool localValues;
-
+  
   tau_visual_type tau_visual;
 
  private:
   
   void createImageTex(GLuint, char*);
   GLubyte* readPPM(char*, int*, int*);
-  
-  //Global Max and Min values of Tau
-  float* TauMax;
-  float* TauMin;
-  float* tauLocalMax;
-  float* tauLocalMin;
-  float tauMin, tauMax;
-  char* Taus[4];
-  
-  //Global Max and Min values of Wind Field
-  float* WindMax;
-  float* WindMin;
-  float windMin, windMax;
-  char* windTitle[4];
-
-  float scale_xstart,scale_xend;
-  float scale_ystart,scale_yend;
-
-  int* tauPos_x;
-
-  int rangeButton_x,rangeButton_y;
-
-  //Controls what value the middle color is
-  //represented at in the scale used for visualizing
-  //the turbulence layers.
-  float slider;
 
   int nx;
   int ny;
@@ -122,7 +81,7 @@ class DisplayControl{
   float* lti;
   
 
-  GLSLObject render_shader, turbulence_shader, scale_shader;
+  GLSLObject render_shader;
   GLSLObject windField_shader;
 
   Timer *clock_timer;
@@ -143,16 +102,12 @@ class DisplayControl{
 
   GLenum texType;
 
-  GLint uniform_vel_color, uniform_tauTex;
-  GLint uniform_max11,uniform_max22,uniform_max33,uniform_max13;
-  GLint uniform_min11,uniform_min22,uniform_min33,uniform_min13;
-  GLint uniform_controlTau;
-  GLint uniform_xmax, uniform_xmin, uniform_tauMin, uniform_tauMax;
-  GLint uniform_sliderScale, uniform_sliderTurb;
-  GLint uniform_max_x,uniform_max_y,uniform_max_z,uniform_max_c;
-  GLint uniform_min_x,uniform_min_y,uniform_min_z,uniform_min_c;
-  GLint uniform_controlWind, uniform_sliderWind, uniform_windTex;
-
+  GLint uniform_vel_color; //, uniform_tauTex;
+ 
+  //GLint uniform_max_x,uniform_max_y,uniform_max_z,uniform_max_c;
+  //GLint uniform_min_x,uniform_min_y,uniform_min_z,uniform_min_c;
+  //GLint uniform_controlWind, uniform_sliderWind, uniform_windTex;
+  GLint uniform_windTex;
 
   //
   // Point Sprite visual data

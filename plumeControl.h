@@ -28,6 +28,7 @@
 #include "PathLine.h"
 #include "Random.h"
 #include "Contour.h"
+#include "VisualPlane.h"
 #include <string>
 
 
@@ -55,6 +56,8 @@ class PlumeControl{
   StreamLine* stream;
   PathLine* pathLines;
   Contour* contours;
+
+  VisualPlane* planeVisual;
 
   ParticleControl* pc;
   DisplayControl* dc;

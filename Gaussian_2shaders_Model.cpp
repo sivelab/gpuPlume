@@ -273,7 +273,7 @@ int Gaussian_2shaders_Model::display(){
 
       dc->drawVisuals(vertex_buffer, windField, 0, numInRow, twidth, theight);
       stream->draw();
-      dc->drawLayers(windField, lambda,numInRow);
+      dc->drawLayers(windField, numInRow);
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){

@@ -264,33 +264,36 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->dc->decreaseVisualLayer();
       plume->contours->decreaseContourLayer();
+      plume->planeVisual->decreasePlaneLayer();
     }
   else if (key == 'K')
     {
       plume->dc->increaseVisualLayer();
       plume->contours->increaseContourLayer();
+      plume->planeVisual->increasePlaneLayer();
+
     }
   else if (key == 'l')
     {
-      plume->dc->visual_field++;
-      if(plume->dc->visual_field > 4)
-	plume->dc->visual_field = 0;
+      plume->planeVisual->visual_field++;
+      if(plume->planeVisual->visual_field > 4)
+	plume->planeVisual->visual_field = 0;
 
       //value of 1 displays Tau11
       //value of 2 displays Tau22
       //value of 3 displays Tau33
       //value of 4 displays Tau13
-      plume->contours->tauValue = plume->dc->visual_field -1;
+      plume->contours->tauValue = plume->planeVisual->visual_field -1;
       
 
     }
   else if (key == '<')
     {
-      plume->dc->moveSliderDown();
+      plume->planeVisual->moveSliderDown();
     }
   else if (key == '>')
     {
-      plume->dc->moveSliderUp();
+      plume->planeVisual->moveSliderUp();
     }
   else if (key == 't')
     {
@@ -437,6 +440,10 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->dc->tau_visual = draw_layers;
     }
+  else if(key == '-')
+    {
+      plume->planeVisual->switchPlane();
+    }
 
   glutPostRedisplay();
 }
@@ -458,21 +465,21 @@ void mouse(int button, int state,int x, int y)
     plume->dc->change_look = false;
 
   if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON) {
-    plume->dc->clickedRangeButton(x,y);
+    plume->planeVisual->clickedRangeButton(x,y);
 
-    if(plume->dc->clickedSlider(x,y)){
-      plume->dc->move_slider = true;
+    if(plume->planeVisual->clickedSlider(x,y)){
+      plume->planeVisual->move_slider = true;
       plume->dc->rotate_around = false;
     }
     else{
       plume->dc->rotate_around = true;
-      plume->dc->move_slider = false;
+      plume->planeVisual->move_slider = false;
     }
    
   }
   else{
     plume->dc->rotate_around = false;
-    plume->dc->move_slider = false;
+    plume->planeVisual->move_slider = false;
   }
 
   glutPostRedisplay();
@@ -490,8 +497,8 @@ void motion(int x, int y)
   //plume->dc->lookUporDown(change_y);
   //plume->dc->setRotateAround(change_x);
 
-  if(plume->dc->move_slider){
-    plume->dc->moveSlider(x);
+  if(plume->planeVisual->move_slider){
+    plume->planeVisual->moveSlider(x);
   }
 
   if (plume->dc->change_height) 
