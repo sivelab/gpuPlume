@@ -277,6 +277,10 @@
 				RelativePath="..\util.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\VisualPlane.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -385,6 +389,10 @@
 			</File>
 			<File
 				RelativePath="..\util.h"
+				>
+			</File>
+			<File
+				RelativePath="..\VisualPlane.h"
 				>
 			</File>
 		</Filter>
