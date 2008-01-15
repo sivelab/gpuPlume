@@ -60,8 +60,9 @@ VisualPlane::VisualPlane(Matrix* tauData,int x, int y, int z, float* TMax,
   else
     max_layer = nx;
 
+  
   getLocalTauValues();
-
+	
   plane_layer = -1;
 
   //GLfloat data2[nz][ny][nx][4];
@@ -101,7 +102,7 @@ VisualPlane::VisualPlane(Matrix* tauData,int x, int y, int z, float* TMax,
   glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
+	
   glTexImage3D(texType, 0, format, nx, ny, nz,0,GL_RGBA, GL_FLOAT,data); 
   CheckErrorsGL("3D texture\n");
 
@@ -252,9 +253,6 @@ void VisualPlane::drawPlane(){
 }
 void VisualPlane::getLocalTauValues(){
 
-  delete [] tauLocalMax;
-  delete [] tauLocalMin;
-
   tauLocalMax = new float[4*max_layer];
   tauLocalMin = new float[4*max_layer];
  
@@ -334,6 +332,9 @@ void VisualPlane::switchPlane(){
   else{
     max_layer = nx;
   }
+  delete [] tauLocalMax;
+  delete [] tauLocalMin;
+
   getLocalTauValues();
 
   if(plane_layer > max_layer)
