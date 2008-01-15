@@ -1,15 +1,15 @@
 #ifndef __VISUALPLANE_H__
 #define __VISUALPLANE_H__
 
-#include <GL/glew.h>
+
+#include "particleControl.h"
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
 
-#include <GL/glew.h>
-#include "particleControl.h"
+
 
 
 
