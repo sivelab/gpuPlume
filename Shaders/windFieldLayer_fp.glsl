@@ -2,16 +2,6 @@
 //uniform sampler2D pointspritenormal_texunit;
 //uniform int point_visuals;
 uniform samplerRect Wind;
-uniform float max_x;
-uniform float max_y;
-uniform float max_z;
-uniform float max_c;
-uniform float min_x;
-uniform float min_y;
-uniform float min_z;
-uniform float min_c;
-uniform int controlWind;
-uniform float slider;
 
 varying vec4 pcolor;
 
