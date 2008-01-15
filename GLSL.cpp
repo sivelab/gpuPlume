@@ -61,22 +61,33 @@ GLSLObject::GLSLObject()
 
       exit(1);
     }
+
 }
 
 GLSLObject::~GLSLObject()
 {
 }
 
+void GLSLObject::setInputandOutput(GLenum input, GLenum output,int n)
+{
+  input_type = input;
+  output_type = output;
+  num_vertices = n;
+}
+
 void GLSLObject::addShader( const std::string& filename, ShaderType shader_type )
 {
   assert( shader_type == VERTEX_SHADER ||
-	  shader_type == FRAGMENT_SHADER );
+	  shader_type == FRAGMENT_SHADER ||
+	  shader_type == GEOMETRY_SHADER);
 
   GLenum stype;
   if (shader_type == VERTEX_SHADER)
     stype = GL_VERTEX_SHADER_ARB;
   else if (shader_type == FRAGMENT_SHADER)
     stype = GL_FRAGMENT_SHADER_ARB;
+  else if (shader_type == GEOMETRY_SHADER)
+    stype = GL_GEOMETRY_SHADER_EXT;
   else
     return;
   
@@ -104,8 +115,10 @@ void GLSLObject::addShader( const std::string& filename, ShaderType shader_type 
     // Add the shader to the appropriate list
     if (shader_type == VERTEX_SHADER) 
       m_vertexshader_objects.push_back( shader );
-    else 
+    else if(shader_type == FRAGMENT_SHADER)
       m_fragmentshader_objects.push_back( shader );
+    else
+      m_geometryshader_objects.push_back( shader );
   }
   else {
     std::cout << "Shader object compilation failed: " << filename << std::endl;
@@ -133,14 +146,21 @@ void GLSLObject::createProgram()
       glAttachObjectARB( m_program_object, *li );
       glErrorCheck("glAttachObjectARB( m_program_object, *li ) - Vertex Shader");
     }
-
   // Fragment Shaders second
   for (li=m_fragmentshader_objects.begin(); li!=m_fragmentshader_objects.end(); ++li)
     {
       glAttachObjectARB( m_program_object, *li );
       glErrorCheck("glAttachObjectARB( m_program_object, *li ) - Fragment Shader");
     }
-  
+  // Geometry Shaders
+  for (li=m_geometryshader_objects.begin(); li!=m_geometryshader_objects.end(); ++li)
+    {
+      glProgramParameteriEXT(m_program_object, GL_GEOMETRY_INPUT_TYPE_EXT, input_type);
+      glProgramParameteriEXT(m_program_object, GL_GEOMETRY_OUTPUT_TYPE_EXT, output_type);
+      glProgramParameteriEXT(m_program_object, GL_GEOMETRY_VERTICES_OUT_EXT, num_vertices);
+      glAttachObjectARB( m_program_object, *li );
+      glErrorCheck("glAttachObjectARB( m_program_object, *li ) - Geomtry Shader");
+    }
   // Now, link the program
   glLinkProgramARB( m_program_object );
   glErrorCheck("glLinkProgramARB( m_program_object )");

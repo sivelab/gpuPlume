@@ -44,7 +44,8 @@ class GLSLObject {
 public:
   enum ShaderType {
     VERTEX_SHADER,
-    FRAGMENT_SHADER
+    FRAGMENT_SHADER,
+    GEOMETRY_SHADER
   };
 
   GLSLObject();
@@ -53,6 +54,9 @@ public:
   // Adds either a VERTEX or FRAGMENT shader to the shader program
   // represented by an instance of GLSLObject.
   void addShader( const std::string& filename, ShaderType shader_type );
+
+  //Set the input and output type for the geometry shader
+  void setInputandOutput(GLenum input, GLenum output,int n);
 
   // Compiles, links, and sets up a shader to be used on the hardware.
   void createProgram();
@@ -82,8 +86,12 @@ private:
   GLhandleARB              m_program_object;
   std::list< GLhandleARB > m_vertexshader_objects;
   std::list< GLhandleARB > m_fragmentshader_objects;
+  std::list< GLhandleARB > m_geometryshader_objects;
 
   int m_verbose_level;
+  GLenum input_type;
+  GLenum output_type;
+  int num_vertices;
 
   // 
 
