@@ -76,7 +76,7 @@ class VisualPlane{
 
   Matrix* tau;
 
-  bool horiz;
+  int plane_normal;
   int max_layer;
   
 

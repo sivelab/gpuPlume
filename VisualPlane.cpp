@@ -52,13 +52,13 @@ VisualPlane::VisualPlane(Matrix* tauData,int x, int y, int z, float* TMax,
 
   slider = 0.2;
 
-  //tauLocalMax = max;
-  //tauLocalMin = min;
-  horiz = false;
-  if(horiz)
+  plane_normal = 0;
+  if(plane_normal == 0)
     max_layer = nz;
-  else
+  else if(plane_normal == 1)
     max_layer = nx;
+  else
+    max_layer = ny;
 
   
   getLocalTauValues();
@@ -146,10 +146,12 @@ void VisualPlane::drawPlane(){
   glDisable(GL_TEXTURE_RECTANGLE_ARB);
   glDisable(GL_TEXTURE_2D);
   
-  if(horiz)
+  if(plane_normal == 0)
     max_layer = nz;
-  else
+  else if(plane_normal == 1)
     max_layer = nx;
+  else
+    max_layer = ny;
     
   if(visual_field > 0){
 
@@ -169,15 +171,20 @@ void VisualPlane::drawPlane(){
 	//Horizontal Texture coordinates
 	float s,t,r;
 	
-	if(horiz){
+	if(plane_normal == 0){
 	  s = 0.0;
 	  t = 0.0;
 	  r = (float)plane_layer/((float)nz - 1.0);
 	}
 	//Vertical Texture coordinates
-	else{
+	else if(plane_normal == 1){
 	  s = (float)plane_layer/((float)nx - 1.0);
 	  t = 0.0;
+	  r = 0.0;
+	}
+	else{
+	  s = 0.0;
+	  t = (float)plane_layer/((float)ny - 1.0);
 	  r = 0.0;
 	}
 	plane_shader.activate();
@@ -213,7 +220,7 @@ void VisualPlane::drawPlane(){
 	glUniform1iARB(u_tauTex, 0); 
 	glColor4f(1.0,1.0,1.0,0.8);
 
-	if(horiz){
+	if(plane_normal == 0){
 	  glBegin(GL_QUADS);
 	  {
 	    glNormal3f(0.0, 0.0, 1.0);
@@ -224,13 +231,23 @@ void VisualPlane::drawPlane(){
 	  }
 	  glEnd();
 	}
-	else{
+	else if(plane_normal == 1){
 	  glBegin(GL_QUADS);
 	  glNormal3f(1.0,0.0,0.0);
 	  glTexCoord3f( s, t, r);         glVertex3f(plane_layer, 0, 0);
 	  glTexCoord3f( s, t, r+1);       glVertex3f(plane_layer, 0, nz);
 	  glTexCoord3f( s, t+1, r+1);     glVertex3f(plane_layer, ny, nz);
 	  glTexCoord3f( s, t+1, r);       glVertex3f(plane_layer, ny, 0);
+
+	  glEnd();
+	}
+	else{
+	  glBegin(GL_QUADS);
+	  glNormal3f(0.0,1.0,0.0);
+	  glTexCoord3f( s, t, r);         glVertex3f(0, plane_layer, 0);
+	  glTexCoord3f( s+1, t, r);       glVertex3f(nx, plane_layer, 0);
+	  glTexCoord3f( s+1, t, r+1);     glVertex3f(nx, plane_layer, nz);
+	  glTexCoord3f( s, t, r+1);       glVertex3f(0, plane_layer, nz);
 
 	  glEnd();
 	}
@@ -260,12 +277,16 @@ void VisualPlane::getLocalTauValues(){
   for(int k=0; k<max_layer; k++){
     
     int idx;
-    if(horiz){
+    if(plane_normal == 0){
       idx = k*ny*nx;
     }
-    else{
+    else if(plane_normal == 1){
       idx = k;
     }
+    else{
+      idx = k*nx;
+    }
+
     int tidx = k*4;
 
     tauLocalMax[tidx] = tau[idx].t11;
@@ -289,12 +310,15 @@ void VisualPlane::getLocalTauValues(){
 
 	int idx = k*ny*nx + i*nx + j;
 	int tidx;
-	if(horiz){
+	if(plane_normal == 0){
 	  //idx = k*ny*nx + i*nx + j;
 	  tidx = k*4;
 	}
-	else{
+	else if(plane_normal == 1){
 	  tidx = j*4;	    
+	}
+	else{
+	  tidx = i*4;
 	}
 	
 
@@ -325,13 +349,20 @@ void VisualPlane::getLocalTauValues(){
 
 }
 void VisualPlane::switchPlane(){
-  horiz = !horiz;
-  if(horiz){
+  plane_normal++;
+  if(plane_normal > 2){
+    plane_normal = 0;
+  }
+
+  if(plane_normal == 0){
     max_layer = nz;
   }
-  else{
+  else if(plane_normal == 1){
     max_layer = nx;
   }
+  else
+    max_layer = ny;
+
   delete [] tauLocalMax;
   delete [] tauLocalMin;
 
@@ -593,9 +624,13 @@ void VisualPlane::clickedRangeButton(int x, int y){
      (y >= rangeButton_y) && ( y <= rangeButton_y + 10)){
     localValues = !localValues;
   }
-		     
-
 }
+/*void VisualPlane::clickedDisplayTauButton(int x, int y){
+  y = glutGet(GLUT_WINDOW_HEIGHT) - y;
+
+  
+
+  }*/
 void VisualPlane::moveSliderDown(){
   slider -= 0.01;
   if(slider < 0.0) slider = 0.0;
