@@ -256,16 +256,16 @@ void main(void)
 	    smallestS = 100.0;
 
 	    int id = int(cell_type.w);
-	    ivec2 bindex;
-	    bindex.s = 0;
-	    bindex.t = id;
+	    vec2 bindex;
+	    bindex.s = 0.0;
+	    bindex.t = float(id);
 		
 	    vec3 bcoords = vec3(textureRect(buildings, bindex));
 	    float xfo = bcoords.x;
 	    float yfo = bcoords.y;
 	    float zfo = bcoords.z;
 
-	    bindex.x = 1;
+	    bindex.x = 1.0;
 	    vec3 bdim = vec3(textureRect(buildings,bindex));
 	    float ht = bdim.x;
 	    float wti = bdim.y;

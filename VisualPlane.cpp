@@ -1,5 +1,7 @@
 #include "VisualPlane.h"
 #include "glErrorUtil.h"
+#include <math.h>
+
 
 static char number[128];
 VisualPlane::VisualPlane(Matrix* tauData,int x, int y, int z, float* TMax,
@@ -139,6 +141,11 @@ VisualPlane::VisualPlane(Matrix* tauData,int x, int y, int z, float* TMax,
   uniform_tauMax = scale_shader.createUniform("tauMax");
   uniform_sliderScale = scale_shader.createUniform("slider");
   
+
+  //Initialize angle for rotating plane
+  thetaX = 3.141592654/4.0;
+
+  getIntersectionPoints();
 
 }
 void VisualPlane::drawPlane(){
@@ -372,7 +379,132 @@ void VisualPlane::switchPlane(){
     plane_layer = max_layer;
 
 }
+void VisualPlane::getIntersectionPoints(){
+  
+  vec3 PI;
+  PI.x = 0.0; PI.y = 0.0; PI.z = 0.0;
+  float s1,s2,s3;
+  vec3 u;
+  vec3 w;
+  float d,numer,denom;
 
+  //Determine normal of plane
+  n.x = sin(thetaX);
+  n.y = 0.0;
+  n.z = cos(thetaX);
+ 
+  //Point on the egde of rotating plane
+  r1.x = (float)nx/2.0;
+  r1.y = 0.0;
+  r1.z = 0.0;
+  //Find Second point to make line
+  r2.x = r1.x + (2*nx*n.z);
+  r2.y = r1.y + (2*ny*n.y);
+  r2.z = r1.z + (2*nz*n.x);
+
+  std::cout << r2.x << " =  x, z = " <<  r2.z << std::endl;
+  //Now find intersection Point on plane
+  //Need to Check three planes
+
+  //1st Plane
+
+  //point on domain plane
+  V.x = nx; V.y = 0.0; V.z = 0.0;
+  w.x = r1.x-V.x; w.y = r1.y-V.y; w.z = r1.z-V.z;
+  //normal of domain plane
+  N.x = -1.0; N.y = 0.0; N.z = 0.0;
+  u.x = r2.x-r1.x; u.y = r2.y-r1.y; u.z = r2.z-r1.z;
+  //d = -(N.x*V.x + N.y*V.y + N.z*V.z);
+  //denom = (N.x*u.x + N.y*u.y + N.z*u.z);
+  //numer = (N.x*r1.x + N.y*r1.y + N.z*r1.z) + d;
+  //s1 = -numer/denom;
+  s1 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //2nd Plane
+  //V stays the same for this plane
+  N.x = 0.0; N.y = 0.0; N.z = 1.0;
+  //d = -(N.x*V.x + N.y*V.y + N.z*V.z);
+  //denom = (N.x*u.x + N.y*u.y + N.z*u.z);
+  //numer = (N.x*r1.x + N.y*r1.y + N.z*r1.z) + d;
+  //s2 = -numer/denom;
+  s2 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //3rd Plane
+  V.x = 0.0; V.y = 0.0; V.z = nz;
+  N.z = -1.0;
+  //d = -(N.x*V.x + N.y*V.y + N.z*V.z);
+  //denom = (N.x*u.x + N.y*u.y + N.z*u.z);
+  //numer = (N.x*r1.x + N.y*r1.y + N.z*r1.z) + d;
+  //s3 = -numer/denom;
+  w.x = r1.x-V.x; w.y = r1.y-V.y; w.z = r1.z-V.z;
+  s3 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //Find Smallest s - this means that intersection is the one to use
+  float s = s1;
+  if((s2 < s) && (s2 > 0.0)){
+    s = s2;
+  }
+  if((s3 < s) && (s3 > 0.0)){
+    s = s3;
+  }
+  //Find point of intersection
+  PI.x = s*u.x + r1.x;
+  PI.y = s*u.y + r1.y;
+  PI.z = s*u.z + r1.z;
+  
+
+  //We now have the point of Intersection and can find p2 and p3
+  p2.x = PI.x; p2.y = PI.y; p2.z = PI.z;
+  p3.x = PI.x; p3.y = PI.y+ny; p3.z = PI.z;
+
+  //Now find p0 and p1
+  //Need to change second point on plane
+  r2.x = r1.x - (nx*n.z);
+  r2.y = r1.y - (ny*n.y);
+  r2.z = r1.z - (nz*n.x);
+
+  //point on domain plane
+  V.x = 0.0; V.y = 0.0; V.z = 0.0;
+  w.x = r1.x-V.x; w.y = r1.y-V.y; w.z = r1.z-V.z;
+  //normal of domain plane
+  N.x = 1.0; N.y = 0.0; N.z = 0.0;
+  u.x = r2.x-r1.x; u.y = r2.y-r1.y; u.z = r2.z-r1.z;
+  //s = dot(-N,w)/dot(N,u)
+  s1 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //2nd Plane
+  //V and w stay the same for this plane
+  N.x = 0.0; N.y = 0.0; N.z = 1.0;
+  s2 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //3rd Plane
+  V.x = 0.0; V.y = 0.0; V.z = nz;
+  w.x = r1.x-V.x; w.y = r1.y-V.y; w.z = r1.z-V.z;
+  N.z = -1.0;
+  s3 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+  
+  //Find Smallest s - this means that intersection is the one to use
+  s = s1;
+  if((s2 < s) && (s2 >= 0.0)){
+    s = s2;
+  }
+  if((s3 < s) && (s3 >= 0.0)){
+    s = s3;
+  }
+  //Find point of intersection
+  PI.x = s*u.x + r1.x;
+  PI.y = s*u.y + r1.y;
+  PI.z = s*u.z + r1.z;
+
+  //We now have the point of Intersection and can find p0 and p1
+  p0.x = PI.x; p0.y = PI.y; p0.z = PI.z;
+  p1.x = PI.x; p1.y = PI.y+ny; p1.z = PI.z;
+
+  std::cout << p0.x << " " << p0.y << " " << p0.z << std::endl;
+  std::cout << p1.x << " " << p1.y << " " << p1.z << std::endl;
+  std::cout << p2.x << " " << p2.y << " " << p2.z << std::endl;
+  std::cout << p3.x << " " << p3.y << " " << p3.z << std::endl;
+}
 void VisualPlane::increasePlaneLayer(){
   plane_layer++;
   if(plane_layer > max_layer) plane_layer = max_layer;
@@ -406,15 +538,6 @@ void VisualPlane::drawScale(){
   float globalMax = 0;
   char* allDisp[4];
 
-  /*if(visual_field == 0){
-    for(int i=0; i < 4; i++){
-      max[i] = WindMax[i];
-      min[i] = WindMin[i];
-      allDisp[i] = windTitle[i];
-    }
-    globalMin = windMin;
-    globalMax = windMax;
-    }*/
   if(visual_field != 0){
     int tidx = plane_layer*4;
     for(int i=0; i < 4; i++){
