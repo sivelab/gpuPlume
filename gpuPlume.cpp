@@ -273,6 +273,22 @@ void keyboard_cb(unsigned char key, int x, int y)
       plume->planeVisual->increasePlaneLayer();
 
     }
+  else if (key == 'X')
+    {
+      plume->planeVisual->increaseAngle();
+    }
+  else if (key == 'x')
+    {
+      plume->planeVisual->decreaseAngle();
+    }
+  else if (key == 'Y')
+    {
+      plume->planeVisual->increaseAngle_Y();
+    }
+  else if (key == 'y')
+    {
+      plume->planeVisual->decreaseAngle_Y();
+    }
   else if (key == 'l')
     {
       plume->planeVisual->visual_field++;
@@ -465,21 +481,28 @@ void mouse(int button, int state,int x, int y)
     plume->dc->change_look = false;
 
   if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON) {
-    plume->planeVisual->clickedRangeButton(x,y);
+    
+    if(util->advectChoice == 4){
+      plume->planeVisual->clickedRangeButton(x,y);
 
-    if(plume->planeVisual->clickedSlider(x,y)){
-      plume->planeVisual->move_slider = true;
-      plume->dc->rotate_around = false;
+      if(plume->planeVisual->clickedSlider(x,y)){
+	plume->planeVisual->move_slider = true;
+	plume->dc->rotate_around = false;
+      }
+      else{
+	plume->dc->rotate_around = true;
+	plume->planeVisual->move_slider = false;
+      }  
     }
     else{
       plume->dc->rotate_around = true;
-      plume->planeVisual->move_slider = false;
     }
    
   }
   else{
     plume->dc->rotate_around = false;
-    plume->planeVisual->move_slider = false;
+    if(util->advectChoice == 4)
+      plume->planeVisual->move_slider = false;
   }
 
   glutPostRedisplay();
@@ -497,8 +520,10 @@ void motion(int x, int y)
   //plume->dc->lookUporDown(change_y);
   //plume->dc->setRotateAround(change_x);
 
-  if(plume->planeVisual->move_slider){
-    plume->planeVisual->moveSlider(x);
+  if(util->advectChoice == 4){
+    if(plume->planeVisual->move_slider){
+      plume->planeVisual->moveSlider(x);
+    }
   }
 
   if (plume->dc->change_height) 
