@@ -2472,30 +2472,42 @@ void ParticleControl::test1(){
       for(int j = 0; j < nx; j++){
 	int p2idx = k*nx*ny + i*nx + j;
   	
-	if((j > nx/2) && (k < nz/2)){
+	if((j > (nx-1)/2) && (i > (ny-1)/2) && (k <= ((nz/2)+ 1)) && (k >= ((nz/2)- 1))){
 	  wind_vel[p2idx].u = 1.0;
 	  wind_vel[p2idx].v = 0.0;
 	  wind_vel[p2idx].w = 0.0;
 	  wind_vel[p2idx].id = -1.0;
 	}
-	else if ((j < nx/2) && ( k < nz/2)){
+	else if ((j <= (nx-1)/2) && ( i <= (ny-1)/2) && (k <= ((nz/2)+ 1)) && (k >= ((nz/2)- 1))){
 	  wind_vel[p2idx].u = -1.0;
 	  wind_vel[p2idx].v = 0.0;
 	  wind_vel[p2idx].w = 0.0;
 	  wind_vel[p2idx].id = -1.0;
 	}
-	else if((i > ny/2) && (k > nz/2)){
+	else if((i > (ny-1)/2) && (j <= (nx-1)/2) && (k <= ((nz/2)+ 1)) && (k >= ((nz/2)- 1))){
 	  wind_vel[p2idx].u = 0.0;
 	  wind_vel[p2idx].v = 1.0;
 	  wind_vel[p2idx].w = 0.0;
 	  wind_vel[p2idx].id = -1.0;
 	}
-	else{
+	else if((j > (nx-1)/2) && (i <= (ny-1)/2) && (k <= ((nz/2)+ 1)) && (k >= ((nz/2)- 1))){
 	  wind_vel[p2idx].u = 0.0;
 	  wind_vel[p2idx].v = -1.0;
 	  wind_vel[p2idx].w = 0.0;
 	  wind_vel[p2idx].id = -1.0;
 	  
+	}
+	else if( k > ((nz/2) +1) ){
+	  wind_vel[p2idx].u = 0.0;
+	  wind_vel[p2idx].v = 0.0;
+	  wind_vel[p2idx].w = 1.0;
+	  wind_vel[p2idx].id = -1.0;
+	}
+	else{
+	  wind_vel[p2idx].u = 0.0;
+	  wind_vel[p2idx].v = 0.0;
+	  wind_vel[p2idx].w = -1.0;
+	  wind_vel[p2idx].id = -1.0;
 	}
       }
     }
