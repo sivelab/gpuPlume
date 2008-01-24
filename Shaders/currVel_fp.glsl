@@ -22,6 +22,7 @@ void main(void)
 
 
    //vec3 color = vec3(0.8, 0.8, 1.0);
+	vec3 color_prime;
    vec3 color = vec3(0.0, 0.0, 0.0);
    if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0) && (k >= 0))
    {
@@ -45,8 +46,11 @@ void main(void)
 
       // We map height (Z) to the luma (L') channel, direction in X to
       // the C'_{1} channel and direction in Y to the C'_{2} channel.
-      // vec3 opponent_color = normalize(pos - prevPos).zxy;
-      vec3 opponent_color = wind.zxy;
+      vec3 opponent_color = normalize(pos - prevPos).zxy;
+      // vec3 opponent_color = wind.zxy;
+
+      color_prime = opponent_color;
+
       opponent_color.y = opponent_color.y * sqrt(2.0);
       opponent_color.z = opponent_color.z * sqrt(2.0);
 
@@ -130,6 +134,5 @@ void main(void)
       color.z = oRGB_new.y;
    }
    
-
    gl_FragColor = vec4(color,1.0);
 }
