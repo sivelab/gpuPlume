@@ -18,7 +18,7 @@ void main(void)
 	// In the meantime, we will use this at the moment to scale the particle
 	// size with distance so particles farther away are smaller.
 	vec4 modv_vertex = gl_ModelViewMatrix * pos;
-	gl_PointSize = 100.0 / -modv_vertex.z;
+ 	gl_PointSize = 100.0 / -modv_vertex.z;
 
 	gl_Position = gl_ModelViewProjectionMatrix * pos;
 }

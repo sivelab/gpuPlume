@@ -22,15 +22,8 @@ void main(void)
 
       else if (normal.x == 0.0 && normal.y == 0.0 && normal.z == 1.0)
 	{
-	  //The floor of the position in 3D space is needed to find the index into
-	  //the 2D Texture.
-	  int i = int(floor(particle_pos.y));
-	  int j = int(floor(particle_pos.x));
-	  int k = int(floor(particle_pos.z));
-	
-	  vec4 cvis = vec4(1.0, 0.0, 0.0, 1.0);
-
-	  gl_FragColor = cvis;
+	  // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	discard;
 	} 
       else
 	{
@@ -39,11 +32,11 @@ void main(void)
 	  n.w = 0.0;
 	  vec4 h = normalize(l + vec4(0.0,0.0,1.0,0.0));
 
-	  float p = 64.0;
-	  float cp = 1.0;
+	  float p = 128.0;
+	  float cp = 0.75;
 	  vec4 cr = pcolor;
 	  vec4 cl = vec4(1.0,1.0,1.0,1.0);
-	  vec4 ca = vec4(0.4,0.4,0.4,1.0);
+	  vec4 ca = vec4(0.2,0.2,0.2,1.0);
 
 	  vec4 color = cr * (ca + cl * max(0.0,dot(n,l))) + cp * cl * pow(max(0.0,dot(h,n)), p);  
 	  gl_FragColor = color;
