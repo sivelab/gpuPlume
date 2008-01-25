@@ -66,7 +66,7 @@ MultipleBuildingsModel::~MultipleBuildingsModel(){}
 
 void MultipleBuildingsModel::init(bool OSG){
   osgPlume = OSG;
-  
+  setupEmitters();
   pathLines = new PathLine(util->pwidth,util->pheight,texType);
 
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz);
@@ -76,6 +76,9 @@ void MultipleBuildingsModel::init(bool OSG){
 
   dc = new DisplayControl(nx,ny,nz, texType);  
   dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
+
+  //Send copy of particle emitter to displayControl
+  dc->setEmitter(pe[0]);
 
   if(util->numBuild == 0){
     dc->draw_buildings = false;  
@@ -91,7 +94,7 @@ void MultipleBuildingsModel::init(bool OSG){
     dc->osgPlume = true;
   }
 
-  setupEmitters();
+  //setupEmitters();
   
   glEnable(texType);
   glGenTextures(18, texid);
@@ -133,6 +136,9 @@ void MultipleBuildingsModel::init(bool OSG){
   //Create visual plane class to visualize tau layers in the 3D domain
   planeVisual = new VisualPlane(pc->tau,nx,ny,nz, pc->tauMax, pc->tauMin,
 				pc->tauLocalMax, pc->tauLocalMin);
+
+  //send copy of planeVisual to displayControl
+  dc->setVisualPlane(planeVisual);
 
   //
   // set up vertex buffer
@@ -426,7 +432,8 @@ int MultipleBuildingsModel::display(){
 
       if(dc->tau_visual == draw_layers){
 	if(planeVisual->visual_field > 0)
-	  planeVisual->drawPlane();
+	  planeVisual->draw();
+	  //planeVisual->drawPlane();
 	else
 	  dc->drawLayers(windField,numInRow);
       }

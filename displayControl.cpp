@@ -106,7 +106,12 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
   HUP_display_update_time[0] = clock_timer->tic();
   estimated_rate = 0.0;
 }
-
+void DisplayControl::setEmitter(ParticleEmitter* p){
+  pe = p;
+}
+void DisplayControl::setVisualPlane(VisualPlane* vp){
+  plane = vp;
+}
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight)
 {
@@ -123,8 +128,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     //glRotatef(azimuth, 0,0,1);  
   }
   
-  
-
+    
   drawAxes();
   
   if(!osgPlume)

@@ -12,6 +12,8 @@
 
 #include "GLSL.h"
 #include "Timer.h"
+#include "particleEmitter.h"
+#include "VisualPlane.h"
 
 enum tau_visual_type{draw_contours,draw_layers};
 
@@ -40,6 +42,9 @@ class DisplayControl{
   void lookUporDown(float);
   void initVars(int,float*,float*,float*,
 		      float*,float*,float*);
+  
+  void setEmitter(ParticleEmitter*);
+  void setVisualPlane(VisualPlane*);
 
   bool rotate_around, change_height, change_look;
   bool frame_rate;
@@ -80,6 +85,12 @@ class DisplayControl{
   float* wti;
   float* lti;
   
+  //Copy of Particle Emitter for hand control
+  ParticleEmitter* pe;
+
+  //Copy of Visual Plane for hand control
+  VisualPlane* plane;
+
 
   GLSLObject render_shader;
   GLSLObject windField_shader;

@@ -34,8 +34,16 @@ class VisualPlane{
   void drawScale();
   void switchPlane();
   void getIntersectionPoints();
+  void draw();
+  void increaseAngle();
+  void decreaseAngle();
+  void increaseAngle_Y();
+  void decreaseAngle_Y();
 
   int plane_layer;
+  
+  float plane_layer_z,plane_layer_y,plane_layer_x;
+
   int slider_x;
   bool localValues;
   int visual_field;
@@ -46,10 +54,12 @@ class VisualPlane{
   //represented at in the scale used for visualizing
   //the turbulence layers.
   float slider;
-
+  //Point on edge of rotating plane
+  vec3 r1;
  private:
 
   void getLocalTauValues();
+  void findEdgePoints();
 
   float* TauMax;
   float* TauMin;
@@ -86,11 +96,17 @@ class VisualPlane{
   
   //Angle for rotating plane
   float thetaX;
-  
+  float thetaX1;
+  float thetaY;
+  float thetaY1;
+
   //normal vector of plane
   vec3 n;
+  //points on edge of plane
+  vec3 e1;
+  vec3 e2;
   //Point on edge of rotating plane
-  vec3 r1;
+  //vec3 r1;
   //Second point used to find intersection point on domain
   vec3 r2;
   //Point on domain plane used to find intersection point
