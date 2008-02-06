@@ -21,6 +21,10 @@ class Util{
   float time_step;
   //domain
   int nx,ny,nz;
+  
+  //
+  float dx,dy,dz;
+
   //wind field data
   //look in Settings/input.txt file for description of what value to use
   int windFieldData;

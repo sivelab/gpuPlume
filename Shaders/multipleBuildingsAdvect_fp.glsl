@@ -11,6 +11,9 @@ uniform samplerRect cellType;
 uniform int nx;
 uniform int ny;
 uniform int nz;
+uniform int nxdx;
+uniform int nydy;
+uniform int nzdz;
 uniform int numInRow;
 uniform float time_step;
 uniform float life_time;
@@ -109,8 +112,8 @@ void main(void)
       
       //This is the initial lookup into the 2D texture that holds the wind field.
       vec2 index;
-      index.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
-      index.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
+      index.s = float(j) + float(mod(float(k),float(numInRow)))*float(nxdx);
+      index.t = float(i) + float(floor(float(k)/float(numInRow)))*float(nydy);
 
       vec4 wind = vec4(textureRect(wind_texunit, index));
       vec4 lam = vec4(textureRect(lambda, index));
@@ -230,8 +233,8 @@ void main(void)
 	    k = 0;
 
 	  if(k >= 0){
-	    cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
-	    cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
+	    cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nxdx);
+	    cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(nydy);
 	    //cIndex.s = j + mod(k,numInRow)*nx;
 	    //cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
 
@@ -377,8 +380,8 @@ void main(void)
 	    if(k < 0)
 	      k = 0;
 	    if(k >= 0){
-	      cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nx);
-	      cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(ny);
+	      cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nxdx);
+	      cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(nydy);
 	      //cIndex.s = j + mod(k,numInRow)*nx;
 	      //cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
 	      cell_type = vec4(textureRect(cellType, cIndex));

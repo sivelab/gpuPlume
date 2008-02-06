@@ -8,6 +8,9 @@ uniform samplerRect random_texunit;
 uniform int nx;
 uniform int ny;
 uniform int nz;
+uniform int nxdx;
+uniform int nydy;
+uniform int nzdz;
 uniform int numInRow;
 uniform float time_step;
 uniform float life_time;
@@ -43,20 +46,20 @@ void main(void)
 
     //This is the initial lookup into the 2D texture that holds the wind field.
  	vec2 index;
-   	index.s = j + mod(k,float(numInRow))*nx;
-   	index.t = i + floor(k/float(numInRow))*ny;
+   	index.s = j + mod(float(k),float(numInRow))*float(nxdx);
+   	index.t = i + floor(float(k)/float(numInRow))*float(nydy);
 	int s = index.s;
 	int t = index.t;
 	vec3 wind2;
    	vec3 wind = vec3(textureRect(wind_texunit, index));
 
 	//Calculates distances to the edges of the surrounding cells.
-	float dr = pos.x - mod(s,nx); 	//distance to the left edge.
-	float dl = 1 - dr; 		//distance to the right edge.
-	float da = pos.y - mod(t,ny); 	//distance to the edge below(in the same layer).
-	float db = 1 - da; 		//distance to the edge above(in the same layer).
-	float dk = pos.z - k; 		//distance to the layer below.
-	float dd = 1 - dk; 		//distance to the layer above.
+	//float dr = pos.x - mod(s,nx); 	//distance to the left edge.
+	//float dl = 1 - dr; 		//distance to the right edge.
+	//float da = pos.y - mod(t,ny); 	//distance to the edge below(in the same layer).
+	//float db = 1 - da; 		//distance to the edge above(in the same layer).
+	//float dk = pos.z - k; 		//distance to the layer below.
+	//float dd = 1 - dk; 		//distance to the layer above.
 
 
       // FOLLOWING IS COMMENTED BECAUSE IT DOUBLES THE WIND SPEED AND NOT REQUIRED FOR UNIFORM FLOW CASE--BALLI(05/01/07)

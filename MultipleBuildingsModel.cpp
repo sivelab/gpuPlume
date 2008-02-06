@@ -23,6 +23,11 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   nx = util->nx;
   ny = util->ny;
   nz = util->nz;
+
+  nxdx = (int)(nx*(1.0/util->dx));
+  nydy = (int)(ny*(1.0/util->dy));
+  nzdz = (int)(nz*(1.0/util->dz));
+
   time_step = util->time_step;
 
   //Sets up the type of simulation to run
@@ -69,12 +74,12 @@ void MultipleBuildingsModel::init(bool OSG){
   setupEmitters();
   pathLines = new PathLine(util->pwidth,util->pheight,texType);
 
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz);
   pc->setUstarAndSigmas(util->ustar);
   pc->setBuildingParameters(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
   pc->setQuicFilesPath(util->quicFilesPath);
 
-  dc = new DisplayControl(nx,ny,nz, texType);  
+  dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
   dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
 
   //Send copy of particle emitter to displayControl
@@ -134,7 +139,7 @@ void MultipleBuildingsModel::init(bool OSG){
   contours = new Contour(pc,util->num_contour_regions);
 
   //Create visual plane class to visualize tau layers in the 3D domain
-  planeVisual = new VisualPlane(pc->tau,nx,ny,nz, pc->tauMax, pc->tauMin,
+  planeVisual = new VisualPlane(pc, pc->tauMax, pc->tauMin,
 				pc->tauLocalMax, pc->tauLocalMin);
 
   //send copy of planeVisual to displayControl
@@ -603,7 +608,7 @@ void MultipleBuildingsModel::setupTextures(){
   int ys = (int)util->ypos[0];
   int zs = (int)util->zpos[0];
 
-  int p2idx = zs*ny*nx + ys*nx + xs;
+  int p2idx = zs*nydy*nxdx + ys*nxdx + xs;
 
   util->sigU = pc->sig[p2idx].u;
   util->sigV = pc->sig[p2idx].v;

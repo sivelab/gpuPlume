@@ -65,6 +65,15 @@ void Util::parseLine(char* line){
   if(read1Float(line, "nz", &f1)){
     nz = (int)f1;
   }
+  if(read1Float(line, "dx", &f1)){
+    dx = f1;
+  }
+  if(read1Float(line, "dy", &f1)){
+    dy = f1;
+  }
+  if(read1Float(line, "dz", &f1)){
+    dz = f1;
+  }
   if(read1Float(line, "windFieldData", &f1)){
     windFieldData = (int)f1;
   }
