@@ -4,17 +4,20 @@
 
 
 static char number[128];
-VisualPlane::VisualPlane(Matrix* tauData,int x, int y, int z, float* TMax,
+VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
 			 float * TMin, float* max, float* min){
 
   texType = GL_TEXTURE_3D;
   format = GL_RGBA32F_ARB;
 
-  tau = tauData;
+  tau = pc->tau;
 
-  nx = x;
-  ny = y;
-  nz = z;
+  nx = pc->nx;
+  ny = pc->ny;
+  nz = pc->nz;
+  nxdx = pc->nxdx;
+  nydy = pc->nydy;
+  nzdz = pc->nzdz;
 
   tauMax = TMax[0];
   if(TMax[1]>tauMax)
@@ -72,26 +75,26 @@ VisualPlane::VisualPlane(Matrix* tauData,int x, int y, int z, float* TMax,
   
   //GLfloat data2[nz][ny][nx][4];
 
-  GLfloat* data = new GLfloat[nx*ny*nz*4];
+  GLfloat* data = new GLfloat[nxdx*nydy*nzdz*4];
   
-  for(int k=0; k < nz; k++){
-    for(int i=0; i < ny; i++){
-      for(int j = 0; j < nx; j++){
+  for(int k=0; k < nzdz; k++){
+    for(int i=0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
 	
-	  int idx = k*ny*nx + i*nx + j;
+	  int idx = k*nydy*nxdx + i*nxdx + j;
 	
-	  int texidx = k*ny*nx*4 + i*nx*4 + j*4;
+	  int texidx = k*nydy*nxdx*4 + i*nxdx*4 + j*4;
 	  /*
-	  data2[k][i][j][0] =  tauData[idx].t11;
-	  data2[k][i][j][1] =  tauData[idx].t22;
-	  data2[k][i][j][2] =  tauData[idx].t33;
-	  data2[k][i][j][3] =  tauData[idx].t13;*/
+	  data2[k][i][j][0] =  tau[idx].t11;
+	  data2[k][i][j][1] =  tau[idx].t22;
+	  data2[k][i][j][2] =  tau[idx].t33;
+	  data2[k][i][j][3] =  tau[idx].t13;*/
 
 	  
-	  data[texidx] = tauData[idx].t11;
-	  data[texidx+1] = tauData[idx].t22;
-	  data[texidx+2] = tauData[idx].t33;
-	  data[texidx+3] = tauData[idx].t13;
+	  data[texidx] = tau[idx].t11;
+	  data[texidx+1] = tau[idx].t22;
+	  data[texidx+2] = tau[idx].t33;
+	  data[texidx+3] = tau[idx].t13;
 
       }
     }
@@ -108,7 +111,7 @@ VisualPlane::VisualPlane(Matrix* tauData,int x, int y, int z, float* TMax,
   glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	
-  glTexImage3D(texType, 0, format, nx, ny, nz,0,GL_RGBA, GL_FLOAT,data); 
+  glTexImage3D(texType, 0, format, nxdx, nydy, nzdz,0,GL_RGBA, GL_FLOAT,data); 
   CheckErrorsGL("3D texture\n");
 
   glBindTexture(texType, 0);
@@ -150,12 +153,58 @@ VisualPlane::VisualPlane(Matrix* tauData,int x, int y, int z, float* TMax,
   thetaX1 = 0.0;
 
   thetaY = M_PI_2;
-  thetaY1 = M_PI_4;
+  thetaY1 = 0.0;
 
   //Initialize Point in the domain
   r1.x = nx/2;
   r1.y = 0.0;
   r1.z = 0.0; 
+
+  //Initialize normals and offsets of the domain planes
+  n0.x = 1.0; n0.y = 0.0; n0.z = 0.0;
+  n1.x = 0.0; n1.y = 1.0; n1.z = 0.0;
+  n2.x = 0.0; n2.y = 0.0; n2.z = 1.0;
+  n3.x = 0.0; n3.y = -1.0; n3.z = 0.0;
+  n4.x = -1.0; n4.y = 0.0; n4.z = 0.0;
+  n5.x = 0.0; n5.y = 0.0; n5.z = -1.0;
+  
+  d0 = 0.0;
+  d1 = 0.0;
+  d2 = 0.0;
+  d3 = (ny);
+  d4 = (nx);
+  d5 = (nz);
+  
+  num_Points = 0;
+  
+  eps = 0.00001;
+
+
+  yaw = 0.0;
+  pitch = 0.0;
+  roll = 0.0;
+
+  n.x = 0.0;
+  n.y = 0.0;
+  n.z = 1.0;
+
+  calculateNormal();
+  
+  /*
+  //Determine normal of rotating plane
+  n.x = cos(thetaX);
+  n.y = cos(thetaY);
+  n.z = sin(thetaX);
+  
+  if(fabs(n.x) < eps)
+    n.x = 0.0;
+  if(fabs(n.z) < eps)
+    n.z = 0.0;
+  if(fabs(n.y) < eps)
+  n.y = 0.0;*/
+
+  getIntersectionPoints();
+
 }
 void VisualPlane::drawPlane(){
   
@@ -196,17 +245,17 @@ void VisualPlane::drawPlane(){
 	if(plane_normal == 0){
 	  s = 0.0;
 	  t = 0.0;
-	  r = plane_layer_z/((float)nz - 1.0);
+	  r = plane_layer_z/((float)nzdz - 1.0);
 	}
 	//Vertical Texture coordinates
 	else if(plane_normal == 1){
-	  s = plane_layer_x/((float)nx - 1.0);
+	  s = plane_layer_x/((float)nxdx - 1.0);
 	  t = 0.0;
 	  r = 0.0;
 	}
 	else{
 	  s = 0.0;
-	  t = plane_layer_y/((float)ny - 1.0);
+	  t = plane_layer_y/((float)nydy - 1.0);
 	  r = 0.0;
 	}
 	plane_shader.activate();
@@ -300,13 +349,13 @@ void VisualPlane::getLocalTauValues(){
     
     int idx;
     if(plane_normal == 0){
-      idx = k*ny*nx;
+      idx = k*nydy*nxdx;
     }
     else if(plane_normal == 1){
       idx = k;
     }
     else{
-      idx = k*nx;
+      idx = k*nxdx;
     }
 
     int tidx = k*4;
@@ -326,11 +375,11 @@ void VisualPlane::getLocalTauValues(){
 
   //Find max and min tau values for each height value
 
-  for(int k=0; k<nz; k++){
-    for(int i=0; i<ny; i++){
-      for(int j=0; j<nx; j++){
+  for(int k=0; k<nzdz; k++){
+    for(int i=0; i<nydy; i++){
+      for(int j=0; j<nxdx; j++){
 
-	int idx = k*ny*nx + i*nx + j;
+	int idx = k*nydy*nxdx + i*nxdx + j;
 	int tidx;
 	if(plane_normal == 0){
 	  //idx = k*ny*nx + i*nx + j;
@@ -394,55 +443,226 @@ void VisualPlane::switchPlane(){
   //plane_layer = max_layer;
 
 }
-void VisualPlane::increaseAngle(){
-  thetaX += M_PI/36.0;
-
-  if(thetaX > (M_PI+M_PI_2))
-    thetaX = M_PI+M_PI_2;
-
-  thetaX1 += M_PI/36.0;
-  
-  if(thetaX1 > M_PI)
-    thetaX1 = M_PI;
+void VisualPlane::increaseYaw(){
+  yaw = M_PI_2/60.0;
  
+  pitch = 0.0;
+  roll = 0.0;
+
+  calculateNormal();
+
+  getIntersectionPoints();
+}
+void VisualPlane::increasePitch(){
+  pitch = M_PI_2/60.0;
+
+  yaw = 0.0;
+  roll = 0.0;
+
+  calculateNormal();
+
+  getIntersectionPoints();
+}
+void VisualPlane::increaseRoll(){
+  roll = M_PI_2/60.0;
+ 
+  yaw = 0.0;
+  pitch = 0.0;
+
+  calculateNormal();
+  getIntersectionPoints();
+}
+void VisualPlane::decreaseYaw(){
+  yaw = -M_PI_2/60.0;
+
+  pitch = 0.0;
+  roll = 0.0;
+
+  calculateNormal();
+
+  getIntersectionPoints();
+}
+void VisualPlane::decreasePitch(){
+  pitch = -M_PI_2/60.0;
+ 
+  yaw = 0.0;
+  roll = 0.0;
+
+  calculateNormal();
+
+  getIntersectionPoints();
+}
+void VisualPlane::decreaseRoll(){
+  roll = -M_PI_2/60.0;
+ 
+  yaw = 0.0;
+  pitch = 0.0;
+
+  calculateNormal();
+  getIntersectionPoints();
+  
+}
+void VisualPlane::calculateNormal(){
+
+  float a11,a12,a13;
+  float a21,a22,a23;
+  float a31,a32,a33;
+  
+  //Transformation matrix
+  a11 = cos(pitch)*cos(yaw);
+  a12 = sin(roll)*sin(pitch)*cos(yaw) + cos(roll)*sin(yaw);
+  a13 = (-cos(roll))*sin(pitch)*cos(yaw) + sin(roll)*sin(yaw);
+  a21 = (-cos(pitch))*sin(yaw);
+  a22 = (-sin(roll))*sin(pitch)*sin(yaw) + cos(roll)*cos(yaw);
+  a23 = cos(roll)*sin(pitch)*sin(yaw) + sin(roll)*cos(yaw);
+  a31 = sin(pitch);
+  a32 = (-sin(roll))*cos(pitch);
+  a33 = cos(roll)*cos(pitch);
+
+  /*
+  if((a11 < e) && (a11 > -e))
+    a11 = 0.0;
+  if((a12 < e) && (a12 > -e))
+    a12 = 0.0;
+  if((a13 < e) && (a13 > -e))
+    a13 = 0.0;
+  if((a21 < e) && (a21 > -e))
+    a21 = 0.0;
+  if((a22 < e) && (a22 > -e))
+    a22 = 0.0;
+  if((a23 < e) && (a23 > -e))
+    a23 = 0.0;
+  if((a31 < e) && (a31 > -e))
+    a31 = 0.0;
+  if((a32 < e) && (a32 > -e))
+    a32 = 0.0;
+  if((a33 < e) && (a33 > -e))
+  a33 = 0.0;*/
+
+  n.x = a11*n.x + a12*n.y + a13*n.z;
+  n.y = a21*n.x + a22*n.y + a23*n.z;
+  n.z = a31*n.x + a32*n.y + a33*n.z;
+  
+  /*
+  float e = 0.1;
+  if((n.x < e) && (n.x > -e))
+    n.x = 0.0;
+  if((n.z < e) && (n.z > -e))
+    n.z = 0.0;
+  if((n.y < e) && (n.y > -e))
+    n.y = 0.0;
+  */
+
+  //normalize the normal
+  float length;
+  length = sqrt((n.x*n.x)+(n.y*n.y)+(n.z*n.z));
+   
+  n.x = n.x/length;
+  n.y = n.y/length;
+  n.z = n.z/length;
+  
+
+  std::cout << "normal is " << n.x << " " << n.y << " " << n.z << std::endl;
+
+}
+
+void VisualPlane::increaseAngle(){
+  thetaX += M_PI_2/6.0;
+
+  //if(thetaX > (M_PI+M_PI_2))
+  //thetaX = M_PI+M_PI_2;
+
+  thetaX1 += M_PI_2/6.0;
+  
+  //if(thetaX1 > M_PI)
+  //thetaX1 = M_PI;
+ 
+  //Determine normal of rotating plane
+  n.x = cos(thetaX);
+  n.y = cos(thetaY);
+  n.z = sin(thetaX);
+  
+  if(fabs(n.x) < eps)
+    n.x = 0.0;
+  if(fabs(n.z) < eps)
+    n.z = 0.0;
+  if(fabs(n.y) < eps)
+    n.y = 0.0;
+
   getIntersectionPoints();
 }
 void VisualPlane::decreaseAngle(){
-  thetaX -= M_PI/36.0;
+  thetaX -= M_PI_2/6.0;
 
-  if(thetaX < M_PI_2)
-    thetaX = M_PI_2;
+  //if(thetaX < M_PI_2)
+  //thetaX = M_PI_2;
 
-  thetaX1 -= M_PI/36.0;
+  thetaX1 -= M_PI_2/6.0;
   
-  if(thetaX1 < 0.0)
-    thetaX1 = 0.0;
+  //if(thetaX1 < 0.0)
+  //thetaX1 = 0.0;
+
+  //Determine normal of rotating plane
+  n.x = cos(thetaX);
+  n.y = cos(thetaY);
+  n.z = sin(thetaX);
+  
+  if(fabs(n.x) < eps)
+    n.x = 0.0;
+  if(fabs(n.z) < eps)
+    n.z = 0.0;
+  if(fabs(n.y) < eps)
+    n.y = 0.0;
 
   getIntersectionPoints();
 }
 void VisualPlane::increaseAngle_Y(){
-  thetaY += M_PI/36.0;
+  thetaY += M_PI_2/6.0;
 
-  if(thetaY > (M_PI+M_PI_2))
-    thetaY = M_PI+M_PI_2;
+  //if(thetaY > (M_PI+M_PI_2))
+  // thetaY = M_PI+M_PI_2;
 
-  thetaY1 += M_PI/36.0;
+  thetaY1 += M_PI_2/6.0;
   
-  if(thetaY1 > M_PI)
-    thetaY1 = M_PI;
+  //if(thetaY1 > M_PI)
+  //thetaY1 = M_PI;
  
+  //Determine normal of rotating plane
+  n.x = cos(thetaX);
+  n.y = cos(thetaY);
+  n.z = sin(thetaX);
+  
+  if(fabs(n.x) < eps)
+    n.x = 0.0;
+  if(fabs(n.z) < eps)
+    n.z = 0.0;
+  if(fabs(n.y) < eps)
+    n.y = 0.0;
+
   getIntersectionPoints();
 }
 void VisualPlane::decreaseAngle_Y(){
-  thetaY -= M_PI/36.0;
+  thetaY -= M_PI_2/6.0;
 
-  if(thetaY < M_PI_2)
-    thetaY = M_PI_2;
+  //if(thetaY < M_PI_2)
+  //thetaY = M_PI_2;
 
-  thetaY1 -= M_PI/36.0;
+  thetaY1 -= M_PI_2/6.0;
   
-  if(thetaY1 < 0.0)
-    thetaY1 = 0.0;
+  //if(thetaY1 < 0.0)
+  //thetaY1 = 0.0;
+
+  //Determine normal of rotating plane
+  n.x = cos(thetaX);
+  n.y = cos(thetaY);
+  n.z = sin(thetaX);
+  
+  if(fabs(n.x) < eps)
+    n.x = 0.0;
+  if(fabs(n.z) < eps)
+    n.z = 0.0;
+  if(fabs(n.y) < eps)
+    n.y = 0.0;
 
   getIntersectionPoints();
 }
@@ -450,7 +670,7 @@ void VisualPlane::draw(){
   
   //glDisable(GL_TEXTURE_RECTANGLE_ARB);
   //glDisable(GL_TEXTURE_2D);
-  
+  /*
   if(plane_normal == 0){
     max_layer = nz;
     plane_layer = (int)plane_layer_z;
@@ -462,7 +682,7 @@ void VisualPlane::draw(){
   else{
     max_layer = ny;
     plane_layer = (int)plane_layer_y;
-  }
+    }*/
 
   //getIntersectionPoints();
 
@@ -519,16 +739,16 @@ void VisualPlane::draw(){
 	{
 	  glNormal3f(n.x, n.y, n.z);
 
-	  glTexCoord3f(p1.x/(float)(nx-1), p1.y/(float)(ny-1), (p1.z-1.0)/(float)(nz-1));  
+	  glTexCoord3f(p1.x/(float)(nxdx), p1.y/(float)(nydy), p1.z/(float)(nzdz-1));  
 	  glVertex3f(p1.x, p1.y, p1.z);
 
-	  glTexCoord3f((p2.x-1.0)/(float)(nx-1), p2.y/(float)(ny-1), (p2.z-1.0)/(float)(nz-1));  
+	  glTexCoord3f(p2.x/(float)(nxdx), p2.y/(float)(nydy), p2.z/(float)(nzdz-1));  
 	  glVertex3f(p2.x, p2.y, p2.z);
 
-	  glTexCoord3f((p3.x-1.0)/(float)(nx-1), (p3.y-1.0)/(float)(ny-1), (p3.z-1.0)/(float)(nz-1));  
+	  glTexCoord3f(p3.x/(float)(nxdx), p3.y/(float)(nydy), p3.z/(float)(nzdz-1));  
 	  glVertex3f(p3.x, p3.y, p3.z);
 
-	  glTexCoord3f(p0.x/(float)(nx-1), (p0.y-1.0)/(float)(ny-1), (p0.z-1.0)/(float)(nz-1));  
+	  glTexCoord3f(p0.x/(float)(nxdx), p0.y/(float)(nydy), p0.z/(float)(nzdz-1));  
 	  glVertex3f(p0.x, p0.y, p0.z);
 	}
 	glEnd();
@@ -546,230 +766,741 @@ void VisualPlane::draw(){
 	//}
   }
 
+  //Draw point of rotation on plane
+  glPushMatrix();
+
+  glColor3f(1.0,1.0,1.0);
+ 
+  glBegin(GL_POINTS);
+  {
+    glVertex3f(p.x,p.y,p.z);
+  }
+  glEnd();
+
+
+  glBegin(GL_LINES);
+  {
+    glVertex3f(p.x,p.y,p.z);
+    glVertex3f(p.x+n.x,p.y+n.y,p.z+n.z);
+    
+  }
+  glEnd();
+
+  glPopMatrix();
+
   //glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
 }
 void VisualPlane::findEdgePoints(){
 
-  vec3 p;
+  //vec3 p;
+  
+  float Z = (float)nz;
+  float Y = (float)ny;
+  float X = (float)nx;
+
+  //p.x = 80; 
+  //p.y = 25.0; 
+  //p.z = 0.0;
+
   p.x = plane_layer_x; 
-  p.y = 5.0; 
-  p.z = 1.0;
+  p.y = plane_layer_y; 
+  p.z = plane_layer_z;
 
-  float z = p.y*tan(thetaY1);
-  std::cout << z <<std::endl;
+  float z = 0.0;
+  float z1 = 0.0;
+  float y1 = 0.0;
 
-  float z1 = 0.0; 
-  if(z < 0.0)
-    z1 = z + p.z;
-  else if(z > (float)nz)
-    z1 = z - (float)nz + p.z;
-  else
-    z1 = z;
+  //First Point
 
-  float y1;
-  y1 = fabs(z1*(cos(thetaY1)/sin(thetaY1)));
+  //Case: plane is parallel to z-y plane
+  if(fabs(cos(thetaY1)) <= eps){
+    e1.x = p.x;
+    e1.y = p.y;
+    e1.z = Z;
+  }
+  //Case: plane is parallel to x-y plane
+  else if(fabs(sin(thetaY1)) <= eps){  
+    e1.z = p.z;   
+    e1.x = p.x;
+    e1.y = 0.0;    
+  }
+  else{
 
-  float y2;
-  y2 = p.z*(sin(thetaY1)/cos(thetaY1));
-
-  std::cout << z1 << " " << y1 << std::endl;
-
-  e1.x = p.x;
+    z = p.y*tan(thetaY1);
+    
+    if(z < 0.0)
+      z1 = z + p.z;
+    else if(z > Z)
+      z1 = z - Z + p.z;
+    else
+      z1 = z;
+ 
+    y1 = z1*(cos(thetaY1)/sin(thetaY1));  
+    
+    e1.x = p.x;
   
-  if(y1 == p.y)
-    e1.y = 0.0;
-  else
-    e1.y = y1;
+    if(y1 == p.y)
+      e1.y = 0.0;
+    else
+      e1.y = y1;
 
-  /*
-  float z = p.y*tan(thetaY1);
-  std::cout << z << std::endl;
-  
-  float z1 = 0.0; 
-  if(z < 0.0)
-    z1 = p.z + z;
-  else if(z > (float)nz)
-    z1 = z - (float)nz;
-  else
-    z1 = z;
-  
-  std::cout << z1 << std::endl;
+    if(z >= Z)
+      e1.z = Z;
+    else if(z1 == z)
+      e1.z = z + p.z;
+    else
+      e1.z = 0.0;
 
-  float y1;
-  y1 = z1*(cos(thetaY1)/sin(thetaY1));
-
-  e1.x = p.x;
-  if(y1 == p.y)
-    e1.y = 0.0;
-  else
-    e1.y = y1;
-  if(z1 != z)
-    e1.z = p.z - fabs(z - z1);
-  else
-    e1.z = z;
-  */
-
+    //Corrections
+    if(e1.z < 0.0)
+      e1.z = 0.0;
+    if(e1.z == 0.0 && e1.y == 0.0)
+      e1.y = p.y;
+  }
+ 
   std::cout << "e1.x = " << e1.x << " e1.y = " << e1.y << " e1.z = " << e1.z
-	    <<std::endl;
+      <<std::endl;
+
+  //Second point
   
+  //Case: plane is parallel to z-y plane
+  if(fabs(cos(thetaY1)) <= eps){
+    e2.x = p.x;
+    e2.y = p.y;
+    e2.z = 0.0;
+  }
+  //Case: plane is parallel to x-y plane
+  else if(fabs(sin(thetaY1)) <= eps){  
+    e2.z = p.z;   
+    e2.x = p.x;
+    e2.y = Y;    
+  }
+  else{
+    z = (p.y-Y)*tan(thetaY1);
+  
+    if(z < 0.0)
+      z1 = z + p.z;
+    else if(z > Z)
+      z1 = z - Z + p.z;
+    else
+      z1 = z;
+    
+    y1 = z1*(cos(thetaY1)/sin(thetaY1));
+  
+    e2.x = p.x;
+      
+    if(y1 == (p.y-Y))
+      e2.y = Y;
+    else
+      e2.y = Y+y1;
+
+    if(z >= Z)
+      e2.z = Z;
+    else if(z1 == z)
+      e2.z = z + p.z;
+    else
+      e2.z = 0.0;
+     
+    //Corrections
+    if(e2.z < 0.0)
+      e2.z = 0.0;
+    //This applies when starting point is on z == 0
+    if(e2.z == 0.0 && e2.y == Y)
+      e2.y = p.y;
+  }
+  std::cout << "e2.x = " << e2.x << " e2.y = " << e2.y << " e2.z = " << e2.z
+    <<std::endl;
+  
+}
+void VisualPlane::getIntersectionPoints(){
+  /*
+  //Determine normal of rotating plane
+  n.x = cos(thetaX);
+  n.y = cos(thetaY);
+  n.z = sin(thetaX);
+  
+  if(fabs(n.x) < eps)
+    n.x = 0.0;
+  if(fabs(n.z) < eps)
+    n.z = 0.0;
+  if(fabs(n.y) < eps)
+  n.y = 0.0;*/
+    
+  std::cout << "Plane's normal" << std::endl;
+  std::cout << n.x << " " << n.y << " " << n.z << std::endl;
+
+  //vec3 p; 
+  float d;
+
+  //Point on rotating plane
+  p.x = plane_layer_x;
+  p.y = plane_layer_y;
+  p.z = plane_layer_z;
+
+  //offset of rotating plane
+  d = -dotProduct(p,n);
+  //std::cout << "d = " << d << std::endl;
+
+  //p, d, and n define the rotating plane
+
+  vec3 a,b,c;
+  float denom;
+    
+  //Make sure list is empty first
+  pList.clear();
+  num_Points = 0;
+
+  //Now find out where all the plane intersection points are
+  if( (dotProduct(n,(crossProduct(n0,n1)))) != 0.0){
+
+    denom = dotProduct(n,(crossProduct(n0,n1)));
+
+    a = crossProduct(n0,n1);
+    b = crossProduct(n1,n);
+    c = crossProduct(n,n0);
+    
+    p1.x = ((-d)*a.x)/denom;
+    p1.y = ((-d)*a.y)/denom;
+    p1.z = ((-d)*a.z)/denom;
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
+      pList.push_back(p1);
+      num_Points++;
+
+      std::cout << "0 and 1" << std::endl;
+    }
+  }
+  if( ((dotProduct(n,(crossProduct(n0,n2)))) != 0.0) ) {
+    denom = dotProduct(n,(crossProduct(n0,n2)));
+
+    a = crossProduct(n0,n2);
+    b = crossProduct(n2,n);
+    c = crossProduct(n,n0);
+
+    p1.x = ((-d)*a.x)/denom;
+    p1.y = ((-d)*a.y)/denom;
+    p1.z = ((-d)*a.z)/denom;
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
+      pList.push_back(p1);
+      num_Points++;
+
+      std::cout << "0 and 2" << std::endl;
+    }
+  }
+  if( (dotProduct(n,(crossProduct(n1,n2))) != 0.0) ){
+    
+    denom = dotProduct(n,(crossProduct(n1,n2)));
+
+    a = crossProduct(n1,n2);
+    b = crossProduct(n2,n);
+    c = crossProduct(n,n1);
+       
+    p1.x = ((-d)*a.x)/denom;
+    p1.y = ((-d)*a.y)/denom;
+    p1.z = ((-d)*a.z)/denom;
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
+      pList.push_back(p1);
+      num_Points++;
+   
+      std::cout << "1 and 2" << std::endl;
+    }
+  }
+  if( (dotProduct(n,(crossProduct(n1,n5))) != 0.0) ){
+    
+    denom = dotProduct(n,(crossProduct(n1,n5)));
+
+    a = crossProduct(n1,n5);
+    b = crossProduct(n5,n);
+    c = crossProduct(n,n1);
+
+    p1.x = (((-d)*a.x) - (d1*b.x) - (d5*c.x))/denom;
+    p1.y = (((-d)*a.y) - (d1*b.y) - (d5*c.y))/denom;
+    p1.z = (((-d)*a.z) - (d1*b.z) - (d5*c.z))/denom;
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
+      pList.push_back(p1);
+      num_Points++;
+      std::cout << "1 and 5" << std::endl;
+    }
+  }
+  if( (dotProduct(n,(crossProduct(n0,n5))) != 0.0) ){
+    
+    denom = dotProduct(n,(crossProduct(n0,n5)));
+
+    a = crossProduct(n0,n5);
+    b = crossProduct(n5,n);
+    c = crossProduct(n,n0);
+
+    p1.x = (((-d)*a.x) - (d0*b.x) - (d5*c.x))/denom;
+    p1.y = (((-d)*a.y) - (d0*b.y) - (d5*c.y))/denom;
+    p1.z = (((-d)*a.z) - (d0*b.z) - (d5*c.z))/denom;
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){ 
+      pList.push_back(p1);
+      num_Points++;
+
+      std::cout << "0 and 5" << std::endl;
+    }
+  }
+  if( (dotProduct(n,(crossProduct(n0,n3))) != 0.0) ){
+    
+    denom = dotProduct(n,(crossProduct(n0,n3)));
+
+    a = crossProduct(n0,n3);
+    b = crossProduct(n3,n);
+    c = crossProduct(n,n0);
+
+    p1.x = (((-d)*a.x) - (d0*b.x) - (d3*c.x))/denom;
+    p1.y = (((-d)*a.y) - (d0*b.y) - (d3*c.y))/denom;
+    p1.z = (((-d)*a.z) - (d0*b.z) - (d3*c.z))/denom;
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
+      pList.push_back(p1);
+      num_Points++;
+   
+      std::cout << "0 and 3" << std::endl;
+    }
+  }
+  if( (dotProduct(n,(crossProduct(n3,n5))) != 0.0) ){
+    
+    denom = dotProduct(n,(crossProduct(n3,n5)));
+
+    a = crossProduct(n3,n5);
+    b = crossProduct(n5,n);
+    c = crossProduct(n,n3);
+
+    p1.x = (((-d)*a.x) - (d3*b.x) - (d5*c.x))/denom;
+    p1.y = (((-d)*a.y) - (d3*b.y) - (d5*c.y))/denom;
+    p1.z = (((-d)*a.z) - (d3*b.z) - (d5*c.z))/denom;
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
+      pList.push_back(p1);
+      num_Points++;
+    
+      std::cout << "3 and 5" << std::endl;
+    }
+    
+  }
+  if( (dotProduct(n,(crossProduct(n3,n2))) != 0.0) ){
+    
+    denom = dotProduct(n,(crossProduct(n3,n2)));
+
+    a = crossProduct(n3,n2);
+    b = crossProduct(n2,n);
+    c = crossProduct(n,n3);
+
+    p1.x = (((-d)*a.x) - (d3*b.x) - (d2*c.x))/denom;
+    p1.y = (((-d)*a.y) - (d3*b.y) - (d2*c.y))/denom;
+    p1.z = (((-d)*a.z) - (d3*b.z) - (d2*c.z))/denom;
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
+      pList.push_back(p1);
+      num_Points++;
+      std::cout << "3 and 2" << std::endl;
+    }
+  }
+  if( (dotProduct(n,(crossProduct(n3,n4))) != 0.0) ){
+    
+    denom = dotProduct(n,(crossProduct(n3,n4)));
+
+    a = crossProduct(n3,n4);
+    b = crossProduct(n4,n);
+    c = crossProduct(n,n3);
+
+    p1.x = (((-d)*a.x) - (d3*b.x) - (d4*c.x))/denom;
+    p1.y = (((-d)*a.y) - (d3*b.y) - (d4*c.y))/denom;
+    p1.z = (((-d)*a.z) - (d3*b.z) - (d4*c.z))/denom;
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
+      pList.push_back(p1);
+      num_Points++;
+      std::cout << "3 and 4" << std::endl;
+    }
+  }
+  if( (dotProduct(n,(crossProduct(n5,n4))) != 0.0) ){
+    
+    denom = dotProduct(n,(crossProduct(n5,n4)));
+
+    a = crossProduct(n5,n4);
+    b = crossProduct(n4,n);
+    c = crossProduct(n,n5);
+
+    p1.x = (((-d)*a.x) - (d5*b.x) - (d4*c.x))/denom;
+    p1.y = (((-d)*a.y) - (d5*b.y) - (d4*c.y))/denom;
+    p1.z = (((-d)*a.z) - (d5*b.z) - (d4*c.z))/denom;
+        
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
+      pList.push_back(p1);
+      num_Points++;
+      std::cout << "5 and 4" << std::endl;
+    }
+  }
+  if( (dotProduct(n,(crossProduct(n2,n4))) != 0.0) ){
+    
+    denom = dotProduct(n,(crossProduct(n2,n4)));
+
+    a = crossProduct(n2,n4);
+    b = crossProduct(n4,n);
+    c = crossProduct(n,n2);
+
+    p1.x = (((-d)*a.x) - (d2*b.x) - (d4*c.x))/denom;
+    p1.y = (((-d)*a.y) - (d2*b.y) - (d4*c.y))/denom;
+    p1.z = (((-d)*a.z) - (d2*b.z) - (d4*c.z))/denom;
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){ 
+      pList.push_back(p1);
+      num_Points++;
+      std::cout << "2 and 4" << std::endl;
+
+    }
+  }
+  if( (dotProduct(n,(crossProduct(n1,n4))) != 0.0) ){
+    
+    denom = dotProduct(n,(crossProduct(n1,n4)));
+
+    a = crossProduct(n1,n4);
+    b = crossProduct(n4,n);
+    c = crossProduct(n,n1);
+
+    p1.x = (((-d)*a.x) - (d1*b.x) - (d4*c.x))/denom;
+    p1.y = (((-d)*a.y) - (d1*b.y) - (d4*c.y))/denom;
+    p1.z = (((-d)*a.z) - (d1*b.z) - (d4*c.z))/denom;
+        
+    if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
+
+      pList.push_back(p1);
+      num_Points++;
+      std::cout << "1 and 4" << std::endl;
+
+    }
+  }
+
+  //Now we have all the intersection points, but some 
+  //will be outside the domain.  
+  //Need to get rid off the points outside the domain
+
+  listIter = pList.begin();
+  vec3 t;
+
+  
+  int n = 0;
+
+  while(listIter != pList.end()){
+    t = *listIter;
+        
+    if(t.x < 0.0 || t.y < 0.0 || t.z < 0.0 ||
+       t.x > (nx) || t.y > (ny) || t.z > (nz)){
+      
+      //pList.pop_back();
+      num_Points--;
+    }
+    else{
+      if(t.x == -0.0)
+	t.x = 0.0;
+      if(t.y == -0.0)
+	t.y = 0.0;
+      if(t.z == -0.0)
+	t.z = 0.0;
+      
+      switch(n){
+      case 0:
+	p1.x = t.x;
+	p1.y = t.y;
+	p1.z = t.z;
+	break;
+      case 1:
+	p2.x = t.x;
+	p2.y = t.y;
+	p2.z = t.z;
+	break;
+      case 2:
+	p3.x = t.x;
+	p3.y = t.y;
+	p3.z = t.z;
+	break;
+      case 3:
+	p0.x = t.x;
+	p0.y = t.y;
+	p0.z = t.z;
+	break;
+	
+      }
+      n++;
+
+      //piList.push_back(t);
+      std::cout << "t.x = " << t.x << " t.y = " << 
+	t.y << " t.z = " << t.z <<std::endl;
+      
+    }
+    listIter++;
+  }
+
+  std::cout << "Num points = " << num_Points << std::endl;
+
+  //Now we have the four intersection points of the domain
+  //They need to be sorted so that they can be specified in
+  //counter-clockwise order for drawing the plane
+  
+  //Might not have to do this???
+  //sortIntersectionPoints();
+  
+}
+void VisualPlane::sortIntersectionPoints(){
+  
+
 
 }
+
 /*
-void VisualPlane::findEdgePoints(){
-  vec3 u;
-  vec3 w;
-  
-  float s1,s2,s3,s4;
-  float eps = 0.0001;
-
+void VisualPlane::getIntersectionPoints(){
   vec3 p;
-  p.x = plane_layer_x; 
-  p.y = 0.0; 
-  p.z = plane_layer_z;
-  vec3 p1;
-  p1.x = p.x; 
-  p1.y = p.y - 2*ny*cos(thetaY1);
-  p1.z = p.z + 2*ny*sin(thetaY1); 
   
-  if(fabs(p1.z) < eps)
+  float eps = 0.00001;
+
+  //Determine normal of plane
+  n.x = cos(thetaX);
+  n.y = cos(thetaY);
+  n.z = sin(thetaX);
+
+  if(fabs(n.x) < eps)
+    n.x = 0.0;
+  if(fabs(n.z) < eps)
+    n.z = 0.0;
+  if(fabs(n.y) < eps)
+    n.y = 0.0;
+  
+
+  //Find the two points on the edge of planes y = 0 and y = Y
+  findEdgePoints();
+  //Using these two points, we can now get the intersection points of the domain
+  float z = 0.0;
+  float z1 = 0.0;
+  float y1 = 0.0;
+  float Z = (float)nz;
+  float Y = (float)ny;
+  float X = (float)nx;
+
+  p.x = e1.x; 
+  p.y = e1.y; 
+  p.z = e1.z;
+  
+  //First Point
+
+  //Case: plane is parallel to z-y plane
+  if(fabs(cos(thetaX1)) <= eps){
+    p2.x = p.x;
+    p2.y = p.y;
+    p2.z = Z;
+  }
+  //Case: plane is parallel to x-y plane
+  else if(fabs(sin(thetaX1)) <= eps){  
+    p2.z = p.z;   
+    p2.x = X;
+    p2.y = p.y;    
+  }
+  else{
+
+    z = (X-p.x)*tan(thetaX1);
+       
+    if(z < 0.0)
+      z1 = z + p.z;
+    else if(z > Z)
+      z1 = z - Z + p.z;
+    else
+      z1 = z;
+ 
+    y1 = z1*(cos(thetaX1)/sin(thetaX1));  
+    
+    p2.y = p.y;
+  
+    if(y1 == (X-p.x))
+      p2.x = X;
+    else
+      p2.x = X-y1;
+    
+    if(z >= Z)
+      p2.z = Z;
+    else if(z1 == z)
+      p2.z = z + p.z;
+    else
+      p2.z = 0.0;
+
+    //Corrections
+    if(p2.z < 0.0)
+      p2.z = 0.0;
+    if(p2.z == 0.0 && p2.x == X)
+      p2.x = p.x;
+  }
+ 
+  std::cout << "p2.x = " << p2.x << " p2.y = " << p2.y << " p2.z = " << p2.z
+	    <<std::endl;
+  
+  //Case: plane is parallel to z-y plane
+  if(fabs(cos(thetaX1)) <= eps){
+    p1.x = p.x;
+    p1.y = p.y;
     p1.z = 0.0;
-  if(fabs(p1.y) < eps)
-    p1.y = 0.0;
+  }
+  //Case: plane is parallel to x-y plane
+  else if(fabs(sin(thetaX1)) <= eps){  
+    p1.z = p.z;   
+    p1.x = 0.0;
+    p1.y = p.y;    
+  }
+  else{
 
-  //difference between two points
-  u.x = p1.x-p.x; u.y = p1.y-p.y; u.z = p1.z-p.z;
-  //1st Plane
-
-  //point on domain plane
-  V.x = 0.0; V.y = 0.0; V.z = 0.0;
-  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
-  //normal of domain plane
-  N.x = 0.0; N.y = 1.0; N.z = 0.0; 
-  s1 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+    z = -p.x*tan(thetaX1);
+       
+    if(z < 0.0)
+      z1 = z + p.z;
+    else if(z > Z)
+      z1 = z - Z + p.z;
+    else
+      z1 = z;
  
-  //2nd Plane
-  //V stays the same for this plane
-  N.x = 0.0; N.y = 0.0; N.z = 1.0;
-  s2 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
- 
-  //3rd Plane
-  V.x = 0.0; V.y = 0.0; V.z = nz;
-  N.z = -1.0;
-  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
-  s3 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
- 
-  //4th Plane
-  V.x = 0.0; V.y = ny; V.z = 0.0;
-  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
-  //normal of domain plane
-  N.x = 0.0; N.y = -1.0; N.z = 0.0;
-  s4 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
- 
-
-  //Find Smallest s - this means that intersection is the one to use
-  float s = 100.0;
+    y1 = z1*(cos(thetaX1)/sin(thetaX1));  
     
-  //+y plane
-  if((s1 < s) && (s1 >= 0.0)){
-    s = s1;
-  }
-  //+z plane
-  if((s2 < s) && (s2 >= 0.0) && (p.z < p1.z)){
-    s = s2;
-    //std::cout << "s2" << std::endl;
-  }
-  //-z plane
-  if((s3 < s) && (s3 >= 0.0)){
-    s = s3;
-  }
-  //-y plane
-  if((s4 < s) && (s4 >= 0.0) && (p1.y <= 0.0)){
-    s = s4;
-  }
- 
-  s=s1;
-    
-  //Find point of intersection, which is e1
-  e1.x = s*u.x + p.x;
-  e1.y = s*u.y + p.y;
-  e1.z = s*u.z + p.z;
+    p1.y = p.y;
   
-  //std::cout << "s = " << s << " and u.z =  " << u.z <<std::endl;
+    if(y1 == -p.x)
+      p1.x = 0.0;
+    else
+      p1.x = -y1;
 
-  std::cout << "e1.x = " << e1.x << " e1.y = " << e1.y << " e1.z = " << e1.z
+    if(z >= (float)Z)
+      p1.z = Z;
+    else if(z1 == z)
+      p1.z = z + p.z;
+    else
+      p1.z = 0.0;
+
+    //Corrections
+    if(p1.z < 0.0)
+      p1.z = 0.0;
+    if(p1.z == 0.0 && p1.x == 0.0)
+      p1.x = p.x;
+  }
+ 
+  std::cout << "p1.x = " << p1.x << " p1.y = " << p1.y << " p1.z = " << p1.z
 	    <<std::endl;
 
-  //Now find e2, which is the point on the opposite edge of plane
-  p1.x = p.x; 
-  p1.y = p.y + 2*ny*cos(thetaY1);
-  p1.z = p.z - 2*ny*sin(thetaY1); 
+  ///////////////////////////////////////////////////////////////////////////
+  // Now find p0 and p3
+  ///////////////////////////////////////////////////////////////////////////
+  //Use e2 as the starting point.
+  p.x = e2.x; 
+  p.y = e2.y; 
+  p.z = e2.z;
   
-  if(fabs(p1.z) < eps)
-    p1.z = 0.0;
-  if(fabs(p1.y) < eps)
-    p1.y = 0.0;
-
-  //difference between two points
-  u.x = p1.x-p.x; u.y = p1.y-p.y; u.z = p1.z-p.z;
-  //1st Plane
-
-  //point on domain plane
-  V.x = 0.0; V.y = 0.0; V.z = 0.0;
-  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
-  //normal of domain plane
-  N.x = 0.0; N.y = 1.0; N.z = 0.0; 
-  s1 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
- 
-  //2nd Plane
-  //V stays the same for this plane
-  N.x = 0.0; N.y = 0.0; N.z = 1.0;
-  s2 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
- 
-  //3rd Plane
-  V.x = 0.0; V.y = 0.0; V.z = nz;
-  N.z = -1.0;
-  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
-  s3 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
- 
-  //4th Plane
-  V.x = 0.0; V.y = ny; V.z = 0.0;
-  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
-  //normal of domain plane
-  N.x = 0.0; N.y = -1.0; N.z = 0.0;
-  s4 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
- 
-
-  //Find Smallest s - this means that intersection is the one to use
-  s = 100.0;
- 
-  //+y plane
-  if((s1 < s) && (s1 >= 0.0) && (p1.y <= 0.0)){
-    s = s1;
-  }
-  //+z plane
-  if((s2 < s) && (s2 >= 0.0)){
-    s = s2;
-  }
-  //-z plane
-  if((s3 < s) && (s3 >= 0.0)){
-    s = s3;
-  }
-  //-y plane
-  if((s4 < s) && (s4 >= 0.0)){
-    s = s4;
-  }
-    
-    
-  //Find point of intersection, which is e1
-  e2.x = s*u.x + p.x;
-  e2.y = s*u.y + p.y;
-  e2.z = s*u.z + p.z;
+  //First Point
   
-  std::cout << "e2.x = " << e2.x << " e2.y = " << e2.y << " e2.z = " << e2.z
+  //Case: plane is parallel to z-y plane
+  if(fabs(cos(thetaX1)) <= eps){
+    p3.x = p.x;
+    p3.y = p.y;
+    p3.z = Z;
+  }
+  //Case: plane is parallel to x-y plane
+  else if(fabs(sin(thetaX1)) <= eps){  
+    p3.z = p.z;   
+    p3.x = X;
+    p3.y = p.y;    
+  }
+  else{
+
+    z = (X-p.x)*tan(thetaX1);
+       
+    if(z < 0.0)
+      z1 = z + p.z;
+    else if(z > Z)
+      z1 = z - Z + p.z;
+    else
+      z1 = z;
+ 
+    y1 = z1*(cos(thetaX1)/sin(thetaX1));  
+    
+    p3.y = p.y;
+  
+    if(y1 == (X-p.x))
+      p3.x = X;
+    else
+      p3.x = X-y1;
+    
+    if(z >= (float)Z)
+      p3.z = Z;
+    else if(z1 == z)
+      p3.z = z + p.z;
+    else
+      p3.z = 0.0;
+
+    //Corrections
+    if(p3.z < 0.0)
+      p3.z = 0.0;
+    if(p3.z == 0.0 && p3.x == X)
+      p3.x = p.x;
+  }
+ 
+  std::cout << "p3.x = " << p3.x << " p3.y = " << p3.y << " p3.z = " << p3.z
 	    <<std::endl;
+  
+  //Case: plane is parallel to z-y plane
+  if(fabs(cos(thetaX1)) <= eps){
+    p0.x = p.x;
+    p0.y = p.y;
+    p0.z = 0.0;
+  }
+  //Case: plane is parallel to x-y plane
+  else if(fabs(sin(thetaX1)) <= eps){  
+    p0.z = p.z;   
+    p0.x = 0.0;
+    p0.y = p.y;    
+  }
+  else{
 
-	    }*/
+    z = -p.x*tan(thetaX1);
+       
+    if(z < 0.0)
+      z1 = z + p.z;
+    else if(z > Z)
+      z1 = z - Z + p.z;
+    else
+      z1 = z;
+ 
+    y1 = z1*(cos(thetaX1)/sin(thetaX1));  
+    
+    p0.y = p.y;
+  
+    if(y1 == -p.x)
+      p0.x = 0.0;
+    else
+      p0.x = -y1;
+
+    if(z >= Z)
+      p0.z = nz;
+    else if(z1 == z)
+      p0.z = z + p.z;
+    else
+      p0.z = 0.0;
+
+    //Corrections
+    if(p0.z < 0.0)
+      p0.z = 0.0;
+    if(p0.z == 0.0 && p0.x == 0.0)
+      p0.x = p.x;
+  }
+ 
+  std::cout << "p0.x = " << p0.x << " p0.y = " << p0.y << " p0.z = " << p0.z
+	    <<std::endl;
+  
+  std::cout << std::endl;
+  }*/
+
+/*
 void VisualPlane::getIntersectionPoints(){
   
   vec3 PI;
@@ -792,10 +1523,14 @@ void VisualPlane::getIntersectionPoints(){
   if(fabs(n.y) < eps)
     n.y = 0.0;
   
-  //Find the two points on opposing edges of plane
-  //findEdgePoints();
+  //Find the two points on the edge of planes y = 0 and y = ny
+  findEdgePoints();
+  //Using these two points, we can now get the intersection points of the domain
 
-  
+  //Point on the domain edge
+  r1.x = e1.x;
+  r1.y = e1.y;
+  r1.z = e1.z; 
   //Find Second point to make line
   r2.x = r1.x + (2*nx*cos(thetaX1));
   r2.y = r1.y;
@@ -966,12 +1701,12 @@ void VisualPlane::getIntersectionPoints(){
   //We now have the point of Intersection and can find p0 and p1
   p0.x = PI.x; p0.y = PI.y+ny; p0.z = PI.z;
   p1.x = PI.x; p1.y = PI.y; p1.z = PI.z;
-
+  
   std::cout << p0.x << " " << p0.y << " " << p0.z << std::endl;
   std::cout << p1.x << " " << p1.y << " " << p1.z << std::endl;
   std::cout << p2.x << " " << p2.y << " " << p2.z << std::endl;
   std::cout << p3.x << " " << p3.y << " " << p3.z << std::endl;
-}
+  }*/
 void VisualPlane::increasePlaneLayer(){
   if(plane_normal == 0){
     plane_layer_z += 1.0;
@@ -1263,3 +1998,176 @@ void VisualPlane::moveSliderUp(){
   slider += 0.01;
   if(slider > 1.0) slider = 1.0;
 }
+vec3 VisualPlane::crossProduct(vec3 a, vec3 b){
+  vec3 c;
+  
+  c.x = (a.y*b.z)-(a.z*b.y);
+  c.y = (a.z*b.x)-(a.x*b.z);
+  c.z = (a.x*b.y)-(a.y*b.x);
+
+  return c;  
+}
+float VisualPlane::dotProduct(vec3 a, vec3 b){
+  float c;
+
+  c = (a.x*b.x) + (a.y*b.y) + (a.z*b.z);
+  
+  return c;
+  
+}
+
+/*
+void VisualPlane::findEdgePoints(){
+  vec3 u;
+  vec3 w;
+  
+  float s1,s2,s3,s4;
+  float eps = 0.0001;
+
+  vec3 p;
+  p.x = plane_layer_x; 
+  p.y = 0.0; 
+  p.z = plane_layer_z;
+  vec3 p1;
+  p1.x = p.x; 
+  p1.y = p.y - 2*ny*cos(thetaY1);
+  p1.z = p.z + 2*ny*sin(thetaY1); 
+  
+  if(fabs(p1.z) < eps)
+    p1.z = 0.0;
+  if(fabs(p1.y) < eps)
+    p1.y = 0.0;
+
+  //difference between two points
+  u.x = p1.x-p.x; u.y = p1.y-p.y; u.z = p1.z-p.z;
+  //1st Plane
+
+  //point on domain plane
+  V.x = 0.0; V.y = 0.0; V.z = 0.0;
+  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
+  //normal of domain plane
+  N.x = 0.0; N.y = 1.0; N.z = 0.0; 
+  s1 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //2nd Plane
+  //V stays the same for this plane
+  N.x = 0.0; N.y = 0.0; N.z = 1.0;
+  s2 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //3rd Plane
+  V.x = 0.0; V.y = 0.0; V.z = nz;
+  N.z = -1.0;
+  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
+  s3 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //4th Plane
+  V.x = 0.0; V.y = ny; V.z = 0.0;
+  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
+  //normal of domain plane
+  N.x = 0.0; N.y = -1.0; N.z = 0.0;
+  s4 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+
+  //Find Smallest s - this means that intersection is the one to use
+  float s = 100.0;
+    
+  //+y plane
+  if((s1 < s) && (s1 >= 0.0)){
+    s = s1;
+  }
+  //+z plane
+  if((s2 < s) && (s2 >= 0.0) && (p.z < p1.z)){
+    s = s2;
+    //std::cout << "s2" << std::endl;
+  }
+  //-z plane
+  if((s3 < s) && (s3 >= 0.0)){
+    s = s3;
+  }
+  //-y plane
+  if((s4 < s) && (s4 >= 0.0) && (p1.y <= 0.0)){
+    s = s4;
+  }
+ 
+  s=s1;
+    
+  //Find point of intersection, which is e1
+  e1.x = s*u.x + p.x;
+  e1.y = s*u.y + p.y;
+  e1.z = s*u.z + p.z;
+  
+  //std::cout << "s = " << s << " and u.z =  " << u.z <<std::endl;
+
+  std::cout << "e1.x = " << e1.x << " e1.y = " << e1.y << " e1.z = " << e1.z
+	    <<std::endl;
+
+  //Now find e2, which is the point on the opposite edge of plane
+  p1.x = p.x; 
+  p1.y = p.y + 2*ny*cos(thetaY1);
+  p1.z = p.z - 2*ny*sin(thetaY1); 
+  
+  if(fabs(p1.z) < eps)
+    p1.z = 0.0;
+  if(fabs(p1.y) < eps)
+    p1.y = 0.0;
+
+  //difference between two points
+  u.x = p1.x-p.x; u.y = p1.y-p.y; u.z = p1.z-p.z;
+  //1st Plane
+
+  //point on domain plane
+  V.x = 0.0; V.y = 0.0; V.z = 0.0;
+  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
+  //normal of domain plane
+  N.x = 0.0; N.y = 1.0; N.z = 0.0; 
+  s1 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //2nd Plane
+  //V stays the same for this plane
+  N.x = 0.0; N.y = 0.0; N.z = 1.0;
+  s2 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //3rd Plane
+  V.x = 0.0; V.y = 0.0; V.z = nz;
+  N.z = -1.0;
+  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
+  s3 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+  //4th Plane
+  V.x = 0.0; V.y = ny; V.z = 0.0;
+  w.x = p.x-V.x; w.y = p.y-V.y; w.z = p.z-V.z;
+  //normal of domain plane
+  N.x = 0.0; N.y = -1.0; N.z = 0.0;
+  s4 = ((-N.x)*w.x + (-N.y)*w.y + (-N.z)*w.z)/(N.x*u.x + N.y*u.y + N.z*u.z);
+ 
+
+  //Find Smallest s - this means that intersection is the one to use
+  s = 100.0;
+ 
+  //+y plane
+  if((s1 < s) && (s1 >= 0.0) && (p1.y <= 0.0)){
+    s = s1;
+  }
+  //+z plane
+  if((s2 < s) && (s2 >= 0.0)){
+    s = s2;
+  }
+  //-z plane
+  if((s3 < s) && (s3 >= 0.0)){
+    s = s3;
+  }
+  //-y plane
+  if((s4 < s) && (s4 >= 0.0)){
+    s = s4;
+  }
+    
+    
+  //Find point of intersection, which is e1
+  e2.x = s*u.x + p.x;
+  e2.y = s*u.y + p.y;
+  e2.z = s*u.z + p.z;
+  
+  std::cout << "e2.x = " << e2.x << " e2.y = " << e2.y << " e2.z = " << e2.z
+	    <<std::endl;
+
+	    }*/

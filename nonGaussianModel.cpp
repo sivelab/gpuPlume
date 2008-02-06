@@ -19,6 +19,11 @@ NonGaussianModel::NonGaussianModel(Util* u){
   nx = util->nx;
   ny = util->ny;
   nz = util->nz;
+
+  nxdx = (int)(nx*(1.0/util->dx));
+  nydy = (int)(ny*(1.0/util->dy));
+  nzdz = (int)(nz*(1.0/util->dz));
+
   time_step = util->time_step;
 
   //Sets up the type of simulation to run
@@ -42,7 +47,7 @@ NonGaussianModel::NonGaussianModel(Util* u){
   quitSimulation = false;
 	
   stream = new StreamLine(twidth,theight,nx,ny,nz);
-  
+ 
   //Set whether to reuse particles or not
   //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
   //If reuseParticles is set to true: fourth coordinate is <= lifetime if emiited, else lifetime+1
@@ -61,10 +66,10 @@ NonGaussianModel::~NonGaussianModel(){}
 void NonGaussianModel::init(bool OSG){
   osgPlume = OSG;
 
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz);
   pc->setUstarAndSigmas(util->ustar);
 
-  dc = new DisplayControl(nx,ny,nz, texType);  
+  dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
   dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
   dc->draw_buildings = false;
 
@@ -326,7 +331,9 @@ int NonGaussianModel::display(){
       
       dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
       stream->draw();
-      dc->drawLayers(windField, numInRow);
+
+      if(dc->tau_visual == draw_layers)
+	dc->drawLayers(windField, numInRow);
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){
@@ -466,7 +473,7 @@ void NonGaussianModel::setupTextures(){
   int ys = (int)util->ypos[0];
   int zs = (int)util->zpos[0];
 
-  int p2idx = zs*ny*nx + ys*nx + xs;
+  int p2idx = zs*nydy*nxdx + ys*nxdx + xs;
 
   util->sigU = pc->sig[p2idx].u;
   util->sigV = pc->sig[p2idx].v;

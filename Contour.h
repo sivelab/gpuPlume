@@ -25,6 +25,7 @@ class Contour{
 
  private:
   int nx,ny,nz;
+  int nxdx,nydy,nzdz;
 
   float* cValue;
   int num_cValue;

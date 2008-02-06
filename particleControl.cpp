@@ -7,7 +7,8 @@
 #include "glErrorUtil.h"
 
 ParticleControl::ParticleControl(GLenum type,int width,int height,
-				 int x, int y, int z){
+				 int x, int y, int z,
+				 float cell_dx, float cell_dy, float cell_dz){
 
   texType = type;
   twidth = width;
@@ -24,6 +25,14 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
     windMax[i] = 0;
     windMin[i] = 10;
   }
+
+  //cell_dx = 0.5;
+  //cell_dy = 0.5;
+  //cell_dz = 0.5;
+
+  nzdz = (int)(nz*(1.0/cell_dz));
+  nydy = (int)(ny*(1.0/cell_dy));
+  nxdx = (int)(nx*(1.0/cell_dx));
 
 }
 void ParticleControl::setBuildingParameters(int nB,float* x,float* y,float* z,
@@ -76,6 +85,9 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   GLint unx = multipleBuildings_shader.createUniform("nx");
   GLint uny = multipleBuildings_shader.createUniform("ny");
   GLint unz = multipleBuildings_shader.createUniform("nz");
+  GLint unxdx = multipleBuildings_shader.createUniform("nxdx");
+  GLint unydy = multipleBuildings_shader.createUniform("nydy");
+  GLint unzdz = multipleBuildings_shader.createUniform("nzdz");
   GLint uNumInRow = multipleBuildings_shader.createUniform("numInRow");
 
   multipleBuildings_shader.activate();
@@ -84,6 +96,9 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
+  glUniform1iARB(unxdx, nxdx);
+  glUniform1iARB(unydy, nydy);
+  glUniform1iARB(unzdz, nzdz);
   glUniform1iARB(uNumInRow, numInRow);
 
   multipleBuildings_shader.deactivate();
@@ -243,6 +258,9 @@ void ParticleControl::setupReflectionShader(float life_time){
   GLint unx = reflection_shader.createUniform("nx");
   GLint uny = reflection_shader.createUniform("ny");
   GLint unz = reflection_shader.createUniform("nz");
+  GLint unxdx = reflection_shader.createUniform("nxdx");
+  GLint unydy = reflection_shader.createUniform("nydy");
+  GLint unzdz = reflection_shader.createUniform("nzdz");
   GLint uNumInRow = reflection_shader.createUniform("numInRow");
 
   reflection_shader.activate();
@@ -251,6 +269,9 @@ void ParticleControl::setupReflectionShader(float life_time){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
+  glUniform1iARB(unxdx, nxdx);
+  glUniform1iARB(unydy, nydy);
+  glUniform1iARB(unzdz, nzdz);
   glUniform1iARB(uNumInRow, numInRow);
 
   reflection_shader.deactivate();
@@ -412,6 +433,9 @@ void ParticleControl::setupNonGaussianShader(float life_time){
   GLint unx = nonGaussian_shader.createUniform("nx");
   GLint uny = nonGaussian_shader.createUniform("ny");
   GLint unz = nonGaussian_shader.createUniform("nz");
+  GLint unxdx = nonGaussian_shader.createUniform("nxdx");
+  GLint unydy = nonGaussian_shader.createUniform("nydy");
+  GLint unzdz = nonGaussian_shader.createUniform("nzdz");
   GLint uNumInRow = nonGaussian_shader.createUniform("numInRow");
 
   nonGaussian_shader.activate();
@@ -420,6 +444,9 @@ void ParticleControl::setupNonGaussianShader(float life_time){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
+  glUniform1iARB(unxdx, nxdx);
+  glUniform1iARB(unydy, nydy);
+  glUniform1iARB(unzdz, nzdz);
   glUniform1iARB(uNumInRow, numInRow);
 
   nonGaussian_shader.deactivate();
@@ -555,6 +582,9 @@ void ParticleControl::setupPrime_and_AdvectShader(float life_time){
   GLint unx = mrt_shader.createUniform("nx");
   GLint uny = mrt_shader.createUniform("ny");
   GLint unz = mrt_shader.createUniform("nz");
+  GLint unxdx = nonGaussian_shader.createUniform("nxdx");
+  GLint unydy = nonGaussian_shader.createUniform("nydy");
+  GLint unzdz = nonGaussian_shader.createUniform("nzdz");
   GLint uNumInRow = mrt_shader.createUniform("numInRow");
 
   mrt_shader.activate();
@@ -563,6 +593,9 @@ void ParticleControl::setupPrime_and_AdvectShader(float life_time){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
+  glUniform1iARB(unxdx, nxdx);
+  glUniform1iARB(unydy, nydy);
+  glUniform1iARB(unzdz, nzdz);
   glUniform1iARB(uNumInRow, numInRow);
 
   mrt_shader.deactivate();
@@ -690,6 +723,9 @@ void ParticleControl::setupPrimeShader(){  //Included argument -- Balli(04/12/07
   GLint unx = prime_shader.createUniform("nx");
   GLint uny = prime_shader.createUniform("ny");
   GLint unz = prime_shader.createUniform("nz");
+  GLint unxdx = prime_shader.createUniform("nxdx");
+  GLint unydy = prime_shader.createUniform("nydy");
+  GLint unzdz = prime_shader.createUniform("nzdz");
   GLint uNumInRow = prime_shader.createUniform("numInRow");
 
   prime_shader.activate();
@@ -697,6 +733,9 @@ void ParticleControl::setupPrimeShader(){  //Included argument -- Balli(04/12/07
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
+  glUniform1iARB(unxdx, nxdx);
+  glUniform1iARB(unydy, nydy);
+  glUniform1iARB(unzdz, nzdz);
   glUniform1iARB(uNumInRow, numInRow);
 
   prime_shader.deactivate();
@@ -839,6 +878,9 @@ void ParticleControl::setupAdvectShader(float life_time){
   GLint unx = pass1_shader.createUniform("nx");
   GLint uny = pass1_shader.createUniform("ny");
   GLint unz = pass1_shader.createUniform("nz");
+  GLint unxdx = pass1_shader.createUniform("nxdx");
+  GLint unydy = pass1_shader.createUniform("nydy");
+  GLint unzdz = pass1_shader.createUniform("nzdz");
   GLint uNumInRow = pass1_shader.createUniform("numInRow");
 
   pass1_shader.activate();
@@ -847,6 +889,9 @@ void ParticleControl::setupAdvectShader(float life_time){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
+  glUniform1iARB(unxdx, nxdx);
+  glUniform1iARB(unydy, nydy);
+  glUniform1iARB(unzdz, nzdz);
   glUniform1iARB(uNumInRow, numInRow);
 
   pass1_shader.deactivate();
@@ -932,9 +977,9 @@ void ParticleControl::setupCurrVel_shader(){
 
   currVel_shader.activate();
 
-  glUniform1iARB(unx, nx);
-  glUniform1iARB(uny, ny);
-  glUniform1iARB(unz, nz);
+  glUniform1iARB(unx, nxdx);
+  glUniform1iARB(uny, nydy);
+  glUniform1iARB(unz, nzdz);
   glUniform1iARB(unir,numInRow);
 
   currVel_shader.deactivate();
@@ -1008,9 +1053,9 @@ void ParticleControl::setupMeanVel_shader(){
 
   meanVel_shader.activate();
 
-  glUniform1iARB(unx, nx);
-  glUniform1iARB(uny, ny);
-  glUniform1iARB(unz, nz);
+  glUniform1iARB(unx, nxdx);
+  glUniform1iARB(uny, nydy);
+  glUniform1iARB(unz, nzdz);
   glUniform1iARB(unir,numInRow);
 
   meanVel_shader.deactivate();
@@ -1404,14 +1449,16 @@ void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, i
 
 void ParticleControl::initWindTex(GLuint windField, int* numberInRow, int dataSet){
   // Create wind velocity data texture
-  wind_vel = new wind[nx*ny*nz];
-  cellQuic = new cellType[nx*ny*nz];
+  int arrSize = nxdx*nydy*nzdz;
+
+  wind_vel = new wind[arrSize];
+  cellQuic = new cellType[arrSize];
 
   //Matrix tau11,tau22,tau33,and tau13
-  tau = new Matrix[nx*ny*nz];
+  tau = new Matrix[arrSize];
 
   //sigU,sigV,and sigW
-  sig = new wind[nx*ny*nz];
+  sig = new wind[arrSize];
 
   switch(dataSet){
 
@@ -1443,19 +1490,19 @@ void ParticleControl::initWindTex(GLuint windField, int* numberInRow, int dataSe
   //to try and fit the wind field into a 2D texture without
   //wasting too much space.  
   /////////////////////////////////////////////////////////
-  int total = nx*ny*nz;
+  int total = arrSize;
   width = (int)sqrt((float)total);
   
   int scaler;
-  if(ny > nx) scaler = ny;
-  else scaler = nx;
+  if(nydy > nxdx) scaler = nydy;
+  else scaler = nxdx;
 
   width = width - (width%scaler);
   
   bool done = false;
   while(!done){ 
     int num = width/scaler;
-    if((num*num) >= nz){
+    if((num*num) >= nzdz){
       done = true;
     }
     else{
@@ -1471,7 +1518,8 @@ void ParticleControl::initWindTex(GLuint windField, int* numberInRow, int dataSe
   //This will directly put the 3D data into an array
   //that is used to make the 2D texture.
   ///////////////////////////////////////////////////////
-  (*numberInRow) = (width - (width % nx))/nx;
+  
+  (*numberInRow) = (width - (width % nxdx))/nxdx;
   numInRow = *numberInRow;
 
   if(dataSet < 5){
@@ -1481,17 +1529,17 @@ void ParticleControl::initWindTex(GLuint windField, int* numberInRow, int dataSe
     int row = 0;
   
     GLfloat *data = new GLfloat[ width * height * 4 ];
-
-    for (qk=0; qk<nz; qk++) 
-      for (qi=0; qi<ny; qi++)
-	for (qj=0; qj<nx; qj++)
+   
+    for (qk=0; qk<nzdz; qk++) 
+      for (qi=0; qi<nydy; qi++)
+	for (qj=0; qj<nxdx; qj++)
 	  {
-	    p2idx = qk*ny*nx + qi*nx + qj;
+	    p2idx = qk*nydy*nxdx + qi*nxdx + qj;
 	    
 	    row = qk / (numInRow);
-	    texidx = row * width * ny * 4 +
+	    texidx = row * width * nydy * 4 +
 	      qi * width * 4 +
-	      qk % (numInRow) * nx * 4 +
+	      qk % (numInRow) * nxdx * 4 +
 	      qj * 4;
 	  
 	    data[texidx] = wind_vel[p2idx].u;
@@ -1525,29 +1573,29 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   //Surface roughness
   float znaut = 0.01f;
   
-  for (qk=0; qk<nz; qk++) 
-    for (qi=0; qi<ny; qi++)
-      for (qj=0; qj<nx; qj++)
+  for (qk=0; qk<nzdz; qk++) 
+    for (qi=0; qi<nydy; qi++)
+      for (qj=0; qj<nxdx; qj++)
 	{
-	  p2idx = qk*ny*nx + qi*nx + qj;
+	  p2idx = qk*nydy*nxdx + qi*nxdx + qj;
 	    
 	  row = qk / (numInRow);
-	  texidx = row * width * ny * 4 +
+	  texidx = row * width * nydy * 4 +
 	  qi * width * 4 +
-	  qk % (numInRow) * nx * 4 +
+	  qk % (numInRow) * nxdx * 4 +
 	  qj * 4;
 
 	  rowBelow = (qk-1) / (numInRow);
-	  texidxBelow = rowBelow * width * ny * 4 +
+	  texidxBelow = rowBelow * width * nydy * 4 +
 	    qi * width * 4 +
-	    (qk-1) % (numInRow) * nx * 4 +
+	    (qk-1) % (numInRow) * nxdx * 4 +
 	    qj * 4;
 	  
 	  //The cells right above and below the current cell
-	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
-	  idxAbove = (qk+1)*ny*nx + qi*nx + qj;
+	  idxBelow = (qk-1)*nydy*nxdx + qi*nxdx + qj;
+	  idxAbove = (qk+1)*nydy*nxdx + qi*nxdx + qj;
 	  //The cell two below the current cell
-	  idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+	  idx2Below = (qk-2)*nydy*nxdx + qi*nxdx + qj;
 
 	  //Calculate du/dz
 
@@ -1557,7 +1605,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	    du_dz = wind_vel[p2idx].u/(dz*log(dz/znaut));
 	  }
 	  //Cell at the top of the domain
-	  else if(qk == (nz-1)){
+	  else if(qk == (nzdz-1)){
 	    du_dz = data3[texidxBelow];  // du_dz at k-1th cell
 	  }
 	  /*
@@ -1621,30 +1669,30 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   //Create the Tau/dz texture
   float tau11_dz, tau22_dz, tau33_dz, tau13_dz;
   
-  for (qk=0; qk<nz; qk++) 
-    for (qi=0; qi<ny; qi++)
-      for (qj=0; qj<nx; qj++)
+  for (qk=0; qk<nzdz; qk++) 
+    for (qi=0; qi<nydy; qi++)
+      for (qj=0; qj<nxdx; qj++)
 	{
-	  p2idx = qk*ny*nx + qi*nx + qj;
+	  p2idx = qk*nydy*nxdx + qi*nxdx + qj;
 	    
 	  row = qk / (numInRow);
-	  texidx = row * width * ny * 4 +
+	  texidx = row * width * nydy * 4 +
 	  qi * width * 4 +
-	  qk % (numInRow) * nx * 4 +
+	  qk % (numInRow) * nxdx * 4 +
 	  qj * 4;
 
 	  rowBelow = (qk-1) / (numInRow);
-	  texidxBelow = rowBelow * width * ny * 4 +
+	  texidxBelow = rowBelow * width * nydy * 4 +
 	    qi * width * 4 +
-	    (qk-1) % (numInRow) * nx * 4 +
+	    (qk-1) % (numInRow) * nxdx * 4 +
 	    qj * 4;
 	  
 	  //The cells right above and below the current cell
-	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
-	  idxAbove = (qk+1)*ny*nx + qi*nx + qj;
+	  idxBelow = (qk-1)*nydy*nxdx + qi*nxdx + qj;
+	  idxAbove = (qk+1)*nydy*nxdx + qi*nxdx + qj;
 
 	  //The cell two below the current cell
-	  idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+	  idx2Below = (qk-2)*nydy*nxdx + qi*nxdx + qj;
 
 	  //Calculate Tau/dz
 	  
@@ -1657,7 +1705,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	    tau13_dz = -2.0f*(tau[p2idx].t13/(dz*log(dz/znaut)));
 	  }
 	  //Cell at the top of the domain
-	  else if(qk == (nz-1)){
+	  else if(qk == (nzdz-1)){
 	    tau11_dz = data[texidxBelow];
 	    tau22_dz = data[texidxBelow+1];
 	    tau33_dz = data[texidxBelow+2];
@@ -1667,7 +1715,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  //Cell at the top of the domain
 	  //dT/dz = dT/dz at k-1th cell
 	  //which is the same as dT/dz = Tk-Tk-2/2dz if domain is higher than 2		     
-	  else if((qk == (nz-1)) && qk > 1){
+	  else if((qk == (nzdz-1)) && qk > 1){
 	    tau11_dz = (tau[p2idx].t11 - tau[idx2Below].t11)/(2.0*dz);
 	    tau22_dz = (tau[p2idx].t22 - tau[idx2Below].t22)/(2.0*dz);
 	    tau33_dz = (tau[p2idx].t33 - tau[idx2Below].t33)/(2.0*dz);
@@ -1675,7 +1723,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  }
 	  //Cell at the top of the domain
 	  //which is the same as cell just above ground if domain is only 2 high
-	  else if((qk == (nz-1)) && qk == 1){
+	  else if((qk == (nzdz-1)) && qk == 1){
 	    tau11_dz = -2.0*(tau[idxBelow].t11/(0.5*dz*log((0.5*dz)/znaut)));
 	    tau22_dz = -2.0*(tau[idxBelow].t22/(0.5*dz*log((0.5*dz)/znaut)));
 	    tau33_dz = -2.0*(tau[idxBelow].t33/(0.5*dz*log((0.5*dz)/znaut)));
@@ -1756,9 +1804,9 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 
   float indexVal,extraVal,elz,eps; // indexVal is for x,y and z locations , eps and elz are required for ustar calculations.
 
-  for (qk=0; qk<nz; qk++) 
-    for (qi=0; qi<ny; qi++)
-      for (qj=0; qj<nx; qj++)
+  for (qk=0; qk<nzdz; qk++) 
+    for (qi=0; qi<nydy; qi++)
+      for (qj=0; qj<nxdx; qj++)
 	{	
 	  sigU=0;
 	  sigV=0;
@@ -1780,17 +1828,17 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	  turbulence>>extraVal;  //this value in not required
 	  turbulence>>extraVal;  //this value in not required
 
-	  p2idx = qk*ny*nx + qi*nx + qj;
+	  p2idx = qk*nydy*nxdx + qi*nxdx + qj;
 	  row = qk / (numInRow);
-	  texidx = row * width * ny * 4 +
+	  texidx = row * width * nydy * 4 +
 	    qi * width * 4 +
-	    qk % (numInRow) * nx * 4 +
+	    qk % (numInRow) * nxdx * 4 +
 	    qj * 4;
 
 	  rowBelow = (qk-1) / (numInRow);
-	  texidxBelow = rowBelow * width * ny * 4 +
+	  texidxBelow = rowBelow * width * nydy * 4 +
 	    qi * width * 4 +
-	    (qk-1) % (numInRow) * nx * 4 +
+	    (qk-1) % (numInRow) * nxdx * 4 +
 	    qj * 4;
 	  
 		
@@ -1798,14 +1846,14 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	   
 	         
 	    //The cells right above and below the current cell
-	    idxBelow = (qk-1)*ny*nx + qi*nx + qj;
-	    idxAbove = (qk+1)*ny*nx + qi*nx + qj;         
+	    idxBelow = (qk-1)*nydy*nxdx + qi*nxdx + qj;
+	    idxAbove = (qk+1)*nydy*nxdx + qi*nxdx + qj;         
 
 	    //The cells at front and behind of the current cell   
-	    idxBehind = qk*ny*nx + qi*nx + (qj-1);
-	    idxFront  = qk*ny*nx + qi*nx + (qj+1);
+	    idxBehind = qk*nydy*nxdx + qi*nxdx + (qj-1);
+	    idxFront  = qk*nydy*nxdx + qi*nxdx + (qj+1);
 	    //The cell two below the current cell
-	    idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+	    idx2Below = (qk-2)*nydy*nxdx + qi*nxdx + qj;
             
 		  	  
 	    data3[texidx] = (sigU/2.5f)/elz;  //du_dz;      //du_dz
@@ -1914,30 +1962,30 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   //Create the Tau/dz texture
   float tau11_dz, tau22_dz, tau33_dz, tau13_dz;
   
-  for (qk=0; qk<nz; qk++) 
-    for (qi=0; qi<ny; qi++)
-      for (qj=0; qj<nx; qj++)
+  for (qk=0; qk<nzdz; qk++) 
+    for (qi=0; qi<nydy; qi++)
+      for (qj=0; qj<nxdx; qj++)
 	{
-	  p2idx = qk*ny*nx + qi*nx + qj;
+	  p2idx = qk*nydy*nxdx + qi*nxdx + qj;
 	    
 	  row = qk / (numInRow);
-	  texidx = row * width * ny * 4 +
+	  texidx = row * width * nydy * 4 +
 	    qi * width * 4 +
-	    qk % (numInRow) * nx * 4 +
+	    qk % (numInRow) * nxdx * 4 +
 	    qj * 4;
 
 	  rowBelow = (qk-1) / (numInRow);
-	  texidxBelow = rowBelow * width * ny * 4 +
+	  texidxBelow = rowBelow * width * nydy * 4 +
 	    qi * width * 4 +
-	    (qk-1) % (numInRow) * nx * 4 +
+	    (qk-1) % (numInRow) * nxdx * 4 +
 	    qj * 4;
 	  
 	  //The cells right above and below the current cell
-	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
-	  idxAbove = (qk+1)*ny*nx + qi*nx + qj;
+	  idxBelow = (qk-1)*nydy*nxdx + qi*nxdx + qj;
+	  idxAbove = (qk+1)*nydy*nxdx + qi*nxdx + qj;
 
 	  //The cell two below the current cell
-	  idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+	  idx2Below = (qk-2)*nydy*nxdx + qi*nxdx + qj;
 
 	  //Calculate Tau/dz
 	  
@@ -1950,7 +1998,7 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    tau13_dz = -2.0f*(tau[p2idx].t13/(dz*log(dz/znaut)));
 	  }
 	  //Cell at the top of the domain
-	  else if(qk == (nz-1)){
+	  else if(qk == (nzdz-1)){
 	    tau11_dz = data[texidxBelow];
 	    tau22_dz = data[texidxBelow+1];
 	    tau33_dz = data[texidxBelow+2];
@@ -2002,9 +2050,9 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
   //initializes the array cellQuic[]
   initCellType();  
 
-  for (qk=0; qk<nz; qk++) 
-    for (qi=0; qi<ny; qi++)
-      for (qj=0; qj<nx; qj++){
+  for (qk=0; qk<nzdz; qk++) 
+    for (qi=0; qi<nydy; qi++)
+      for (qj=0; qj<nxdx; qj++){
         
 	float minDistance=0.0f;
 	sigU=0;
@@ -2015,19 +2063,19 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 	float tau33=0;
 	float tau13=0;
 
-	p2idx = qk*ny*nx + qi*nx + qj;
+	p2idx = qk*nydy*nxdx + qi*nxdx + qj;
 	
 
 	row = qk / (numInRow);
-	texidx = row * width * ny * 4 +
+	texidx = row * width * nydy * 4 +
 	  qi * width * 4 +
-	  qk % (numInRow) * nx * 4 +
+	  qk % (numInRow) * nxdx * 4 +
 	  qj * 4;
                 
 	rowBelow = (qk-1) / (numInRow);
-	texidxBelow = rowBelow * width * ny * 4 +
+	texidxBelow = rowBelow * width * nydy * 4 +
 	  qi * width * 4 +
-	  (qk-1) % (numInRow) * nx * 4 +
+	  (qk-1) % (numInRow) * nxdx * 4 +
 	  qj * 4;
 
 	if(cellQuic[p2idx].c!=0){ //Calculate gradients ONLY if it is a fluid cell    
@@ -2035,14 +2083,14 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 	  minDistance = getMinDistance(qj,qi,qk);
 	  	         
 	  //The cells right above and below the current cell
-	  idxBelow = (qk-1)*ny*nx + qi*nx + qj;
-	  idxAbove = (qk+1)*ny*nx + qi*nx + qj;         
+	  idxBelow = (qk-1)*nydy*nxdx + qi*nxdx + qj;
+	  idxAbove = (qk+1)*nydy*nxdx + qi*nxdx + qj;         
           
 	  //The cells at front and behind of the current cell   
-	  idxBehind = qk*ny*nx + qi*nx + (qj-1);
-	  idxFront  = qk*ny*nx + qi*nx + (qj+1);
+	  idxBehind = qk*nydy*nxdx + qi*nxdx + (qj-1);
+	  idxFront  = qk*nydy*nxdx + qi*nxdx + (qj+1);
 	  //The cell two below the current cell
-	  idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+	  idx2Below = (qk-2)*nydy*nxdx + qi*nxdx + qj;
             
 	  //Calculate du/dz
             
@@ -2056,7 +2104,7 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 	    
 	  //Cell at the top of the domain
 	    
-	  else if(qk == (nz-1)){
+	  else if(qk == (nzdz-1)){
 	    du_dz = data3[texidxBelow];  // du_dz at k-1th cell
 	  }          
 	  //All other cells. i.e not boundary cells
@@ -2168,29 +2216,29 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 
   //Create the Tau/dz texture
   float tau11_dz, tau22_dz, tau33_dz, tau13_dz;
-  for (qk=0; qk<nz; qk++) 
-    for (qi=0; qi<ny; qi++)
-      for (qj=0; qj<nx; qj++){
-	p2idx = qk*ny*nx + qi*nx + qj;
+  for (qk=0; qk<nzdz; qk++) 
+    for (qi=0; qi<nydy; qi++)
+      for (qj=0; qj<nxdx; qj++){
+	p2idx = qk*nydy*nxdx + qi*nxdx + qj;
 	    
 	row = qk / (numInRow);
-	texidx = row * width * ny * 4 +
+	texidx = row * width * nydy * 4 +
 	  qi * width * 4 +
-	  qk % (numInRow) * nx * 4 +
+	  qk % (numInRow) * nxdx * 4 +
 	  qj * 4;
 
 	rowBelow = (qk-1) / (numInRow);
-	texidxBelow = rowBelow * width * ny * 4 +
+	texidxBelow = rowBelow * width * nydy * 4 +
 	  qi * width * 4 +
-	  (qk-1) % (numInRow) * nx * 4 +
+	  (qk-1) % (numInRow) * nxdx * 4 +
 	  qj * 4;
 	  
 	//The cells right above and below the current cell
-	idxBelow = (qk-1)*ny*nx + qi*nx + qj;
-	idxAbove = (qk+1)*ny*nx + qi*nx + qj;
+	idxBelow = (qk-1)*nydy*nxdx + qi*nxdx + qj;
+	idxAbove = (qk+1)*nydy*nxdx + qi*nxdx + qj;
 
 	//The cell two below the current cell
-	idx2Below = (qk-2)*ny*nx + qi*nx + qj;
+	idx2Below = (qk-2)*nydy*nxdx + qi*nxdx + qj;
 
 	//Calculate Tau/dz
 	  
@@ -2203,7 +2251,7 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 	  tau13_dz = -2.0f*(tau[p2idx].t13/(dz*log(dz/znaut)));
 	}
 	//Cell at the top of the domain
-	else if(qk == (nz-1)){
+	else if(qk == (nzdz-1)){
 	  tau11_dz = data[texidxBelow];
 	  tau22_dz = data[texidxBelow+1];
 	  tau33_dz = data[texidxBelow+2];
@@ -2440,17 +2488,18 @@ void ParticleControl::initLambdaTex(GLuint lambda){
   int qi, qj, qk;
   int p2idx = 0, texidx = 0;
   int row = 0;
-
-   for (qk=0; qk<nz; qk++) 
-    for (qi=0; qi<ny; qi++)
-      for (qj=0; qj<nx; qj++)
+  
+ 
+  for (qk=0; qk<nzdz; qk++) 
+    for (qi=0; qi<nydy; qi++)
+      for (qj=0; qj<nxdx; qj++)
 	{
-	  p2idx = qk*ny*nx + qi*nx + qj;
+	  p2idx = qk*nydy*nxdx + qi*nxdx + qj;
 	    
 	  row = qk / (numInRow);
-	  texidx = row * width * ny * 4 +
+	  texidx = row * width * nydy * 4 +
 	  qi * width * 4 +
-	  qk % (numInRow) * nx * 4 +
+	  qk % (numInRow) * nxdx * 4 +
 	  qj * 4;
 	  
 	  data[texidx]   = tauDetInv*(tau22*tau33);            //Lam11
@@ -2467,37 +2516,37 @@ void ParticleControl::initLambdaTex(GLuint lambda){
 void ParticleControl::test1(){
   //int center = (nz/2)*nx*ny + (ny/2)*nx + (nx/2);
 
-  for(int k = 0; k < nz; k++){   
-    for(int i = 0; i < ny; i++){
-      for(int j = 0; j < nx; j++){
-	int p2idx = k*nx*ny + i*nx + j;
+  for(int k = 0; k < nzdz; k++){   
+    for(int i = 0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
+	int p2idx = k*nxdx*nydy + i*nxdx + j;
   	
-	if((j > (nx-1)/2) && (i > (ny-1)/2) && (k <= ((nz/2)+ 1)) && (k >= ((nz/2)- 1))){
+	if((j > (nxdx-1)/2) && (i > (nydy-1)/2) && (k <= ((nzdz/2)+ 1)) && (k >= ((nzdz/2)- 1))){
 	  wind_vel[p2idx].u = 1.0;
 	  wind_vel[p2idx].v = 0.0;
 	  wind_vel[p2idx].w = 0.0;
 	  wind_vel[p2idx].id = -1.0;
 	}
-	else if ((j <= (nx-1)/2) && ( i <= (ny-1)/2) && (k <= ((nz/2)+ 1)) && (k >= ((nz/2)- 1))){
+	else if ((j <= (nxdx-1)/2) && ( i <= (nydy-1)/2) && (k <= ((nzdz/2)+ 1)) && (k >= ((nzdz/2)- 1))){
 	  wind_vel[p2idx].u = -1.0;
 	  wind_vel[p2idx].v = 0.0;
 	  wind_vel[p2idx].w = 0.0;
 	  wind_vel[p2idx].id = -1.0;
 	}
-	else if((i > (ny-1)/2) && (j <= (nx-1)/2) && (k <= ((nz/2)+ 1)) && (k >= ((nz/2)- 1))){
+	else if((i > (nydy-1)/2) && (j <= (nxdx-1)/2) && (k <= ((nzdz/2)+ 1)) && (k >= ((nzdz/2)- 1))){
 	  wind_vel[p2idx].u = 0.0;
 	  wind_vel[p2idx].v = 1.0;
 	  wind_vel[p2idx].w = 0.0;
 	  wind_vel[p2idx].id = -1.0;
 	}
-	else if((j > (nx-1)/2) && (i <= (ny-1)/2) && (k <= ((nz/2)+ 1)) && (k >= ((nz/2)- 1))){
+	else if((j > (nxdx-1)/2) && (i <= (nydy-1)/2) && (k <= ((nzdz/2)+ 1)) && (k >= ((nzdz/2)- 1))){
 	  wind_vel[p2idx].u = 0.0;
 	  wind_vel[p2idx].v = -1.0;
 	  wind_vel[p2idx].w = 0.0;
 	  wind_vel[p2idx].id = -1.0;
 	  
 	}
-	else if( k > ((nz/2) +1) ){
+	else if( k > ((nzdz/2) +1) ){
 	  wind_vel[p2idx].u = 0.0;
 	  wind_vel[p2idx].v = 0.0;
 	  wind_vel[p2idx].w = 1.0;
@@ -2515,10 +2564,10 @@ void ParticleControl::test1(){
 }
 //Creates a random value wind field.
 void ParticleControl::randomWindField(){
-  for(int k = 0; k < nz; k++){   
-    for(int i = 0; i < ny; i++){
-      for(int j = 0; j < nx; j++){
-	int p2idx = k*nx*ny + i*nx + j;
+  for(int k = 0; k < nzdz; k++){   
+    for(int i = 0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
+	int p2idx = k*nxdx*nydy + i*nxdx + j;
 	//
 	// Not currently random
 	// 	
@@ -2532,10 +2581,11 @@ void ParticleControl::randomWindField(){
 }
 
 void ParticleControl::uniformUWindField(){
-  for(int k = 0; k < nz; k++){   
-    for(int i = 0; i < ny; i++){
-      for(int j = 0; j < nx; j++){
-	int p2idx = k*nx*ny + i*nx + j;
+ 
+  for(int k = 0; k < nzdz; k++){   
+    for(int i = 0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
+	int p2idx = k*nxdx*nydy + i*nxdx + j;
 	wind_vel[p2idx].u = 1.0;
 	wind_vel[p2idx].v = 0.0;
 	wind_vel[p2idx].w = 0.0;
@@ -2545,10 +2595,10 @@ void ParticleControl::uniformUWindField(){
   }
 }
 void ParticleControl::variedUWindField(){
-   for(int k = 0; k < nz; k++){   
-    for(int i = 0; i < ny; i++){
-      for(int j = 0; j < nx; j++){
-	int p2idx = k*nx*ny + i*nx + j;
+   for(int k = 0; k < nzdz; k++){   
+    for(int i = 0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
+	int p2idx = k*nxdx*nydy + i*nxdx + j;
 	wind_vel[p2idx].u = 7.52f*pow(((k+1)/20.0f),0.15f);
 	wind_vel[p2idx].v = 0.0f;
 	wind_vel[p2idx].w = 0.0f;
@@ -2564,12 +2614,12 @@ void ParticleControl::variedUWindField(){
 void ParticleControl::addBuildingsInWindField(GLuint cellType){
 
   GLfloat* data = new GLfloat[width*height*4];
-  wind* cell_type = new wind[nx*ny*nz];
+  wind* cell_type = new wind[nxdx*nydy*nzdz];
   
-  for(int k = 0; k < nz; k++){   
-    for(int i = 0; i < ny; i++){
-      for(int j = 0; j < nx; j++){
-	int p2idx = k*nx*ny + i*nx + j;
+  for(int k = 0; k < nzdz; k++){   
+    for(int i = 0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
+	int p2idx = k*nxdx*nydy + i*nxdx + j;
 	cell_type[p2idx].u = 1.0;
 	cell_type[p2idx].v = 1.0;
 	cell_type[p2idx].w = 1.0;
@@ -2590,7 +2640,7 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
      for(int k= lk; k < uk; k++){
        for(int i= li; i < ui; i++){
 	 for(int j= lj; j < uj; j++){
-	   int p2idx = k*nx*ny + i*nx + j;
+	   int p2idx = k*nxdx*nydy + i*nxdx + j;
 	   
 	   cell_type[p2idx].u = 0.0;
 	   cell_type[p2idx].v = 0.0;
@@ -2605,16 +2655,16 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
    int qk,qi,qj;
    int row,texidx,p2idx;
 
-   for (qk=0; qk<nz; qk++) 
-      for (qi=0; qi<ny; qi++)
-	for (qj=0; qj<nx; qj++)
+   for (qk=0; qk<nzdz; qk++) 
+      for (qi=0; qi<nydy; qi++)
+	for (qj=0; qj<nxdx; qj++)
 	  {
-	    p2idx = qk*ny*nx + qi*nx + qj;
+	    p2idx = qk*nydy*nxdx + qi*nxdx + qj;
 	    
 	    row = qk / (numInRow);
-	    texidx = row * width * ny * 4 +
+	    texidx = row * width * nydy * 4 +
 	      qi * width * 4 +
-	      qk % (numInRow) * nx * 4 +
+	      qk % (numInRow) * nxdx * 4 +
 	      qj * 4;
 	  
 	    data[texidx] = cell_type[p2idx].u;
@@ -2654,16 +2704,16 @@ void ParticleControl::QUICWindField(){
   double groundVal; // ignoring the ground values, so that k=0 have the first cell having non-zero velocity 
   //Balli had ++k?
 
-  for(int k=0;k<(6*nx*ny);++k){ // there are 6 columns in the wind file 
+  for(int k=0;k<(6*nxdx*nydy);++k){ // there are 6 columns in the wind file 
     QUICWindField>>groundVal;
   }
 
   double quicIndex;
 
-  for(int k = 0; k < nz; k++){   
-    for(int i = 0; i < ny; i++){
-      for(int j = 0; j < nx; j++){
-	int p2idx = k*nx*ny + i*nx + j;
+  for(int k = 0; k < nzdz; k++){   
+    for(int i = 0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
+	int p2idx = k*nxdx*nydy + i*nxdx + j;
 	QUICWindField>>quicIndex; // ignoring the X,Y and Z values
 	QUICWindField>>quicIndex;
 	QUICWindField>>quicIndex;
@@ -2705,14 +2755,14 @@ void ParticleControl::initCellType(){
   // ignoring the ground values for the cellype also
   //Balli had ++k ?
 
-  for(int k=0;k<(4*nx*ny);++k){// there are 4 columns in the wind file
+  for(int k=0;k<(4*nxdx*nydy);++k){// there are 4 columns in the wind file
     QUICCellType>>groundVal;
   }
   double quicIndex;
-  for(int k = 0; k < nz; k++){   
-    for(int i = 0; i < ny; i++){
-      for(int j = 0; j < nx; j++){
-	int p2idx = k*nx*ny + i*nx + j;
+  for(int k = 0; k < nzdz; k++){   
+    for(int i = 0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
+	int p2idx = k*nxdx*nydy + i*nxdx + j;
 	
 	QUICCellType>>quicIndex;// ignoring the X,Y and Z values
 	QUICCellType>>quicIndex;
@@ -2749,9 +2799,9 @@ void ParticleControl::initParticlePositions(FramebufferObject* fbo, GLuint texId
   glBindTexture(texType, texId);
   init_shader.activate();
   glUniform1iARB(texture, 0);
-  glUniform1iARB(u_nx, nx);
-  glUniform1iARB(u_ny, ny);
-  glUniform1iARB(u_nz, nz);
+  glUniform1iARB(u_nx, nxdx);
+  glUniform1iARB(u_ny, nydy);
+  glUniform1iARB(u_nz, nzdz);
 
   glBegin(GL_QUADS);
   {
@@ -2814,13 +2864,13 @@ void ParticleControl::updateMaxandMinTaus(float tau11,float tau22,float tau33,fl
 
 }
 void ParticleControl::find_tauLocalMax(){
-  tauLocalMax = new float[4*nz];
-  tauLocalMin = new float[4*nz];
+  tauLocalMax = new float[4*nzdz];
+  tauLocalMin = new float[4*nzdz];
  
   //Initialize max and min 
-  for(int k=0; k<nz; k++){
+  for(int k=0; k<nzdz; k++){
    
-    int idx = k*ny*nx;
+    int idx = k*nydy*nxdx;
     int tidx = k*4;
 
     tauLocalMax[tidx] = tau[idx].t11;
@@ -2838,10 +2888,10 @@ void ParticleControl::find_tauLocalMax(){
 
   //Find max and min tau values for each height value
 
-  for(int k=0; k<nz; k++){
-    for(int i=0; i<ny; i++){
-      for(int j=0; j<nx; j++){
-	int idx = k*ny*nx + i*nx + j;
+  for(int k=0; k<nzdz; k++){
+    for(int i=0; i<nydy; i++){
+      for(int j=0; j<nxdx; j++){
+	int idx = k*nydy*nxdx + i*nxdx + j;
 	int tidx = k*4;
 
 	if(tau[idx].t11 > tauLocalMax[tidx])
@@ -2869,7 +2919,7 @@ void ParticleControl::find_tauLocalMax(){
   }
 
   std::cout << "Local Max t11 values" << std::endl;
-  for(int i=0; i < nz; i++){
+  for(int i=0; i < nzdz; i++){
     //std::cout << tauLocalMax[(i*4)+3] << std::endl;
     
   }

@@ -9,6 +9,8 @@
 #include <GL/glut.h>
 #endif
 
+#include <list>
+
 
 typedef struct{
   float x;
@@ -21,7 +23,7 @@ class VisualPlane{
 
  public:
 
-  VisualPlane(Matrix*,int,int,int, float*,float*,float*,float*);
+  VisualPlane(ParticleControl*, float*, float*, float*, float*);
   
   void drawPlane();
   void increasePlaneLayer();
@@ -39,6 +41,13 @@ class VisualPlane{
   void decreaseAngle();
   void increaseAngle_Y();
   void decreaseAngle_Y();
+
+  void increaseYaw();
+  void increasePitch();
+  void increaseRoll();
+  void decreaseYaw();
+  void decreasePitch();
+  void decreaseRoll();
 
   int plane_layer;
   
@@ -60,6 +69,11 @@ class VisualPlane{
 
   void getLocalTauValues();
   void findEdgePoints();
+  vec3 crossProduct(vec3,vec3);
+  float dotProduct(vec3,vec3);
+
+  void sortIntersectionPoints();
+  void calculateNormal();
 
   float* TauMax;
   float* TauMin;
@@ -79,6 +93,7 @@ class VisualPlane{
   GLenum texType, format;
 
   int nx,ny,nz;
+  int nxdx,nydy,nzdz;
 
   GLint u_tauTex;
   GLint u_max11,u_max22,u_max33,u_max13;
@@ -100,6 +115,9 @@ class VisualPlane{
   float thetaY;
   float thetaY1;
 
+  //Point on rotating plane
+  vec3 p;
+
   //normal vector of plane
   vec3 n;
   //points on edge of plane
@@ -114,8 +132,35 @@ class VisualPlane{
   //Normal of the domain plane
   vec3 N;
    
+  ///////////////////////
+  //Planes of the domain
+  ///////////////////////
+
+  //normals
+  vec3 n0;
+  vec3 n1;
+  vec3 n2;
+  vec3 n3;
+  vec3 n4;
+  vec3 n5;
+  //offsets
+  float d0,d1,d2,d3,d4,d5;
+
+  /////////////////////////
+
+  float eps;
+
   //Points of rotating plane
   vec3 p0,p1,p2,p3;
+
+  //List of points found when intersecting planes
+  std::list<vec3> pList;
+  std::list<vec3>::iterator listIter;
+    
+  int num_Points;
+
+  float yaw,pitch,roll;
+
 
 };
 

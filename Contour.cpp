@@ -5,34 +5,39 @@ Contour::Contour(ParticleControl* pc, int num){
   nx = pc->nx;
   ny = pc->ny;
   nz = pc->nz;
+  
+  nzdz = pc->nzdz;
+  nydy = pc->nydy;
+  nxdx = pc->nxdx;
+
 
   //n = number of regions, so there will be n-1 contour values
   n = num;
   num_cValue = n-1;
   cValue = new float[num_cValue];
   
-  contourValues = new float[num_cValue*nz*4];
+  contourValues = new float[num_cValue*nzdz*4];
   
   layer=-1;
   tauValue = 0;
 
-  numPoints = new int[4*nz];
-  for(int i=0; i < 4*nz; i++)
+  numPoints = new int[4*nzdz];
+  for(int i=0; i < 4*nzdz; i++)
     numPoints[i] = 0;
 
-  contourLayer = new GLuint[4*nz];
-  glGenBuffers(4*nz, contourLayer);
+  contourLayer = new GLuint[4*nzdz];
+  glGenBuffers(4*nzdz, contourLayer);
 
   
   //Create tau from pc->tau structure
-  tau = new float[nx*nz*ny*4];
+  tau = new float[nxdx*nzdz*nydy*4];
 
-  for(int k=0;k<nz;k++){
-    for(int i=0; i < ny; i++){
-      for(int j=0; j < nx; j++){
-	int idx = k*ny*nx + i*nx + j;
+  for(int k=0;k<nzdz;k++){
+    for(int i=0; i < nydy; i++){
+      for(int j=0; j < nxdx; j++){
+	int idx = k*nydy*nxdx + i*nxdx + j;
 
-	int tidx = k*ny*nx*4 + i*nx*4 + j*4;
+	int tidx = k*nydy*nxdx*4 + i*nxdx*4 + j*4;
 	
 	tau[tidx] = pc->tau[idx].t11;
 	tau[tidx+1] = pc->tau[idx].t22;
@@ -80,7 +85,7 @@ Contour::Contour(ParticleControl* pc, int num){
   glTexParameteri(pc->texType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   
    
-  glTexImage2D(pc->texType, 0, GL_RGBA32F_ARB, num_cValue*nz,1,0, GL_RGBA, GL_FLOAT, contourValues);
+  glTexImage2D(pc->texType, 0, GL_RGBA32F_ARB, num_cValue*nzdz,1,0, GL_RGBA, GL_FLOAT, contourValues);
 
   glBindTexture(pc->texType, 0);
 
@@ -126,17 +131,17 @@ void Contour::setContourValuesGlobally(ParticleControl* pc,int k){
 void Contour::find_Multiple_Contours(ParticleControl* pc){
   int tauIdx = 0;
 
-  for(int k=0;k<nz;k++){
+  for(int k=0;k<nzdz;k++){
     //Set Contour values
     setContourValuesLocally(pc,k);
     //setContourValuesGlobally(pc,k);
     
     tauIdx = (k*4) + tauValue;
 
-    for(int i=0; i < ny-1; i++){
-      for(int j=0; j < nx-1; j++){
-	int idx = k*ny*nx + i*nx + j;
-	int idxAbove = k*ny*nx + (i+1)*nx + j;
+    for(int i=0; i < nydy-1; i++){
+      for(int j=0; j < nxdx-1; j++){
+	int idx = k*nydy*nxdx + i*nxdx + j;
+	int idxAbove = k*nydy*nxdx + (i+1)*nxdx + j;
 		
 	
 	
@@ -251,19 +256,19 @@ void Contour::findContours_Averaging(ParticleControl* pc){
   float div;
 
   //will need to change it to k < nz
-  for(int k=0;k<nz;k++){
+  for(int k=0;k<nzdz;k++){
     //Set Contour values
     setContourValuesLocally(pc,k);
 
 
     int tauIdx = (k*4) + tauValue;
 
-    for(int i=0; i < ny; i++){
-      for(int j=0; j < nx; j++){
+    for(int i=0; i < nydy; i++){
+      for(int j=0; j < nxdx; j++){
 	
-	int tidx = k*ny*nx*4 + i*nx*4 + j*4 + tauValue;
-	int tidxAbove = k*ny*nx*4 + (i+1)*nx*4 + j*4 + tauValue;
-	int tidxBelow = k*ny*nx*4 + (i-1)*nx*4 + j*4 + tauValue;
+	int tidx = k*nydy*nxdx*4 + i*nxdx*4 + j*4 + tauValue;
+	int tidxAbove = k*nydy*nxdx*4 + (i+1)*nxdx*4 + j*4 + tauValue;
+	int tidxBelow = k*nydy*nxdx*4 + (i-1)*nxdx*4 + j*4 + tauValue;
 	int tidxLeft = tidx - 4;
 	int tidxRight = tidx + 4;
 
@@ -519,8 +524,8 @@ void Contour::displayContourLayer(ParticleControl* pc,GLuint texId, int numInRow
     int s = 0;
     int t = 0;
 
-    s = (int)(layer % numInRow) * nx;
-    t = (int)(floor(layer/(float)numInRow) * ny);   
+    s = (int)(layer % numInRow) * nxdx;
+    t = (int)(floor(layer/(float)numInRow) * nydy);   
 
     contour_shader.activate();
   
@@ -543,9 +548,9 @@ void Contour::displayContourLayer(ParticleControl* pc,GLuint texId, int numInRow
     {
       glNormal3f(0.0, 0.0, 1.0);
       glTexCoord2f(s,t);              glVertex3f(0, 0, layer);
-      glTexCoord2f(s+nx, t);          glVertex3f(nx, 0, layer);
-      glTexCoord2f(s+nx, t+ny);       glVertex3f(nx, ny, layer);
-      glTexCoord2f(s, t+ny);          glVertex3f(0, ny, layer);
+      glTexCoord2f(s+nxdx, t);          glVertex3f(nx, 0, layer);
+      glTexCoord2f(s+nxdx, t+nydy);       glVertex3f(nx, ny, layer);
+      glTexCoord2f(s, t+nydy);          glVertex3f(0, ny, layer);
     }
     glEnd();
     contour_shader.deactivate();

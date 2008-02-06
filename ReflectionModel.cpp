@@ -64,10 +64,10 @@ ReflectionModel::~ReflectionModel(){}
 void ReflectionModel::init(bool OSG){
   osgPlume = OSG;
  
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz);
   pc->setUstarAndSigmas(util->ustar);
   
-  dc = new DisplayControl(nx,ny,nz, texType);  
+  dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
   dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
 
   buildParam = new float[(util->numBuild*6)+1];

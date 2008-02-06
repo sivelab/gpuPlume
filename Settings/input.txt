@@ -11,6 +11,10 @@ nx 100
 ny 50
 nz 20
 
+dx 1.0
+dy 1.0  
+dz 1.0
+
 #Set this to 1 to show the particle display, else 0
 show_particle_visuals 1
 
@@ -72,14 +76,14 @@ numBox_x   1
 #number of boxes in y direction 
 numBox_y   1
 #number of boxes in z direction 
-numBox_z   2
+numBox_z   1
 
 #Source/ParticleEmitter information
 num_of_sources 1
 
 #x_coordinate, y_coordinate, z_coordinate, radius, rate
 source_info 5.0 25.0 3.0 0.0 60.0
-#source_info 50.0 25.0 10.0 3.0 60.0
+#source_info 50.0 25.0 10.0 4.0 60.0
 
 #Set the type of Particle Release
 release_type 1

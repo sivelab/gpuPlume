@@ -10,11 +10,16 @@ static char text_buffer[128];
 #define M_PI 3.14159
 #endif
 
-DisplayControl::DisplayControl(int x, int y, int z, GLenum type)
+DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float dy,float dz)
 {
   nx = x;
   ny = y;
   nz = z;
+
+  nzdz = (int)(nz*(1.0/dz));
+  nydy = (int)(ny*(1.0/dy));
+  nxdx = (int)(nx*(1.0/dx));
+
   texType = type;
 
   eye_pos[0] = nx+50;
@@ -259,7 +264,10 @@ void DisplayControl::lookUporDown(float change){
     yangle = yangle + (M_PI/90.0);
 
   eye_gaze[2] = sin(yangle);
-  //eye_gaze[1] = cos(yangle);
+
+  
+  //eye_gaze[1] = sin(angle);
+  //eye_gaze[0] = cos(angle);
 
 }
 void DisplayControl::setAzimuth(float change, float rate){
@@ -486,13 +494,13 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       // s (or the value in the x dimension of the texture) can be
       // determined with a mod of the layer by the number of layers
       // that can be held in each row of the texutre. [ COMPLETE DESCRIPTION ]
-      s = (int)(visual_layer % numInRow) * nx;
+      s = (int)(visual_layer % numInRow) * nxdx;
 
       // t (or the value in the y dimension of the texture) can be 
       // calculated by the floor of the layer to be visualized divided
       // by the number of layers that can be held in each row of
       // the texture. 
-      t = (int)(floor(visual_layer/(float)numInRow) * ny);
+      t = (int)(floor(visual_layer/(float)numInRow) * nydy);
 
       windField_shader.activate();
 
@@ -507,9 +515,9 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       {
 	glNormal3f(0.0, 0.0, 1.0);
 	glTexCoord2f(s, t);         glVertex3f(0, 0, visual_layer);
-	glTexCoord2f(s+nx, t);      glVertex3f(nx, 0,visual_layer);
-	glTexCoord2f(s+nx, t+ny);   glVertex3f(nx, ny,visual_layer);
-	glTexCoord2f(s, t+ny);      glVertex3f(0, ny,visual_layer);
+	glTexCoord2f(s+nxdx, t);      glVertex3f(nx, 0,visual_layer);
+	glTexCoord2f(s+nxdx, t+nydy);   glVertex3f(nx, ny,visual_layer);
+	glTexCoord2f(s, t+nydy);      glVertex3f(0, ny,visual_layer);
       }
       glEnd();
 

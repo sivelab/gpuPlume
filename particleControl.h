@@ -24,7 +24,7 @@ class ParticleControl{
 
  public:
  
-  ParticleControl(GLenum,int,int,int,int,int);
+  ParticleControl(GLenum,int,int,int,int,int,float,float,float);
 
   void setupAdvectShader(float);
 
@@ -168,6 +168,9 @@ class ParticleControl{
   int nx;
   int ny;
   int nz;
+
+  float cell_dx,cell_dy,cell_dz;
+  int nxdx,nydy,nzdz;
 
   GLenum texType;
 

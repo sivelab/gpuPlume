@@ -21,7 +21,7 @@ class DisplayControl{
 
  public:
   
-  DisplayControl(int, int, int, GLenum);
+  DisplayControl(int, int, int, GLenum,float,float,float);
 
   void drawVisuals(GLuint, GLuint, GLuint, int, int, int);
   void drawAxes();
@@ -75,6 +75,10 @@ class DisplayControl{
   int nx;
   int ny;
   int nz;
+
+  int nxdx;
+  int nydy;
+  int nzdz;
 
   //Feature Variables
   int numBuild;

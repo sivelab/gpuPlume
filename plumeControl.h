@@ -53,6 +53,8 @@ class PlumeControl{
   int ny;
   int nz;
 
+  int nxdx,nydy,nzdz;
+
   StreamLine* stream;
   PathLine* pathLines;
   Contour* contours;
