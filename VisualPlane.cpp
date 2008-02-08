@@ -573,8 +573,8 @@ void VisualPlane::drawRotationalPlane(){
 
 	glEnable(texType);
 	glBindTexture(texType, tex_id[0]);
-	//glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    
+	glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    
 
 	
 	plane_shader.activate();
