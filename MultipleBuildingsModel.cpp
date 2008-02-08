@@ -437,8 +437,10 @@ int MultipleBuildingsModel::display(){
 
       if(dc->tau_visual == draw_layers){
 	if(planeVisual->visual_field > 0)
-	  planeVisual->draw();
-	  //planeVisual->drawPlane();
+	  if(planeVisual->rotationPlane)
+	    planeVisual->drawRotationalPlane();
+	  else
+	    planeVisual->drawAxisAlignedPlane();
 	else
 	  dc->drawLayers(windField,numInRow);
       }

@@ -275,20 +275,29 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if (key == 'X')
     {
-      plume->planeVisual->increaseAngle();
+      plume->planeVisual->increasePitch();
     }
   else if (key == 'x')
     {
-      plume->planeVisual->decreaseAngle();
+      plume->planeVisual->decreasePitch(); 
     }
   else if (key == 'Y')
     {
-      plume->planeVisual->increaseAngle_Y();
+      plume->planeVisual->increaseYaw();
     }
   else if (key == 'y')
     {
-      plume->planeVisual->decreaseAngle_Y();
+      plume->planeVisual->decreaseYaw();
     }
+  else if (key == 'R')
+    {
+      plume->planeVisual->increaseRoll();
+    }
+  else if (key == 'r')
+    {
+      plume->planeVisual->decreaseRoll();
+    }
+
   else if (key == 'l')
     {
       plume->planeVisual->visual_field++;
@@ -368,7 +377,7 @@ void keyboard_cb(unsigned char key, int x, int y)
       glutDestroyWindow(plume->winid);
       exit(0);
     }
-  else if (key == 'r')
+  else if (key == 'f')
     {
       plume->dump_contents = true;
     }
@@ -455,6 +464,10 @@ void keyboard_cb(unsigned char key, int x, int y)
   else if(key == '2')
     {
       plume->dc->tau_visual = draw_layers;
+    }
+  else if(key == '3')
+    {
+      plume->planeVisual->rotationPlane = !plume->planeVisual->rotationPlane;
     }
   else if(key == '-')
     {

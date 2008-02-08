@@ -164,9 +164,9 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   d5 = (nz);
   
   num_Points = 0;
+  num_Coord = 0;
   
   eps = 0.00001;
-
 
   yaw = 0.0;
   pitch = 0.0;
@@ -176,12 +176,13 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   n.y = 0.0;
   n.z = 1.0;
 
-  calculateNormal();
- 
+  calculateNormal(); 
   getIntersectionPoints();
 
+  rotationPlane = false;
+
 }
-void VisualPlane::drawPlane(){
+void VisualPlane::drawAxisAlignedPlane(){
   
   glDisable(GL_TEXTURE_RECTANGLE_ARB);
   glDisable(GL_TEXTURE_2D);
@@ -540,7 +541,7 @@ void VisualPlane::calculateNormal(){
   std::cout << "normal is " << n.x << " " << n.y << " " << n.z << std::endl;
 
 }
-void VisualPlane::draw(){
+void VisualPlane::drawRotationalPlane(){
   
   //glDisable(GL_TEXTURE_RECTANGLE_ARB);
   //glDisable(GL_TEXTURE_2D);

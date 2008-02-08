@@ -25,7 +25,7 @@ class VisualPlane{
 
   VisualPlane(ParticleControl*, float*, float*, float*, float*);
   
-  void drawPlane();
+  void drawAxisAlignedPlane();
   void increasePlaneLayer();
   void decreasePlaneLayer();
   bool clickedSlider(int,int);
@@ -36,7 +36,7 @@ class VisualPlane{
   void drawScale();
   void switchPlane();
   void getIntersectionPoints();
-  void draw();
+  void drawRotationalPlane();
  
   void increaseYaw();
   void increasePitch();
@@ -54,6 +54,8 @@ class VisualPlane{
   int visual_field;
 
   bool move_slider;
+
+  bool rotationPlane;
 
   //Controls what value the middle color is
   //represented at in the scale used for visualizing
