@@ -37,11 +37,7 @@ class VisualPlane{
   void switchPlane();
   void getIntersectionPoints();
   void draw();
-  void increaseAngle();
-  void decreaseAngle();
-  void increaseAngle_Y();
-  void decreaseAngle_Y();
-
+ 
   void increaseYaw();
   void increasePitch();
   void increaseRoll();
@@ -63,18 +59,20 @@ class VisualPlane{
   //represented at in the scale used for visualizing
   //the turbulence layers.
   float slider;
-  //Point on edge of rotating plane
-  vec3 r1;
+  
  private:
 
   void getLocalTauValues();
-  void findEdgePoints();
   vec3 crossProduct(vec3,vec3);
   float dotProduct(vec3,vec3);
+  void Normalize(vec3*);
 
+  void getTextureCoordinates();
   void sortIntersectionPoints();
+  void sortTextureCoordinates();
   void calculateNormal();
-
+  bool checkTexCoord();
+ 
   float* TauMax;
   float* TauMin;
   float* tauLocalMax;
@@ -109,29 +107,16 @@ class VisualPlane{
   int plane_normal;
   int max_layer;
   
-  //Angle for rotating plane
-  float thetaX;
-  float thetaX1;
-  float thetaY;
-  float thetaY1;
-
   //Point on rotating plane
   vec3 p;
 
   //normal vector of plane
   vec3 n;
-  //points on edge of plane
-  vec3 e1;
-  vec3 e2;
-  //Point on edge of rotating plane
-  //vec3 r1;
-  //Second point used to find intersection point on domain
-  vec3 r2;
-  //Point on domain plane used to find intersection point
-  vec3 V;
-  //Normal of the domain plane
-  vec3 N;
-   
+
+  //offset of plane
+  float d;
+
+    
   ///////////////////////
   //Planes of the domain
   ///////////////////////
@@ -152,12 +137,19 @@ class VisualPlane{
 
   //Points of rotating plane
   vec3 p0,p1,p2,p3;
+  //Texture coordinates for rotating plane
+  vec3 t0,t1,t2,t3;
 
   //List of points found when intersecting planes
   std::list<vec3> pList;
+  std::list<vec3> piList;
+  std::list<vec3> tList;
+  std::list<vec3> tiList;
   std::list<vec3>::iterator listIter;
+  std::list<vec3>::iterator texlistIter;
     
   int num_Points;
+  int num_Coord;
 
   float yaw,pitch,roll;
 
