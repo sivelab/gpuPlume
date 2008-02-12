@@ -19,6 +19,12 @@ typedef struct{
   float t13;
 }Matrix;
   
+typedef struct{
+  float u;
+  float v;
+  float w;
+  float id;
+}wind;
 
 class ParticleControl{
 
@@ -119,12 +125,7 @@ class ParticleControl{
 
   bool osgPlume;
    
-  typedef struct{
-    float u;
-    float v;
-    float w;
-    float id;
-  }wind;
+ 
 
   
   typedef struct{

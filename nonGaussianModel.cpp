@@ -194,7 +194,8 @@ int NonGaussianModel::display(){
     ////////////////////////////////////////////////////////////
     for(int i = 0; i < util->numOfPE; i++){
       if(pe[i]->emit){    
-	totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step);
+	totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step,
+						   prime0,prime1);
 	if(pe[i]->releaseType == onePerKeyPress){
 	  stream->addNewStream(pe[i]);
 	}

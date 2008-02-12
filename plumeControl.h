@@ -153,6 +153,8 @@ class PlumeControl{
 
   GLenum currVelBuffer;
 
+  std::vector<float> random_values;
+
 };
 
 #endif // __PLUMECONTROL_H__

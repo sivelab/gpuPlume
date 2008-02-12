@@ -474,10 +474,12 @@ void PlumeControl::setupEmitters(){
   for(int i=0; i < util->numOfPE; i++){
     if(util->radius[i] == 0)
       pe[i] = new PointEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
-			       util->rate[i], twidth, theight, &indices, &emit_shader);
+			       util->rate[i], twidth, theight, &indices, &emit_shader,
+			       &random_values,pc->sig,nxdx,nydy,nzdz);
     else
       pe[i] = new SphereEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
-				util->rate[i], util->radius[i], twidth, theight, &indices, &emit_shader);
+				util->rate[i], util->radius[i], twidth, theight, &indices, &emit_shader,
+				&random_values,pc->sig,nxdx,nydy,nzdz);
   }
  
   for(int i=0; i < util->numOfPE; i++){

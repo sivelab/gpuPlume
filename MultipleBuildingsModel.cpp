@@ -71,7 +71,7 @@ MultipleBuildingsModel::~MultipleBuildingsModel(){}
 
 void MultipleBuildingsModel::init(bool OSG){
   osgPlume = OSG;
-  setupEmitters();
+  
   pathLines = new PathLine(util->pwidth,util->pheight,texType);
 
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz);
@@ -82,8 +82,9 @@ void MultipleBuildingsModel::init(bool OSG){
   dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
   dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
 
+  //??Don't remember why I wanted to do this
   //Send copy of particle emitter to displayControl
-  dc->setEmitter(pe[0]);
+  //dc->setEmitter(pe[0]);
 
   if(util->numBuild == 0){
     dc->draw_buildings = false;  
@@ -135,6 +136,8 @@ void MultipleBuildingsModel::init(bool OSG){
   setupTextures(); 
   /////////////////////////////
 
+  setupEmitters();
+
   //Create isocontours
   contours = new Contour(pc,util->num_contour_regions);
 
@@ -143,7 +146,7 @@ void MultipleBuildingsModel::init(bool OSG){
 				pc->tauLocalMax, pc->tauLocalMin);
 
   //send copy of planeVisual to displayControl
-  dc->setVisualPlane(planeVisual);
+  //dc->setVisualPlane(planeVisual);
 
   //
   // set up vertex buffer
@@ -239,7 +242,8 @@ int MultipleBuildingsModel::display(){
     ////////////////////////////////////////////////////////////
     for(int i = 0; i < util->numOfPE; i++){
       if(pe[i]->emit){    
-	totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step);
+	totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step,
+						   prime0,prime1);
 	if(pe[i]->releaseType == onePerKeyPress){
 	  //stream->addNewStream(pe[i]);
 	  pathLines->addNewPath(pe[i]);
@@ -598,7 +602,7 @@ void MultipleBuildingsModel::setupTextures(){
   CheckErrorsGL("\tcreated texid[1], the position texture (double buffer)...");
 
 
-  std::vector<float> random_values;
+  //std::vector<float> random_values;
   //These two textures are to store the prime values(previous and updated values)
   //We will need to initialize some data into prime0
 
@@ -645,6 +649,9 @@ void MultipleBuildingsModel::setupTextures(){
 	  data[idx] = util->sigU*(data[idx]);   
 	  data[idx+1] = util->sigV*(data[idx+1]);
 	  data[idx+2] = util->sigW*(data[idx+2]);
+	  //data[idx] = 100.0;   
+	  //data[idx+1] = 100.0;
+	  //data[idx+2] = 100.0;
 	}
 
     // Sum random values to determine if they have mean of zero and variance of 1

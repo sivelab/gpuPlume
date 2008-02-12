@@ -7,9 +7,10 @@ class SphereEmitter : public ParticleEmitter{
 
  public:
 
-  SphereEmitter(float,float,float,float,float,int,int,std::list<int>*,GLSLObject*);
+  SphereEmitter(float,float,float,float,float,int,int,std::list<int>*,GLSLObject*,std::vector<float>*,wind*,
+	       int,int,int);
 
-  virtual int EmitParticle(bool,GLuint,GLuint,float);
+  virtual int EmitParticle(bool,GLuint,GLuint,float,GLuint,GLuint);
   virtual void setVertices();
   virtual void Draw();
   virtual void getReleasedPosition(float*,float*,float*);

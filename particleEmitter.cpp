@@ -9,7 +9,7 @@ void ParticleEmitter::setVertices(){
 
 }
 int ParticleEmitter::EmitParticle(bool odd,GLuint pos0,GLuint pos1,
-				  float time_step){
+				  float time_step,GLuint prime0,GLuint prime1){
   int p_index;
   //float x;
   //float y;
