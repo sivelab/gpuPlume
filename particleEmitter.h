@@ -6,6 +6,7 @@
 #include <math.h>
 #include "framebufferObject.h"
 #include "GLSL.h"
+#include "particleControl.h"
 
 typedef struct{
     int id;
@@ -30,7 +31,7 @@ class ParticleEmitter{
 
   //Emits numToEmit(number of particles to emit) particles by setting values in
   //the particle position textures to xpos,ypos,zpos.
-  virtual int EmitParticle(bool, GLuint, GLuint, float);
+  virtual int EmitParticle(bool, GLuint, GLuint, float,GLuint,GLuint);
 
   //Uses the variables, emitTime and remTime, to emit particles based on the time step
   //and how many particles per second(pps). 
@@ -67,6 +68,15 @@ class ParticleEmitter{
  protected:
 
   std::list<float> posCoord;
+
+  //random values 
+  std::vector<float>* random_values; 
+
+  //Sigma values for wind field from particleControl
+  wind* sigma;
+
+  int nxdx,nydy,nzdz;
+  unsigned int curr;
 
   GLuint m_posTexID0, m_posTexID1;
 
