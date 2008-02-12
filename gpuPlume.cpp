@@ -409,7 +409,7 @@ void keyboard_cb(unsigned char key, int x, int y)
     {
       plume->pe[curr]->setPosition(plume->pe[curr]->xpos+1.0, plume->pe[curr]->ypos, plume->pe[curr]->zpos);
     }
-  else if (key == '>')
+  else if (key == '+')
     {
       curr++;
       if(curr == util->numOfPE)
