@@ -170,7 +170,7 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   num_Points = 0;
   num_Coord = 0;
   
-  eps = 0.00001;
+  eps = 0.000001;
 
   yaw = 0.0;
   pitch = 0.0;
@@ -522,16 +522,7 @@ void VisualPlane::calculateNormal(){
   n.x = a11*n.x + a12*n.y + a13*n.z;
   n.y = a21*n.x + a22*n.y + a23*n.z;
   n.z = a31*n.x + a32*n.y + a33*n.z;
-  
-  /*
-  float e = 0.1;
-  if((n.x < e) && (n.x > -e))
-    n.x = 0.0;
-  if((n.z < e) && (n.z > -e))
-    n.z = 0.0;
-  if((n.y < e) && (n.y > -e))
-    n.y = 0.0;
-  */
+ 
 
   //normalize the normal
   float length;
@@ -540,7 +531,32 @@ void VisualPlane::calculateNormal(){
   n.x = n.x/length;
   n.y = n.y/length;
   n.z = n.z/length;
-  
+   
+
+  //Attempt to set layer at axis aligned plane when close
+  //This seems to work when using an angle change of M_PI_2/60.0
+  float e = 0.015;
+  if((n.x < e) && (n.x > -e))
+    n.x = 0.0;
+  if((n.z < e) && (n.z > -e))
+    n.z = 0.0;
+  if((n.y < e) && (n.y > -e))
+    n.y = 0.0;
+
+  if((n.x < 1+e) && (n.x > 1-e))
+    n.x = 1.0;
+  if((n.y < 1+e) && (n.y > 1-e))
+    n.y = 1.0;
+  if((n.z < 1+e) && (n.z > 1-e))
+    n.z = 1.0;
+
+  if((n.x < -1+e) && (n.x > -1-e))
+    n.x = -1.0;
+  if((n.y < -1+e) && (n.y > -1-e))
+    n.y = -1.0;
+  if((n.z < -1+e) && (n.z > -1-e))
+    n.z = -1.0;
+
 
   std::cout << "normal is " << n.x << " " << n.y << " " << n.z << std::endl;
 
@@ -577,8 +593,8 @@ void VisualPlane::drawRotationalPlane(){
 
 	glEnable(texType);
 	glBindTexture(texType, tex_id[0]);
-	glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    
+	//glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    
 
 	
 	plane_shader.activate();
@@ -1267,7 +1283,7 @@ void VisualPlane::getTextureCoordinates(){
 }
 void VisualPlane::sortIntersectionPoints(){
 
-  int numP = num_Points;
+  //int numP = num_Points;
   piList.clear();
 
   vec3 point;
