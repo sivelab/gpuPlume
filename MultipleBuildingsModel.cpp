@@ -320,11 +320,11 @@ int MultipleBuildingsModel::display(){
 
     if (dump_contents)
     {
-      //pc->printPositions(odd);
-      pathFbo->Bind();
-      pathLines->printPathLineTexture();
+      pc->printPositions(odd);
+      //pathFbo->Bind();
+      //pathLines->printPathLineTexture();
 
-      fbo->Bind();
+      //fbo->Bind();
       dump_contents = false;
     }
     if(print_MeanVel)
@@ -499,6 +499,7 @@ void MultipleBuildingsModel::initFBO(void){
   //rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);
   //fbo->AttachRenderBuffer(GL_DEPTH_ATTACHMENT_EXT, rb->GetId() );
 
+  
   //Attach textures to framebuffer object
   fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, texid[0]);
   fbo->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, texid[1]);
