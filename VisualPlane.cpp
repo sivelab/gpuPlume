@@ -111,6 +111,8 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   glBindTexture(texType, tex_id[0]);
   glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -210,15 +212,15 @@ void VisualPlane::drawAxisAlignedPlane(){
       {
 	
 	glPushMatrix();
-	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
+	//glEnable(GL_COLOR_MATERIAL);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
 
 	glEnable(texType);
 	glBindTexture(texType, tex_id[0]);
 	//glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	//glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);    
-
+	
 	//Horizontal Texture coordinates
 	float s,t,r;
 	
@@ -267,9 +269,9 @@ void VisualPlane::drawAxisAlignedPlane(){
 	  glUniform1fARB(u_min33, TauMin[2]);
 	  glUniform1fARB(u_min13, TauMin[3]);
 	}
-
+	
 	glUniform1iARB(u_tauTex, 0); 
-	glColor4f(1.0,1.0,1.0,0.8);
+	//glColor4f(1.0,1.0,1.0,0.8);
 
 	if(plane_normal == 0){
 	  glBegin(GL_QUADS);
@@ -308,8 +310,8 @@ void VisualPlane::drawAxisAlignedPlane(){
 	//glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	//glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glDisable(texType);
-	glDisable(GL_BLEND);
-	glDisable(GL_COLOR_MATERIAL);
+	//glDisable(GL_BLEND);
+	//glDisable(GL_COLOR_MATERIAL);
 
 	glPopMatrix();
 
@@ -587,9 +589,9 @@ void VisualPlane::drawRotationalPlane(){
     //{
 	
 	glPushMatrix();
-	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
+	//glEnable(GL_COLOR_MATERIAL);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
 
 	glEnable(texType);
 	glBindTexture(texType, tex_id[0]);
@@ -628,7 +630,8 @@ void VisualPlane::drawRotationalPlane(){
 	  //}
 
 	glUniform1iARB(u_tauTex, 0); 
-	glColor4f(1.0,1.0,1.0,0.8);
+	//glColor4f(1.0,1.0,1.0,0.8);
+		
 
 	/*glBegin(GL_QUADS);
 	{
@@ -660,7 +663,8 @@ void VisualPlane::drawRotationalPlane(){
 	    tex = *texlistIter;
 	    point = *listIter;
 
-	    glTexCoord3f(tex.x/(float)(nxdx-1), tex.y/(float)(nydy-1), tex.z/(float)(nzdz-1));  
+	    glTexCoord3f(tex.x/(float)(nxdx-1), tex.y/(float)(nydy-1), tex.z/(float)(nzdz-1)); 
+	    //glTexCoord3f(point.x/(float)(nxdx-1), point.y/(float)(nydy-1), point.z/(float)(nzdz-1));
 	    glVertex3f(point.x, point.y, point.z);
 
 	    listIter++;
@@ -672,11 +676,11 @@ void VisualPlane::drawRotationalPlane(){
       	
 	plane_shader.deactivate();
 
-	glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glDisable(texType);
-	glDisable(GL_BLEND);
-	glDisable(GL_COLOR_MATERIAL);
+	//glDisable(GL_BLEND);
+	//glDisable(GL_COLOR_MATERIAL);
 
 	glPopMatrix();
 
@@ -1025,6 +1029,26 @@ bool VisualPlane::checkTexCoord(){
 }
 void VisualPlane::getTextureCoordinates(){
     
+  tiList.clear();
+  
+  listIter = piList.begin();
+  vec3 point;
+  while(listIter != piList.end()){
+
+    point = *listIter;
+    if(point.x >= (nx-1))
+      point.x = nx-1;
+    if(point.y >= (ny-1))
+      point.y = ny-1;
+    if(point.z >= (nz-1))
+      point.z = nz-1;
+
+    tiList.push_back(point);
+
+    listIter++;
+  }
+
+  /*
   d3--;
   d4--;
   d5--;
@@ -1279,6 +1303,8 @@ void VisualPlane::getTextureCoordinates(){
 
   if(num_Coord > 0)
     sortTextureCoordinates();
+
+  */
 
 }
 void VisualPlane::sortIntersectionPoints(){

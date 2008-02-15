@@ -80,6 +80,11 @@ class DisplayControl{
   int nydy;
   int nzdz;
 
+  float norm_x,norm_y,norm_z;
+  float yaw,pitch,roll;
+
+  void calculateNormal();
+
   //Feature Variables
   int numBuild;
   float* xfo;

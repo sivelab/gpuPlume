@@ -41,6 +41,14 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   eye_gaze[2] = 0.0;
 #endif
 
+  //New calculations for moving and looking around
+  yaw = 0.0;
+  pitch = 0.0;
+  roll = 0.0;
+  norm_x = -1.0;
+  norm_y = 0.0;
+  norm_z = 0.0;
+
   angle = M_PI;
   yangle = 0.0;
 
@@ -253,7 +261,21 @@ void DisplayControl::slideLeftorRight(float direction){
 
 }
 void DisplayControl::lookUporDown(float change){
-  if(change < 0.0)
+
+  if(change < 0.0){
+    //std::cout << "looking down" << std::endl;
+    pitch -= M_PI_2/90.0;
+    //yaw = 0.0;
+    //roll = 0.0;
+  }
+  else{
+    std::cout << "looking up" << std::endl;
+    pitch += M_PI_2/90.0;
+    //yaw = 0.0;
+    //roll = 0.0;
+  }
+
+  /*if(change < 0.0)
     yangle = yangle + (M_PI/90.0);
   else
     yangle = yangle - (M_PI/90.0);
@@ -263,9 +285,19 @@ void DisplayControl::lookUporDown(float change){
   else if(yangle < -M_PI/2.0)
     yangle = yangle + (M_PI/90.0);
 
-  eye_gaze[2] = sin(yangle);
+    eye_gaze[2] = sin(yangle);*/
 
-  
+  if(pitch > M_PI_2)
+    pitch = pitch - M_PI_2/90.0;
+  else if(pitch < -M_PI_2)
+    pitch = pitch + M_PI_2/90.0;
+
+  calculateNormal();
+
+  eye_gaze[0] = norm_x;
+  eye_gaze[1] = norm_y;
+  eye_gaze[2] = norm_z;
+
   //eye_gaze[1] = sin(angle);
   //eye_gaze[0] = cos(angle);
 
@@ -280,7 +312,20 @@ void DisplayControl::setElevation(float change, float rate){
 }
 void DisplayControl::setRotateAround(float change){
 
-  if(change < 0)
+  if(change < 0){
+    yaw -= M_PI/90.0;
+    //pitch = 0.0;
+    //roll = 0.0;
+  }
+  else{
+    yaw += M_PI/90.0;
+    //pitch = 0.0;
+    //roll = 0.0;
+  }
+
+  calculateNormal();
+
+  /*if(change < 0)
     angle = angle + (M_PI/90.0);
   else 
     angle = angle - (M_PI/90.0);
@@ -291,10 +336,80 @@ void DisplayControl::setRotateAround(float change){
     angle = (2*M_PI - M_PI/90.0);
 
   eye_gaze[0] = cos(angle);
-  eye_gaze[1] = sin(angle);
+  eye_gaze[1] = sin(angle);*/
 
-  xslide = cos(angle-M_PI/2.0);
-  yslide = sin(angle-M_PI/2.0);
+  eye_gaze[0] = norm_x;
+  eye_gaze[1] = norm_y;
+  eye_gaze[2] = norm_z;
+
+  //xslide = cos(angle-M_PI/2.0);
+  // yslide = sin(angle-M_PI/2.0);
+  
+
+}
+void DisplayControl::calculateNormal(){
+
+  float a11;//,a12,a13;
+  float a21;//,a22,a23;
+  float a31;//,a32,a33;
+  
+  //Transformation matrix
+  a11 = cos(pitch)*cos(yaw);
+  //a12 = sin(roll)*sin(pitch)*cos(yaw) + cos(roll)*sin(yaw);
+  //a13 = (-cos(roll))*sin(pitch)*cos(yaw) + sin(roll)*sin(yaw);
+  a21 = (-cos(pitch))*sin(yaw);
+  //a22 = (-sin(roll))*sin(pitch)*sin(yaw) + cos(roll)*cos(yaw);
+  //a23 = cos(roll)*sin(pitch)*sin(yaw) + sin(roll)*cos(yaw);
+  a31 = sin(pitch);
+  //a32 = (-sin(roll))*cos(pitch);
+  //a33 = cos(roll)*cos(pitch);
+
+  norm_x = a11*(-1.0);
+  norm_y = a21*(-1.0);
+  norm_z = a31*(-1.0);
+  
+  //norm_x = a11*norm_x + a12*norm_y + a13*norm_z;
+  //norm_y = a21*norm_x + a22*norm_y + a23*norm_z;
+  //norm_z = a31*norm_x + a32*norm_y + a33*norm_z;
+  //normalize the normal
+  float length;
+  length = sqrt((norm_x*norm_x)+(norm_y*norm_y)+(norm_z*norm_z));
+   
+  norm_x = norm_x/length;
+  norm_y = norm_y/length;
+  norm_z = norm_z/length;
+   
+  std::cout << "normal is " << norm_x << " " << norm_y << " " << norm_z << std::endl;
+
+  float b11;//,a12,a13;
+  float b21;//,a22,a23;
+  //float b31;//,a32,a33;
+  
+  //Transformation matrix
+  b11 = cos(pitch)*cos(yaw-M_PI_2);
+  //a12 = sin(roll)*sin(pitch)*cos(yaw) + cos(roll)*sin(yaw);
+  //a13 = (-cos(roll))*sin(pitch)*cos(yaw) + sin(roll)*sin(yaw);
+  b21 = (-cos(pitch))*sin(yaw-M_PI_2);
+  //a22 = (-sin(roll))*sin(pitch)*sin(yaw) + cos(roll)*cos(yaw);
+  //a23 = cos(roll)*sin(pitch)*sin(yaw) + sin(roll)*cos(yaw);
+  //b31 = sin(pitch);
+  //a32 = (-sin(roll))*cos(pitch);
+  //a33 = cos(roll)*cos(pitch);
+
+  xslide = b11*(1.0);
+  yslide = b21*(1.0);
+    
+  //norm_x = a11*norm_x + a12*norm_y + a13*norm_z;
+  //norm_y = a21*norm_x + a22*norm_y + a23*norm_z;
+  //norm_z = a31*norm_x + a32*norm_y + a33*norm_z;
+  //normalize the normal
+  
+  length = sqrt((xslide*xslide)+(yslide*yslide));
+   
+  xslide = xslide/length;
+  yslide = yslide/length;
+  
+  //std::cout << "normal is " << norm_x << " " << norm_y << " " << norm_z << std::endl;
 
 
 }
