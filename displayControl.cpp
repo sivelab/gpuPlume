@@ -7,7 +7,8 @@
 static char text_buffer[128];
 //static char number[128];
 #ifdef WIN32
-#define M_PI 3.14159
+#define M_PI 3.141592654
+#define M_PI_2 M_PI/2.0
 #endif
 
 DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float dy,float dz)
@@ -378,9 +379,7 @@ void DisplayControl::calculateNormal(){
   norm_x = norm_x/length;
   norm_y = norm_y/length;
   norm_z = norm_z/length;
-   
-  std::cout << "normal is " << norm_x << " " << norm_y << " " << norm_z << std::endl;
-
+    
   float b11;//,a12,a13;
   float b21;//,a22,a23;
   //float b31;//,a32,a33;
@@ -409,9 +408,6 @@ void DisplayControl::calculateNormal(){
   xslide = xslide/length;
   yslide = yslide/length;
   
-  //std::cout << "normal is " << norm_x << " " << norm_y << " " << norm_z << std::endl;
-
-
 }
 void DisplayControl::drawSky(){
   // double skyr = 0.4, skyg = 0.5, skyb = 0.8;
