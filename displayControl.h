@@ -56,8 +56,8 @@ class DisplayControl{
   // should probably be point.
   enum ParticleVisualState
     {
-      PARTICLE_POINT,
-      PARTICLE_SPRITE
+      PARTICLE_SPHERE,
+      PARTICLE_SNOW,
     };
   ParticleVisualState particle_visual_state;
 
@@ -66,6 +66,9 @@ class DisplayControl{
   float eye_gaze[3];
   
   tau_visual_type tau_visual;
+
+  // sorting preference
+  bool perform_cpu_sort;
 
  private:
   
@@ -100,8 +103,7 @@ class DisplayControl{
   //Copy of Visual Plane for hand control
   VisualPlane* plane;
 
-
-  GLSLObject render_shader;
+  GLSLObject sphereParticle_shader, snowParticle_shader;
   GLSLObject windField_shader;
 
   Timer *clock_timer;

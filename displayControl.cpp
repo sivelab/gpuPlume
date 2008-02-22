@@ -11,6 +11,30 @@ static char text_buffer[128];
 #define M_PI_2 M_PI/2.0
 #endif
 
+// sorting tests /////////////////////////
+float sort_eye[3];
+double Distance2Eye(const float* fp)
+{
+  return sqrt( (sort_eye[0]-fp[0])*(sort_eye[0]-fp[0]) 
+	       + (sort_eye[1]-fp[1])*(sort_eye[1]-fp[1]) 
+	       + (sort_eye[2]-fp[2])*(sort_eye[2]-fp[2]) );
+}
+
+static int cmpVertices(const void *p1, const void *p2)
+{
+  const float* fp1 = (const float*)p1;
+  const float* fp2 = (const float*)p2;
+
+  float d1 = Distance2Eye(fp1);
+  float d2 = Distance2Eye(fp2);
+
+  if (d2 < d1)
+    return -1;
+  else 
+    return 1;
+}
+
+
 DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float dy,float dz)
 {
   nx = x;
@@ -68,12 +92,17 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   visual_layer = -1;
 
   // Set particle visual state to point based particles initially
-  particle_visual_state = PARTICLE_SPRITE;  // POINT or SPRITE;
+  particle_visual_state = PARTICLE_SPHERE;
 
   //This shader is used to make final changes before rendering to the screen
-  render_shader.addShader("Shaders/particleVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
-  render_shader.addShader("Shaders/particleVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
-  render_shader.createProgram();
+  sphereParticle_shader.addShader("Shaders/sphereVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
+  sphereParticle_shader.addShader("Shaders/sphereVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  sphereParticle_shader.createProgram();
+
+  //This shader is used to make final changes before rendering to the screen
+  snowParticle_shader.addShader("Shaders/snowVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
+  snowParticle_shader.addShader("Shaders/snowVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  snowParticle_shader.createProgram();
 
   //Wind Field shader
   windField_shader.addShader("Shaders/windFieldLayer_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -81,18 +110,25 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   windField_shader.createProgram();
   uniform_windTex = windField_shader.createUniform("Wind");
  
-  // for point sprites, we need the uniform variables for the texture
-  // units that hold the point sprite and the normal map
-  uniform_pointsprite_tex = render_shader.createUniform("pointsprite_texunit");
-  uniform_normalmap_tex = render_shader.createUniform("pointspritenormal_texunit");
-  uniform_visualization_tex = render_shader.createUniform("visualization_texunit");
+  // For the Sphere Particle Shader, we need the following data:
+  // uniform variables for the texture units that hold the point
+  // sprite and the normal map
+  uniform_pointsprite_tex = sphereParticle_shader.createUniform("pointsprite_texunit");
+  uniform_normalmap_tex = sphereParticle_shader.createUniform("pointspritenormal_texunit");
+  uniform_visualization_tex = sphereParticle_shader.createUniform("visualization_texunit");
 
-  // determine which visual to use
-  uniform_pointsprite_visuals = render_shader.createUniform("point_visuals");
-  uniform_nx = render_shader.createUniform("nx");
-  uniform_ny = render_shader.createUniform("ny");
-  uniform_nz = render_shader.createUniform("nz");
-  uniform_numInRow = render_shader.createUniform("numInRow");
+  // and determine which visual to use
+  // uniform_pointsprite_visuals = sphereParticle_shader.createUniform("point_visuals");
+  uniform_nx = sphereParticle_shader.createUniform("nx");
+  uniform_ny = sphereParticle_shader.createUniform("ny");
+  uniform_nz = sphereParticle_shader.createUniform("nz");
+  uniform_numInRow = sphereParticle_shader.createUniform("numInRow");
+
+  // For the Snow Particle Shader, we need the following data:
+  uniform_nx = snowParticle_shader.createUniform("nx");
+  uniform_ny = snowParticle_shader.createUniform("ny");
+  uniform_nz = snowParticle_shader.createUniform("nz");
+  uniform_numInRow = snowParticle_shader.createUniform("numInRow");
 
   // POINT_SPRITE
   //
@@ -119,6 +155,8 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   graphics_time[0] = clock_timer->tic();
   HUP_display_update_time[0] = clock_timer->tic();
   estimated_rate = 0.0;
+
+  perform_cpu_sort = false;
 }
 void DisplayControl::setEmitter(ParticleEmitter* p){
   pe = p;
@@ -130,7 +168,9 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
 				 int numInRow, int twidth, int theight)
 {
   
-  drawSky();
+  // drawSky();
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT);
   
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
@@ -166,14 +206,48 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   
   glEnableClientState(GL_VERTEX_ARRAY); 
   
-  render_shader.activate();  
-  if(color_buffer == 0)
-    glColor4f(1.0,1.0,1.0,1.0);
-
-  if (particle_visual_state == PARTICLE_SPRITE)
+  // see what the cost is for sorting the vertex buffer elements based on distance from the eye
+  if (perform_cpu_sort)
     {
+      glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
+      GLfloat* vertex_data = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
+      if (vertex_data != (GLfloat*)NULL)
+	{
+	  memcpy(&sort_eye, &eye_pos, sizeof(float)*3);
+	  qsort(vertex_data, twidth*theight, sizeof(GLfloat)*4, cmpVertices);
+	}
+      glUnmapBuffer(GL_ARRAY_BUFFER);
+
+      // shut it back off
+      // perform_cpu_sort = false;
+    }
+
+  if (particle_visual_state == PARTICLE_SNOW)
+    {
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
+
+      snowParticle_shader.activate();  
+
       glPointSize(6.0);
-      glUniform1iARB(uniform_pointsprite_visuals, 1);
+      glUniform1iARB(uniform_nx, nx);
+      glUniform1iARB(uniform_ny, ny);
+      glUniform1iARB(uniform_nz, nz);
+      glUniform1iARB(uniform_numInRow, numInRow);
+
+      glEnable(GL_TEXTURE_2D);
+      glEnable(GL_TEXTURE_RECTANGLE_ARB);
+      glActiveTextureARB(GL_TEXTURE0_ARB);
+
+      glTexEnvf(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
+      glEnable(GL_POINT_SPRITE_ARB);
+      glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    }
+  else if (particle_visual_state == PARTICLE_SPHERE)
+    {
+      sphereParticle_shader.activate();  
+
+      glPointSize(6.0);
       glUniform1iARB(uniform_nx, nx);
       glUniform1iARB(uniform_ny, ny);
       glUniform1iARB(uniform_nz, nz);
@@ -196,27 +270,31 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
 
       glActiveTextureARB(GL_TEXTURE0_ARB);
 
-      glTexEnvf(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
-      glEnable(GL_POINT_SPRITE_ARB);
-      glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     }
-  else 
-    {
-      glPointSize(3.0);
-      glUniform1iARB(uniform_pointsprite_visuals, 0);
-    }
+
+  // all of our particle rendering methods now use the imposters
+  glTexEnvf(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
+  glEnable(GL_POINT_SPRITE_ARB);
+  glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+
+  if(color_buffer == 0)
+    glColor4f(1.0,1.0,1.0,1.0);
 
   glDrawArrays(GL_POINTS, 0, twidth*theight);
 
-  if (particle_visual_state == PARTICLE_SPRITE)
+  // all of our particle rendering methods now use the imposters
+  glDisable(GL_POINT_SPRITE_ARB);
+  glDisable(GL_TEXTURE_2D);
+
+  if (particle_visual_state == PARTICLE_SNOW)
     {
-      glDisable(GL_POINT_SPRITE_ARB);
-
-      // glBindTexture(GL_TEXTURE_2D, 0);
-      glDisable(GL_TEXTURE_2D);
+      snowParticle_shader.deactivate();  
+      glDisable(GL_BLEND);
     }
-
-  render_shader.deactivate();
+  else if (particle_visual_state == PARTICLE_SPHERE)
+    {
+      sphereParticle_shader.deactivate();  
+    }
 
   // spit out frame rate
   if(!osgPlume){
@@ -270,7 +348,7 @@ void DisplayControl::lookUporDown(float change){
     //roll = 0.0;
   }
   else{
-    std::cout << "looking up" << std::endl;
+    // std::cout << "looking up" << std::endl;
     pitch += M_PI_2/90.0;
     //yaw = 0.0;
     //roll = 0.0;
