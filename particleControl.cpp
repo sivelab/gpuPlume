@@ -2747,7 +2747,7 @@ void ParticleControl::initCellType(){
   
   QUICCellType.open(path.c_str());//opening the Celltype file  to read
   //QUICCellType.open("Settings/QU_celltype.dat");//opening the Celltype file  to read
-  if(!QUICCellType){
+  if(!QUICCellType.is_open()){
     std::cerr<<"Unable to open QUIC Celltype file : QU_celltype.dat ";
     exit(1);
   }
