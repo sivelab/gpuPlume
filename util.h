@@ -69,9 +69,13 @@ class Util{
   //total number of particle emitters
   int numOfPE;
   //particle emitter information
+  int* petype;
   float* xpos;
   float* ypos;
   float* zpos;
+  float* xpos_e;
+  float* ypos_e;
+  float* zpos_e;
   float* radius;
   float* rate;
   //particle emitter release method
@@ -108,7 +112,7 @@ class Util{
   bool read1Float(char*,std::string,float*);
   bool read6Float(char*,std::string,float*);
   bool read3Float(char*,std::string,float*);
-  bool readSourceInfo(char*,std::string,float*);
+  bool readSourceInfo(char*,std::string,int&,float*);
   bool readComment(const char*);
   bool read1String(const char*,char*,std::string*);
 

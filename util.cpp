@@ -34,7 +34,8 @@ void Util::parseLine(char* line){
   
   float f1;
   float* b = new float[6];
-  float* s = new float[5];
+  int s_type;
+  float* s = new float[8];
   float* c = new float[3];
   std::string s1;
 
@@ -133,18 +134,47 @@ void Util::parseLine(char* line){
   }
   if(read1Float(line, "num_of_sources", &f1)){
     numOfPE = (int)f1;
+    petype = new int[numOfPE];
     xpos = new float[numOfPE];
     ypos = new float[numOfPE];
     zpos = new float[numOfPE];
+    xpos_e = new float[numOfPE];
+    ypos_e = new float[numOfPE];
+    zpos_e = new float[numOfPE];
     radius = new float[numOfPE];
     rate = new float[numOfPE];
   }
-  if(readSourceInfo(line, "source_info", s)){
-    xpos[num] = s[0];
-    ypos[num] = s[1];
-    zpos[num] = s[2];
-    radius[num] = s[3];
-    rate[num] = s[4];
+  if(readSourceInfo(line, "source_info", s_type, s)){
+    if (s_type == 1) // POINT
+      {
+	petype[num] = 1;
+	xpos[num] = s[0];
+	ypos[num] = s[1];
+	zpos[num] = s[2];
+	radius[num] = 0.0;
+	rate[num] = s[3];
+      }
+    else if (s_type == 2) // LINE
+      {
+	petype[num] = 2;
+	xpos[num] = s[0];
+	ypos[num] = s[1];
+	zpos[num] = s[2];
+	xpos_e[num] = s[3];
+	ypos_e[num] = s[4];
+	zpos_e[num] = s[5];
+	radius[num] = 0.0;
+	rate[num] = s[6];
+      }
+    else if (s_type == 3) // SPHERE
+      {
+	petype[num] = 3;
+	xpos[num] = s[0];
+	ypos[num] = s[1];
+	zpos[num] = s[2];
+	radius[num] = s[3];
+	rate[num] = s[4];
+      }
     num++;
   }
   if(read1Float(line, "release_type",&f1)){
@@ -196,20 +226,54 @@ void Util::parseLine(char* line){
   }
 }
 
-bool Util::readSourceInfo(char *line, std::string settingName, float *f)
+bool Util::readSourceInfo(char *line, std::string settingName, int &source_type, float *f)
 {
 	std::istringstream ist(line);
 
-	std::string w;
+	std::string w, source_typename;
 
-	ist >> w;
+	ist >> w;  // in other words, "source_info"
 	if(w == settingName){	 
-	  ist >> f[0];
-	  ist >> f[1];
-	  ist >> f[2];
-	  ist >> f[3];
-	  ist >> f[4];
-	
+
+	  std::cout << "w = " << w <<  std::endl;
+
+	  // check the source type, which will determine the remaining arguments
+	  ist >> source_typename;
+	  std::cout << "source name = " << source_typename <<  std::endl;
+	  if (source_typename == "point")
+	    {
+	      source_type = 1;
+	      ist >> f[0];
+	      ist >> f[1];
+	      ist >> f[2];
+	      ist >> f[3];
+	    }
+	  else if (source_typename == "line")
+	    {
+	      source_type = 2;
+	      ist >> f[0];
+	      ist >> f[1];
+	      ist >> f[2];
+	      ist >> f[3];
+	      ist >> f[4];
+	      ist >> f[5];
+	      ist >> f[6];
+	    }
+	  else if (source_typename == "sphere")
+	    {
+	      source_type = 3;
+	      ist >> f[0];
+	      ist >> f[1];
+	      ist >> f[2];
+	      ist >> f[3];
+	      ist >> f[4];
+	    }
+	  else 
+	    {
+	      std::cerr << "\n*********************\nUnknown source type in settings file!\n*********************" << std::endl;
+	      return false;
+	    }
+
 	  return true;
 	}
 	

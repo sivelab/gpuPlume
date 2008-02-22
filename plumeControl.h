@@ -17,6 +17,7 @@
 #include "displayControl.h"
 #include "particleEmitter.h"
 #include "pointEmitter.h"
+#include "lineEmitter.h"
 #include "sphereEmitter.h"
 #include "collectionBox.h"
 #include "framebufferObject.h"
