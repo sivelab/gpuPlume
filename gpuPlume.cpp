@@ -83,7 +83,14 @@ int main(int argc, char** argv)
   plume_timer[0] = plume_clock->tic();
 
   util = new Util();
-  util->readInput("Settings/input.txt");
+
+  if (argc == 2)
+    {
+      std::cout << "Reading input file from " << argv[1] << std::endl;
+      util->readInput(argv[1]);
+    }
+  else 
+    util->readInput("Settings/input.txt");
 
   //plume = new PlumeControl(util);
   //Options are:
@@ -472,6 +479,18 @@ void keyboard_cb(unsigned char key, int x, int y)
   else if(key == '-')
     {
       plume->planeVisual->switchPlane();
+    }
+  else if (key == '.')
+    {
+      plume->dc->perform_cpu_sort = !plume->dc->perform_cpu_sort;
+      std::cout << "Sorting: " << plume->dc->perform_cpu_sort << std::endl;
+    }
+  else if (key == ',')
+    {
+      if (plume->dc->particle_visual_state == DisplayControl::PARTICLE_SPHERE)
+	plume->dc->particle_visual_state = DisplayControl::PARTICLE_SNOW;
+      else 
+	plume->dc->particle_visual_state = DisplayControl::PARTICLE_SPHERE;
     }
 
   glutPostRedisplay();
