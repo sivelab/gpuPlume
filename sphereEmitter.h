@@ -1,4 +1,4 @@
-#ifndef __SHPERE_EMITTER_H__
+#ifndef __SPHERE_EMITTER_H__
 #define __SPHERE_EMITTER_H__
 
 #include "particleEmitter.h"
