@@ -8,18 +8,29 @@
 #include <GL/glut.h>
 #endif
 
-LineEmitter::LineEmitter(float x,float y,float z,float rate, float r,
-	       int w,int h,std::list<int>* ind, GLSLObject* emit_shader){
-
+LineEmitter::LineEmitter(float x, float y, float z,
+			 float xe, float ye, float ze,
+			 float rate,
+			 int w,int h,std::list<int>* ind, GLSLObject* emit_shader,
+			 std::vector<float>* randoms, wind* sig,
+			 int dx, int dy, int dz)
+{
   xpos = x;
   ypos = y;
   zpos = z;
+
+  xpos_end = xe;
+  ypos_end = ye;
+  zpos_end = ze;
+
+  nxdx = dx;
+  nydy = dy;
+  nzdz = dz;
 
   reuse = false;
   lifeTime = -1.0;
 
   releaseRate = rate;
-  radius = r;
 
   numToEmit = 0;
 
@@ -32,6 +43,12 @@ LineEmitter::LineEmitter(float x,float y,float z,float rate, float r,
   indices = ind;
  
   shader = emit_shader;
+
+  random_values = randoms;
+  sigma = sig;
+  
+  //counter used to step through the random values
+  curr = 0;
 
 }
 LineEmitter::~LineEmitter(){}
@@ -47,53 +64,53 @@ void LineEmitter::Draw(){
 
   glEnable(GL_COLOR_MATERIAL);
 
-  //glPointSize(2.0);
-  GLint lwidth = 1.0;
+  GLint lwidth;
   glGetIntegerv(GL_LINE_WIDTH, &lwidth);
   glLineWidth(4.0);
-
+  
   glPushMatrix();
-  glColor4f(0.0, 0.0, 1.0, 0.5);
-  glTranslatef(xpos,ypos,zpos);
-
+  glColor4f(0.0, 0.0, 1.0, 1.0);
   glBegin(GL_LINES);
-  glVertex3f();
-  glVertex3f();
+  glVertex3f(xpos, ypos, zpos);
+  glVertex3f(xpos_end, ypos_end, zpos_end);
   glEnd();
-
   glPopMatrix();
 
   glLineWidth(lwidth);
+
+  glDisable(GL_BLEND);
   glDisable(GL_COLOR_MATERIAL);
+
   glEnable(GL_TEXTURE_RECTANGLE_ARB);
 }
 
 void LineEmitter::setVertices(){
   posCoord.clear();
 
-  for(int i=0; i < numToEmit; i++){
-    offsetx = Random::uniform()*2.0 - 1.0;
-    offsety = Random::uniform()*2.0 - 1.0;
-    offsetz = Random::uniform()*2.0 - 1.0;
+  // to generate a random point along a line, we need only query a
+  // single random variable between 0 and 1 that can be used as a
+  // parameter for a parameterized line function.
 
-    float d = sqrt(offsetx*offsetx + offsety*offsety + offsetz*offsetz);
-    offsetx = (offsetx/d) * radius;
-    offsety = (offsety/d) * radius;
-    offsetz = (offsetz/d) * radius;
+  float t;
+  for(int i=0; i < numToEmit; i++){
+
+    t = Random::uniform();
+
+    offsetx = xpos + t * (xpos_end - xpos);
+    offsety = ypos + t * (ypos_end - ypos);
+    offsetz = zpos + t * (zpos_end - zpos);
     
-    posCoord.push_back(xpos+offsetx);
-    posCoord.push_back(ypos+offsety);
-    posCoord.push_back(zpos+offsetz);
+    posCoord.push_back(offsetx);
+    posCoord.push_back(offsety);
+    posCoord.push_back(offsetz);
     posCoord.push_back(lifeTime);
 
   }
-  //int size = posCoord.size();
-  //std::cout << "Stored " << size << " positions" << std::endl;
 }
-
-int LineEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1, float time_step)
-{
+int LineEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
+			      float time_step,GLuint prime0,GLuint prime1){
   int p_index;
+  float px,py,pz;
 
   switch(releaseType){
   case perSecond:
@@ -118,10 +135,19 @@ int LineEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1, float time_step
     //Punch Hole method. Need to set drawbuffer and activate shader.
     if(Punch_Hole){
 
-      if(odd)
+      /*if(odd)
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
       else 
-	glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+      glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);*/
+
+      if(odd){
+	GLenum buffers[] = {GL_COLOR_ATTACHMENT0_EXT,GL_COLOR_ATTACHMENT2_EXT};
+	glDrawBuffers(2,buffers);
+      }
+      else{ 
+	GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT};
+	glDrawBuffers(2,buffers);
+      }
 
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
@@ -145,19 +171,24 @@ int LineEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1, float time_step
 	  indicesInUse->push_back(newIndex);	   
 	}	 
 
-	offsetx = Random::uniform()*2.0 - 1.0;
-	offsety = Random::uniform()*2.0 - 1.0;
-	offsetz = Random::uniform()*2.0 - 1.0;
-
-	float d = sqrt(offsetx*offsetx + offsety*offsety + offsetz*offsetz);
-	offsetx = (offsetx/d) * radius;
-	offsety = (offsety/d) * radius;
-	offsetz = (offsetz/d) * radius;
-
-
+	float t = Random::uniform();
+	offsetx = xpos + t * (xpos_end - xpos);
+	offsety = ypos + t * (ypos_end - ypos);
+	offsetz = zpos + t * (zpos_end - zpos);
+    
 	//Determine the coordinates into the position texture
 	s = (p_index%twidth);
 	t = (p_index/twidth);	  
+
+	//Determine initial prime value
+	int p2idx = ((int)offsetz)*nydy*nxdx + ((int)offsety)*nxdx + (int)offsetx;
+	px = random_values->at(curr)*(sigma[p2idx].u);
+	py = random_values->at(curr+1)*(sigma[p2idx].v);
+	pz = random_values->at(curr+2)*(sigma[p2idx].w);
+	//std::cout << random_values->at(curr) << std::endl;
+	curr += 3;
+	if(curr >= random_values->size())
+	  curr = 0;
 
 	if(Punch_Hole){
 	  glPointSize(1.0);
@@ -168,7 +199,10 @@ int LineEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1, float time_step
 	  //std::cout << "particle num= " << p_index << "  s = " << s << "  t = " << t << std::endl;
 	  glBegin(GL_POINTS);
 	  {
-	    glColor4f(xpos+offsetx, ypos+offsety, zpos+offsetz, lifeTime);
+	    //passes initial prime into shader
+	    glNormal3f(px,py,pz);
+	    //passes initial position into shader
+	    glColor4f(offsetx, offsety, offsetz, lifeTime);
 	    glVertex2f(0.5, 0.5);
 	    //glVertex2f(s,t);
 	  }
@@ -182,9 +216,9 @@ int LineEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1, float time_step
 	  // doing 1x1 pixels (but many times).  This operation
 	  // appears to work consistently.
 	  GLfloat value[4];
-	  value[0] = xpos+offsetx;
-	  value[1] = ypos+offsety;
-	  value[2] = zpos+offsetz;
+	  value[0] = offsetx;
+	  value[1] = offsety;
+	  value[2] = offsetz;
 	  value[3] = lifeTime;
 
 	  // write there via a glTexSubImage2D
