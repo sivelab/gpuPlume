@@ -560,7 +560,7 @@ void VisualPlane::calculateNormal(){
     n.z = -1.0;
 
 
-  std::cout << "normal is " << n.x << " " << n.y << " " << n.z << std::endl;
+  // std::cout << "normal is " << n.x << " " << n.y << " " << n.z << std::endl;
 
 }
 void VisualPlane::drawRotationalPlane(){
@@ -715,8 +715,8 @@ void VisualPlane::drawRotationalPlane(){
 
 void VisualPlane::getIntersectionPoints(){
      
-  std::cout << "Plane's normal" << std::endl;
-  std::cout << n.x << " " << n.y << " " << n.z << std::endl;
+  // std::cout << "Plane's normal" << std::endl;
+  // std::cout << n.x << " " << n.y << " " << n.z << std::endl;
   
   //Point on rotating plane
   p.x = plane_layer_x;
