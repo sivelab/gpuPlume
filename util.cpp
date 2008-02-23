@@ -235,11 +235,8 @@ bool Util::readSourceInfo(char *line, std::string settingName, int &source_type,
 	ist >> w;  // in other words, "source_info"
 	if(w == settingName){	 
 
-	  std::cout << "w = " << w <<  std::endl;
-
 	  // check the source type, which will determine the remaining arguments
 	  ist >> source_typename;
-	  std::cout << "source name = " << source_typename <<  std::endl;
 	  if (source_typename == "point")
 	    {
 	      source_type = 1;

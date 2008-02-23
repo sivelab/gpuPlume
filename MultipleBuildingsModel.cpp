@@ -226,7 +226,10 @@ int MultipleBuildingsModel::display(){
     //Store simulation start time and turn on one particle emitter
     if(firstTime){
       if(!osgPlume)
-	pe[0]->emit = true;
+	{
+	  for (int pe_i = 0; pe_i < util->numOfPE; pe_i++)
+	    pe[pe_i]->emit = true;
+	}
       sim->setStartTime(&time_step);
       firstTime = false;
     }
