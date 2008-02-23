@@ -2,7 +2,10 @@ EXEC	= gpuPlume
 
 CC	= g++ -O2 -Wall -DNDEBUG
 
+#	  GeomTest.cpp \
+
 CSRC	= collectionBox.cpp \
+	  Contour.cpp \
 	  displayControl.cpp \
 	  framebufferObject.cpp \
 	  Gaussian_2shaders_Model.cpp \
@@ -10,10 +13,12 @@ CSRC	= collectionBox.cpp \
 	  gpuPlume.cpp \
 	  glErrorUtil.cpp \
 	  GLSL.cpp \
+	  lineEmitter.cpp \
 	  MultipleBuildingsModel.cpp \
 	  nonGaussianModel.cpp \
 	  particleControl.cpp \
 	  particleEmitter.cpp \
+	  PathLine.cpp \
 	  plumeControl.cpp \
 	  pointEmitter.cpp \
 	  Random.cpp \
@@ -23,7 +28,8 @@ CSRC	= collectionBox.cpp \
 	  sphereEmitter.cpp \
 	  streamLine.cpp \
 	  Timer.cpp \
-	  util.cpp
+	  util.cpp \
+	  VisualPlane.cpp
 
 COBJS   = $(CSRC:.cpp=.o)
 
