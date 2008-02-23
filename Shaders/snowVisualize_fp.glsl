@@ -13,17 +13,23 @@ void main(void)
 {
   vec4 cr = vec4(1.0, 1.0, 1.0, 1.0);
   vec4 cl = vec4(1.0,1.0,1.0,1.0);
-  vec4 ca = vec4(0.2,0.2,0.2,1.0);
+  // vec4 ca = vec4(0.5,0.5,0.5,1.0);
+  vec4 ca = vec4(0.0,0.0,0.0,1.0);
 
+  // Setting g to 0.0 produces an isotropic scattering, integrated over
+  // the sphere (1/4pi).  This can be used as a test case to get
+  // transparency and other parameters for ambient light correct.
+  // float g = 0.0;
   float g = 0.67;
-  float pi = 3.141592654;
 
   vec3 w = normalize(vec3(-particle_epos));
   vec3 wp = normalize(vec3(particle_epos.xyz - lpos.xyz));
   float costheta = dot(w, wp);
+
+  float pi = 3.141592654;
   float phase = 1.0 / (4.0*pi) * (1.0 - g*g) / pow(1.0 + g*g - 2.0 * g * costheta, 1.5);
 
-  vec4 color = phase * cl; // + ca;
+  vec4 color = phase * cl + ca;
 
   // simple radial expansion for alpha
   // float radius = sqrt( ((0.5-gl_TexCoord[0].s) * (0.5-gl_TexCoord[0].s)) + ((0.5-gl_TexCoord[0].t) * (0.5-gl_TexCoord[0].t)) );
