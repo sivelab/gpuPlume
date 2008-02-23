@@ -273,11 +273,17 @@ void CollectionBox::outputConc(std::string file,double totalTime,double totalTim
     output.open(file.c_str(),std::ios::app);
   }
 
-  output << "Variables: X Y Z C" << "\n";
-  output << "Average Time: " << totalTime << "\n";
-  //std::cout << "Variables: X Y Z C" << std::endl;
-  //std::cout << "Average Time: " << totalTime << std::endl;
- 
+  // The format of the output file has been changed to work directly
+  // with matlab. -Pete
+
+  output << "average_time = " << totalTime << ";\n";
+  output << "total_time_steps = " << totalTimeSteps << ";\n\n";
+
+  output << "% The following array contains the locations of the\n";
+  output << "% collection box cells in X, Y, and Z followed by the \n";
+  output << "% concentration in the cell." << std::endl;
+  output << "concentration = [\n";
+
   for(int k=0; k < numBox_z; k++)
     for(int i=0; i < numBox_y; i++)
       for(int j=0; j < numBox_x; j++)
@@ -295,14 +301,12 @@ void CollectionBox::outputConc(std::string file,double totalTime,double totalTim
 	  offsety = float(((uy-ly)/(float)numBox_y)/2.0);
 	  offsetz = float(((uz-lz)/(float)numBox_z)/2.0);
 	  
-	  output << x+offsetx << "  " << y+offsety << "  " << z+offsetz <<
-	    "  " << cBox[idx]/totalTimeSteps << "\n";
+	  output << '\t' << x+offsetx << ' ' << y+offsety << ' ' << z+offsetz 
+		 << ' ' << cBox[idx]/totalTimeSteps << ";\n";
 
 	  /*std::cout << z+offsetz << "  " << x+offsetx << "  " << y+offsety <<
 	    "  " << cBox[idx] << std::endl;*/
-
 	}
 
-  //clear();
-
+  output << "];\n";
 }
