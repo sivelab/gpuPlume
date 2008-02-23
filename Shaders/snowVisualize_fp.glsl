@@ -34,13 +34,9 @@ void main(void)
   float x = gl_TexCoord[0].s - 0.5;
   float y = gl_TexCoord[0].t - 0.5;
 
-  float a = 20.0;
-  float xWidth = 0.5;
-  float yWidth = 0.5;
-  float expX = exp(-a * xWidth*xWidth);
-  float expY = exp(-a * yWidth*yWidth);
-
-  float alpha = max(0.0, exp(-a * x * x) - expX) * max(0.0, exp(-a * y * y) - expY);
+  float a = 0.5;
+  float c = 0.2;
+  float alpha = a * exp( - ((x*x)/(2.0*c*c)) - ((y*y)/(2.0*c*c)));
 
   gl_FragColor = vec4(color.rgb, alpha);
 }
