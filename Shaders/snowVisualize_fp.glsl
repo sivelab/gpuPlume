@@ -30,12 +30,10 @@ void main(void)
   // float alpha = clamp(0.5 - radius, 0.0, 1.0);
 
   // Gaussian based expansion for alpha
-  // recenter x and y (aka s, t) about origin
-  float x = gl_TexCoord[0].s - 0.5;
+  float x = gl_TexCoord[0].s - 0.5;   // recenter x and y (aka s, t) about origin
   float y = gl_TexCoord[0].t - 0.5;
-
-  float a = 0.5;
-  float c = 0.2;
+  float a = 0.5;  // height, controls the transparency, currently not greater than 50%
+  float c = 0.2;  // width of the Gaussian
   float alpha = a * exp( - ((x*x)/(2.0*c*c)) - ((y*y)/(2.0*c*c)));
 
   gl_FragColor = vec4(color.rgb, alpha);
