@@ -167,23 +167,27 @@ void DisplayControl::setVisualPlane(VisualPlane* vp){
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight)
 {
-  
-  // drawSky();
-  glClearColor(0.0, 0.0, 0.0, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT);
+
+  if (particle_visual_state == PARTICLE_SNOW)
+    {
+      glClearColor(0.0, 0.0, 0.0, 1.0);
+      glClear(GL_COLOR_BUFFER_BIT);
+    }
+  else
+    drawSky();
   
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
-	     eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], 
+	       eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], 
 	       eye_gaze[2]+eye_pos[2], 0, 0, 1 );
 
     // allow rotation of this object
     //glRotatef(elevation, 0,1,0);
     //glRotatef(azimuth, 0,0,1);  
   }
-  
     
-  drawAxes();
+  if (particle_visual_state != PARTICLE_SNOW)
+    drawAxes();
   
   if(!osgPlume)
     drawGrid();
@@ -192,6 +196,30 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     drawFeatures();
   }
   
+  if (particle_visual_state == PARTICLE_SNOW)
+    {
+      // draw lights
+      
+      // for this experiment, place three lights equally spaced in the domain
+      glPushMatrix();
+      glTranslatef(10.0, 20.0, 6.0);
+      glColor3f(1.0, 1.0, 1.0);
+      glutSolidCube(0.25);
+      glPopMatrix();
+
+      glPushMatrix();
+      glTranslatef(10.0, 40.0, 6.0);
+      glColor3f(1.0, 1.0, 1.0);
+      glutSolidCube(0.25);
+      glPopMatrix();
+
+      glPushMatrix();
+      glTranslatef(10.0, 60.0, 6.0);
+      glColor3f(1.0, 1.0, 1.0);
+      glutSolidCube(0.25);
+      glPopMatrix();
+    }
+
   drawGround();
 
   // render the vertices in the VBO (the particle positions) as points in the domain
@@ -775,6 +803,9 @@ void DisplayControl::drawFeatures(void)
   //float grid_scale = 1.0;  // currently, just 1 but likely needs to come from QUICPLUME
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
+  // glEnable(GL_COLOR_MATERIAL);
+  // glEnable(GL_LIGHTING);
+  // glEnable(GL_LIGHT0);
   
   // Draw the building
   for (int qi=0; qi<numBuild; qi++) 
@@ -831,6 +862,8 @@ void DisplayControl::drawFeatures(void)
       glEnd();
     }
 	
+  // glDisable(GL_LIGHT0);
+  // glDisable(GL_LIGHTING);
   glDisable(GL_TEXTURE_2D);
 	
   glEnable(texType);
