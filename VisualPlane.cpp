@@ -981,7 +981,7 @@ void VisualPlane::getIntersectionPoints(){
     
     listIter++;
   }
-  std::cout << "Num points = " << num_Points << std::endl;
+  // std::cout << "Num points = " << num_Points << std::endl;
   
   //Now we have the four intersection points of the domain
   //They need to be sorted so that they can be specified in
@@ -1295,7 +1295,7 @@ void VisualPlane::getTextureCoordinates(){
     texlistIter++;
   }
 
-  std::cout << "Num points = " << num_Coord << std::endl;
+  // std::cout << "Num points = " << num_Coord << std::endl;
  
   d3++;
   d4++;
