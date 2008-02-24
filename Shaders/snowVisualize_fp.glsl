@@ -1,5 +1,5 @@
 // Snow Visualization Shader
-// $Id$
+// Pete Willemsen <willemsn@d.umn.edu>
 
 uniform int nx;
 uniform int ny;
