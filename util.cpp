@@ -175,6 +175,16 @@ void Util::parseLine(char* line){
 	radius[num] = s[3];
 	rate[num] = s[4];
       }
+    else if (s_type == 4) // PLANE
+      {
+	petype[num] = 4;
+	xpos[num] = s[0];
+	ypos[num] = s[1];
+	zpos[num] = s[2];
+	xpos_e[num] = s[3];  // use xpos_e to store width
+	ypos_e[num] = s[4];  // use ypos_e to store height
+	rate[num] = s[5];
+      }
     num++;
   }
   if(read1Float(line, "release_type",&f1)){
@@ -264,6 +274,16 @@ bool Util::readSourceInfo(char *line, std::string settingName, int &source_type,
 	      ist >> f[2];
 	      ist >> f[3];
 	      ist >> f[4];
+	    }
+	  else if (source_typename == "plane")
+	    {
+	      source_type = 4;
+	      ist >> f[0];
+	      ist >> f[1];
+	      ist >> f[2];
+	      ist >> f[3];
+	      ist >> f[4];
+	      ist >> f[5];
 	    }
 	  else 
 	    {

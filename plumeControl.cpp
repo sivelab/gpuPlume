@@ -489,6 +489,13 @@ void PlumeControl::setupEmitters(){
       pe[i] = new SphereEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
 				util->rate[i], util->radius[i], twidth, theight, &indices, &emit_shader,
 				&random_values,pc->sig,nxdx,nydy,nzdz);
+    else if (util->petype[i] == 4)
+      // PLANE EMITTER
+      pe[i] = new PlaneEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
+			       util->xpos_e[i], util->ypos_e[i], 
+			       util->rate[i],
+			       twidth, theight, &indices, &emit_shader,
+			       &random_values,pc->sig,nxdx,nydy,nzdz);
   }
  
   for(int i=0; i < util->numOfPE; i++){

@@ -18,6 +18,7 @@
 #include "particleEmitter.h"
 #include "pointEmitter.h"
 #include "lineEmitter.h"
+#include "planeEmitter.h"
 #include "sphereEmitter.h"
 #include "collectionBox.h"
 #include "framebufferObject.h"
