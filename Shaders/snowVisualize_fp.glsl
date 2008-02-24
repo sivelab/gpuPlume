@@ -19,7 +19,7 @@ void main(void)
 {
   // Light intensities
   vec4 cl1 = vec4(248.0/255.0, 180.0/255.0, 0.0, 1.0);
-  vec4 cl2 = vec4(1.0,1.0,0.0,1.0);
+  vec4 cl2 = vec4(1.0,1.0,1.0,1.0);
   vec4 cl3 = vec4(248.0/255.0, 151.0/255.0, 0.0, 1.0);
 
   // Ambient light parameter
