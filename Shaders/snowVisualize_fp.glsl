@@ -54,13 +54,13 @@ void main(void)
   vis = sign(dot(lnorm1, wp));
   costheta = dot(w, wp);
   phase = oneover4pi * (1.0 - gsquared) / pow(1.0 + gsquared - 2.0 * g * costheta, 1.5);
-  color = color + (phase*cl2*vis + ca);
+  color = color + (vis*phase*cl2 + ca);
 
   wp = normalize(vec3(particle_epos.xyz - lpos3.xyz));
-  vis = step(0.2071, dot(lnorm1, wp));
+  vis = sign(dot(lnorm1, wp));
   costheta = dot(w, wp);
   phase = oneover4pi * (1.0 - gsquared) / pow(1.0 + gsquared - 2.0 * g * costheta, 1.5);
-  color = color + (phase*cl3*vis + ca);
+  color = color + (vis*phase*cl3 + ca);
 
   // Gaussian based expansion for alpha
   float x = gl_TexCoord[0].s - 0.5;   // recenter x and y (aka s, t) about origin
