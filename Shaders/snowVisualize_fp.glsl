@@ -6,55 +6,61 @@ uniform int numInRow;
 varying vec4 pcolor;
 varying vec4 particle_pos;
 
+// Eye space values of the particle and light positions and the
+// lights' directions.
 varying vec4 particle_epos;
 varying vec4 lpos1, lpos2, lpos3;
+varying vec3 lnorm1;
 
 void main(void)
 {
-  vec4 cl1 = vec4(1.0,0.0,0.0,1.0);
-  vec4 cl2 = vec4(0.0,1.0,0.0,1.0);
-  vec4 cl3 = vec4(0.0,0.0,1.0,1.0);
+  // Light intensities
+  vec4 cl1 = vec4(248.0/255.0, 180.0/255.0, 0.0, 1.0);
+  vec4 cl2 = vec4(1.0,1.0,0.0,1.0);
+  vec4 cl3 = vec4(248.0/255.0, 151.0/255.0, 0.0, 1.0);
+
+  // Ambient light parameter
   // vec4 ca = vec4(0.5,0.5,0.5,1.0);
   vec4 ca = vec4(0.0,0.0,0.0,1.0);
-
-  vec3 lnormal = vec3(0.0, 0.0, -1.0);
 
   // Setting g to 0.0 produces an isotropic scattering, integrated over
   // the sphere (1/4pi).  This can be used as a test case to get
   // transparency and other parameters for ambient light correct.
   // float g = 0.0;
   float g = 0.67;
+  float gsquared = g*g;
   float pi = 3.141592654;
-  vec3 w = normalize(vec3(-particle_epos));
+  float oneover4pi = 0.07957747;
 
+  // In eye space, so get the vector from particle to eye
+  vec3 w = normalize(vec3(-particle_epos));
+  // Get the vector from light to particle
   vec3 wp = normalize(vec3(particle_epos.xyz - lpos1.xyz));
 
-  // that should be the costheta for the theta between the light's normal and where the particle is relative to light
-  // so if this value is greaterthan (45 degrees), so cos(45) or 0.7071 then zero out light...
-  float vis = max(0.0, dot(lnormal, wp));
-  if (vis > 0.7071) vis = 0.0; else vis = 1.0;
-
+  // Using these vectors, compute a visibility value with respect to
+  // the light, compute the phase function, and assign a color value
+  // to the particle.  Do this for each of the lights in the scene.
+  // 
+  // Ways to get visibility of 0 or 1 are the "step" and the "sign"
+  // function.  The step function returns 0 if 2ndArg < 1stArg,
+  // otherwise 1.  A step function with cone of 45 degrees:
+  // float vis = step(0.7071, dot(lnorm1, wp));
+  float vis = sign(dot(lnorm1, wp));   // use sign of dot prod to determine visibility
   float costheta = dot(w, wp);
-  float phase = 1.0 / (4.0*pi) * (1.0 - g*g) / pow(1.0 + g*g - 2.0 * g * costheta, 1.5);
-  vec4 color = phase*cl1 + ca;
-
+  float phase = oneover4pi * ((1.0 - gsquared) / pow(1.0 + gsquared - 2.0 * g * costheta, 1.5));
+  vec4 color = vis*phase*cl1 + ca;
+  
   wp = normalize(vec3(particle_epos.xyz - lpos2.xyz));
-  vis = max(0.0, dot(lnormal, wp));
-  if (vis > 0.7071) vis = 0.0; else vis = 1.0;
+  vis = sign(dot(lnorm1, wp));
   costheta = dot(w, wp);
-  phase = 1.0 / (4.0*pi) * (1.0 - g*g) / pow(1.0 + g*g - 2.0 * g * costheta, 1.5);
-  color = color + (phase*cl2 + ca);
+  phase = oneover4pi * (1.0 - gsquared) / pow(1.0 + gsquared - 2.0 * g * costheta, 1.5);
+  color = color + (phase*cl2*vis + ca);
 
   wp = normalize(vec3(particle_epos.xyz - lpos3.xyz));
-  vis = max(0.0, dot(lnormal, wp));
-  if (vis > 0.7071) vis = 0.0; else vis = 1.0;
+  vis = step(0.2071, dot(lnorm1, wp));
   costheta = dot(w, wp);
-  phase = 1.0 / (4.0*pi) * (1.0 - g*g) / pow(1.0 + g*g - 2.0 * g * costheta, 1.5);
-  color = color + (phase*cl3 + ca);
-
-  // simple radial expansion for alpha
-  // float radius = sqrt( ((0.5-gl_TexCoord[0].s) * (0.5-gl_TexCoord[0].s)) + ((0.5-gl_TexCoord[0].t) * (0.5-gl_TexCoord[0].t)) );
-  // float alpha = clamp(0.5 - radius, 0.0, 1.0);
+  phase = oneover4pi * (1.0 - gsquared) / pow(1.0 + gsquared - 2.0 * g * costheta, 1.5);
+  color = color + (phase*cl3*vis + ca);
 
   // Gaussian based expansion for alpha
   float x = gl_TexCoord[0].s - 0.5;   // recenter x and y (aka s, t) about origin

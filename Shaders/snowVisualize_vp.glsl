@@ -2,6 +2,7 @@ varying vec4 pcolor;
 varying vec4 particle_pos;
 varying vec4 particle_epos;
 varying vec4 lpos1, lpos2, lpos3;
+varying vec3 lnorm1;
 
 void main(void)
 {
@@ -16,6 +17,8 @@ void main(void)
   lpos1 = gl_ModelViewMatrix * vec4(10.0, 20.0, 6, 1.0);
   lpos2 = gl_ModelViewMatrix * vec4(10.0, 40.0, 6, 1.0);
   lpos3 = gl_ModelViewMatrix * vec4(10.0, 60.0, 6, 1.0);
+
+  lnorm1 = gl_NormalMatrix * vec3(0.0, 0.0, -1.0);
   
   pcolor = gl_Color;
 
