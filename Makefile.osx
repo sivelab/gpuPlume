@@ -19,6 +19,7 @@ CSRC	= collectionBox.cpp \
 	  particleControl.cpp \
 	  particleEmitter.cpp \
 	  PathLine.cpp \
+	  planeEmitter.cpp \
 	  plumeControl.cpp \
 	  pointEmitter.cpp \
 	  Random.cpp \
