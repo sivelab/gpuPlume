@@ -1,3 +1,6 @@
+// Snow Visualization Shader
+// $Id$
+
 uniform int nx;
 uniform int ny;
 uniform int nz;
