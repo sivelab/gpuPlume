@@ -101,7 +101,7 @@ class VisualPlane{
   GLint u_controlTau, u_sliderTurb;
   GLint uniform_xmax, uniform_xmin, uniform_tauMin, uniform_tauMax;
   GLint uniform_sliderScale;
-
+ 
   GLSLObject plane_shader, scale_shader;
 
   Matrix* tau;

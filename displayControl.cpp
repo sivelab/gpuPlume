@@ -370,13 +370,11 @@ void DisplayControl::slideLeftorRight(float direction){
 void DisplayControl::lookUporDown(float change){
 
   if(change < 0.0){
-    //std::cout << "looking down" << std::endl;
     pitch -= M_PI_2/90.0;
     //yaw = 0.0;
     //roll = 0.0;
   }
   else{
-    // std::cout << "looking up" << std::endl;
     pitch += M_PI_2/90.0;
     //yaw = 0.0;
     //roll = 0.0;
@@ -485,7 +483,7 @@ void DisplayControl::calculateNormal(){
   norm_x = norm_x/length;
   norm_y = norm_y/length;
   norm_z = norm_z/length;
-    
+
   float b11;//,a12,a13;
   float b21;//,a22,a23;
   //float b31;//,a32,a33;

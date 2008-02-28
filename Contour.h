@@ -21,6 +21,8 @@ class Contour{
   
   void displayContourLayer(ParticleControl*,GLuint,int);
 
+  void switchPlane();
+
   int tauValue;
 
  private:
@@ -31,10 +33,19 @@ class Contour{
   int num_cValue;
   int n;
 
+  void setLocalTauValues();
+  float* tauLocalMax;
+  float* tauLocalMin;
+  int max_layer;
+  int plane_normal;
+  ParticleControl* pc;
+  int plane_layer_z,plane_layer_x,plane_layer_y;
+
   //Stores all the contour values for each height value
   float* contourValues;
   
-  GLuint tex_id[1];
+  GLuint tex_id[3];
+  GLuint tex_3D[1];
 
   float v0,v1,v2,v3;
   vec2 p0,p1,p2,p3;
@@ -42,6 +53,9 @@ class Contour{
   float* tau;
 
   int* numPoints;
+  int* numPoints_nx;
+  int* numPoints_ny;
+
   int localPoints;
 
   std::list<vec2> c1List;
@@ -49,6 +63,8 @@ class Contour{
 
   //VBO's of contours
   GLuint* contourLayer;
+  GLuint* contourLayer_nx;
+  GLuint* contourLayer_ny;
 
   //Height layer of Contours to draw
   int layer;
@@ -57,11 +73,14 @@ class Contour{
 
   GLint uniform_numContours, uniform_tauTex;
   GLint uniform_tauValue, uniform_contourTex, uniform_height;
-  
-  void findContours_Averaging(ParticleControl*);
-  void find_Multiple_Contours(ParticleControl*);
+  GLint uniform_3Dtau;
 
-  void setContourValuesLocally(ParticleControl*,int);
+  void findContours_Averaging(ParticleControl*);
+  void find_Multiple_Contours();
+  void find_Multiple_Contours_nx();
+  void find_Multiple_Contours_ny();
+
+  void setContourValuesLocally(int);
   void setContourValuesGlobally(ParticleControl*,int);
 
   void putListinVBO(int);

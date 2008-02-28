@@ -137,7 +137,7 @@ void MultipleBuildingsModel::init(bool OSG){
   /////////////////////////////
 
   setupEmitters();
-
+    
   //Create isocontours
   contours = new Contour(pc,util->num_contour_regions);
 

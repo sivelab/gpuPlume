@@ -13,9 +13,12 @@ uniform float slider;
 
 void main(void)
 {
+  
   vec3 texCoord = gl_TexCoord[0].xyz;
+ 
   vec4 color = vec4(texture3D(Tau, texCoord));
 
+    
   vec3 c1 = vec3(0.0,0.0,1.0);
   vec3 c2 = vec3(1.0,1.0,0.0);
   vec3 c3 = vec3(1.0,0.0,0.0);
@@ -74,10 +77,6 @@ void main(void)
   }
   
   gl_FragColor = vec4(col,0.8);
-
-  //vec3 col = vec3(color.z,0.0,0.0);
-
-
-  //gl_FragColor = vec4(col,0.8);
+ 
     
 }
