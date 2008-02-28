@@ -1,7 +1,8 @@
 uniform int numContours;
 uniform int tauValue;
-uniform samplerRect tau;
+//uniform samplerRect tau;
 uniform samplerRect contourTex;
+uniform sampler3D tau3d;
 uniform int height;
 
 void main(void)
@@ -10,8 +11,8 @@ void main(void)
   vec4 color2 = vec4(1.0,1.0,0.0,1.0);
   vec4 color3 = vec4(1.0,0.0,0.0,1.0);
 
-  vec2 texCoord = gl_TexCoord[0].xy;
-  vec4 value = vec4(textureRect(tau, texCoord));
+  vec3 texCoord = gl_TexCoord[0].xyz;
+  vec4 value = vec4(texture3D(tau3d, texCoord));
 
  
   float t;
@@ -45,6 +46,10 @@ void main(void)
     //Colors the smallest contour value
     if(t < c1.x)
       color = vec4(1.0,1.0,1.0,1.0);
+
+    //if(t  < (c1.x + 0.0001) && t > (c1.x - 0.0001))
+    //color = vec4(-1.0,0.0,0.0,0.0);
+    
 
     //Colors all the tau values in between 1st contour line and last contour line
     for(i=0;i<(numContours-1); i++){
@@ -163,17 +168,22 @@ void main(void)
   float s = float(scale)/float(numContours);
   float n = 1.0/2.0;
 
-  if(s >= n){
-    s = (s-n)/(1.0-n);
+  //if(color.x == -1.0){
+  //gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+  //}
+  //else{
+    if(s >= n){
+      s = (s-n)/(1.0-n);
 
-    color = color1*(1.0-s) + color2*s;
-  }
-  else{
-    s = (n-s)/n;
+      color = color1*(1.0-s) + color2*s;
+    }
+    else{
+      s = (n-s)/n;
 
-    color = color3*s + color1*(1.0-s);
-  }
-  gl_FragColor = color;
+      color = color3*s + color1*(1.0-s);
+    }
+    gl_FragColor = color;
+    //}
  
 
 }
