@@ -15,7 +15,7 @@ int ParticleEmitter::EmitParticle(bool odd,GLuint pos0,GLuint pos1,
   //float y;
   //float z;
   //float l;
-
+  
     
  
   if(!indices->empty()){
@@ -166,8 +166,44 @@ void ParticleEmitter::setParticleReuse(std::list<pIndex>* ind, float time){
   reuse = true;
 
 }
-void ParticleEmitter::setNumToEmit(int num){
-  numToEmit = num;
+void ParticleEmitter::setNumToEmit(float num){
+  emitAmount = num;
+}
+
+//sets the value for numToEmit based on emission type
+void ParticleEmitter::setEmitAmount(float time_step){
+  switch(releaseType){
+  case perSecond:
+    if(!timeToEmit(time_step))
+	numToEmit = 0;
+    break;
+  case onePerKeyPress:
+    numToEmit = 1;
+    emit = false;
+    break;
+  case instantaneous:
+    numToEmit = (twidth*theight);
+    emit = false;
+    break;
+  default:
+    numToEmit = (int)emitAmount;
+    numToEmit += addRemainder();
+    //This will release per time step 
+    break;
+  }
+}
+
+int ParticleEmitter::addRemainder(){
+  int rem = 0;
+
+  remAmount += (emitAmount - floor(emitAmount));
+  if(remAmount >= 1.0){
+    rem = (int)floor(remAmount);
+    remAmount -= floor(remAmount);
+  }
+  
+  return rem;
+
 }
 
 //Determines whether or not it is time to emit a particle

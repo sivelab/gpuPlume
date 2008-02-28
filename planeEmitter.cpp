@@ -35,7 +35,7 @@ PlaneEmitter::PlaneEmitter(float x, float y, float z,
 
   emitTime = 0;
   remTime = 0;
-
+  remAmount = 0;
   twidth = w;
   theight = h;
 
@@ -111,33 +111,13 @@ int PlaneEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
   int p_index;
   float px,py,pz;
 
-  switch(releaseType){
-  case perSecond:
-    if(!timeToEmit(time_step))
-	numToEmit = 0;
-    break;
-  case onePerKeyPress:
-    setNumToEmit(1);
-    emit = false;
-    break;
-  case instantaneous:
-    setNumToEmit(twidth*theight);
-    emit = false;
-    break;
-  default:
-    //This will release per time step with numToEmit already defined!!!
-    break;
-  }
+  setEmitAmount(time_step);
 
+  int count = 0;
   if(!indices->empty()){
     //THIS Method *seems* to work now!
     //Punch Hole method. Need to set drawbuffer and activate shader.
     if(Punch_Hole){
-
-      /*if(odd)
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-      else 
-      glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);*/
 
       if(odd){
 	GLenum buffers[] = {GL_COLOR_ATTACHMENT0_EXT,GL_COLOR_ATTACHMENT2_EXT};
@@ -159,7 +139,7 @@ int PlaneEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
     //Do this for each particle that is being emitted.
     for(int i = 0; i < numToEmit; i++){
       if(!indices->empty()){
-	
+	count++;
 	//First get available index
 	p_index = indices->back();
 	indices->pop_back();
@@ -245,6 +225,6 @@ int PlaneEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
     }
     
   }
-  return numToEmit;
+  return count;
    
 }

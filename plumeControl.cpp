@@ -528,16 +528,18 @@ void PlumeControl::setupEmitters(){
 
     if(pe[i]->releaseType == perTimeStep){
       //set number of particles to emit = (number of particles/ total number of time steps);
-      float number = floorf((twidth*theight) / (util->duration/time_step));
+      float number = (twidth*theight) / (util->duration/time_step);
       // Num to emit should be averaged across all emitters (for now
       // until we figure out a more controllable scheme)
       number = number / (float)util->numOfPE;
 
-      int num = (int)number;
+      std::cout << util->duration/time_step << std::endl;
 
-      pe[i]->setNumToEmit(num);
+      //int num = (int)number;
+
+      pe[i]->setNumToEmit(number);
       //std::cout << (twidth*theight)/(util->duration/time_step) << std::endl;
-      std::cout << "Emitting " << num << " particles per time step" <<std::endl;
+      std::cout << "Emitting " << number << " particles per time step" <<std::endl;
     }
   }
 }

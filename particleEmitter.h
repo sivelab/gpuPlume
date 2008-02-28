@@ -48,7 +48,11 @@ class ParticleEmitter{
 
   virtual void setParticleReuse(std::list<pIndex>*, float time);
 
-  virtual void setNumToEmit(int);
+  virtual void setNumToEmit(float);
+
+  virtual void setEmitAmount(float);
+  
+  virtual int addRemainder();
 
   virtual void getIndex(int*,int*);
 
@@ -94,6 +98,9 @@ class ParticleEmitter{
   //of particles to emit per time step.
   int numToEmit;
   int temp;
+
+  float emitAmount;
+  float remAmount;
 
   //Index of particle in position texture
   int s;
