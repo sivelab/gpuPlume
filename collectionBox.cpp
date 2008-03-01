@@ -310,3 +310,57 @@ void CollectionBox::outputConc(std::string file,double totalTime,double totalTim
 
   output << "];\n";
 }
+
+void CollectionBox::outputConcStd(std::string file,double averagingTime,double volume, float time_step, int numPar){ //standard Concentration Calc. - Balli
+  std::ofstream output;
+
+  int idx,xBox,yBox,zBox;
+  float x,y,z,offsetx,offsety,offsetz;
+
+  if(!alreadyOpen){
+    output.open(file.c_str());
+    std::cout << "File Name: " << file.c_str() << std::endl;
+    alreadyOpen = true;
+  }
+  else{
+    output.open(file.c_str(),std::ios::app);
+  }
+
+  // The format of the output file has been changed to work directly
+  // with matlab. -Pete
+
+  output << "average_time = " << averagingTime << ";\n";
+  //output << "total_time_steps = " << totalTimeSteps << ";\n\n";
+
+  output << "% The following array contains the locations of the\n";
+  output << "% collection box cells in X, Y, and Z followed by the \n";
+  output << "% concentration in the cell." << std::endl;
+  output << "concentration = [\n";
+
+  for(int k=0; k < numBox_z; k++)
+    for(int i=0; i < numBox_y; i++)
+      for(int j=0; j < numBox_x; j++)
+	{
+	  idx = k*numBox_x*numBox_y + i*numBox_x + j;
+	  xBox = idx%numBox_x;
+	  yBox = (idx/numBox_x)%numBox_y;
+	  zBox = idx/(numBox_y*numBox_x);
+	  
+	  
+	  x = ((ux-lx)/(float)numBox_x)*xBox + lx;
+	  y = ((uy-ly)/(float)numBox_y)*yBox + ly;
+	  z = ((uz-lz)/(float)numBox_z)*zBox + lz;
+	  offsetx = float(((ux-lx)/(float)numBox_x)/2.0);
+	  offsety = float(((uy-ly)/(float)numBox_y)/2.0);
+	  offsetz = float(((uz-lz)/(float)numBox_z)/2.0);
+	  float concFactor= (time_step)/(averagingTime*volume*numPar);
+	  
+	  output << '\t' << x+offsetx << ' ' << y+offsety << ' ' << z+offsetz 
+		 << ' ' << cBox[idx] *(concFactor) << ";\n";
+
+	  /*std::cout << z+offsetz << "  " << x+offsetx << "  " << y+offsety <<
+	    "  " << cBox[idx] << std::endl;*/
+	}
+
+  output << "];\n";
+}
