@@ -347,7 +347,8 @@ int MultipleBuildingsModel::display(){
     if(output_CollectionBox)
     {
       for(int j = 0; j < num_cBoxes; j++){
-	cBoxes[j]->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
+	//cBoxes[j]->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
+    cBoxes[j]->outputConcStd(util->output_file,util->averagingTime,util->volume,util->time_step, (util->twidth)*(util->theight));// standard Concentration Calc. - Balli
       }
       output_CollectionBox = false;
     }
