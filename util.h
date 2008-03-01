@@ -105,6 +105,8 @@ class Util{
 
   //Number of contour regions
   int num_contour_regions;
+  void volumeBox(); //calc Volume of the collecting boxes Balli
+  float volume; //volume of the box
 
  private:
 
