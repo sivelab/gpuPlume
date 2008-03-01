@@ -110,6 +110,7 @@ void Util::parseLine(char* line){
   }
   if(read1Float(line, "numBox_z", &f1)){
     numBox_z = (int)f1;
+	volumeBox();
   }
   if(read1Float(line, "ustar", &f1)){
     ustar = f1;
@@ -376,4 +377,12 @@ bool Util::read1String(const char *line, char *settingName, std::string *s)
 	}
 
     return false;
+}
+
+void Util::volumeBox(){
+	double xBoxlen = (bounds[3]-bounds[0])/numBox_x;
+	double yBoxlen = (bounds[4]-bounds[1])/numBox_y;
+	double zBoxlen = (bounds[5]-bounds[2])/numBox_z;
+
+	volume= xBoxlen*yBoxlen*zBoxlen;
 }
