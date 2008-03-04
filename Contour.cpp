@@ -138,7 +138,8 @@ Contour::Contour(ParticleControl* partcont, int num){
   uniform_contourTex = contour_shader.createUniform("contourTex");
   uniform_height = contour_shader.createUniform("height");
   uniform_3Dtau = contour_shader.createUniform("tau3d");
-  
+    
+
   glDisable(pc->texType);
   glDisable(GL_TEXTURE_2D);
   glEnable(GL_TEXTURE_3D);
@@ -912,11 +913,11 @@ void Contour::putListinVBO(int k){
     if(plane_normal == 0){
       data[idx] = p.x;
       data[idx+1] = p.y;
-      data[idx+2] = k+0.05;
+      data[idx+2] = k+0.5;
       data[idx+3] = 1.0;
     }
     else if(plane_normal == 1){
-      data[idx] = k;
+      data[idx] = k-0.5;
       data[idx+1] = p.x;
       data[idx+2] = p.y;
       data[idx+3] = 1.0;
@@ -924,7 +925,7 @@ void Contour::putListinVBO(int k){
     }
     else{
       data[idx] = p.x;
-      data[idx+1] = k;
+      data[idx+1] = k-0.5;
       data[idx+2] = p.y;
       data[idx+3] = 1.0;
     }
@@ -971,7 +972,7 @@ void Contour::draw(){
     
     glDisable(GL_COLOR_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
-    glLineWidth(3.0);
+    glLineWidth(1.0);
 
     glColor4f(1.0,1.0,1.0,1.0);
 
@@ -1053,9 +1054,26 @@ void Contour::displayContourLayer(ParticleControl* pc,GLuint texId, int numInRow
     }
 
     contour_shader.activate();
-  
+
+    //the number of contour values
     glUniform1iARB(uniform_numContours, num_cValue);
-    glUniform1iARB(uniform_tauValue, tauValue);
+
+    //Selects which tau value to display in contours
+    //glUniform1iARB(uniform_tauValue, tauValue);
+
+    if(tauValue == 0){
+      glUniform4fARB(uniform_tauValue,1.0f,0.0f,0.0f,0.0f);
+    }
+    else if(tauValue == 1){
+      glUniform4fARB(uniform_tauValue,0.0f,1.0f,0.0f,0.0f);
+    }
+    else if(tauValue == 2){
+      glUniform4fARB(uniform_tauValue,0.0f,0.0f,1.0f,0.0f);
+    }
+    else{
+      glUniform4fARB(uniform_tauValue,0.0f,0.0f,0.0f,1.0f);
+    }
+    //Selects the layer to display
     glUniform1iARB(uniform_height, layer);
 
 
