@@ -69,29 +69,20 @@ void main(void)
   float s = float(scale)/float(numContours);
   float n = 1.0/2.0;
 
-  //if(color.x == -1.0){
-  //gl_FragColor = vec4(1.0,1.0,1.0,1.0);
-  //}
-  //else{
-
-  if(scale != -1){
-
-    if(s >= n){
-      s = (s-n)/(1.0-n);
+  
+  
+  if(s >= n){
+    s = (s-n)/(1.0-n);
     
-      color = color1*(1.0-s) + color2*s;
-    }
-    else{
-      s = (n-s)/n;
-    
-      color = color3*s + color1*(1.0-s);
-    }
-    gl_FragColor = color;
-
+    color = color1*(1.0-s) + color2*s;
   }
-  else
-    gl_FragColor = vec4(1.0,1.0,1.0,1.0);
-  //}
+  else{
+    s = (n-s)/n;
+    
+    color = color3*s + color1*(1.0-s);
+  }
+  gl_FragColor = color;
+ 
  
 
 }
