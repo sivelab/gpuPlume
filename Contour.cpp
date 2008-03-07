@@ -12,6 +12,9 @@ Contour::Contour(ParticleControl* partcont, int num){
   nydy = pc->nydy;
   nxdx = pc->nxdx;
   
+  cell_dx = pc->cell_dx;
+  cell_dy = pc->cell_dy;
+  cell_dz = pc->cell_dz;
   
   //n = number of regions, so there will be n-1 contour values
   n = num;
@@ -147,10 +150,10 @@ Contour::Contour(ParticleControl* partcont, int num){
   glGenTextures(1,tex_3D);
 
   glBindTexture(GL_TEXTURE_3D, tex_3D[0]);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -318,17 +321,17 @@ void Contour::find_Multiple_Contours(){
 	
 	//These are the verices of the cell.
 	//Lower left corner
-	p0.x = (float)j+0.5f;
-	p0.y = (float)i+0.5f;
+	p0.x = (float)j+cell_dx/2.0f;
+	p0.y = (float)i+(cell_dy/2.0f);
 	//Lower right corner
-	p1.x = (float)j+1.5f;
-	p1.y = (float)i+0.5f;
+	p1.x = (float)j+cell_dx+(cell_dx/2.0f);
+	p1.y = (float)i+(cell_dy/2.0f);
 	//Upper left corner
-	p2.x = (float)j+0.5f;
-	p2.y = (float)i+1.5f;
+	p2.x = (float)j+(cell_dx/2.0f);
+	p2.y = (float)i+cell_dy + (cell_dy/2.0f);
 	//Upper right corner
-	p3.x = (float)j+1.5f;
-	p3.y = (float)i+1.5f;
+	p3.x = (float)j+cell_dx+(cell_dx/2.0f);
+	p3.y = (float)i+cell_dy + (cell_dy/2.0f);
 
 
 	switch(tauValue){
@@ -445,17 +448,17 @@ void Contour::find_Multiple_Contours_nx(){
 	
 	//These are the verices of the cell.
 	//Lower left corner
-	p0.x = (float)j+0.5f;
-	p0.y = (float)i+0.5f;
+	p0.x = (float)j+(cell_dy/2.0f);
+	p0.y = (float)i+(cell_dz/2.0f);
 	//Lower right corner
-	p1.x = (float)j+1.5f;
-	p1.y = (float)i+0.5f;
+	p1.x = (float)j+cell_dy+(cell_dy/2.0f);
+	p1.y = (float)i+(cell_dz/2.0f);
 	//Upper left corner
-	p2.x = (float)j+0.5f;
-	p2.y = (float)i+1.5f;
+	p2.x = (float)j+(cell_dy/2.0f);
+	p2.y = (float)i+cell_dz+(cell_dz/2.0f);
 	//Upper right corner
-	p3.x = (float)j+1.5f;
-	p3.y = (float)i+1.5f;
+	p3.x = (float)j+cell_dy+(cell_dy/2.0f);
+	p3.y = (float)i+cell_dz+(cell_dz/2.0f);
 
 
 	switch(tauValue){
@@ -571,17 +574,17 @@ void Contour::find_Multiple_Contours_ny(){
 	
 	//These are the verices of the cell.
 	//Lower left corner
-	p0.x = (float)j+0.5f;
-	p0.y = (float)i+0.5f;
+	p0.x = (float)j+(cell_dx/2.0f);
+	p0.y = (float)i+(cell_dz/2.0f);
 	//Lower right corner
-	p1.x = (float)j+1.5f;
-	p1.y = (float)i+0.5f;
+	p1.x = (float)j+cell_dx+(cell_dx/2.0f);
+	p1.y = (float)i+(cell_dz/2.0f);
 	//Upper left corner
-	p2.x = (float)j+0.5f;
-	p2.y = (float)i+1.5f;
+	p2.x = (float)j+(cell_dx/2.0f);
+	p2.y = (float)i+cell_dz+(cell_dz/2.0f);
 	//Upper right corner
-	p3.x = (float)j+1.5f;
-	p3.y = (float)i+1.5f;
+	p3.x = (float)j+cell_dx+(cell_dx/2.0f);
+	p3.y = (float)i+cell_dz+(cell_dz/2.0f);
 
 
 	switch(tauValue){

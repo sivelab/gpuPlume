@@ -29,6 +29,8 @@ class Contour{
   int nx,ny,nz;
   int nxdx,nydy,nzdz;
 
+  float cell_dx,cell_dy,cell_dz;
+
   float* cValue;
   int num_cValue;
   int n;

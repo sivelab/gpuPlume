@@ -8,7 +8,7 @@
 
 ParticleControl::ParticleControl(GLenum type,int width,int height,
 				 int x, int y, int z,
-				 float cell_dx, float cell_dy, float cell_dz){
+				 float c_dx, float c_dy, float c_dz){
 
   texType = type;
   twidth = width;
@@ -30,9 +30,14 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   //cell_dy = 0.5;
   //cell_dz = 0.5;
 
-  nzdz = (int)(nz*(1.0/cell_dz));
-  nydy = (int)(ny*(1.0/cell_dy));
-  nxdx = (int)(nx*(1.0/cell_dx));
+  nzdz = (int)(nz*(1.0/c_dz));
+  nydy = (int)(ny*(1.0/c_dy));
+  nxdx = (int)(nx*(1.0/c_dx));
+
+  cell_dx = c_dx;
+  cell_dy = c_dy;
+  cell_dz = c_dz;
+
 
 }
 void ParticleControl::setBuildingParameters(int nB,float* x,float* y,float* z,
