@@ -12,15 +12,20 @@ class GeomTest : public PlumeControl{
   GeomTest(Util*);
   virtual void init(bool);
   virtual int display();
+  virtual void initFBO();
+  virtual void setupTextures();
  
   
  protected:
   
   virtual ~GeomTest();
 
-  GLint uniform_postPP, uniform_posPP, uniform_x,uniform_y;
+  void readInTables();
 
-  GLSLObject geomShader,testAdvectShader, pathLineShader;
+  GLint uniform_postPP, uniform_posPP, uniform_x,uniform_y;
+  GLint u_slice, uniform_tau, u_tau3D, u_case, u_edge;
+
+  GLSLObject geomShader, testShader, pathLineShader;
 
 };
 
