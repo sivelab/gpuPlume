@@ -58,6 +58,9 @@ public:
   //Set the input and output type for the geometry shader
   void setInputandOutput(GLenum input, GLenum output,int n);
 
+  //Sets the varying variables to record into buffer
+  void setVaryingOutput(int,int*,GLenum);
+
   // Compiles, links, and sets up a shader to be used on the hardware.
   void createProgram();
 
@@ -84,9 +87,13 @@ protected:
 
 private:
   GLhandleARB              m_program_object;
+  //GLuint              m_program_object;
   std::list< GLhandleARB > m_vertexshader_objects;
   std::list< GLhandleARB > m_fragmentshader_objects;
   std::list< GLhandleARB > m_geometryshader_objects;
+  //std::list< GLuint > m_vertexshader_objects;
+  //std::list< GLuint > m_fragmentshader_objects;
+  //std::list< GLuint > m_geometryshader_objects;
 
   int m_verbose_level;
   GLenum input_type;
