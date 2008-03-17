@@ -36,7 +36,7 @@ void main(void)
   c1 =  dot(vec4(textureRect(contourTex,index)),tauValue);
   
   //Colors the smallest contour value
-  if(t < c1)
+  if(t <= c1)
     scale = 0;
         
   //Colors all the tau values in between 1st contour line and last contour line
@@ -48,7 +48,7 @@ void main(void)
     index.s = height*numContours + i + 1;
     c2 =  dot(vec4(textureRect(contourTex,index)),tauValue);
 
-    if((c1 < t) && ( t < c2)){
+    if((c1 < t) && ( t <= c2)){
       scale = i+1;
     }
    
