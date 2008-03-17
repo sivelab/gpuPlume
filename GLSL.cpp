@@ -74,6 +74,10 @@ void GLSLObject::setInputandOutput(GLenum input, GLenum output,int n)
   output_type = output;
   num_vertices = n;
 }
+void GLSLObject::setVaryingOutput(int count, int* locations,GLenum buffermode){
+  GLint positions = glGetVaryingLocationNV(m_program_object,"gl_Position");
+  glTransformFeedbackVaryingsNV(m_program_object,count,&positions,buffermode);
+}
 
 void GLSLObject::addShader( const std::string& filename, ShaderType shader_type )
 {
@@ -94,7 +98,7 @@ void GLSLObject::addShader( const std::string& filename, ShaderType shader_type 
   // Create the shader object
   GLhandleARB shader = glCreateShaderObjectARB( stype );
   glErrorCheck("glCreateShaderObjectARB( stype )");
-
+  
   // Read the source from the file and load it into the shader
   loadSourceFromFile( filename, shader );
 
