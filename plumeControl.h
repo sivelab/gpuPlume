@@ -36,7 +36,7 @@
 
 class PlumeControl{
  public:
-
+ 
   //PlumeControl(Util*);
 
   virtual void init(bool); 
@@ -87,6 +87,7 @@ class PlumeControl{
   Renderbuffer* rb;
 
   GLuint vbo_buffer[2];
+  GLuint iso_buffer[20];
   GLenum vertex_buffer;
   GLenum color_buffer;
 
