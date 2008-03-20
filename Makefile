@@ -2,7 +2,7 @@ EXEC	= gpuPlume
 
 CC	= g++ -g -O2 -Wall
 
-CSRC 	= gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp  GeomTest.cpp PathLine.cpp Contour.cpp VisualPlane.cpp lineEmitter.cpp
+CSRC 	= gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp  GeomTest.cpp PathLine.cpp Contour.cpp VisualPlane.cpp lineEmitter.cpp planeEmitter.cpp
 
 COBJS   = $(CSRC:.cpp=.o)
 
