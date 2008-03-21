@@ -218,6 +218,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\lineEmitter.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\MultipleBuildingsModel.cpp"
 				>
 			</File>
@@ -235,6 +239,10 @@
 			</File>
 			<File
 				RelativePath="..\PathLine.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\planeEmitter.cpp"
 				>
 			</File>
 			<File
@@ -332,6 +340,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\lineEmitter.h"
+				>
+			</File>
+			<File
 				RelativePath="..\MultipleBuildingsModel.h"
 				>
 			</File>
@@ -349,6 +361,10 @@
 			</File>
 			<File
 				RelativePath="..\PathLine.h"
+				>
+			</File>
+			<File
+				RelativePath="..\planeEmitter.h"
 				>
 			</File>
 			<File
