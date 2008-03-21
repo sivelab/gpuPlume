@@ -262,7 +262,7 @@ void display(void)
 
 void idle()
 {
-    glutPostRedisplay();
+  glutPostRedisplay();
 }
 
 void keyboard_cb(unsigned char key, int x, int y)
@@ -479,6 +479,7 @@ void keyboard_cb(unsigned char key, int x, int y)
   else if(key == '-')
     {
       plume->planeVisual->switchPlane();
+      plume->contours->switchPlane();
     }
   else if (key == '.')
     {
@@ -492,7 +493,7 @@ void keyboard_cb(unsigned char key, int x, int y)
       else 
 	plume->dc->particle_visual_state = DisplayControl::PARTICLE_SPHERE;
     }
-
+ 
   glutPostRedisplay();
 }
 
@@ -546,9 +547,9 @@ void motion(int x, int y)
   
   float change_y = y - last_y;
   float change_x = x - last_x;
-
   //std::cout << "last: " << last_y << "   current: " << y << std::endl;
-
+  //std::cout << "CHANGE: " << change_y << std::endl;
+  
   //plume->dc->lookUporDown(change_y);
   //plume->dc->setRotateAround(change_x);
 
