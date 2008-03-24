@@ -21,6 +21,10 @@ GaussianModel::GaussianModel(Util* u){
   nz = util->nz;
   time_step = util->time_step;
 
+  nxdx = (int)(nx*(1.0/util->dx));
+  nydy = (int)(ny*(1.0/util->dy));
+  nzdz = (int)(nz*(1.0/util->dz));
+
   //Sets up the type of simulation to run
   sim = new Simulation(util->useRealTime,util->duration,&time_step);
   
@@ -74,8 +78,7 @@ void GaussianModel::init(bool OSG){
     pm = new GLfloat[16];
     dc->osgPlume = true;
   }
-
-  setupEmitters();
+ 
   
   glEnable(texType);
   glGenTextures(10, texid);
@@ -91,7 +94,9 @@ void GaussianModel::init(bool OSG){
   currVel = texid[8];
   /////////////////////////////
   setupTextures();
-  
+
+
+  setupEmitters();
    //
   // set up vertex buffer
   // 
@@ -180,7 +185,7 @@ int GaussianModel::display(){
     ////////////////////////////////////////////////////////////
     // Emit Particles
     ////////////////////////////////////////////////////////////
-
+    
     for(int i = 0; i < util->numOfPE; i++){    
       if(pe[i]->emit){    
 	totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step,
@@ -443,8 +448,6 @@ void GaussianModel::setupTextures(){
   pc->createTexture(texid[1], int_format, twidth, theight, data);
   CheckErrorsGL("\tcreated texid[1], the position texture (double buffer)...");
 
-
-  std::vector<float> random_values;
   //These two textures are to store the prime values(previous and updated values)
   //We will need to initialize some data into prime0
 
@@ -453,6 +456,8 @@ void GaussianModel::setupTextures(){
   double stddev = 0.0, variance = 0.0, tmp_sum = 0.0;
 
   while( !(-0.01 < mean && mean < 0.01 && 0.90 < variance && variance < 1.01) && iterations < 50){
+    random_values.clear();
+
     iterations++;
 
     for (int j=0; j<theight; j++)
@@ -508,13 +513,14 @@ void GaussianModel::setupTextures(){
   //
   // create random texture for use with particle simulation and turbulence
   //
-  random_values.clear();
+ 
 
   iterations = 0;
   mean = 1.0;
   variance = 0.0;
 
   while( !(-0.01 < mean && mean < 0.01 && 0.90 < variance && variance < 1.01) && iterations < 50){
+    random_values.clear();
 
     iterations++;
     for (int j=0; j<theight; j++)
