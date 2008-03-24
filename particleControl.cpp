@@ -34,6 +34,7 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   nydy = (int)(ny*(1.0/c_dy));
   nxdx = (int)(nx*(1.0/c_dx));
 
+ 
   cell_dx = c_dx;
   cell_dy = c_dy;
   cell_dz = c_dz;
@@ -2506,12 +2507,17 @@ void ParticleControl::initLambdaTex(GLuint lambda){
 	  qi * width * 4 +
 	  qk % (numInRow) * nxdx * 4 +
 	  qj * 4;
+
+	  sig[p2idx].u = sigU;   //sigU
+	  sig[p2idx].v = sigV;   //sigV
+	  sig[p2idx].w = sigW;   //sigW
+	  sig[p2idx].id = -1.0;
 	  
 	  data[texidx]   = tauDetInv*(tau22*tau33);            //Lam11
 	  data[texidx+1] = tauDetInv*(tau11*tau33-tau13*tau13);//Lam22
 	  data[texidx+2] = tauDetInv*(tau11*tau22);	       //Lam33
 	  data[texidx+3] = tauDetInv*(-tau13*tau22);           //Lam13
-	  }
+	}
   createTexture(lambda, GL_RGBA32F_ARB, width,height, data);
   //Lambda Texture Ends-- Balli (04/12/07)
   delete [] data;

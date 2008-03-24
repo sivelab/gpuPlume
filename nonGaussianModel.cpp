@@ -80,8 +80,7 @@ void NonGaussianModel::init(bool OSG){
     dc->osgPlume = true;
   }
 
-  setupEmitters();
-  
+   
   glEnable(texType);
   glGenTextures(11, texid);
   /////////////////////////////
@@ -98,7 +97,7 @@ void NonGaussianModel::init(bool OSG){
   currVel = texid[10];
   /////////////////////////////
   setupTextures();
-  
+  setupEmitters();
   //
   // set up vertex buffer
   // 
@@ -462,7 +461,6 @@ void NonGaussianModel::setupTextures(){
   CheckErrorsGL("\tcreated texid[1], the position texture (double buffer)...");
 
 
-  std::vector<float> random_values;
   //These two textures are to store the prime values(previous and updated values)
   //We will need to initialize some data into prime0
 
@@ -486,6 +484,7 @@ void NonGaussianModel::setupTextures(){
 
   while( !(-0.01 < mean && mean < 0.01 && 0.90 < variance && variance < 1.01) && iterations < 50){
     iterations++;
+    random_values.clear();
 
     for (int j=0; j<theight; j++)
       for (int i=0; i<twidth; i++)
@@ -540,14 +539,13 @@ void NonGaussianModel::setupTextures(){
   //
   // create random texture for use with particle simulation and turbulence
   //
-  random_values.clear();
-
+ 
   iterations = 0;
   mean = 1.0;
   variance = 0.0;
 
   while( !(-0.01 < mean && mean < 0.01 && 0.90 < variance && variance < 1.01) && iterations < 50){
-
+    random_values.clear();
     iterations++;
     for (int j=0; j<theight; j++)
       for (int i=0; i<twidth; i++)

@@ -21,6 +21,10 @@ Gaussian_2shaders_Model::Gaussian_2shaders_Model(Util* u){
   nz = util->nz;
   time_step = util->time_step;
 
+  nxdx = (int)(nx*(1.0/util->dx));
+  nydy = (int)(ny*(1.0/util->dy));
+  nzdz = (int)(nz*(1.0/util->dz));
+
   //Sets up the type of simulation to run
   sim = new Simulation(util->useRealTime,util->duration,&time_step);
   
@@ -75,7 +79,6 @@ void Gaussian_2shaders_Model::init(bool OSG){
     dc->osgPlume = true;
   }
 
-  setupEmitters();
   
   glEnable(texType);
   glGenTextures(10, texid);
@@ -90,7 +93,8 @@ void Gaussian_2shaders_Model::init(bool OSG){
   lambda = texid[7];
   /////////////////////////////
   setupTextures();
-  
+
+  setupEmitters();
   //
   // set up vertex buffer
   // 
@@ -347,7 +351,6 @@ void Gaussian_2shaders_Model::setupTextures(){
   CheckErrorsGL("\tcreated texid[1], the position texture (double buffer)...");
 
 
-  std::vector<float> random_values;
   //These two textures are to store the prime values(previous and updated values)
   //We will need to initialize some data into prime0
 
@@ -357,6 +360,8 @@ void Gaussian_2shaders_Model::setupTextures(){
 
   while( !(-0.01 < mean && mean < 0.01 && 0.90 < variance && variance < 1.01) && iterations < 50){
     iterations++;
+
+    random_values.clear();
 
     for (int j=0; j<theight; j++)
       for (int i=0; i<twidth; i++)
@@ -411,13 +416,13 @@ void Gaussian_2shaders_Model::setupTextures(){
   //
   // create random texture for use with particle simulation and turbulence
   //
-  random_values.clear();
-
+ 
   iterations = 0;
   mean = 1.0;
   variance = 0.0;
 
   while( !(-0.01 < mean && mean < 0.01 && 0.90 < variance && variance < 1.01) && iterations < 50){
+    random_values.clear();
 
     iterations++;
     for (int j=0; j<theight; j++)
