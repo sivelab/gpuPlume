@@ -506,6 +506,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Shaders\snowVisualize_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\snowVisualize_vp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\sphereVisualize_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\sphereVisualize_vp.glsl"
+				>
+			</File>
+			<File
 				RelativePath="..\Shaders\turbulenceLayer_fp.glsl"
 				>
 			</File>
