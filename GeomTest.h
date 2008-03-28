@@ -24,8 +24,10 @@ class GeomTest : public PlumeControl{
 
   GLint uniform_postPP, uniform_posPP, uniform_x,uniform_y;
   GLint u_slice, uniform_tau, u_tau3D, u_case, u_edge;
+  GLint u_dx,u_dy,u_dz,u_mesh;
 
   GLSLObject geomShader, testShader, pathLineShader;
+  GLSLObject isoShader;
 
 };
 

@@ -21,7 +21,9 @@ void main(void)
     }	  
    if(slice == 19){
     color = vec4(0.0,1.0,1.0,1.0);
-    }	   */
+    }	  */ 
+
+
   vec3 texCoord = gl_TexCoord[0].xyz;
   vec4 value = vec4(texture3D(tau,texCoord));
 		    
@@ -35,7 +37,7 @@ void main(void)
   //set contour value to 1
   //will need to pass in as uniform
 
-  value.x = value.x - 1;
+  value.x = value.x - 4.0;
 
   color = value;
 
