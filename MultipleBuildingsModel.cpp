@@ -66,6 +66,8 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
 
+  oneTime = 0;
+
 }
 MultipleBuildingsModel::~MultipleBuildingsModel(){}
 
@@ -144,22 +146,31 @@ void MultipleBuildingsModel::init(bool OSG){
   planeVisual = new VisualPlane(pc, pc->tauMax, pc->tauMin,
 				pc->tauLocalMax, pc->tauLocalMin);
 
-  //send copy of planeVisual to displayControl
-  //dc->setVisualPlane(planeVisual);
+  
+  glDisable(texType);
+
+  //Create isosurface
+  isoSurface = new IsoSurface(pc);
+
 
   //
   // set up vertex buffer
   // 
-  glGenBuffersARB(2, vbo_buffer);
+  glGenBuffersARB(3, vbo_buffer);
   vertex_buffer = vbo_buffer[0];
   color_buffer = vbo_buffer[1];
+  iso_surface_buffer = vbo_buffer[2];
 
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, color_buffer);
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
-
+  
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, iso_surface_buffer);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, (nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
+  
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+ 
 
   //Initialize FBO
   initFBO();
@@ -207,6 +218,14 @@ int MultipleBuildingsModel::display(){
   }
 
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
+  
+  if(!firstTime){
+    //render the 3D density function texture
+    isoSurface->render3DTexture(isoFbo);
+
+  }
+
+
   glEnable(texType);
   // bind the framebuffer object so we can render to the 2nd texture
   fbo->Bind();
@@ -400,6 +419,16 @@ int MultipleBuildingsModel::display(){
       // Disable the framebuffer object
       FramebufferObject::Disable();
       glDrawBuffer(draw_buffer); // send it to the original buffer
+
+      if(oneTime < 2){
+	/////////////////////////////////////////////////////
+	//Render geometry shader outputs to the vertex buffer
+	/////////////////////////////////////////////////////
+	isoSurface->createIsoSurface(iso_surface_buffer);
+	oneTime++;
+      }
+
+
       CheckErrorsGL("END : after 2nd pass");
 
       // //////////////////////////////////////////////////////////////
@@ -452,6 +481,9 @@ int MultipleBuildingsModel::display(){
 	  dc->drawLayers(windField,numInRow);
       }
       
+      //Draw isosurface
+      isoSurface->draw(iso_surface_buffer);
+
       planeVisual->drawScale();
 
       if(!osgPlume){
@@ -550,6 +582,13 @@ void MultipleBuildingsModel::initFBO(void){
   pathFbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, pathTex);
   pathFbo->IsValid();
   FramebufferObject::Disable();
+
+  isoFbo = new FramebufferObject();
+  isoFbo->Bind();
+  isoFbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_3D, isoSurface->tex3d[0]);
+  isoFbo->IsValid();
+  FramebufferObject::Disable();
+  
 
 }
 

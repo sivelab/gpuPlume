@@ -31,6 +31,7 @@
 #include "Random.h"
 #include "Contour.h"
 #include "VisualPlane.h"
+#include "IsoSurface.h"
 #include <string>
 
 
@@ -62,6 +63,7 @@ class PlumeControl{
   Contour* contours;
 
   VisualPlane* planeVisual;
+  IsoSurface* isoSurface;
 
   ParticleControl* pc;
   DisplayControl* dc;
@@ -84,10 +86,13 @@ class PlumeControl{
   FramebufferObject* fbo;
   FramebufferObject* fbo2;
   FramebufferObject* pathFbo;
+  FramebufferObject* isoFbo;
   Renderbuffer* rb;
 
-  GLuint vbo_buffer[2];
-  GLuint iso_buffer[20];
+  GLuint vbo_buffer[3];
+  //GLuint iso_surface_buffer[20];
+  //GLuint iso_buffer;
+  GLenum iso_surface_buffer;
   GLenum vertex_buffer;
   GLenum color_buffer;
 
@@ -117,7 +122,8 @@ class PlumeControl{
   std::string texFileName;
 
  protected:
-  
+  int oneTime;
+
   GLint currentbuffer,readbuffer;
   std::list<pIndex>::iterator iter;
 
