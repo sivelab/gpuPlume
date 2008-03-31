@@ -15,10 +15,17 @@ class IsoSurface{
   IsoSurface(ParticleControl*);
 
   void render3DTexture(FramebufferObject*);
-  void createIsoSurface(GLuint);
-  void draw(GLuint);
-  
+  void createIsoSurface();
+  void draw();
+  void increaseMesh();
+  void decreaseMesh();
+
+  float contourValue;
+ 
   GLuint tex3d[2];
+
+  bool solid;
+
  private:
   
   void readInTables();
@@ -29,7 +36,7 @@ class IsoSurface{
   GLenum int_format;
 
   GLint u_slice, uniform_tau, u_tau3D, u_case, u_edge;
-  GLint u_dx,u_dy,u_dz,u_mesh;
+  GLint u_dx,u_dy,u_dz,u_mesh, uniform_cValue;
 
   GLSLObject geomShader, render3DShader, isoShader;
   
@@ -41,6 +48,9 @@ class IsoSurface{
   GLuint query;
   int numPrimitives;
   int mesh;
+
+  GLuint iso_buffer[10];
+  int buffer_num;
 
 };
 

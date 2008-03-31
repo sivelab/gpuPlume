@@ -89,10 +89,7 @@ class PlumeControl{
   FramebufferObject* isoFbo;
   Renderbuffer* rb;
 
-  GLuint vbo_buffer[3];
-  //GLuint iso_surface_buffer[20];
-  //GLuint iso_buffer;
-  GLenum iso_surface_buffer;
+  GLuint vbo_buffer[2];
   GLenum vertex_buffer;
   GLenum color_buffer;
 
@@ -102,6 +99,7 @@ class PlumeControl{
   bool output_CollectionBox;
   bool osgPlume;
   bool quitSimulation;
+  bool drawIsoSurface;
 
   //glut window id
   int winid;
@@ -120,9 +118,9 @@ class PlumeControl{
   bool inPauseMode;
 
   std::string texFileName;
+  int oneTime;
 
  protected:
-  int oneTime;
 
   GLint currentbuffer,readbuffer;
   std::list<pIndex>::iterator iter;

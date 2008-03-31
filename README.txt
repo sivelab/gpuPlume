@@ -42,6 +42,11 @@ Visual Controls:
       r - decreases roll
 
 
+  IsoSurfaces:
+
+    i - toggles drawing the isosurface
+    u - toggles fill mode for isosurface
+
 Simulation Controls:
 
   c - clears pathlines

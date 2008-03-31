@@ -1,7 +1,11 @@
 #include "IsoSurface.h"
 
 IsoSurface::IsoSurface(ParticleControl *pc){
-  
+  //Mesh size
+  mesh = 4;
+  //Contour value 
+  contourValue = 3.0;
+
   nx = pc->nx;
   ny = pc->ny;
   nz = pc->nz;
@@ -13,7 +17,6 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   int_format = GL_RGBA32F_ARB;
   texType2 = GL_TEXTURE_3D;
 
-  mesh = 4;
   int num_vertices;
   if(GL_EXT_geometry_shader4)
     {
@@ -58,6 +61,7 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   render3DShader.createProgram();
   u_slice = render3DShader.createUniform("slice");
   uniform_tau = render3DShader.createUniform("tau");
+  uniform_cValue = render3DShader.createUniform("contourValue");
 
   /////////////////////////////////////////////////
   //Create Textures
@@ -75,10 +79,10 @@ IsoSurface::IsoSurface(ParticleControl *pc){
 
 	int tidx = k*ny*nx*4 + i*nx*4 + j*4;
 	
-	data[tidx] = 0.0;//pc->tau[idx].t11;
-	data[tidx+1] = 0.0;//pc->tau[idx].t22;
-	data[tidx+2] = 0.0;//pc->tau[idx].t33;
-	data[tidx+3] = 1.0;//pc->tau[idx].t13;
+	data[tidx] = 0.0;
+	data[tidx+1] = 0.0;
+	data[tidx+2] = 0.0;
+	data[tidx+3] = 1.0;
       }
     }
   }
@@ -114,7 +118,7 @@ IsoSurface::IsoSurface(ParticleControl *pc){
       }
     }
   }
-   glBindTexture(texType2, tex3d[1]);
+  glBindTexture(texType2, tex3d[1]);
   glTexParameteri(texType2, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(texType2, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   //glTexParameteri(texType2, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -129,14 +133,25 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   glBindTexture(texType2,0);
   glDisable(texType2);
 
-
-  
    
   //Read in lookup tables and store in textures
   readInTables();
   
   glGenQueries(1,&query);
   numPrimitives = 0;
+
+  //set up vertex buffer
+  
+  glGenBuffersARB(10, iso_buffer);
+  buffer_num = 0;
+
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, iso_buffer[0]);
+  //??The size of this buffer might need to be larger??
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, mesh*(nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
+  
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  solid = true;
 
 }
 void IsoSurface::readInTables(){
@@ -258,6 +273,7 @@ void IsoSurface::render3DTexture(FramebufferObject* fbo){
   //Have to render one slice at a time
   render3DShader.activate();
   //glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+  glUniform1fARB(uniform_cValue,contourValue);
 
   for(int z = 0; z <= nz; z++){
     fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT,texType2,tex3d[0],0,z);
@@ -287,7 +303,7 @@ void IsoSurface::render3DTexture(FramebufferObject* fbo){
   glDisable(texType2);
 
 }
-void IsoSurface::createIsoSurface(GLuint buffer){
+void IsoSurface::createIsoSurface(){
 
   glEnable(GL_RASTERIZER_DISCARD_NV);
 
@@ -326,7 +342,7 @@ void IsoSurface::createIsoSurface(GLuint buffer){
   //start query to determine number of triangles made
   glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN_NV, query);
     
-  glBindBufferBaseNV(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0,buffer);
+  glBindBufferBaseNV(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0,iso_buffer[0]);
      
   glPointSize(1.0);
   glBegin(GL_POINTS);
@@ -365,14 +381,15 @@ void IsoSurface::createIsoSurface(GLuint buffer){
 
 }
 
-void IsoSurface::draw(GLuint buffer){
+void IsoSurface::draw(){
   glDisable(texType2);
   
   glEnableClientState(GL_VERTEX_ARRAY);
-  glBindBufferARB(GL_ARRAY_BUFFER, buffer);
+  glBindBufferARB(GL_ARRAY_BUFFER, iso_buffer[0]);
   glVertexPointer(4,GL_FLOAT,0,0);
   
-  glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+  if(!solid)
+    glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
   
   //glDrawArrays(GL_TRIANGLES,0,15*(nx)*(ny)*(nz));
 
@@ -395,4 +412,23 @@ void IsoSurface::draw(GLuint buffer){
   ///////////////////////////////////////
   
   glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+}
+
+//These methods don't work yet
+void IsoSurface::increaseMesh(){
+  if(mesh < 16){
+    mesh = mesh*2;
+    buffer_num++;
+  }
+
+ 
+  
+}
+void IsoSurface::decreaseMesh(){
+  if(mesh > 1){
+    mesh = mesh/2;
+    buffer_num--;
+  }
+
+  
 }

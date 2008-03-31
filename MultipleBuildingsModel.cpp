@@ -51,7 +51,8 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   print_MeanVel = false;
   createImages = false;
   quitSimulation = false;
-	
+  drawIsoSurface = false;
+
   //stream = new StreamLine(twidth,theight,nx,ny,nz);
   
   //Set whether to reuse particles or not
@@ -156,18 +157,14 @@ void MultipleBuildingsModel::init(bool OSG){
   //
   // set up vertex buffer
   // 
-  glGenBuffersARB(3, vbo_buffer);
+  glGenBuffersARB(2, vbo_buffer);
   vertex_buffer = vbo_buffer[0];
   color_buffer = vbo_buffer[1];
-  iso_surface_buffer = vbo_buffer[2];
-
+  
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, color_buffer);
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
-  
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, iso_surface_buffer);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, (nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
   
   glBindBuffer(GL_ARRAY_BUFFER, 0);
  
@@ -219,7 +216,7 @@ int MultipleBuildingsModel::display(){
 
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
   
-  if(!firstTime){
+  if(oneTime < 1){
     //render the 3D density function texture
     isoSurface->render3DTexture(isoFbo);
 
@@ -420,11 +417,11 @@ int MultipleBuildingsModel::display(){
       FramebufferObject::Disable();
       glDrawBuffer(draw_buffer); // send it to the original buffer
 
+      /////////////////////////////////////////////////////
+      //Render geometry shader outputs to the vertex buffer
+      /////////////////////////////////////////////////////
       if(oneTime < 2){
-	/////////////////////////////////////////////////////
-	//Render geometry shader outputs to the vertex buffer
-	/////////////////////////////////////////////////////
-	isoSurface->createIsoSurface(iso_surface_buffer);
+	isoSurface->createIsoSurface();
 	oneTime++;
       }
 
@@ -482,7 +479,8 @@ int MultipleBuildingsModel::display(){
       }
       
       //Draw isosurface
-      isoSurface->draw(iso_surface_buffer);
+      if(drawIsoSurface)
+	isoSurface->draw();
 
       planeVisual->drawScale();
 

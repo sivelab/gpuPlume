@@ -493,7 +493,25 @@ void keyboard_cb(unsigned char key, int x, int y)
       else 
 	plume->dc->particle_visual_state = DisplayControl::PARTICLE_SPHERE;
     }
- 
+  else if (key == 'i')
+    {
+      plume->drawIsoSurface = !plume->drawIsoSurface;
+    }
+  else if (key == 'u')
+    {
+      plume->isoSurface->solid = !plume->isoSurface->solid;
+    }
+  else if (key == ')')
+    {
+      plume->isoSurface->increaseMesh();
+      plume->oneTime = 1;
+    }
+  else if (key == '(')
+    {
+      plume->isoSurface->decreaseMesh();
+      plume->oneTime = 1;
+    }
+  
   glutPostRedisplay();
 }
 
