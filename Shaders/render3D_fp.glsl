@@ -1,6 +1,6 @@
 uniform int slice;
 uniform sampler3D tau;
-
+uniform float contourValue;
 
 void main(void)
 {
@@ -37,7 +37,7 @@ void main(void)
   //set contour value to 1
   //will need to pass in as uniform
 
-  value.x = value.x - 4.0;
+  value.x = value.x - contourValue;
 
   color = value;
 
