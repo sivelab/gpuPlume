@@ -74,6 +74,7 @@ void GLSLObject::setInputandOutput(GLenum input, GLenum output,int n)
   output_type = output;
   num_vertices = n;
 }
+//This function is hardcoded for setting the output type to positions!!
 void GLSLObject::setVaryingOutput(int count, int* locations,GLenum buffermode){
   GLint positions = glGetVaryingLocationNV(m_program_object,"gl_Position");
   glTransformFeedbackVaryingsNV(m_program_object,count,&positions,buffermode);
