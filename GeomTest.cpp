@@ -14,17 +14,19 @@
 
 #endif
 
-GLenum texType2;
-GLuint tex3d[2];
-GLuint case_to_numpoly[1];
-GLuint edge_connect_list[1];
+//GLenum texType2;
+//GLuint tex3d[2];
+//GLuint case_to_numpoly[1];
+//GLuint edge_connect_list[1];
 int oneTime;
-GLuint query;
-int numP;
-int mesh;
+//GLuint query;
+//int numP;
+//int mesh;
+bool doOnce;
 
 GeomTest::GeomTest(Util* u){
-  
+  doOnce = true;
+
   util = u;
 
   //from util
@@ -39,7 +41,7 @@ GeomTest::GeomTest(Util* u){
   nzdz = (int)(nz*(1.0/util->dz));
  
   texType = GL_TEXTURE_RECTANGLE_ARB;
-  texType2 = GL_TEXTURE_3D;//GL_TEXTURE_RECTANGLE_ARB;
+  //texType2 = GL_TEXTURE_3D;//GL_TEXTURE_RECTANGLE_ARB;
   int_format = GL_RGBA32F_ARB;
 
   odd = true;
@@ -47,7 +49,8 @@ GeomTest::GeomTest(Util* u){
   oneTime = 0;
   //paused = false;
 
-  mesh = 4;
+  //mesh = 4;
+  firstTime = true;
   
 }
 GeomTest::~GeomTest(){}
@@ -56,8 +59,8 @@ void GeomTest::init(bool OSG){
 
  
   //glFrontFace(GL_CW);
-
-
+ 
+  
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz);
   pc->setUstarAndSigmas(util->ustar);
   pc->setBuildingParameters(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
@@ -72,7 +75,7 @@ void GeomTest::init(bool OSG){
   else{   
     dc->draw_buildings = true;
   }
-
+  /*
   int num_vertices;
   if(GL_EXT_geometry_shader4)
     {
@@ -83,6 +86,7 @@ void GeomTest::init(bool OSG){
       glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &num_vertices);
       std::cout << num_vertices << " number of output vertices." << std::endl;
     }
+  
   geomShader.addShader("Shaders/isoSurface_vp.glsl", GLSLObject::VERTEX_SHADER);
   geomShader.addShader("Shaders/isoSurface_gp.glsl", GLSLObject::GEOMETRY_SHADER);
   //geomShader.addShader("Shaders/streamLines_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -113,7 +117,7 @@ void GeomTest::init(bool OSG){
   testShader.createProgram();
   u_slice = testShader.createUniform("slice");
   uniform_tau = testShader.createUniform("tau");
-
+  */
   
   //isoShader.addShader("Shaders/isoColor_vp.glsl", GLSLObject::VERTEX_SHADER);
   //isoShader.addShader("Shaders/isoColor_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -155,8 +159,13 @@ void GeomTest::init(bool OSG){
   setupTextures(); 
   /////////////////////////////
   
-  glDisable(texType);
 
+  //glDisable(texType);
+
+  //isoSurface = new IsoSurface(util,pc);
+
+
+  /*
   glEnable(texType2);
   glGenTextures(2,tex3d);
 
@@ -209,32 +218,6 @@ void GeomTest::init(bool OSG){
       }
     }
   }
-
-  //delete [] data;
-  /*data = new GLfloat[(nx)*(ny)*(nz)*4];
-
-  for(int k=0;k<nz;k++){
-    for(int i=0; i < ny; i++){
-      for(int j=0; j < nx; j++){
-	int idx = k*ny*nx + i*nx + j;
-
-	int tidx = k*ny*nx*4 + i*nx*4 + j*4;
-	
-	if(k==0){
-	data[tidx] = j;//pc->tau[idx].t11;
-	data[tidx+1] = j;//pc->tau[idx].t22;
-	data[tidx+2] = j;//pc->tau[idx].t33;
-	data[tidx+3] = 1;//pc->tau[idx].t13;
-	}
-	else{
-	  data[tidx] = 0;//pc->tau[idx].t11;
-	  data[tidx+1] = 0;//pc->tau[idx].t22;
-	  data[tidx+2] = 0;//pc->tau[idx].t33;
-	  data[tidx+3] = 1;//pc->tau[idx].t13;
-	}
-      }
-    }
-    }*/
   
   glBindTexture(texType2, tex3d[1]);
   glTexParameteri(texType2, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -250,16 +233,23 @@ void GeomTest::init(bool OSG){
 
   glBindTexture(texType2,0);
   glDisable(texType2);
+  */
 
+  /*
+  glGenBuffersARB(1, iso_surface_buffer);
 
-  glGenBuffersARB(1, iso_buffer);
-  for(int i=0; i < 1; i++){
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB,iso_buffer[i]);
+ 
+  //for(int i=0; i < 1; i++){
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB,iso_surface_buffer[0]);
     //Each buffer is for the size of one layer
-    glBufferDataARB(GL_ARRAY_BUFFER_ARB, mesh*(nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
-  }
+    //make a '4' = mesh
+    glBufferDataARB(GL_ARRAY_BUFFER_ARB, (nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
+    //glBufferDataARB(GL_ARRAY_BUFFER_ARB, 100000*4*sizeof(GLfloat),0, GL_STREAM_COPY);
+    
+    //}
   glBindBuffer(GL_ARRAY_BUFFER,0);
-
+  */
+  /*
   int* attr = new int[1];
   attr[0] = GL_POSITION;
 
@@ -267,17 +257,17 @@ void GeomTest::init(bool OSG){
   
   geomShader.setVaryingOutput(1,attr,GL_INTERLEAVED_ATTRIBS_NV);
   //glTransformFeedbackAttribsNV(1,attr,GL_INTERLEAVED_ATTRIBS_NV);
-
+  */
 
   initFBO();
 
   //Read in lookup tables and store in textures
-  readInTables();
+  //readInTables();
   
-  glGenQueries(1,&query);
+  //glGenQueries(1,&query);
 
 }
-
+/*
 void GeomTest::readInTables(){
   glEnable(GL_DEPTH_TEST);
 
@@ -334,12 +324,12 @@ void GeomTest::readInTables(){
 
     }
   }
-  /*for(int i=0; i < 256; i++){
-    for(int j=0; j < 5; j++){
-      int idx = i*5*4 + j*4;
-      std::cout << data2[idx] << " " << data2[idx+1] << " " << data2[idx+2] << " " << data2[idx+3] << " , ";
-    }
-    }*/
+  //for(int i=0; i < 256; i++){
+    //for(int j=0; j < 5; j++){
+      //int idx = i*5*4 + j*4;
+      //std::cout << data2[idx] << " " << data2[idx+1] << " " << data2[idx+2] << " " << data2[idx+3] << " , ";
+    //}
+   // }
 
 
   fp.close();
@@ -377,140 +367,34 @@ void GeomTest::readInTables(){
   delete [] data2;
 
 }
-
+*/
 int GeomTest::display(){
     
 
-  if(oneTime < 2){
-
-    
-
-    glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
-    glEnable(texType2);
   
-    fbo->Bind();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-
-    glViewport(0, 0, nx+1, ny+1);
-
-  
-    //Render to 3D texture
-    ////////////////////////////////////////////////////
-    //Have to render one slice at a time
-    testShader.activate();
-    //glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-
-    for(int z = 0; z <= nz; z++){
-      fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT,texType2,tex3d[0],0,z);
-      float slice = ((float)(z) / (float)(nz));
-
-      glUniform1iARB(u_slice,z);
-
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(texType2,tex3d[1]);
-      glUniform1iARB(uniform_tau,0);
-    
-      glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-
-      glBegin(GL_QUADS);
-      glTexCoord3f(0.0f,0.0f,slice); glVertex2f(-1.0f, -1.0f);
-      glTexCoord3f(1.0f,0.0f,slice); glVertex2f(1.0f, -1.0f);
-      glTexCoord3f(1.0f,1.0f,slice); glVertex2f(1.0f, 1.0f);
-      glTexCoord3f(0.0f,1.0f,slice); glVertex2f(-1.0f, 1.0f);
-      glEnd();
-
-      fbo->Unattach(GL_COLOR_ATTACHMENT0_EXT);
-
-    }
-    testShader.deactivate();
-  
-    FramebufferObject::Disable();
-    glDrawBuffer(draw_buffer);
-    ///////////////////////////////////////////////////
-    
-    /////////////////////////////////////////////////////
-    //Render geometry shader outputs to the vertex buffer
-    /////////////////////////////////////////////////////
-    glEnable(GL_RASTERIZER_DISCARD_NV);
-
-    geomShader.activate();
-  
-    glDisable(texType2);
-
-    glEnable(GL_TEXTURE_1D);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_1D,case_to_numpoly[0]);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glUniform1iARB(u_case,2);
-    glDisable(GL_TEXTURE_1D);
-
-    glEnable(GL_TEXTURE_2D);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D,edge_connect_list[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glUniform1iARB(u_edge,1);
-    glDisable(GL_TEXTURE_2D);
-
-    glEnable(texType2);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(texType2,tex3d[0]);
-    glTexParameteri(texType2, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(texType2, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glUniform1iARB(u_tau3D,0);
-
-    glDisable(texType2);
-
-    //Start recording triangle made into a buffer
-    glBeginTransformFeedbackNV(GL_TRIANGLES);
-
-    //start query to determine number of triangles made
-    glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN_NV, query);
-  
-    glBindBufferBaseNV(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0,iso_buffer[0]);
-  
-    glPointSize(1.0);
-    glBegin(GL_POINTS);
- 
-    //Visit each voxel in the domain 
-    for(int k=0; k < (nz*mesh); k++){
-      for(int i=0; i < ny*mesh; i++){
-	for(int j=0; j < nx*mesh; j++){
-	
-	  glVertex4f((float)j/(float)mesh,(float)i/(float)mesh,
-		     (float)k/(float)mesh,1.0);
-	
-	}
-      }
-    }
-  
-    glEnd();
- 
-  
-    glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0);
-
-    //Query
-    glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN_NV);
-
-    //End transform feedback and deactivate shader
-    glEndTransformFeedbackNV();
-    geomShader.deactivate();
    
-    glDisable(GL_RASTERIZER_DISCARD_NV);
+    glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
 
-    oneTime++;
+    if(oneTime < 2){
+
+      //render the 3D density function texture
+      //isoSurface->render3DTexture(fbo);
+    
+    
+      glDrawBuffer(draw_buffer);
+      ///////////////////////////////////////////////////
+    
+      /////////////////////////////////////////////////////
+      //Render geometry shader outputs to the vertex buffer
+      /////////////////////////////////////////////////////
+      // isoSurface->createIsoSurface(iso_surface_buffer[0]);
+    
+    
+
+      oneTime++;
+    
+    }
   
-    numP = 0;
-    glGetQueryObjectiv(query,GL_QUERY_RESULT,&numP);
-    std::cout << numP << std::endl;
-
-  }
   ////////////////////////////////////////////////////////
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -530,83 +414,11 @@ int GeomTest::display(){
   
   ///////////////////////////////////
   //Draw the vertex buffer
-  ///////////////////////////////////   
-  glDisable(texType2);
+  /////////////////////////////////// 
+
+  //isoSurface->draw(iso_surface_buffer[0]);
   
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glBindBufferARB(GL_ARRAY_BUFFER,iso_buffer[0]);
-  glVertexPointer(4,GL_FLOAT,0,0);
   
-  //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-  
-  //glDrawArrays(GL_TRIANGLES,0,15*(nx)*(ny)*(nz));
-
-  glPushMatrix();
-  glEnable(GL_COLOR_MATERIAL);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  //isoShader.activate();
-  glColor4f(1.0,0.0,0.0,0.8);
-  glDrawArrays(GL_TRIANGLES,0,numP*3); 
-  //isoShader.deactivate();
-
-  glDisable(GL_BLEND);
-  glDisable(GL_COLOR_MATERIAL);
-  glPopMatrix();
-
-  glBindBuffer(GL_ARRAY_BUFFER,0);
-  glDisableClientState(GL_VERTEX_ARRAY);
-  ///////////////////////////////////////
-  
-  //glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-  
-  /*
-  if(oneTime == 2){
-    GLfloat* data;
-
-    glBindBufferARB(GL_ARRAY_BUFFER,iso_buffer[0]);
-    data = (GLfloat*)glMapBufferARB(GL_ARRAY_BUFFER, GL_READ_ONLY);
-    GLenum err_code;
-    err_code = glGetError();
-    std::cout << gluErrorString(err_code) << std::endl;
-    
-
-    if(data != NULL){
-      for(int i=0; i < numP*3; i++){
-	int idx = i*4;
-	std::cout << data[idx] << " " << data[idx+1] << " " << data[idx+2] << " " << data[idx+3] << std::endl;
-      }
-
-      glUnmapBuffer(GL_ARRAY_BUFFER);
-    }
-    else{
-      std::cout << "NULL" << std::endl;
-    }
-
-    oneTime++;
-    }*/
-  
-
-  /*
-  //Draw a slice of the 3D texture on a quad
-  float r = 0.0/((float)(nz-1));
-
-  glEnable(texType2);
-  glBindTexture(texType2,tex3d[0]);
-  
-  glColor3f(1.0,1.0,1.0);
-
-  glBegin(GL_QUADS);
-  {
-    glTexCoord3f(0.0f, 0.0f, r);	        glVertex3f(0.0f, 0.0f, r*nz);
-    glTexCoord3f(1.0f, 0.0f, r);		glVertex3f(nx, 0, r*nz);
-    glTexCoord3f(1.0f, 1.0f, r);	        glVertex3f(nx,  ny, r*nz);
-    glTexCoord3f(0.0f, 1.0f, r);		glVertex3f(0.0f,  ny, r*nz);
-  }
-  glEnd();  
-  glDisable(texType2);
-  */
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -617,7 +429,7 @@ int GeomTest::display(){
 
   //glDisable(texType2);
   CheckErrorsGL("END : visualization");
-
+  firstTime = false;
 
   glutSwapBuffers();
   return 1;
@@ -629,7 +441,7 @@ void GeomTest::initFBO(void){
   fbo->Bind();
    
   //Attach textures to framebuffer object
-  fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType2, tex3d[0]);
+  fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_3D, isoSurface->tex3d[0]);
  
   fbo->IsValid();
   FramebufferObject::Disable();
