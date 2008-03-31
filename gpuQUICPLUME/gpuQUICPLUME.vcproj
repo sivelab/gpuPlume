@@ -218,6 +218,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\IsoSurface.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\lineEmitter.cpp"
 				>
 			</File>
@@ -340,6 +344,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\IsoSurface.h"
+				>
+			</File>
+			<File
 				RelativePath="..\lineEmitter.h"
 				>
 			</File>
@@ -446,6 +454,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Shaders\isoSurface_gp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\isoSurface_vp.glsl"
+				>
+			</File>
+			<File
 				RelativePath="..\Shaders\meanVel_fp.glsl"
 				>
 			</File>
@@ -503,6 +519,14 @@
 			</File>
 			<File
 				RelativePath="..\Shaders\reflectionAdvect_vp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\render3D_fp.glsl"
+				>
+			</File>
+			<File
+				RelativePath="..\Shaders\render3D_vp.glsl"
 				>
 			</File>
 			<File
