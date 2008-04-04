@@ -278,7 +278,7 @@ void GLSLObject::loadSourceFromFile( const std::string& filename, GLhandleARB& s
 
     // Clean up allocated memory
     for (idx=0; idx<string_list.size(); idx++)
-	delete shader_string[idx];
+	delete [] shader_string[idx];
     delete [] shader_string;
 }
 
