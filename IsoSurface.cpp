@@ -1,4 +1,5 @@
 #include "IsoSurface.h"
+#include "glErrorUtil.h"
 
 IsoSurface::IsoSurface(ParticleControl *pc){
   //Mesh size
@@ -144,10 +145,11 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   glGenBuffersARB(10, iso_buffer);
   buffer_num = 0;
 
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, iso_buffer[0]);
+  glBindBuffer(GL_ARRAY_BUFFER_ARB, iso_buffer[0]);
   //??The size of this buffer might need to be larger??
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, mesh*(nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
-
+  glBufferData(GL_ARRAY_BUFFER_ARB, mesh*(nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
+  glBindBufferBaseNV(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0,iso_buffer[0]);
+  
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, iso_buffer[1]);
   //??The size of this buffer might need to be larger??
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, mesh*(nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
@@ -308,10 +310,12 @@ void IsoSurface::render3DTexture(FramebufferObject* fbo){
 }
 void IsoSurface::createIsoSurface(){
 
+  
+
   glEnable(GL_RASTERIZER_DISCARD_NV);
 
   geomShader.activate();
-  
+   
   glDisable(texType2);
 
   glEnable(GL_TEXTURE_1D);
@@ -344,10 +348,9 @@ void IsoSurface::createIsoSurface(){
 
   //start query to determine number of triangles made
   glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN_NV, query);
-    
+
   glBindBuffer(GL_ARRAY_BUFFER_ARB, iso_buffer[0]);
-  glBindBufferBaseNV(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0,iso_buffer[0]);
-  
+    
   glPointSize(1.0);
   glBegin(GL_POINTS);
 
@@ -364,8 +367,7 @@ void IsoSurface::createIsoSurface(){
   }
   
   glEnd();
- 
-  //glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0);
+  
   glBindBuffer(GL_ARRAY_BUFFER_ARB,0);
 
   //Query
@@ -377,9 +379,6 @@ void IsoSurface::createIsoSurface(){
    
   
   glDisable(GL_RASTERIZER_DISCARD_NV);
-
-  
-  //oneTime++;
     
   glGetQueryObjectiv(query,GL_QUERY_RESULT,&numPrimitives);
   std::cout << numPrimitives << std::endl;

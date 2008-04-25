@@ -1,5 +1,6 @@
 #include "PathLine.h"
 #include <math.h>
+#include "glErrorUtil.h"
 
 PathLine::PathLine(int w, int h, GLenum type){
   pwidth = w;
@@ -103,15 +104,17 @@ void PathLine::addNewPath(ParticleEmitter* pe){
 void PathLine::updatePathLines(GLuint positions0, GLuint positions1, bool odd){
   //pathFbo->Bind();
   //Need to bind the previous fbo after this call is made!!!
-
-  glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-
+  
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluOrtho2D(0, pwidth, 0, pheight);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity(); 
     
+  glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+
+  glEnable(texType);
+  pathLineShader.activate();
 
   glActiveTexture(GL_TEXTURE0);
   if (odd)
@@ -119,46 +122,52 @@ void PathLine::updatePathLines(GLuint positions0, GLuint positions1, bool odd){
   else 
     glBindTexture(texType, positions1);  // read from texture 1
  
+    
+
   glUniform1iARB(uniform_pos, 0);
     
-  pathLineShader.activate();
   pathIndex pIndex;
 
   pathIter = pathList.begin();
   while(pathIter != pathList.end()){
 
+    CheckErrorsGL("at top");
     pIndex = *pathIter;
     pathIndex &pIdx = *pathIter;
 
     //Length of path line is bound to pwidth
     if(pIndex.s < pwidth){
+     
       //set viewport with s and t
       glViewport(pIndex.s,pIndex.t,1,1);
-      
+     
       //Punch Hole new point in path line into path line texture
       glBegin(GL_POINTS);
       {
 	//pass texture coordinates into position texture to shader
 	//using the color attribute variable
-	glColor4f(pIndex.x,pIndex.y,0.0,1.0);
+	glColor4f(pIndex.x,pIndex.y,0,1);
 	glVertex2f(0.5,0.5);
       }
       glEnd();
-
+      
       //update s coordinate into path line texture
       pIdx.s++;
     }
-
+    
     pathIter++;
+    
+    
   }
-  pathLineShader.deactivate();
 
+  pathLineShader.deactivate();
+ 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluOrtho2D(-1, 1, -1, 1);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-      
+  
   update = true;
   
   //updateVBOS();

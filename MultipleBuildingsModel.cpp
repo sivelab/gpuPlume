@@ -121,8 +121,8 @@ void MultipleBuildingsModel::init(bool OSG){
   //Texture for mean velocities
   meanVel0 = texid[10];
   meanVel1 = texid[11];
-  //Texture used to hold current velocity
-  currVel = texid[12];
+  //Texture used to hold current particle direction
+  currDirection = texid[12];
   //Texture used for building information
   buildings = texid[13];
   //Texture used for cell type information
@@ -179,7 +179,7 @@ void MultipleBuildingsModel::init(bool OSG){
 
   pc->setupMeanVel_shader();
 
-  pc->setupCurrVel_shader();
+  pc->setupParticleColor_shader();
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -254,7 +254,8 @@ int MultipleBuildingsModel::display(){
     /////////////////////////////////////////////////////////////
     if(reuseParticles){
       particleReuse();
-    }
+    } 
+    
     ////////////////////////////////////////////////////////////
     // Emit Particles
     ////////////////////////////////////////////////////////////
@@ -269,17 +270,20 @@ int MultipleBuildingsModel::display(){
 	}
       }
     }
+   
     ////////////////////////////////////////////////////////////
     // Update Path Lines
     ////////////////////////////////////////////////////////////
-    //FramebufferObject::Disable();
+    FramebufferObject::Disable();
     pathFbo->Bind();
-    pathLines->updatePathLines(positions0,positions1,odd);
     
+    pathLines->updatePathLines(positions0,positions1,odd);
+    CheckErrorsGL("END : pathLines");
     //Make sure to bind this fbo, because the pathLines use a
     //different fbo
+    FramebufferObject::Disable();
     fbo->Bind();
-
+    
     ////////////////////////////////////////////////////////////
     // Collection Boxes
     ////////////////////////////////////////////////////////////
@@ -291,10 +295,10 @@ int MultipleBuildingsModel::display(){
     ////////////////////////////////////////////////////////////
     // Update Prime Values and Particle Positions
     ////////////////////////////////////////////////////////////
-   
+    
     pc->multipleBuildingsAdvect(odd,windField,positions0,positions1,prime0,prime1,
     			 randomValues,lambda,tau_dz,duvw_dz,time_step,buildings, cellType);
-   
+      
     ////////////////////////////////////////////////////////////
     // Get Position for Streams
     ////////////////////////////////////////////////////////////
@@ -319,13 +323,13 @@ int MultipleBuildingsModel::display(){
     }
     
     ///////////////////////////////////////////////////////////
-    // Update Current Velocities
+    // Update Particle Colors
     ///////////////////////////////////////////////////////////
     if(maxColorAttachments <= 4){
       FramebufferObject::Disable();
       fbo2->Bind();
     }
-    pc->updateCurrVel(odd,prime0,prime1,windField,positions0,positions1);
+    pc->updateParticleColors(odd,prime0,prime1,windField,positions0,positions1);
 
     if(maxColorAttachments <= 4){
       FramebufferObject::Disable();
@@ -368,7 +372,7 @@ int MultipleBuildingsModel::display(){
       output_CollectionBox = false;
     }
 
-  //Switches the frame buffer and binding texture
+    //Switches the frame buffer and binding texture
   
     odd = !odd;
     paused = true;
@@ -400,7 +404,7 @@ int MultipleBuildingsModel::display(){
 	FramebufferObject::Disable();
 	fbo2->Bind();
       }
-      glReadBuffer(currVelBuffer);
+      glReadBuffer(particleColorBuffer);
       
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
@@ -420,7 +424,10 @@ int MultipleBuildingsModel::display(){
       /////////////////////////////////////////////////////
       //Render geometry shader outputs to the vertex buffer
       /////////////////////////////////////////////////////
-      if(oneTime < 2){
+      CheckErrorsGL("before isosurface");
+
+
+      if(oneTime < 1){
 	isoSurface->createIsoSurface();
 	oneTime++;
       }
@@ -463,7 +470,7 @@ int MultipleBuildingsModel::display(){
 
       glDisable(texType);
       if(dc->tau_visual == draw_contours){
-	contours->draw();
+	//contours->draw();
 	contours->displayContourLayer(pc,tau,numInRow);
       }
       glEnable(texType);
@@ -479,8 +486,9 @@ int MultipleBuildingsModel::display(){
       }
       
       //Draw isosurface
-      if(drawIsoSurface)
+      if(drawIsoSurface){
 	isoSurface->draw();
+      }
 
       planeVisual->drawScale();
 
@@ -510,6 +518,13 @@ int MultipleBuildingsModel::display(){
       if(!osgPlume)
 	glutSwapBuffers();
     }
+  else{
+    FramebufferObject::Disable();
+    //glDisable(texType);
+    glDrawBuffer(draw_buffer); // send it to the original buffer
+    CheckErrorsGL("END : after not showing visuals");
+    glutSwapBuffers();
+  }
 
   if(quitSimulation){
     std::cout << "Simulation ended after " << sim->simDuration << " seconds."<< std::endl;
@@ -542,10 +557,10 @@ void MultipleBuildingsModel::initFBO(void){
   if(maxColorAttachments > 4){
     fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, meanVel0);
     fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
-    fbo->AttachTexture(GL_COLOR_ATTACHMENT6_EXT, texType, currVel);
+    fbo->AttachTexture(GL_COLOR_ATTACHMENT6_EXT, texType, currDirection);
 
-    currVelBuffer = GL_COLOR_ATTACHMENT6_EXT;
-    pc->currVelBuffer = GL_COLOR_ATTACHMENT6_EXT;
+    particleColorBuffer = GL_COLOR_ATTACHMENT6_EXT;
+    pc->particleColorBuffer = GL_COLOR_ATTACHMENT6_EXT;
     pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT4_EXT;
     pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT5_EXT;
 
@@ -562,11 +577,11 @@ void MultipleBuildingsModel::initFBO(void){
 
     fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0); 
     fbo2->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, meanVel1);
-    fbo2->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, currVel);
+    fbo2->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, currDirection);
     CheckErrorsGL("FBO init 2");
 
-    currVelBuffer = GL_COLOR_ATTACHMENT2_EXT;
-    pc->currVelBuffer = GL_COLOR_ATTACHMENT2_EXT;
+    particleColorBuffer = GL_COLOR_ATTACHMENT2_EXT;
+    pc->particleColorBuffer = GL_COLOR_ATTACHMENT2_EXT;
     pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT0_EXT;
     pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT1_EXT;
 
@@ -745,7 +760,7 @@ void MultipleBuildingsModel::setupTextures(){
 	}
       }
 
-  pc->createTexture(currVel, int_format, twidth, theight, data);
+  pc->createTexture(currDirection, int_format, twidth, theight, data);
 
   //
   // create random texture for use with particle simulation and turbulence

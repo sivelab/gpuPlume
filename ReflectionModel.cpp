@@ -121,7 +121,7 @@ void ReflectionModel::init(bool OSG){
   meanVel0 = texid[10];
   meanVel1 = texid[11];
   //Texture used to hold current velocity
-  currVel = texid[12];
+  currDirection = texid[12];
 
   tau = texid[13];
   
@@ -149,7 +149,7 @@ void ReflectionModel::init(bool OSG){
 
   pc->setupMeanVel_shader();
 
-  pc->setupCurrVel_shader();
+  pc->setupParticleColor_shader();
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -266,7 +266,7 @@ int ReflectionModel::display(){
       FramebufferObject::Disable();
       fbo2->Bind();
     }
-    pc->updateCurrVel(odd,prime0,prime1,windField,positions0,positions1);
+    pc->updateParticleColors(odd,prime0,prime1,windField,positions0,positions1);
 
     if(maxColorAttachments <= 4){
       FramebufferObject::Disable();
@@ -336,7 +336,7 @@ int ReflectionModel::display(){
 	FramebufferObject::Disable();
 	fbo2->Bind();
       }
-      glReadBuffer(currVelBuffer);
+      glReadBuffer(particleColorBuffer);
       
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
@@ -408,6 +408,13 @@ int ReflectionModel::display(){
       if(!osgPlume)
 	glutSwapBuffers();
     }
+  else{
+    FramebufferObject::Disable();
+    //glDisable(texType);
+    glDrawBuffer(draw_buffer); // send it to the original buffer
+    CheckErrorsGL("END : after not showing visuals");
+    glutSwapBuffers();
+  }
 
   if(quitSimulation){
     std::cout << "Simulation ended after " << sim->simDuration << " seconds."<< std::endl;
@@ -439,10 +446,10 @@ void ReflectionModel::initFBO(void){
   if(maxColorAttachments > 4){
     fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, meanVel0);
     fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
-    fbo->AttachTexture(GL_COLOR_ATTACHMENT6_EXT, texType, currVel);
+    fbo->AttachTexture(GL_COLOR_ATTACHMENT6_EXT, texType, currDirection);
 
-    currVelBuffer = GL_COLOR_ATTACHMENT6_EXT;
-    pc->currVelBuffer = GL_COLOR_ATTACHMENT6_EXT;
+    particleColorBuffer = GL_COLOR_ATTACHMENT6_EXT;
+    pc->particleColorBuffer = GL_COLOR_ATTACHMENT6_EXT;
     pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT4_EXT;
     pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT5_EXT;
 
@@ -459,11 +466,11 @@ void ReflectionModel::initFBO(void){
 
     fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0); 
     fbo2->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, meanVel1);
-    fbo2->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, currVel);
+    fbo2->AttachTexture(GL_COLOR_ATTACHMENT2_EXT, texType, currDirection);
     CheckErrorsGL("FBO init 2");
 
-    currVelBuffer = GL_COLOR_ATTACHMENT2_EXT;
-    pc->currVelBuffer = GL_COLOR_ATTACHMENT2_EXT;
+    particleColorBuffer = GL_COLOR_ATTACHMENT2_EXT;
+    pc->particleColorBuffer = GL_COLOR_ATTACHMENT2_EXT;
     pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT0_EXT;
     pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT1_EXT;
 
@@ -612,7 +619,7 @@ void ReflectionModel::setupTextures(){
 	}
       }
 
-  pc->createTexture(currVel, int_format, twidth, theight, data);
+  pc->createTexture(currDirection, int_format, twidth, theight, data);
 
   //
   // create random texture for use with particle simulation and turbulence

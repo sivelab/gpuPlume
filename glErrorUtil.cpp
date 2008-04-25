@@ -44,7 +44,7 @@ using namespace std;
 #ifndef NDEBUG
 void CheckErrorsGL(const char* location, ostream& ostr) 
 {
-   GLenum err_code;
+  GLenum err_code;
   err_code = glGetError();
   while (err_code != GL_NO_ERROR) {
     fprintf(stderr, "OpenGL Error: %s, Context[%s]\n", gluErrorString(err_code), location);

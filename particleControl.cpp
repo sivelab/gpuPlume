@@ -95,6 +95,9 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   GLint unydy = multipleBuildings_shader.createUniform("nydy");
   GLint unzdz = multipleBuildings_shader.createUniform("nzdz");
   GLint uNumInRow = multipleBuildings_shader.createUniform("numInRow");
+  GLint udx = multipleBuildings_shader.createUniform("dx");
+  GLint udy = multipleBuildings_shader.createUniform("dy");
+  GLint udz = multipleBuildings_shader.createUniform("dz");
 
   multipleBuildings_shader.activate();
 
@@ -102,6 +105,9 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   glUniform1iARB(unx, nx);
   glUniform1iARB(uny, ny);
   glUniform1iARB(unz, nz);
+  glUniform1fARB(udx, cell_dx);
+  glUniform1fARB(udy, cell_dy);
+  glUniform1fARB(udz, cell_dz);
   glUniform1iARB(unxdx, nxdx);
   glUniform1iARB(unydy, nydy);
   glUniform1iARB(unzdz, nzdz);
@@ -568,10 +574,11 @@ void ParticleControl::nonGaussianAdvect(bool odd, GLuint windField, GLuint posit
 
 void ParticleControl::setupPrime_and_AdvectShader(float life_time){
   //This shader is used to move the particles
+  
   mrt_shader.addShader("Shaders/updatePrime_and_Advect_vp.glsl", GLSLObject::VERTEX_SHADER);
   mrt_shader.addShader("Shaders/updatePrime_and_Advect_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   mrt_shader.createProgram();
-
+   
   // Get location of the sampler uniform
   uniform_postex = mrt_shader.createUniform("pos_texunit");
   uniform_wind = mrt_shader.createUniform("wind_texunit");
@@ -588,11 +595,10 @@ void ParticleControl::setupPrime_and_AdvectShader(float life_time){
   GLint unx = mrt_shader.createUniform("nx");
   GLint uny = mrt_shader.createUniform("ny");
   GLint unz = mrt_shader.createUniform("nz");
-  GLint unxdx = nonGaussian_shader.createUniform("nxdx");
-  GLint unydy = nonGaussian_shader.createUniform("nydy");
-  GLint unzdz = nonGaussian_shader.createUniform("nzdz");
+  GLint unxdx = mrt_shader.createUniform("nxdx");
+  GLint unydy = mrt_shader.createUniform("nydy");
+  GLint unzdz = mrt_shader.createUniform("nzdz");
   GLint uNumInRow = mrt_shader.createUniform("numInRow");
-
   mrt_shader.activate();
 
   glUniform1fARB(ulifeTime, life_time);
@@ -965,41 +971,41 @@ void ParticleControl::advect(bool odd,
   glBindTexture(texType, 0);
 
 }
-void ParticleControl::setupCurrVel_shader(){
-  currVel_shader.addShader("Shaders/currVel_vp.glsl",GLSLObject::VERTEX_SHADER);
-  currVel_shader.addShader("Shaders/currVel_fp.glsl",GLSLObject::FRAGMENT_SHADER);
-  currVel_shader.createProgram();
+void ParticleControl::setupParticleColor_shader(){
+  currDir_shader.addShader("Shaders/direction_to_color_vp.glsl",GLSLObject::VERTEX_SHADER);
+  currDir_shader.addShader("Shaders/direction_to_color_fp.glsl",GLSLObject::FRAGMENT_SHADER);
+  currDir_shader.createProgram();
 
-  uniform_currentPrime = currVel_shader.createUniform("currPrime");
-  uniform_windVelocity = currVel_shader.createUniform("windVel");
-  uniform_partPos = currVel_shader.createUniform("position");
-  uniform_prevPartPos = currVel_shader.createUniform("position_prev");
+  uniform_currentPrime = currDir_shader.createUniform("currPrime");
+  uniform_windVelocity = currDir_shader.createUniform("windVel");
+  uniform_partPos = currDir_shader.createUniform("position");
+  uniform_prevPartPos = currDir_shader.createUniform("position_prev");
   
-  GLint unir = currVel_shader.createUniform("numInRow");
+  GLint unir = currDir_shader.createUniform("numInRow");
 
-  GLint unx = currVel_shader.createUniform("nx");
-  GLint uny = currVel_shader.createUniform("ny");
-  GLint unz = currVel_shader.createUniform("nz");
+  GLint unx = currDir_shader.createUniform("nx");
+  GLint uny = currDir_shader.createUniform("ny");
+  GLint unz = currDir_shader.createUniform("nz");
 
-  currVel_shader.activate();
+  currDir_shader.activate();
 
   glUniform1iARB(unx, nxdx);
   glUniform1iARB(uny, nydy);
   glUniform1iARB(unz, nzdz);
   glUniform1iARB(unir,numInRow);
 
-  currVel_shader.deactivate();
+  currDir_shader.deactivate();
 
 }
-void ParticleControl::updateCurrVel(bool odd, GLuint prime0,GLuint prime1,GLuint windField,
+void ParticleControl::updateParticleColors(bool odd, GLuint prime0,GLuint prime1,GLuint windField,
 				    GLuint positions0,GLuint positions1){
 
-  glDrawBuffer(currVelBuffer);
+  glDrawBuffer(particleColorBuffer);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, twidth, theight);
     
   glEnable(texType);
-  currVel_shader.activate();
+  currDir_shader.activate();
 
   glActiveTexture(GL_TEXTURE3);
   if(odd)
@@ -1036,7 +1042,7 @@ void ParticleControl::updateCurrVel(bool odd, GLuint prime0,GLuint prime1,GLuint
   }
   glEnd();
 
-  currVel_shader.deactivate();
+  currDir_shader.deactivate();
 
   glBindTexture(texType,0);
 }
@@ -1575,7 +1581,9 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   float du_dz;
 
   //Cell height
-  float dz = 1.0;
+  //This is now a variable set in settings file
+  //float dz = 1.0;
+
   //Surface roughness
   float znaut = 0.01f;
   
@@ -1608,7 +1616,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  //Cell just above the ground
 	  //du/dz = Uat 1st cell/0.5dz(log(dz/znaut))
 	  if(qk == 0){
-	    du_dz = wind_vel[p2idx].u/(dz*log(dz/znaut));
+	    du_dz = wind_vel[p2idx].u/(cell_dz*log(cell_dz/znaut));
 	  }
 	  //Cell at the top of the domain
 	  else if(qk == (nzdz-1)){
@@ -1631,7 +1639,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  //All other cells. i.e not boundary cells
 	  //du/dz = (Uk+1 - Uk-1)/2dz
 	  else{
-	    du_dz = (wind_vel[idxAbove].u - wind_vel[idxBelow].u)/(2.0f*dz);
+	    du_dz = (wind_vel[idxAbove].u - wind_vel[idxBelow].u)/(2.0f*cell_dz);
 	  }
 	  	  
 	  data3[texidx] = du_dz;    //du_dz
@@ -1705,10 +1713,10 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  //Cell just above the ground
 	  //dT/dz = -2(T/(0.5dz)log((0.5dz/znaut)))
 	  if(qk == 0){
-	    tau11_dz = -2.0f*(tau[p2idx].t11/(dz*log(dz/znaut)));
-	    tau22_dz = -2.0f*(tau[p2idx].t22/(dz*log(dz/znaut)));
-	    tau33_dz = -2.0f*(tau[p2idx].t33/(dz*log(dz/znaut)));
-	    tau13_dz = -2.0f*(tau[p2idx].t13/(dz*log(dz/znaut)));
+	    tau11_dz = -2.0f*(tau[p2idx].t11/(cell_dz*log(cell_dz/znaut)));
+	    tau22_dz = -2.0f*(tau[p2idx].t22/(cell_dz*log(cell_dz/znaut)));
+	    tau33_dz = -2.0f*(tau[p2idx].t33/(cell_dz*log(cell_dz/znaut)));
+	    tau13_dz = -2.0f*(tau[p2idx].t13/(cell_dz*log(cell_dz/znaut)));
 	  }
 	  //Cell at the top of the domain
 	  else if(qk == (nzdz-1)){
@@ -1740,10 +1748,10 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 	  //All other cells
 	  //dT/dz = (Tk+1 - Tk-1)/2dz
 	  else{
-	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0f*dz);
-	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0f*dz);
-	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0f*dz);
-	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0f*dz);
+	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0f*cell_dz);
+	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0f*cell_dz);
+	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0f*cell_dz);
+	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0f*cell_dz);
 	  }
 
 	  data[texidx] = tau11_dz;
@@ -1778,8 +1786,11 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   //int idxRight, idxLeft;
   //float du_dx,du_dy,du_dz,dv_dx,dv_dy,dv_dz,dw_dx,dw_dy,dw_dz;
   //double S11,S22,S33,S21,S12,S31,S13,S23,S32;
+  
   //Cell height
-  float dz = 1.0,dx=1.0,dy=1.0;
+  //These variables are now set in the setting file
+  //float dz = 1.0,dx=1.0,dy=1.0;
+
   //Surface roughness
   float znaut = 0.1f;
 
@@ -1998,10 +2009,10 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	  //Cell just above the ground
 	  //dT/dz = -2(T/(0.5dz)log((0.5dz/znaut)))
 	  if(qk == 0 || (cellQuic[idxBelow].c==0 && cellQuic[p2idx].c==1)){
-	    tau11_dz = -2.0f*(tau[p2idx].t11/(dz*log(dz/znaut)));
-	    tau22_dz = -2.0f*(tau[p2idx].t22/(dz*log(dz/znaut)));
-	    tau33_dz = -2.0f*(tau[p2idx].t33/(dz*log(dz/znaut)));
-	    tau13_dz = -2.0f*(tau[p2idx].t13/(dz*log(dz/znaut)));
+	    tau11_dz = -2.0f*(tau[p2idx].t11/(cell_dz*log(cell_dz/znaut)));
+	    tau22_dz = -2.0f*(tau[p2idx].t22/(cell_dz*log(cell_dz/znaut)));
+	    tau33_dz = -2.0f*(tau[p2idx].t33/(cell_dz*log(cell_dz/znaut)));
+	    tau13_dz = -2.0f*(tau[p2idx].t13/(cell_dz*log(cell_dz/znaut)));
 	  }
 	  //Cell at the top of the domain
 	  else if(qk == (nzdz-1)){
@@ -2013,10 +2024,10 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	  //All other cells
 	  //dT/dz = (Tk+1 - Tk-1)/2dz
 	  else{
-	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0f*dz);
-	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0f*dz);
-	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0f*dz);
-	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0f*dz);
+	    tau11_dz = (tau[idxAbove].t11 - tau[idxBelow].t11)/(2.0f*cell_dz);
+	    tau22_dz = (tau[idxAbove].t22 - tau[idxBelow].t22)/(2.0f*cell_dz);
+	    tau33_dz = (tau[idxAbove].t33 - tau[idxBelow].t33)/(2.0f*cell_dz);
+	    tau13_dz = (tau[idxAbove].t13 - tau[idxBelow].t13)/(2.0f*cell_dz);
 	  }
 
 	  data[texidx] = tau11_dz;

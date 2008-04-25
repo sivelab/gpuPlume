@@ -94,7 +94,7 @@ void NonGaussianModel::init(bool OSG){
   lambda = texid[7];
   tau_dz = texid[8];
   duvw_dz = texid[9];
-  currVel = texid[10];
+  currDirection = texid[10];
   /////////////////////////////
   setupTextures();
   setupEmitters();
@@ -121,7 +121,7 @@ void NonGaussianModel::init(bool OSG){
 
   pc->setupNonGaussianShader(lifeTime);
 
-  pc->setupCurrVel_shader();
+  pc->setupParticleColor_shader();
 
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
@@ -232,7 +232,7 @@ int NonGaussianModel::display(){
       fbo2->Bind();
     }
     
-    pc->updateCurrVel(odd,prime0,prime1,windField,positions0,positions1);
+    pc->updateParticleColors(odd,prime0,prime1,windField,positions0,positions1);
 
     if(maxColorAttachments <= 4){
       FramebufferObject::Disable();
@@ -286,7 +286,7 @@ int NonGaussianModel::display(){
 	FramebufferObject::Disable();
 	fbo2->Bind();
       }
-      glReadBuffer(currVelBuffer);
+      glReadBuffer(particleColorBuffer);
       
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
@@ -361,6 +361,13 @@ int NonGaussianModel::display(){
       if(!osgPlume)
 	glutSwapBuffers();
     }
+  else{
+    FramebufferObject::Disable();
+    //glDisable(texType);
+    glDrawBuffer(draw_buffer); // send it to the original buffer
+    CheckErrorsGL("END : after not showing visuals");
+    glutSwapBuffers();
+  }
 
   if(quitSimulation){
     std::cout << "Simulation ended after " << sim->simDuration << " seconds."<< std::endl;
@@ -392,10 +399,10 @@ void NonGaussianModel::initFBO(void){
   if(maxColorAttachments > 4){
     //fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, meanVel0);
     //fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
-    fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, currVel);
+    fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, currDirection);
 
-    currVelBuffer = GL_COLOR_ATTACHMENT4_EXT;
-    pc->currVelBuffer = GL_COLOR_ATTACHMENT4_EXT;
+    particleColorBuffer = GL_COLOR_ATTACHMENT4_EXT;
+    pc->particleColorBuffer = GL_COLOR_ATTACHMENT4_EXT;
     //pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT4_EXT;
     //pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT5_EXT;
 
@@ -412,11 +419,11 @@ void NonGaussianModel::initFBO(void){
 
     //fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0); 
     //fbo2->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, meanVel1);
-    fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, currVel);
+    fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, currDirection);
     CheckErrorsGL("FBO init 2");
 
-    currVelBuffer = GL_COLOR_ATTACHMENT0_EXT;
-    pc->currVelBuffer = GL_COLOR_ATTACHMENT0_EXT;
+    particleColorBuffer = GL_COLOR_ATTACHMENT0_EXT;
+    pc->particleColorBuffer = GL_COLOR_ATTACHMENT0_EXT;
     //pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT0_EXT;
     //pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT1_EXT;
 
@@ -593,7 +600,7 @@ void NonGaussianModel::setupTextures(){
   pc->createTexture(texid[4], int_format, twidth, theight, data);
   CheckErrorsGL("\tcreated texid[4], the random number texture...");
 
-  pc->createTexture(currVel, int_format, twidth, theight, data);
+  pc->createTexture(currDirection, int_format, twidth, theight, data);
 
 
   delete [] data;
