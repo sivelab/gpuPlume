@@ -11,7 +11,6 @@ uniform float dz;
 
 uniform float mesh;
 
-varying vec4 position;
 
 float v0;
 float v1;

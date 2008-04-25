@@ -105,8 +105,10 @@ Contour::Contour(ParticleControl* partcont, int num){
 
       //This Method works a lot better!
       //Need to generalize this method still for each axis aligned plane
-      if(plane_normal == 0)
+      if(plane_normal == 0){
 	find_Multiple_Contours();
+	//findContours_Averaging(pc);
+      }
       else if(plane_normal == 1)
 	find_Multiple_Contours_nx();
       else
@@ -412,6 +414,8 @@ void Contour::find_Multiple_Contours(){
 	    numPoints[tauIdx]--;
 	    std::cout << "There are " << localPoints << " points in a cell" << std::endl;
 	  }
+
+	  
 	}
 
       }

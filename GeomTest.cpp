@@ -143,7 +143,7 @@ void GeomTest::init(bool OSG){
   meanVel0 = texid[10];
   meanVel1 = texid[11];
   //Texture used to hold current velocity
-  currVel = texid[12];
+  currDirection = texid[12];
   //Texture used for building information
   buildings = texid[13];
   //Texture used for cell type information

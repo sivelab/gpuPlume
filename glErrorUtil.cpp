@@ -44,7 +44,14 @@ using namespace std;
 #ifndef NDEBUG
 void CheckErrorsGL(const char* location, ostream& ostr) 
 {
-	GLuint errnum;
+   GLenum err_code;
+  err_code = glGetError();
+  while (err_code != GL_NO_ERROR) {
+    fprintf(stderr, "OpenGL Error: %s, Context[%s]\n", gluErrorString(err_code), location);
+    err_code = glGetError();
+  }
+
+  /*GLuint errnum;
 	const char *errstr;
 	while ((errnum = glGetError()) == 1)
 	{
@@ -54,6 +61,6 @@ void CheckErrorsGL(const char* location, ostream& ostr)
 		if(location) ostr << " at " << location;		
 		ostr << endl;
 	}
-	return;
+	return;*/
 }
 #endif

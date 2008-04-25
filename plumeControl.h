@@ -80,7 +80,7 @@ class PlumeControl{
   GLuint texid[18]; 
   GLenum texType,positions0,positions1,windField,randomValues;
   GLenum prime0, prime1, lambda, tau_dz, duvw_dz, tau;
-  GLenum meanVel0,meanVel1,currVel,buildings,cellType;
+  GLenum meanVel0,meanVel1,currDirection,buildings,cellType;
   GLenum pathTex;
 
   FramebufferObject* fbo;
@@ -100,7 +100,7 @@ class PlumeControl{
   bool osgPlume;
   bool quitSimulation;
   bool drawIsoSurface;
-
+ 
   //glut window id
   int winid;
 
@@ -158,7 +158,7 @@ class PlumeControl{
 
   int maxColorAttachments;
 
-  GLenum currVelBuffer;
+  GLenum particleColorBuffer;
 
   std::vector<float> random_values;
 

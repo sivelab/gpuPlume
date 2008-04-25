@@ -44,7 +44,7 @@ GaussianModel::GaussianModel(Util* u){
   odd = true; 
   dump_contents = false;
   quitSimulation = false;
-	
+  
   stream = new StreamLine(twidth,theight,nx,ny,nz);
   
   //Set whether to reuse particles or not
@@ -91,22 +91,19 @@ void GaussianModel::init(bool OSG){
   prime0 = texid[5];
   prime1 = texid[6];
   lambda = texid[7];
-  currVel = texid[8];
+  currDirection = texid[8];
   /////////////////////////////
   setupTextures();
 
 
   setupEmitters();
-   //
+  //
   // set up vertex buffer
   // 
   glGenBuffersARB(2, vbo_buffer);
   vertex_buffer = vbo_buffer[0];
   color_buffer = vbo_buffer[1];
 
-  //glGenBuffersARB(1, &vertex_buffer);
-  //glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
-  //glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, color_buffer);
@@ -116,11 +113,11 @@ void GaussianModel::init(bool OSG){
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   //Initialize FBO
   initFBO();
-
+  
   pc->setupPrime_and_AdvectShader(lifeTime);
-
-  pc->setupCurrVel_shader();
-
+  
+  //pc->setupParticleColor_shader();
+  
   //This shader is used to emmit particles
   emit_shader.addShader("Shaders/emitParticle_vp.glsl", GLSLObject::VERTEX_SHADER);
   emit_shader.addShader("Shaders/emitParticle_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -151,6 +148,7 @@ int GaussianModel::display(){
   }
   
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
+  
   glEnable(texType);
   // bind the framebuffer object so we can render to the 2nd texture
   fbo->Bind();
@@ -220,19 +218,19 @@ int GaussianModel::display(){
       stream->updateStreamPos();
     }
     ///////////////////////////////////////////////////////////
-    // Update Current Velocities
+    // Update particle colors
     ///////////////////////////////////////////////////////////
-    if(maxColorAttachments <= 4){
+    /*if(maxColorAttachments <= 4){
       FramebufferObject::Disable();
       fbo2->Bind();
     }
     
-    pc->updateCurrVel(odd,prime0,prime1,windField,positions0,positions1);
+    pc->updateParticleColors(odd,prime0,prime1,windField,positions0,positions1);
 
     if(maxColorAttachments <= 4){
       FramebufferObject::Disable();
       fbo->Bind();
-    }
+      }*/
     
     ///////////////////////////////////////////////////////////
     // In some circumstances, we may want to dump the contents of
@@ -265,7 +263,6 @@ int GaussianModel::display(){
 
   if (util->show_particle_visuals)
     {
-      
       // //////////////////////////////////////////////////////////////
       // PASS 2 - copy the contents of the 2nd texture (the new positions)
       // into the vertex buffer
@@ -279,21 +276,21 @@ int GaussianModel::display(){
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
 
+      
       if(maxColorAttachments <= 4){
 	FramebufferObject::Disable();
 	fbo2->Bind();
       }
-      glReadBuffer(currVelBuffer);
+      glReadBuffer(particleColorBuffer);
       
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
-
-       CheckErrorsGL("after glReadPixels");
-      // Disable the framebuffer object
+      
+      CheckErrorsGL("after glReadPixels");
+      // Disable the framebuffer object    
       FramebufferObject::Disable();
       glDrawBuffer(draw_buffer); // send it to the original buffer
       CheckErrorsGL("END : after 2nd pass");
-
       // //////////////////////////////////////////////////////////////
       // PASS 3 - draw the vertices; This represents the visualization
       // of the PLUME particle field.
@@ -352,6 +349,13 @@ int GaussianModel::display(){
       if(!osgPlume)
 	glutSwapBuffers();
     }
+  else{
+    FramebufferObject::Disable();
+    //glDisable(texType);
+    glDrawBuffer(draw_buffer); // send it to the original buffer
+    CheckErrorsGL("END : after not showing visuals");
+    glutSwapBuffers();
+  }
 
   if(quitSimulation){
     std::cout << "Simulation ended after " << sim->simDuration << " seconds."<< std::endl;
@@ -382,10 +386,10 @@ void GaussianModel::initFBO(void){
   if(maxColorAttachments > 4){
     //fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, meanVel0);
     //fbo->AttachTexture(GL_COLOR_ATTACHMENT5_EXT, texType, meanVel1);
-    fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, currVel);
+    fbo->AttachTexture(GL_COLOR_ATTACHMENT4_EXT, texType, currDirection);
 
-    currVelBuffer = GL_COLOR_ATTACHMENT4_EXT;
-    pc->currVelBuffer = GL_COLOR_ATTACHMENT4_EXT;
+    particleColorBuffer = GL_COLOR_ATTACHMENT4_EXT;
+    pc->particleColorBuffer = GL_COLOR_ATTACHMENT4_EXT;
     //pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT4_EXT;
     //pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT5_EXT;
 
@@ -402,11 +406,11 @@ void GaussianModel::initFBO(void){
 
     //fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, meanVel0); 
     //fbo2->AttachTexture(GL_COLOR_ATTACHMENT1_EXT, texType, meanVel1);
-    fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, currVel);
+    fbo2->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, currDirection);
     CheckErrorsGL("FBO init 2");
 
-    currVelBuffer = GL_COLOR_ATTACHMENT0_EXT;
-    pc->currVelBuffer = GL_COLOR_ATTACHMENT0_EXT;
+    particleColorBuffer = GL_COLOR_ATTACHMENT0_EXT;
+    pc->particleColorBuffer = GL_COLOR_ATTACHMENT0_EXT;
     //pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT0_EXT;
     //pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT1_EXT;
 
@@ -569,7 +573,7 @@ void GaussianModel::setupTextures(){
   pc->createTexture(texid[4], int_format, twidth, theight, data);
   CheckErrorsGL("\tcreated texid[4], the random number texture...");
 
-  pc->createTexture(currVel, int_format, twidth, theight, data);
+  pc->createTexture(currDirection, int_format, twidth, theight, data);
 
   delete [] data;
 

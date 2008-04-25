@@ -24,6 +24,7 @@
 #include "GeomTest.h"
 
 #include "Timer.h"
+#include "glErrorUtil.h"
 
 // Variables to hold timing array and record timings
 long timing_count = 0;
@@ -69,7 +70,8 @@ int main(int argc, char** argv)
 	   dwRet = GetCurrentDirectory(MAX_PATH, buffer);
   }
 #endif
-  
+ 
+ 
   // allocate memory for the timing values
   // keep 1000 values
   timing_N = 1000;
@@ -217,7 +219,8 @@ void display(void)
 {
   if (compute_timings)
     {
-      plume_timer[0] = plume_clock->tic();      
+      plume_timer[0] = plume_clock->tic();    
+      //std::cout << timing_count << std::endl;
     }
 
   // if quitting the simulation, 0 is returned
@@ -230,7 +233,7 @@ void display(void)
       std::cout << "Total Simulation Time: " << plume_clock->deltas(total_timer[0], total_timer[1]) << " seconds." << std::endl;
 
 #ifdef WIN32
-	  system("pause");
+      system("pause");
 #endif
 
       // system("pause");
@@ -250,12 +253,14 @@ void display(void)
       
       // increment timing value
       timing_count++;
-	  
+      
       if (timing_count == timing_N) 
 	{
+	  //std::cout << timing_count << std::endl;
 	  std::cout << "Timing complete, restoring visuals..." << std::endl;
 	  compute_timings = false;
 	  util->show_particle_visuals = true;
+	  
 	}
     }
 }

@@ -82,9 +82,12 @@ void GLSLObject::setVaryingOutput(int count, int* locations,GLenum buffermode){
 
 void GLSLObject::addShader( const std::string& filename, ShaderType shader_type )
 {
+  glErrorCheck("glCreateShaderObjectARB1( stype )");
+
   assert( shader_type == VERTEX_SHADER ||
 	  shader_type == FRAGMENT_SHADER ||
 	  shader_type == GEOMETRY_SHADER);
+  
 
   GLenum stype;
   if (shader_type == VERTEX_SHADER)
@@ -132,6 +135,7 @@ void GLSLObject::addShader( const std::string& filename, ShaderType shader_type 
     std::cout << "GLSL ERROR LOG\n--------------" << std::endl;
     std::cout << error_log << std::endl << std::endl;
   }
+ 
 }
 
 void GLSLObject::createProgram()

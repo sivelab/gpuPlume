@@ -29,7 +29,6 @@ IsoSurface::IsoSurface(ParticleControl *pc){
     }
   geomShader.addShader("Shaders/isoSurface_vp.glsl", GLSLObject::VERTEX_SHADER);
   geomShader.addShader("Shaders/isoSurface_gp.glsl", GLSLObject::GEOMETRY_SHADER);
-  //geomShader.addShader("Shaders/streamLines_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   geomShader.setInputandOutput(GL_POINTS,GL_TRIANGLE_STRIP,num_vertices);
   geomShader.createProgram();
   u_tau3D = geomShader.createUniform("tau");
@@ -55,7 +54,7 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   attr[0] = GL_POSITION;
    
   geomShader.setVaryingOutput(1,attr,GL_INTERLEAVED_ATTRIBS_NV);
-
+ 
   render3DShader.addShader("Shaders/render3D_vp.glsl", GLSLObject::VERTEX_SHADER);
   render3DShader.addShader("Shaders/render3D_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   render3DShader.createProgram();
@@ -148,8 +147,12 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, iso_buffer[0]);
   //??The size of this buffer might need to be larger??
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, mesh*(nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
+
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, iso_buffer[1]);
+  //??The size of this buffer might need to be larger??
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, mesh*(nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
   
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 
   solid = true;
 
@@ -335,18 +338,19 @@ void IsoSurface::createIsoSurface(){
   glUniform1iARB(u_tau3D,0);
 
   glDisable(texType2);
-
+  
   //Start recording triangle made into a buffer
   glBeginTransformFeedbackNV(GL_TRIANGLES);
 
   //start query to determine number of triangles made
   glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN_NV, query);
     
+  glBindBuffer(GL_ARRAY_BUFFER_ARB, iso_buffer[0]);
   glBindBufferBaseNV(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0,iso_buffer[0]);
-     
+  
   glPointSize(1.0);
   glBegin(GL_POINTS);
- 
+
   //Visit each voxel in the domain 
   for(int k=0; k < (nz*mesh); k++){
     for(int i=0; i < ny*mesh; i++){
@@ -361,8 +365,8 @@ void IsoSurface::createIsoSurface(){
   
   glEnd();
  
-  
-  glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0);
+  //glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0);
+  glBindBuffer(GL_ARRAY_BUFFER_ARB,0);
 
   //Query
   glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN_NV);
@@ -371,8 +375,10 @@ void IsoSurface::createIsoSurface(){
   glEndTransformFeedbackNV();
   geomShader.deactivate();
    
+  
   glDisable(GL_RASTERIZER_DISCARD_NV);
 
+  
   //oneTime++;
     
   glGetQueryObjectiv(query,GL_QUERY_RESULT,&numPrimitives);

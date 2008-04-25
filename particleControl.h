@@ -112,8 +112,13 @@ class ParticleControl{
   void setupMeanVel_shader();
   void findMeanVel(bool,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint);
 
-  void setupCurrVel_shader();
-  void updateCurrVel(bool,GLuint,GLuint,GLuint,GLuint,GLuint);
+  //sets up the shader to apply the opponent color
+  //scheme based on the direction of particles
+  void setupParticleColor_shader();
+
+  //updates the particle colors using an opponent
+  //color scheme based on the direction of particles
+  void updateParticleColors(bool,GLuint,GLuint,GLuint,GLuint,GLuint);
 
   void setRandomTexCoords();
 
@@ -144,7 +149,7 @@ class ParticleControl{
 
   wind* sig;
 
-  GLenum meanVelBuffer0, meanVelBuffer1, currVelBuffer;
+  GLenum meanVelBuffer0, meanVelBuffer1, particleColorBuffer;
 
   std::string randomFile;
   bool alreadyOpen;
@@ -217,7 +222,7 @@ class ParticleControl{
 
   GLSLObject init_shader, pass1_shader, prime_shader, mrt_shader;
   GLSLObject nonGaussian_shader, reflection_shader, meanVel_shader;
-  GLSLObject currVel_shader, multipleBuildings_shader;
+  GLSLObject currDir_shader, multipleBuildings_shader;
 
   //Variables for prime shader
   GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;

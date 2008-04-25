@@ -11,6 +11,9 @@ uniform samplerRect cellType;
 uniform int nx;
 uniform int ny;
 uniform int nz;
+uniform float dx;
+uniform float dy;
+uniform float dz;
 uniform int nxdx;
 uniform int nydy;
 uniform int nzdz;
@@ -69,9 +72,9 @@ void main(void)
   float wpPrev=prmPrev.z;	
 
   //===============For CFL Condition===========================
-  float dx=1.0;  //defining grid size
-  float dy=1.0;
-  float dz=1.0;
+  //float dx=1.0;  //defining grid size
+  //float dy=1.0;
+  //float dz=1.0;
   float epsilon=0.0001; //to avoid precision issues when checking how much time is remaining
    
   float timeStepRem = time_step; // time step remaining at this point

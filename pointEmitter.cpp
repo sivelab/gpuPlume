@@ -34,6 +34,7 @@ PointEmitter::PointEmitter(float x,float y,float z,float rate, int w,
   random_values = randoms;
   sigma = sig;
   
+ 
   //counter used to step through the random values
   curr = 0;
 
