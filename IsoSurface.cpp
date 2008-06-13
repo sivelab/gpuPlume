@@ -3,6 +3,8 @@
 
 IsoSurface::IsoSurface(ParticleControl *pc){
   //Mesh size
+  //more rigid to smooth
+  // 1    -    32? (It probably won't work with 32 though.  4,8,16 work)
   mesh = 4;
   //Contour value 
   contourValue = 3.0;
@@ -44,9 +46,9 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   
   float scale = 1.0/(float)mesh;
   
-  glUniform1fARB(u_dx,scale/(float)(nx));
-  glUniform1fARB(u_dy,scale/(float)(ny));
-  glUniform1fARB(u_dz,scale/(float)(nz));
+  glUniform1fARB(u_dx,scale/(float)(nxdx));
+  glUniform1fARB(u_dy,scale/(float)(nydy));
+  glUniform1fARB(u_dz,scale/(float)(nzdz));
   glUniform1fARB(u_mesh,scale);
 
   geomShader.deactivate();
@@ -71,13 +73,13 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   glGenTextures(2,tex3d);
 
   //Texture to render to
-  GLfloat* data = new GLfloat[(nx+1)*(ny+1)*(nz+1)*4];
-  for(int k=0;k<=nz;k++){
-    for(int i=0; i <= ny; i++){
-      for(int j=0; j <= nx; j++){
+  GLfloat* data = new GLfloat[(nxdx+1)*(nydy+1)*(nzdz+1)*4];
+  for(int k=0;k<=nzdz;k++){
+    for(int i=0; i <= nydy; i++){
+      for(int j=0; j <= nxdx; j++){
 	//int idx = k*ny*nx + i*nx + j;
 
-	int tidx = k*ny*nx*4 + i*nx*4 + j*4;
+	int tidx = k*nydy*nxdx*4 + i*nxdx*4 + j*4;
 	
 	data[tidx] = 0.0;
 	data[tidx+1] = 0.0;
@@ -97,19 +99,19 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   glTexParameteri(texType2, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType2, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType2, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  glTexImage3D(texType2, 0, int_format, nx+1, ny+1, nz+1,0,GL_RGBA, GL_FLOAT,data); 
+  glTexImage3D(texType2, 0, int_format, nxdx+1, nydy+1, nzdz+1,0,GL_RGBA, GL_FLOAT,data); 
   
   delete [] data;
 
-  GLfloat* data2 = new GLfloat[nx*ny*nz*4];
+  GLfloat* data2 = new GLfloat[nxdx*nydy*nzdz*4];
 
   //Texture to read from
-  for(int k=0;k<nz;k++){
-    for(int i=0; i < ny; i++){
-      for(int j=0; j < nx; j++){
-	int idx = k*ny*nx + i*nx + j;
+  for(int k=0;k<nzdz;k++){
+    for(int i=0; i < nydy; i++){
+      for(int j=0; j < nxdx; j++){
+	int idx = k*nydy*nxdx + i*nxdx + j;
 
-	int tidx = k*ny*nx*4 + i*nx*4 + j*4;
+	int tidx = k*nydy*nxdx*4 + i*nxdx*4 + j*4;
 	
 	data2[tidx] = pc->tau[idx].t11;
 	data2[tidx+1] = pc->tau[idx].t22;
@@ -126,7 +128,7 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   glTexParameteri(texType2, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType2, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType2, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  glTexImage3D(texType2, 0, int_format, nx, ny, nz,0,GL_RGBA, GL_FLOAT,data2); 
+  glTexImage3D(texType2, 0, int_format, nxdx, nydy, nzdz,0,GL_RGBA, GL_FLOAT,data2); 
 
   delete[] data2;
 
@@ -147,16 +149,18 @@ IsoSurface::IsoSurface(ParticleControl *pc){
 
   glBindBuffer(GL_ARRAY_BUFFER_ARB, iso_buffer[0]);
   //??The size of this buffer might need to be larger??
-  glBufferData(GL_ARRAY_BUFFER_ARB, mesh*(nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
+  glBufferData(GL_ARRAY_BUFFER_ARB, mesh*(nzdz)*(nxdx)*(nydy)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
   glBindBufferBaseNV(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0,iso_buffer[0]);
   
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, iso_buffer[1]);
   //??The size of this buffer might need to be larger??
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, mesh*(nz)*(nx)*(ny)*15*4*sizeof(GLfloat),0, GL_STREAM_COPY);
+  //glBindBufferBaseNV(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0,iso_buffer[1]);
   
   glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 
   solid = true;
+  once = true;
 
 }
 void IsoSurface::readInTables(){
@@ -270,7 +274,7 @@ void IsoSurface::render3DTexture(FramebufferObject* fbo){
   glLoadIdentity();
   glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 
-  glViewport(0, 0, nx+1, ny+1);
+  glViewport(0, 0, nxdx+1, nydy+1);
 
   ///////////////////////////////////////////////////
   //Render to 3D texture
@@ -280,7 +284,7 @@ void IsoSurface::render3DTexture(FramebufferObject* fbo){
   //glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
   glUniform1fARB(uniform_cValue,contourValue);
 
-  for(int z = 0; z <= nz; z++){
+  for(int z = 0; z <= nzdz; z++){
     fbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT,texType2,tex3d[0],0,z);
     float slice = ((float)(z) / (float)(nz));
 
@@ -349,15 +353,15 @@ void IsoSurface::createIsoSurface(){
   //start query to determine number of triangles made
   glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN_NV, query);
 
-  glBindBuffer(GL_ARRAY_BUFFER_ARB, iso_buffer[0]);
+  glBindBuffer(GL_ARRAY_BUFFER_ARB, iso_buffer[buffer_num]);
     
   glPointSize(1.0);
   glBegin(GL_POINTS);
 
   //Visit each voxel in the domain 
-  for(int k=0; k < (nz*mesh); k++){
-    for(int i=0; i < ny*mesh; i++){
-      for(int j=0; j < nx*mesh; j++){
+  for(int k=0; k < (nzdz*mesh); k++){
+    for(int i=0; i < nydy*mesh; i++){
+      for(int j=0; j < nxdx*mesh; j++){
 	
 	glVertex4f((float)j/(float)mesh,(float)i/(float)mesh,
 		   (float)k/(float)mesh,1.0);
@@ -380,6 +384,7 @@ void IsoSurface::createIsoSurface(){
   
   glDisable(GL_RASTERIZER_DISCARD_NV);
     
+  numPrimitives = 0;
   glGetQueryObjectiv(query,GL_QUERY_RESULT,&numPrimitives);
   std::cout << numPrimitives << std::endl;
 
@@ -390,7 +395,7 @@ void IsoSurface::draw(){
   glDisable(texType2);
   
   glEnableClientState(GL_VERTEX_ARRAY);
-  glBindBufferARB(GL_ARRAY_BUFFER, iso_buffer[0]);
+  glBindBufferARB(GL_ARRAY_BUFFER, iso_buffer[buffer_num]);
   glVertexPointer(4,GL_FLOAT,0,0);
   
   if(!solid)
@@ -422,8 +427,11 @@ void IsoSurface::draw(){
 //These methods don't work yet
 void IsoSurface::increaseMesh(){
   if(mesh < 16){
-    mesh = mesh*2;
+    mesh = mesh*2;    
     buffer_num++;
+    glBindBuffer(GL_ARRAY_BUFFER_ARB, iso_buffer[buffer_num]);
+    glBindBufferBaseNV(GL_TRANSFORM_FEEDBACK_BUFFER_NV,0,iso_buffer[buffer_num]);
+    glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
   }
 
  

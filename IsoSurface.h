@@ -26,6 +26,8 @@ class IsoSurface{
 
   bool solid;
 
+  bool once;
+
  private:
   
   void readInTables();
