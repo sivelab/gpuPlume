@@ -133,7 +133,8 @@ int main(int argc, char** argv)
   bool use_game_mode = false;
   if (use_game_mode) 
     {
-      glutGameModeString("1280x1024");
+      //glutGameModeString("1280x1024");
+      glutGameModeString("1024x768");
       std::cout << "Game Mode Width: " << glutGameModeGet(GLUT_GAME_MODE_WIDTH) << std::endl;
       std::cout << "Game Mode Height: " << glutGameModeGet(GLUT_GAME_MODE_HEIGHT) << std::endl;
       glutEnterGameMode();
@@ -509,12 +510,16 @@ void keyboard_cb(unsigned char key, int x, int y)
   else if (key == ')')
     {
       plume->isoSurface->increaseMesh();
-      plume->oneTime = 1;
+      plume->oneTime = 0;
     }
   else if (key == '(')
     {
       plume->isoSurface->decreaseMesh();
-      plume->oneTime = 1;
+      plume->oneTime = 0;
+    }
+  else if (key == 'v')
+    {
+      plume->color_by_advect_terms = !plume->color_by_advect_terms;
     }
   
   glutPostRedisplay();

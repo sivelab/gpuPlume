@@ -86,7 +86,8 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   uniform_randomTexHeight = multipleBuildings_shader.createUniform("random_texHeight");
   uniform_buildings = multipleBuildings_shader.createUniform("buildings");
   uniform_cellType = multipleBuildings_shader.createUniform("cellType");
-
+  uniform_colorAdvectTerms = multipleBuildings_shader.createUniform("color_advect_terms");
+  
   GLint ulifeTime = multipleBuildings_shader.createUniform("life_time");
   GLint unx = multipleBuildings_shader.createUniform("nx");
   GLint uny = multipleBuildings_shader.createUniform("ny");
@@ -98,7 +99,7 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   GLint udx = multipleBuildings_shader.createUniform("dx");
   GLint udy = multipleBuildings_shader.createUniform("dy");
   GLint udz = multipleBuildings_shader.createUniform("dz");
-
+    
   multipleBuildings_shader.activate();
 
   glUniform1fARB(ulifeTime, life_time);
@@ -119,19 +120,38 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
 			     GLuint positions1, GLuint prime0, GLuint prime1, 
 			     GLuint randomValues,GLuint lambda, GLuint tau_dz, 
 			     GLuint duvw_dz, float time_step, GLuint buildings,
-			     GLuint cellType)
+					      GLuint cellType, GLuint advect_terms)
 {
   //Prints out the previous prime values
   if(outputPrime)
     printPrime(odd, true);
 
-  if(odd){
-    GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT};
-    glDrawBuffers(2,buffers);
+
+  //If coloring particles using advect_terms, advect_terms will not be NULL here.
+  //Will need to render to a third texture.
+  if(advect_terms != NULL){
+
+    if(odd){
+      GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT,GL_COLOR_ATTACHMENT7_EXT};
+      glDrawBuffers(3,buffers);
+    }
+    else{ 
+      GLenum buffers[] = {GL_COLOR_ATTACHMENT0_EXT,GL_COLOR_ATTACHMENT2_EXT,GL_COLOR_ATTACHMENT7_EXT};
+      glDrawBuffers(3,buffers);
+    }
+
   }
-  else{ 
-    GLenum buffers[] = {GL_COLOR_ATTACHMENT0_EXT,GL_COLOR_ATTACHMENT2_EXT};
-    glDrawBuffers(2,buffers);
+  else{
+
+    if(odd){
+      GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT};
+      glDrawBuffers(2,buffers);
+    }
+    else{ 
+      GLenum buffers[] = {GL_COLOR_ATTACHMENT0_EXT,GL_COLOR_ATTACHMENT2_EXT};
+      glDrawBuffers(2,buffers);
+    }
+
   }
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -140,6 +160,14 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
   
   glEnable(texType);
   multipleBuildings_shader.activate();
+
+  if(advect_terms != NULL){
+    glUniform1iARB(uniform_colorAdvectTerms, 1);
+  }
+  else{
+    glUniform1iARB(uniform_colorAdvectTerms, 0);
+  }
+
 
   glUniform1fARB(uniform_timeStep, time_step);
   // generate and set the random texture coordinate offset
@@ -240,6 +268,7 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
     printPrime(odd,false);
 
 }
+
 void ParticleControl::setupReflectionShader(float life_time){
   reflection_shader.addShader("Shaders/reflectionAdvect_vp.glsl", GLSLObject::VERTEX_SHADER);
   reflection_shader.addShader("Shaders/reflectionAdvect_fp.glsl", GLSLObject::FRAGMENT_SHADER);

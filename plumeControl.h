@@ -81,7 +81,7 @@ class PlumeControl{
   GLenum texType,positions0,positions1,windField,randomValues;
   GLenum prime0, prime1, lambda, tau_dz, duvw_dz, tau;
   GLenum meanVel0,meanVel1,currDirection,buildings,cellType;
-  GLenum pathTex;
+  GLenum pathTex, advect_terms;
 
   FramebufferObject* fbo;
   FramebufferObject* fbo2;
@@ -100,7 +100,8 @@ class PlumeControl{
   bool osgPlume;
   bool quitSimulation;
   bool drawIsoSurface;
- 
+  bool color_by_advect_terms;
+
   //glut window id
   int winid;
 

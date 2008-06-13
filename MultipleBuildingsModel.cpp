@@ -52,7 +52,7 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   createImages = false;
   quitSimulation = false;
   drawIsoSurface = false;
-
+  color_by_advect_terms = false;
   //stream = new StreamLine(twidth,theight,nx,ny,nz);
   
   //Set whether to reuse particles or not
@@ -134,9 +134,12 @@ void MultipleBuildingsModel::init(bool OSG){
   //Texture for tau11,tau22,tau33,and tau13
   tau = texid[16];
 
+  advect_terms = texid[17];
   /////////////////////////////
   setupTextures(); 
   /////////////////////////////
+
+  
 
   setupEmitters();
     
@@ -147,9 +150,17 @@ void MultipleBuildingsModel::init(bool OSG){
   planeVisual = new VisualPlane(pc, pc->tauMax, pc->tauMin,
 				pc->tauLocalMax, pc->tauLocalMin);
 
-  
+ 
   glDisable(texType);
+  
 
+  //glTexImage2D(GL_PROXY_TEXTURE_RECTANGLE_ARB,0,int_format,8192,8192,0,GL_RGBA,GL_FLOAT,NULL);
+  //int wid = 0;
+  //glGetTexLevelParameteriv(GL_PROXY_TEXTURE_RECTANGLE_ARB,0,GL_TEXTURE_WIDTH,&wid);
+  //glGetIntegerv(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB, &wid);
+  
+  //std::cout << "max texture size = " << wid << std::endl;
+  
   //Create isosurface
   isoSurface = new IsoSurface(pc);
 
@@ -216,10 +227,10 @@ int MultipleBuildingsModel::display(){
 
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
   
-  if(oneTime < 1){
+  if(isoSurface->once){
     //render the 3D density function texture
     isoSurface->render3DTexture(isoFbo);
-
+    isoSurface->once = false;
   }
 
 
@@ -295,9 +306,18 @@ int MultipleBuildingsModel::display(){
     ////////////////////////////////////////////////////////////
     // Update Prime Values and Particle Positions
     ////////////////////////////////////////////////////////////
-    
-    pc->multipleBuildingsAdvect(odd,windField,positions0,positions1,prime0,prime1,
-    			 randomValues,lambda,tau_dz,duvw_dz,time_step,buildings, cellType);
+    if(color_by_advect_terms){
+
+      pc->multipleBuildingsAdvect(odd,windField,positions0,positions1,
+				prime0,prime1,randomValues,lambda,tau_dz,duvw_dz,
+				time_step,buildings,cellType,advect_terms);
+
+    }
+    else{
+      pc->multipleBuildingsAdvect(odd,windField,positions0,positions1,prime0,prime1,
+				randomValues,lambda,tau_dz,duvw_dz,time_step,buildings, 
+				  cellType, NULL);
+    }
       
     ////////////////////////////////////////////////////////////
     // Get Position for Streams
@@ -400,15 +420,23 @@ int MultipleBuildingsModel::display(){
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
 
-      if(maxColorAttachments <= 4){
-	FramebufferObject::Disable();
-	fbo2->Bind();
+      if(color_by_advect_terms){
+	glReadBuffer(GL_COLOR_ATTACHMENT7_EXT);
+	glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
+	glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
+	
       }
-      glReadBuffer(particleColorBuffer);
+      else{
+	if(maxColorAttachments <= 4){
+	  FramebufferObject::Disable();
+	  fbo2->Bind();
+	}
+	glReadBuffer(particleColorBuffer);
       
-      glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
-      glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
-
+	glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
+	glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
+      }
+      
       //update path line vbos
       pathFbo->Bind();
       pathLines->updateVBOS();
@@ -563,6 +591,8 @@ void MultipleBuildingsModel::initFBO(void){
     pc->particleColorBuffer = GL_COLOR_ATTACHMENT6_EXT;
     pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT4_EXT;
     pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT5_EXT;
+
+    fbo->AttachTexture(GL_COLOR_ATTACHMENT7_EXT, texType, advect_terms);
 
   }
 
@@ -736,6 +766,10 @@ void MultipleBuildingsModel::setupTextures(){
 
   pc->createTexture(prime0, int_format, twidth, theight, data);
   pc->createTexture(prime1, int_format, twidth, theight, data);
+
+  //Create advect_terms texture
+  pc->createTexture(advect_terms, int_format, twidth, theight, data);
+
   CheckErrorsGL("\tcreated texid[5], the initial prime value texture...");
   pc->createTexture(meanVel0, int_format, twidth, theight, data);
   pc->createTexture(meanVel1, int_format, twidth, theight, data);

@@ -21,6 +21,9 @@ uniform int numInRow;
 uniform float time_step;
 uniform float life_time;
 
+uniform int color_advect_terms;
+uniform int velocity_to_color_by;
+
 //
 // This variable contains a uniformally generated random 2D vector in
 // the range [0,1].  The value is generated on the CPU each iteration
@@ -36,6 +39,11 @@ int check; //to check how many times CFL condition got applied
 
 void main(void)
 {
+  vec3 drift_term;
+  vec3 memory_term;
+  vec3 random_term;
+  vec4 color = vec4(1.0,1.0,1.0,1.0);
+
   vec2 texCoord = gl_TexCoord[0].xy;
   vec3 prmPrev = vec3(textureRect(primePrev, texCoord));
   vec3 prmCurr = prmPrev;
@@ -142,7 +150,21 @@ void main(void)
 	
       float CoEps_D2=wind.w; // grabing 4th vector,--Co*Eps/2 in the wind texture
        
-      float du = (-CoEps_D2*(Lam11*upPrev+Lam13*wpPrev) + dudz*wpPrev + 0.5*Tau13)*timeStepSim
+
+      memory_term.x = -CoEps_D2*(Lam11*upPrev+Lam13*wpPrev)*timeStepSim;
+      memory_term.y = -CoEps_D2*(Lam22*vpPrev)*timeStepSim;
+      memory_term.z = -CoEps_D2*(Lam13*upPrev + Lam33*wpPrev)*timeStepSim;
+
+      drift_term.x = (dudz*wpPrev + 0.5*Tau13)*timeStepSim + (Tau11*(Lam11*upPrev + Lam13*wpPrev) + Tau13*(Lam13*upPrev + Lam33*wpPrev))*(wpPrev/2.0)*timeStepSim;
+      drift_term.y = (Tau22*Lam22*vpPrev*(wpPrev/2.0))*timeStepSim;
+      drift_term.z = (0.5*Tau33)*timeStepSim + (Tau13*(Lam11*upPrev + Lam13*wpPrev) + Tau33*(Lam13*upPrev + Lam33*wpPrev))*
+	(wpPrev/2.0)*timeStepSim;
+
+      random_term.x = pow((2.0*CoEps_D2*timeStepSim),0.5)*randn.x;
+      random_term.y = pow((2.0*CoEps_D2*timeStepSim),0.5)*randn.y;
+      random_term.z = pow((2.0*CoEps_D2*timeStepSim),0.5)*randn.z;
+
+      /*float du = (-CoEps_D2*(Lam11*upPrev+Lam13*wpPrev) + dudz*wpPrev + 0.5*Tau13)*timeStepSim
 	+ (Tau11*(Lam11*upPrev + Lam13*wpPrev) + Tau13*(Lam13*upPrev + Lam33*wpPrev))*
 	(wpPrev/2.0)*timeStepSim + pow((2.0*CoEps_D2*timeStepSim),0.5)*randn.x;
 	
@@ -151,7 +173,10 @@ void main(void)
 
       float dw = (-CoEps_D2*(Lam13*upPrev + Lam33*wpPrev) + 0.5*Tau33)*timeStepSim +
 	(Tau13*(Lam11*upPrev + Lam13*wpPrev) + Tau33*(Lam13*upPrev + Lam33*wpPrev))*
-	(wpPrev/2.0)*timeStepSim + pow((2.0*CoEps_D2*timeStepSim),0.5)*randn.z;
+	(wpPrev/2.0)*timeStepSim + pow((2.0*CoEps_D2*timeStepSim),0.5)*randn.z;*/
+      float du = memory_term.x + drift_term.x + random_term.x;
+      float dv = memory_term.y + drift_term.y + random_term.y;
+      float dw = memory_term.z + drift_term.z + random_term.z;
       
       float totVel= pow((upPrev*upPrev+vpPrev*vpPrev+wpPrev*wpPrev),0.5);
       float totVelNew=pow( ( (upPrev+du)*(upPrev+du)+(vpPrev+dv)*(vpPrev+dv)+(wpPrev+dw)*(wpPrev+dw)),0.5);
@@ -424,19 +449,58 @@ void main(void)
 
       }//loopThrough if
      
+      if(color_advect_terms == 1){
+	//Find largest advect term and set color
+	color = vec4(1.0,0.0,0.0,1.0);
 
+	//float me = memory_term.x;//length(memory_term);
+	//float dr = drift_term.x;//length(drift_term);
+	//float ra = random_term.x;//length(random_term);
+
+	float me = length(memory_term);
+	float dr = length(drift_term);
+	float ra = length(random_term);
+
+	float largest = me;
+
+	if(dr > largest){
+	  largest = dr;
+	  color = vec4(0.0,1.0,0.0,1.0);
+	}
+	if(ra > largest){
+	  color = vec4(0.0,0.0,1.0,1.0);
+	}
+      }
+      
     }//if on domain check
 
   }//while loopthrough condition
   
+ 
+  
+  if(color_advect_terms == 1){
 
-  if(pos.a <= 0.0 && (!(life_time <= 0.0))){
-    gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
-    gl_FragData[1] = vec4(prmCurr, 1.0);
+    if(pos.a <= 0.0 && (!(life_time <= 0.0))){
+      gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
+      gl_FragData[1] = vec4(prmCurr, 1.0);
+      gl_FragData[2] = color;
+    }
+    else{
+      gl_FragData[0] = pos;
+      gl_FragData[1] = vec4(prmCurr, 1.0);
+      gl_FragData[2] = color;
+    }
+
   }
   else{
-    gl_FragData[0] = pos;
-    gl_FragData[1] = vec4(prmCurr, 1.0);
+    if(pos.a <= 0.0 && (!(life_time <= 0.0))){
+      gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
+      gl_FragData[1] = vec4(prmCurr, 1.0);
+    }
+    else{
+      gl_FragData[0] = pos;
+      gl_FragData[1] = vec4(prmCurr, 1.0);
+    }
   }
    
 }

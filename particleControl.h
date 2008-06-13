@@ -45,7 +45,7 @@ class ParticleControl{
   void setupMultipleBuildingsShader(float,int);
 
   void multipleBuildingsAdvect(bool,GLuint,GLuint,GLuint,
-			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float,GLuint,GLuint);
+			       GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float,GLuint,GLuint,GLuint);
 
   void nonGaussianAdvect(bool,GLuint,GLuint,GLuint,
 			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
@@ -233,6 +233,7 @@ class ParticleControl{
   GLint uniform_postex, uniform_wind, uniform_randomTexture;
   GLint uniform_primePrev, uniform_primeCurr, uniform_timeStep;
   GLint uniform_tau_dz, uniform_duvw_dz;
+  GLint uniform_colorAdvectTerms;
 
   //Uniform variables for building
   GLint uniform_numBuild;
