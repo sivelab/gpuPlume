@@ -47,6 +47,11 @@ Visual Controls:
     i - toggles drawing the isosurface
     u - toggles fill mode for isosurface
 
+  Particle Colors:
+    
+    v - toggles coloring particles using advect terms
+        and using the oponnent color scheme to color directions
+
 Simulation Controls:
 
   c - clears pathlines
