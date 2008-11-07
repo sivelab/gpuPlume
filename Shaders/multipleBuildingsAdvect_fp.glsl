@@ -1,12 +1,12 @@
-uniform samplerRect pos_texunit;
-uniform samplerRect primePrev;
-uniform samplerRect wind_texunit;
-uniform samplerRect lambda;
-uniform samplerRect random;
-uniform samplerRect tau_dz;
-uniform samplerRect duvw_dz;
-uniform samplerRect buildings;
-uniform samplerRect cellType;
+uniform sampler2DRect pos_texunit;
+uniform sampler2DRect primePrev;
+uniform sampler2DRect wind_texunit;
+uniform sampler2DRect lambda;
+uniform sampler2DRect random;
+uniform sampler2DRect tau_dz;
+uniform sampler2DRect duvw_dz;
+uniform sampler2DRect buildings;
+uniform sampler2DRect cellType;
 
 uniform int nx;
 uniform int ny;
@@ -45,11 +45,11 @@ void main(void)
   vec4 color = vec4(1.0,1.0,1.0,1.0);
 
   vec2 texCoord = gl_TexCoord[0].xy;
-  vec3 prmPrev = vec3(textureRect(primePrev, texCoord));
+  vec3 prmPrev = vec3(texture2DRect(primePrev, texCoord));
   vec3 prmCurr = prmPrev;
    
   //This gets the position of the particle in 3D space.
-  vec4 pos = vec4(textureRect(pos_texunit, texCoord));
+  vec4 pos = vec4(texture2DRect(pos_texunit, texCoord));
   vec3 prevPos = vec3(pos.x,pos.y,pos.z);
      
   // Add the random texture coordinate offset to the
@@ -62,14 +62,14 @@ void main(void)
   vec2 rTexCoord = texCoord + random_texCoordOffset;
 
   // bring the texture coordinate back within the (0,W)x(0,H) range
-  if (rTexCoord.s > random_texWidth)
+  if (rTexCoord.s > float(random_texWidth))
     rTexCoord.s = rTexCoord.s - random_texWidth;
   if (rTexCoord.t > random_texHeight)
     rTexCoord.t = rTexCoord.t - random_texHeight;
 
   // lookup the random value to be used for this particle in
   // this timestep
-  vec3 randn = vec3(textureRect(random, rTexCoord));
+  vec3 randn = vec3(texture2DRect(random, rTexCoord));
 
   //float xRandom = randn.x;
   //float yRandom = randn.y;
@@ -126,10 +126,10 @@ void main(void)
       index.s = float(j) + float(mod(float(k),float(numInRow)))*float(nxdx);
       index.t = float(i) + float(floor(float(k)/float(numInRow)))*float(nydy);
 
-      vec4 wind = vec4(textureRect(wind_texunit, index));
-      vec4 lam = vec4(textureRect(lambda, index));
-      vec4 tau = vec4(textureRect(tau_dz, index));
-      vec4 ddz = vec4(textureRect(duvw_dz, index));
+      vec4 wind = vec4(texture2DRect(wind_texunit, index));
+      vec4 lam = vec4(texture2DRect(lambda, index));
+      vec4 tau = vec4(texture2DRect(tau_dz, index));
+      vec4 ddz = vec4(texture2DRect(duvw_dz, index));
 
       float dudz = ddz.x;
       float ustar = ddz.w; //temporarily used to get ustar to calculate sigmas in shader
@@ -192,7 +192,7 @@ void main(void)
          if(rTexCoord.s > random_texWidth)
 	   rTexCoord.s = rTexCoord.s - random_texWidth;
 
-         vec3 randnum = vec3(textureRect(random, rTexCoord));
+         vec3 randnum = vec3(texture2DRect(random, rTexCoord));
             
          upPrev = sigU * randnum.x;
          vpPrev = sigV * randnum.y;
@@ -267,7 +267,7 @@ void main(void)
 	    //cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
 
 	    //Perform lookup into wind texture to see if new position is inside a building
-	    cell_type = vec4(textureRect(cellType, cIndex));  
+	    cell_type = vec4(texture2DRect(cellType, cIndex));  
 	  }
 	  count = 0;
 	  while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < 0.0)) && (count < 20)){
@@ -291,13 +291,13 @@ void main(void)
 	    bindex.s = 0.0;
 	    bindex.t = float(id);
 		
-	    vec3 bcoords = vec3(textureRect(buildings, bindex));
+	    vec3 bcoords = vec3(texture2DRect(buildings, bindex));
 	    float xfo = bcoords.x;
 	    float yfo = bcoords.y;
 	    float zfo = bcoords.z;
 
 	    bindex.x = 1.0;
-	    vec3 bdim = vec3(textureRect(buildings,bindex));
+	    vec3 bdim = vec3(texture2DRect(buildings,bindex));
 	    float ht = bdim.x;
 	    float wti = bdim.y;
 	    float lti = bdim.z;
@@ -412,7 +412,7 @@ void main(void)
 	      cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(nydy);
 	      //cIndex.s = j + mod(k,numInRow)*nx;
 	      //cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
-	      cell_type = vec4(textureRect(cellType, cIndex));
+	      cell_type = vec4(texture2DRect(cellType, cIndex));
 	    }
 	  }//while loop for reflection
 
@@ -437,7 +437,7 @@ void main(void)
 	    if (rTexCoord.t > random_texHeight)
 	      rTexCoord.t = rTexCoord.t - random_texHeight;
 
-	    randn = vec3(textureRect(random, rTexCoord));
+	    randn = vec3(texture2DRect(random, rTexCoord));
 	    //check = 1;
 	  }
 
