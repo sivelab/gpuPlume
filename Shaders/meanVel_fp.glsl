@@ -1,7 +1,7 @@
-uniform samplerRect prevMean;
-uniform samplerRect currVel;
-uniform samplerRect position;
-uniform samplerRect windVel;
+uniform sampler2DRect prevMean;
+uniform sampler2DRect currVel;
+uniform sampler2DRect position;
+uniform sampler2DRect windVel;
 
 uniform int numInRow;
 uniform int nx;
@@ -11,9 +11,9 @@ uniform int nz;
 void main(void)
 {
    vec2 texCoord = gl_TexCoord[0].xy;
-   vec3 velocity = vec3(textureRect(currVel, texCoord));
-   vec4 mean = vec4(textureRect(prevMean, texCoord));
-   vec3 pos = vec3(textureRect(position, texCoord));
+   vec3 velocity = vec3(texture2DRect(currVel, texCoord));
+   vec4 mean = vec4(texture2DRect(prevMean, texCoord));
+   vec3 pos = vec3(texture2DRect(position, texCoord));
 
    int i = floor(pos.y); 
    int j = floor(pos.x);
@@ -24,7 +24,7 @@ void main(void)
 	index.s = float(j) +float(mod(float(k),float(numInRow))*nx);
 	index.t = float(i) + float(floor(float(k)/float(numInRow))*ny);
 	
-	vec3 wind = vec3(textureRect(windVel,index));
+	vec3 wind = vec3(texture2DRect(windVel,index));
 
    	mean = mean + vec4(velocity,1.0) + vec4(wind,0.0);
    }

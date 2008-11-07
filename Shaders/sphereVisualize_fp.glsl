@@ -1,6 +1,6 @@
 uniform sampler2D pointsprite_texunit;
 uniform sampler2D pointspritenormal_texunit;
-uniform samplerRect visualization_texunit;
+uniform sampler2DRect visualization_texunit;
 
 uniform int nx;
 uniform int ny;

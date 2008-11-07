@@ -1,14 +1,14 @@
 //uniform sampler2D pointsprite_texunit;
 //uniform sampler2D pointspritenormal_texunit;
 //uniform int point_visuals;
-uniform samplerRect Wind;
+uniform sampler2DRect Wind;
 
 varying vec4 pcolor;
 
 void main(void)
 {
   vec2 texCoord = gl_TexCoord[0].xy;
-  vec4 wind_dir = vec4(textureRect(Wind, texCoord)); 
+  vec4 wind_dir = vec4(texture2DRect(Wind, texCoord)); 
   
   // mat3 opponent2rgb = mat3(1.0,  0.1140,  0.7436, 
   // 1.0,  0.1140, -0.4111, 
