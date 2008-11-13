@@ -15,14 +15,14 @@ void main(void)
    vec4 mean = vec4(texture2DRect(prevMean, texCoord));
    vec3 pos = vec3(texture2DRect(position, texCoord));
 
-   int i = floor(pos.y); 
-   int j = floor(pos.x);
-   int k = floor(pos.z);
+   int i = int(floor(pos.y));
+   int j = int(floor(pos.x));
+   int k = int(floor(pos.z));
 
    if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0) && (k >= 0)){
 	vec2 index;
-	index.s = float(j) +float(mod(float(k),float(numInRow))*nx);
-	index.t = float(i) + float(floor(float(k)/float(numInRow))*ny);
+	index.s = float(j) + float(mod(float(k),float(numInRow))*float(nx));
+	index.t = float(i) + float(floor(float(k)/float(numInRow))*float(ny));
 	
 	vec3 wind = vec3(texture2DRect(windVel,index));
 

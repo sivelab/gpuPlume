@@ -1,7 +1,7 @@
-uniform samplerRect currPrime;
-uniform samplerRect position;
-uniform samplerRect position_prev;
-uniform samplerRect windVel;
+uniform sampler2DRect currPrime;
+uniform sampler2DRect position;
+uniform sampler2DRect position_prev;
+uniform sampler2DRect windVel;
 
 uniform int numInRow;
 
@@ -12,13 +12,13 @@ uniform int nz;
 void main(void)
 {
    vec2 texCoord = gl_TexCoord[0].xy;
-   vec3 primeVel = vec3(textureRect(currPrime, texCoord));
-   vec3 prevPos = vec3(textureRect(position_prev, texCoord));
-   vec3 pos = vec3(textureRect(position, texCoord));
+   vec3 primeVel = vec3(texture2DRect(currPrime, texCoord));
+   vec3 prevPos = vec3(texture2DRect(position_prev, texCoord));
+   vec3 pos = vec3(texture2DRect(position, texCoord));
 
-   int i = floor(pos.y);
-   int j = floor(pos.x);
-   int k = floor(pos.z);
+   int i = int(floor(pos.y));
+   int j = int(floor(pos.x));
+   int k = int(floor(pos.z));
 
 
    //vec3 color = vec3(0.8, 0.8, 1.0);
@@ -27,10 +27,10 @@ void main(void)
    if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0) && (k >= 0))
    {
       vec2 index;
-      index.s = float(j) + float(mod(float(k),float(numInRow))*nx);
-      index.t = float(i) + float(floor(float(k)/float(numInRow))*ny);
+      index.s = float(j) + float(mod(float(k),float(numInRow))*float(nx));
+      index.t = float(i) + float(floor(float(k)/float(numInRow))*float(ny));
 
-      vec3 wind = vec3(textureRect(windVel,index));
+      vec3 wind = vec3(texture2DRect(windVel,index));
 
       // This example assumes the difference in position sits in the
       // (Hering-style) opponent color space.  We then convert the

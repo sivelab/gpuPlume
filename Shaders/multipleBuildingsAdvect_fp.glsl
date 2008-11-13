@@ -63,9 +63,9 @@ void main(void)
 
   // bring the texture coordinate back within the (0,W)x(0,H) range
   if (rTexCoord.s > float(random_texWidth))
-    rTexCoord.s = rTexCoord.s - random_texWidth;
-  if (rTexCoord.t > random_texHeight)
-    rTexCoord.t = rTexCoord.t - random_texHeight;
+    rTexCoord.s = rTexCoord.s - float(random_texWidth);
+  if (rTexCoord.t > float(random_texHeight))
+    rTexCoord.t = rTexCoord.t - float(random_texHeight);
 
   // lookup the random value to be used for this particle in
   // this timestep
@@ -189,8 +189,8 @@ void main(void)
          
          //generating random number
          rTexCoord.s = rTexCoord.s + 1.0;
-         if(rTexCoord.s > random_texWidth)
-	   rTexCoord.s = rTexCoord.s - random_texWidth;
+         if(rTexCoord.s > float(random_texWidth))
+	   rTexCoord.s = rTexCoord.s - float(random_texWidth);
 
          vec3 randnum = vec3(texture2DRect(random, rTexCoord));
             
@@ -432,10 +432,10 @@ void main(void)
 	    //generating random number
 	    rTexCoord.s = rTexCoord.s + 1.0;
 	    rTexCoord.t = rTexCoord.t + 1.0;
-	    if (rTexCoord.s > random_texWidth)
-	      rTexCoord.s = rTexCoord.s - random_texWidth;
-	    if (rTexCoord.t > random_texHeight)
-	      rTexCoord.t = rTexCoord.t - random_texHeight;
+	    if (rTexCoord.s > float(random_texWidth))
+	      rTexCoord.s = rTexCoord.s - float(random_texWidth);
+	    if (rTexCoord.t > float(random_texHeight))
+	      rTexCoord.t = rTexCoord.t - float(random_texHeight);
 
 	    randn = vec3(texture2DRect(random, rTexCoord));
 	    //check = 1;
