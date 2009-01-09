@@ -6,6 +6,7 @@ Util::Util(){
   num = 0;
   numb = 0;
   bounds = new float[6];
+  output_id = "";
 }
 
 void Util::readInput(std::string file){
@@ -87,6 +88,10 @@ void Util::parseLine(char* line){
   if(read1String(line, "output_file", &s1)){
     output_file = s1;
   }
+  if(read1String(line, "output_id", &s1)){
+    output_id = s1;
+  }
+
   if(read1Float(line, "duration", &f1)){
     duration = (double)f1;
   }

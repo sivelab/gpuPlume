@@ -386,11 +386,44 @@ int MultipleBuildingsModel::display(){
     if(output_CollectionBox)
     {
       for(int j = 0; j < num_cBoxes; j++){
-	//cBoxes[j]->outputConc(util->output_file,sim->totalTime,sim->curr_timeStep);
-    cBoxes[j]->outputConcStd(util->output_file,util->averagingTime,util->volume,util->time_step, (util->twidth)*(util->theight));// standard Concentration Calc. - Balli
+	// outputs concentration in grams per cubic meter
+	cBoxes[j]->outputConcStd(util->output_file, util->output_id, 
+				 util->averagingTime,
+				 util->volume,
+				 util->time_step, 
+				 (util->twidth)*(util->theight));// standard Concentration Calc. - Balli
       }
       output_CollectionBox = false;
-    }
+
+      // output matlab code to remove the collections boxes in the
+      // emitter and buildings
+      std::ofstream mfunc_output;
+
+      mfunc_output.open("removeBuildingsFromCollectionBoxes.m");
+      mfunc_output << "function [new_conc] = removeBuildingsFromCollectionBoxes( data )\n";
+      
+      for idx = 1:size(data,1)
+		  for bld = 1:<numBuild>
+
+      mfunc_output << util->numBuild
+  
+	for(int j=0; j < util->numBuild; j++){
+	  util->xfo[j];
+	  util->yfo[j];
+	  util->zfo[j];
+
+	  util->ht[j];
+	  util->wti[j];
+	  util->lti[j];
+
+
+
+      mfunc_output.close();
+      
+
+      for (int pe_i = 0; pe_i < util->numOfPE; pe_i++)
+	    pe[pe_i]->emit = true;
+
 
     //Switches the frame buffer and binding texture
   
@@ -492,7 +525,10 @@ int MultipleBuildingsModel::display(){
       }		
       
       // dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
-      dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
+
+      // Last good one...
+      // dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
+      dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight, texid[0], prime0);
       //stream->draw();
       pathLines->draw();
 
@@ -518,7 +554,7 @@ int MultipleBuildingsModel::display(){
 	isoSurface->draw();
       }
 
-      planeVisual->drawScale();
+      //      planeVisual->drawScale();
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){

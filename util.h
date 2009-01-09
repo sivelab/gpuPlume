@@ -32,6 +32,9 @@ class Util{
   bool useRealTime;
   //output file to store concentration values
   std::string output_file;
+  //output id to use when specifying the concentrations in the concentration file
+  // will default to "concentration"
+  std::string output_id;
   //simulation duration in seconds
   double duration;
   //concentration boxes start time
