@@ -48,7 +48,8 @@ void keyboard_cb(unsigned char key, int x, int y);
 void mouse(int button, int state, int x, int y);
 void motion(int x, int y);
 
-int winwidth = 512, winheight = 512;
+// int winwidth = 2048, winheight = 1024;
+int winwidth = 200, winheight = 100;
 
 //int last_x, last_y;
 
@@ -71,7 +72,6 @@ int main(int argc, char** argv)
   }
 #endif
  
- 
   // allocate memory for the timing values
   // keep 1000 values
   timing_N = 1000;
@@ -90,6 +90,7 @@ int main(int argc, char** argv)
     {
       std::cout << "Reading input file from " << argv[1] << std::endl;
       util->readInput(argv[1]);
+      // util->readInput("/tmp/file");
     }
   else 
     util->readInput("Settings/input.txt");

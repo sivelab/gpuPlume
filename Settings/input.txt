@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 1000
-theight 100
+twidth 500
+theight 500
 
 #Path Lines
 pwidth 3000
@@ -98,7 +98,7 @@ num_of_sources 1
 source_info sphere 5.0 25.0 3.0 0.1 200.0
 
 #Set the type of Particle Release
-release_type 1
+release_type 2
 
 #Set to 0 and it will release a set number of particles per time step
 #based on simulation duration. 

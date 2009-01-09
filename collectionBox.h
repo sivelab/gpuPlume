@@ -38,7 +38,7 @@ class CollectionBox{
 
   //Writes the concentration values to specified file
   void outputConc(std::string,double,double);
-  void outputConcStd(std::string,double,double,float,int); // standard Concentration Calc. - Balli
+  void outputConcStd(std::string,std::string,double,double,float,int); // standard Concentration Calc. - Balli
 
   double* cBox; 
   BoxPos* cPos;

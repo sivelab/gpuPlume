@@ -409,7 +409,7 @@ int GeomTest::display(){
 
   glClearColor(0.0,0.0,0.0,1.0);
 	 
-  dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
+  dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight, 0, 0);
      
   
   ///////////////////////////////////

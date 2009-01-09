@@ -110,6 +110,16 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   windField_shader.createProgram();
   uniform_windTex = windField_shader.createUniform("Wind");
  
+  toneMap_shader.addShader("Shaders/toneMap_vp.glsl", GLSLObject::VERTEX_SHADER);
+  toneMap_shader.addShader("Shaders/toneMap_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  toneMap_shader.createProgram();
+
+  uniform_PosTexSampler = toneMap_shader.createUniform("posTexSampler");
+  uniform_DomainX = toneMap_shader.createUniform("nx");
+  uniform_DomainY = toneMap_shader.createUniform("ny");
+  uniform_DomainZ = toneMap_shader.createUniform("nz");
+  uniform_DoNorm = toneMap_shader.createUniform("doNorm");
+
   // For the Sphere Particle Shader, we need the following data:
   // uniform variables for the texture units that hold the point
   // sprite and the normal map
@@ -129,6 +139,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   uniform_ny = snowParticle_shader.createUniform("ny");
   uniform_nz = snowParticle_shader.createUniform("nz");
   uniform_numInRow = snowParticle_shader.createUniform("numInRow");
+
 
   // POINT_SPRITE
   //
@@ -165,7 +176,7 @@ void DisplayControl::setVisualPlane(VisualPlane* vp){
   plane = vp;
 }
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
-				 int numInRow, int twidth, int theight)
+				 int numInRow, int twidth, int theight, GLuint PositionTexId, GLuint VelTexId)
 {
 
   if (particle_visual_state == PARTICLE_SNOW)
@@ -324,12 +335,72 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
       sphereParticle_shader.deactivate();  
     }
 
+#if 0
+  // Sample code to draw the particle positions...
+    {
+      glMatrixMode(GL_PROJECTION);
+      glPushMatrix();
+      glLoadIdentity();
+      gluOrtho2D(-1, 1, -1, 1);
+
+      glMatrixMode(GL_MODELVIEW);
+      glPushMatrix();
+      glLoadIdentity();
+
+      glEnable(texType);
+
+      toneMap_shader.activate();
+
+      glUniform1iARB(uniform_PosTexSampler, 0);
+      glUniform1iARB(uniform_DomainX, nx);
+      glUniform1iARB(uniform_DomainY, ny);
+      glUniform1iARB(uniform_DomainZ, nz);
+      glUniform1iARB(uniform_DoNorm, 0);
+
+      glBindTexture(texType, PositionTexId);
+      glBegin(GL_QUADS);
+      {
+	glTexCoord2f(0, 0);			glVertex3f(-1, -1, -0.5f);
+	glTexCoord2f(twidth, 0);		glVertex3f( 0, -1, -0.5f);
+	glTexCoord2f(twidth, theight);          glVertex3f( 0,  1, -0.5f);
+	glTexCoord2f(0, theight);		glVertex3f(-1,  1, -0.5f);
+      }
+      glEnd();
+
+      glUniform1iARB(uniform_DomainX, 1);
+      glUniform1iARB(uniform_DomainY, 1);
+      glUniform1iARB(uniform_DomainZ, 1);
+      glUniform1iARB(uniform_DoNorm, 1);
+
+      glBindTexture(texType, VelTexId);
+      glBegin(GL_QUADS);
+      {
+	glTexCoord2f(0, 0);			glVertex3f(0, -1, -0.5f);
+	glTexCoord2f(twidth, 0);		glVertex3f( 1, -1, -0.5f);
+	glTexCoord2f(twidth, theight);          glVertex3f( 1,  1, -0.5f);
+	glTexCoord2f(0, theight);		glVertex3f(0,  1, -0.5f);
+      }
+      glEnd();
+      toneMap_shader.deactivate();
+
+      glDisable(texType);
+
+      glMatrixMode(GL_PROJECTION);
+      glPopMatrix();
+
+      glMatrixMode(GL_MODELVIEW);
+      glPopMatrix();
+    }
+#endif
+
+#if 0
   // spit out frame rate
   if(!osgPlume){
     if (frame_rate){
       drawFrameRate(twidth, theight);
     }
   }
+#endif
   
 }
 void DisplayControl::increaseVisualLayer(){

@@ -378,7 +378,7 @@ int ReflectionModel::display(){
 	glClearColor(util->bcolor[0],util->bcolor[1],util->bcolor[2],1.0);	
       }		
       
-      dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
+      dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight, 0, 0);
       stream->draw();
       dc->drawLayers(windField, numInRow);
 

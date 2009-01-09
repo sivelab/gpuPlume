@@ -276,7 +276,7 @@ int Gaussian_2shaders_Model::display(){
 	glClearColor(util->bcolor[0],util->bcolor[1],util->bcolor[2],1.0);
       }
 
-      dc->drawVisuals(vertex_buffer, windField, 0, numInRow, twidth, theight);
+      dc->drawVisuals(vertex_buffer, windField, 0, numInRow, twidth, theight, 0, 0);
       stream->draw();
       dc->drawLayers(windField, numInRow);
 

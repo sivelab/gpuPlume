@@ -311,7 +311,7 @@ void CollectionBox::outputConc(std::string file,double totalTime,double totalTim
   output << "];\n";
 }
 
-void CollectionBox::outputConcStd(std::string file,double averagingTime,double volume, float time_step, int numPar){ //standard Concentration Calc. - Balli
+void CollectionBox::outputConcStd(std::string file, std::string id, double averagingTime,double volume, float time_step, int numPar){ //standard Concentration Calc. - Balli
   std::ofstream output;
 
   int idx,xBox,yBox,zBox;
@@ -329,13 +329,15 @@ void CollectionBox::outputConcStd(std::string file,double averagingTime,double v
   // The format of the output file has been changed to work directly
   // with matlab. -Pete
 
-  output << "average_time = " << averagingTime << ";\n";
-  //output << "total_time_steps = " << totalTimeSteps << ";\n\n";
+  output << id << "_average_time = " << averagingTime << ";\n";
 
   output << "% The following array contains the locations of the\n";
   output << "% collection box cells in X, Y, and Z followed by the \n";
   output << "% concentration in the cell." << std::endl;
-  output << "concentration = [\n";
+  if (id == "")
+    output << "concentration = [\n";
+  else 
+    output << id << "_conc = [\n";
 
   for(int k=0; k < numBox_z; k++)
     for(int i=0; i < numBox_y; i++)

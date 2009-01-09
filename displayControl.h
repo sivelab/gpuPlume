@@ -23,7 +23,7 @@ class DisplayControl{
   
   DisplayControl(int, int, int, GLenum,float,float,float);
 
-  void drawVisuals(GLuint, GLuint, GLuint, int, int, int);
+  void drawVisuals(GLuint, GLuint, GLuint, int, int, int, GLuint postexid, GLuint veltexid);
   void drawAxes();
   void drawGrid();
   void drawGround();
@@ -105,6 +105,9 @@ class DisplayControl{
 
   GLSLObject sphereParticle_shader, snowParticle_shader;
   GLSLObject windField_shader;
+
+  GLSLObject toneMap_shader;
+  GLint uniform_PosTexSampler, uniform_DomainX, uniform_DomainY, uniform_DomainZ, uniform_DoNorm;
 
   Timer *clock_timer;
   Timer_t graphics_time[2];
