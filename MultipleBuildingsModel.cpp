@@ -397,21 +397,36 @@ int MultipleBuildingsModel::display(){
       }
       output_CollectionBox = false;
 
+      // Pete
+      // need to add not as function but tranformed data to the end of the cbox.m file...
+
       // output matlab code to remove the collections boxes in the
       // emitter and buildings
-      std::ofstream mfunc_output;
 
-      mfunc_output.open("removeBuildingsFromCollectionBoxes.m");
-      mfunc_output << "function [new_conc] = removeBuildingsFromCollectionBoxes( data )\n\n";
-      
-      // Need to quantify the size of the collection box
+      std::ofstream mfunc_output;
+      mfunc_output.open(util->output_file.c_str(), std::ios::app);
+
+      // Pete!!!! Need to quantify the size of the collection box
       // correctly... currently only support 1m boxes with this
       // function.
-      
-      mfunc_output << "bld_conc = [];\n";
-      mfunc_output << "new_conc = [];\n";
+
+      mfunc_output << "\n\n";
+
+      mfunc_output << "% Building information\n";
+      mfunc_output << "% xmin xmax ymin ymax zmin zmax\n";
+      mfunc_output << "minX = 1;\n";
+      mfunc_output << "maxX = 2;\n";
+      mfunc_output << "minY = 3;\n";
+      mfunc_output << "maxY = 4;\n";
+      mfunc_output << "minZ = 5;\n";
+      mfunc_output << "maxZ = 6;\n";
 
       // create the building bounds structure
+      // if the center of the collection box is within the building, then remove it.
+      // xfo related to length
+      // yfo related to width and yfo is centered within the width
+      // zfo related to height
+
       mfunc_output << "bldBounds = [\n";
       for (int bldIdx = 0; bldIdx < util->numBuild; bldIdx++)
 	{
@@ -421,26 +436,59 @@ int MultipleBuildingsModel::display(){
 	}
       mfunc_output << "];\n";
 
-      mfunc_output << "for idx = 1:size(data,1)\n";
-      mfunc_output << "\tfor bld = 1:size(bldBounds,1)\n";
+      mfunc_output << util->output_id << "_bldconc = [];\n";
+      mfunc_output << util->output_id << "_emitconc = [];\n";
+      mfunc_output << util->output_id << "_goodconc = [];\n";
 
-      // if the center of the collection box is within the building, then remove it.
-      // xfo related to length
-      // yfo related to width and yfo is centered within the width
-      // zfo related to height
+      mfunc_output << "for idx = 1:size(" << util->output_id << "_conc,1)\n";
+      mfunc_output << "\n";
+      mfunc_output << "  cBox_X = " << util->output_id << "_conc(idx,1);\n";
+      mfunc_output << "  cBox_Y = " << util->output_id << "_conc(idx,2);\n";
+      mfunc_output << "  cBox_Z = " << util->output_id << "_conc(idx,3);\n";
+      mfunc_output << "\n";
+      mfunc_output << "  bldFound = 0;\n";
+      mfunc_output << "  for bld = 1:size(bldBounds,1)\n";
+      mfunc_output << "    if (  ((cBox_X >= bldBounds(bld,minX)) && (cBox_X <= bldBounds(bld,maxX)))   &&   ((cBox_Y >= bldBounds(bld,minY)) && (cBox_Y <= bldBounds(bld,maxY)))    &&    ((cBox_Z >= bldBounds(bld,minZ)) && (cBox_Z <= bldBounds(bld,maxZ)))  )\n";
+      mfunc_output << "      % found the building, so make note and break out\n";
+      mfunc_output << "      bldFound = 1;\n";
+      mfunc_output << "      break;\n";
+      mfunc_output << "    end\n";
+      mfunc_output << "  end\n";
+      mfunc_output << "\n";
 
-      mfunc_output << "\t\tif (bldBounds(bld,1) <= data(idx,1) && data(idx,1) <= bldBounds(bld,2))\n";
-      mfunc_output << "\t\t\t && (bldBounds(bld,3) <= data(idx,2) && data(idx,2) <= bldBounds(bld,4))\n";
-      mfunc_output << "\t\t\t && (bldBounds(bld,5) <= data(idx,3) && data(idx,3) <= bldBounds(bld,6))\n";
-      mfunc_output << "\t\t\t% the collection box center is within the building, so exclude it\n";
-      mfunc_output << "\t\t\tbld_conc = [ bld_conc; data(idx,:) ];\n";
-      mfunc_output << "\t\telse\n";
-      mfunc_output << "\t\t\tnew_conc = [ new_conc; data(idx,:) ];\n";
-      mfunc_output << "\t\tend\n";
-      mfunc_output << "\tend\n";
+      mfunc_output << "  % also see if the collection box is in the emitter... for now, this is hardcoded for our fixed emitter locations for the experiment- Pete\n";
+      mfunc_output << "  minXL1 = 45;\n";
+      mfunc_output << "  maxXL1 = 46;\n";
+      mfunc_output << "  minYL1 = 29;\n";
+      mfunc_output << "  maxYL1 = 60;\n";
+      mfunc_output << "\n";
+      mfunc_output << "  minXL2 = 29;\n";
+      mfunc_output << "  maxXL2 = 60;\n";
+      mfunc_output << "  minYL2 = 45;\n";
+      mfunc_output << "  maxYL2 = 46;\n";
+      mfunc_output << "\n";
+      mfunc_output << "  minLZ = 0;\n";
+      mfunc_output << "  maxLZ = 1;\n";
+      mfunc_output << "\n";
+      mfunc_output << "  emitFound = 0;\n";
+      mfunc_output << "\n";
+      mfunc_output << "  if ( ( ((cBox_X >= minXL1) && (cBox_X <= maxXL1))   &&   ((cBox_Y >= minYL1) && (cBox_Y <= maxYL1))    &&    ((cBox_Z >= minLZ) && (cBox_Z <= maxLZ)) ) || ( ((cBox_X >= minXL2) && (cBox_X <= maxXL2))   &&   ((cBox_Y >= minYL2) && (cBox_Y <= maxYL2))    &&    ((cBox_Z >= minLZ) && (cBox_Z <= maxLZ)) )   )\n";
+      mfunc_output << "     emitFound = 1;\n";
+      mfunc_output << "  end\n";
+
+      mfunc_output << "  if bldFound == 1\n";
+      mfunc_output << "     " << util->output_id << "_bldconc = [ " << util->output_id << "_bldconc; " << util->output_id << "_conc(idx,:) ];\n";
+      mfunc_output << "  elseif emitFound == 1\n";
+      mfunc_output << "     " << util->output_id << "_emitconc = [ " << util->output_id << "_emitconc; " << util->output_id << "_conc(idx,:) ];\n";
+      mfunc_output << "  else\n";
+      mfunc_output << "     " << util->output_id << "_goodconc = [ " << util->output_id << "_goodconc; " << util->output_id << "_conc(idx,:) ];\n";
+      mfunc_output << "  end\n";
+      mfunc_output << "\n";
       mfunc_output << "end\n";
 
+      mfunc_output << "clear minX maxX minY maxY minZ maxZ bldBounds idx bld cBox_X cBox_Y cBox_Z minXL1 maxXL1 minYL1 maxYL1 minXL2 maxXL2 minYL2 maxYL2 minLZ maxLZ bldFound emitFound \n";
       mfunc_output.close();
+
 
       // for (int pe_i = 0; pe_i < util->numOfPE; pe_i++)
       // pe[pe_i]->emit = true;
@@ -454,7 +502,7 @@ int MultipleBuildingsModel::display(){
 
   CheckErrorsGL("END : after 1st pass");
   // We only need to do PASS 2 (copy to VBO) and PASS 3 (visualize) if
-  // we actually want to render to the screen.  Rendering to the
+   // we actually want to render to the screen.  Rendering to the
   // screen will make the simulation run more slowly. This feature is
   // mainly included to allow some idea of how much faster the
   // simulation can run if left to run on the GPU.
