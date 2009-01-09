@@ -162,6 +162,7 @@ void MultipleBuildingsModel::init(bool OSG){
   //std::cout << "max texture size = " << wid << std::endl;
   
   //Create isosurface
+
   isoSurface = new IsoSurface(pc);
 
 
@@ -204,10 +205,11 @@ void MultipleBuildingsModel::init(bool OSG){
     sim->init();
   } 
 
+#if 0
   int maxtextures;
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (GLint*)&maxtextures);
   std::cout << "Max Textures: " << maxtextures << std::endl;
-
+#endif
 }
 
 int MultipleBuildingsModel::display(){
@@ -400,30 +402,49 @@ int MultipleBuildingsModel::display(){
       std::ofstream mfunc_output;
 
       mfunc_output.open("removeBuildingsFromCollectionBoxes.m");
-      mfunc_output << "function [new_conc] = removeBuildingsFromCollectionBoxes( data )\n";
+      mfunc_output << "function [new_conc] = removeBuildingsFromCollectionBoxes( data )\n\n";
       
-      for idx = 1:size(data,1)
-		  for bld = 1:<numBuild>
+      // Need to quantify the size of the collection box
+      // correctly... currently only support 1m boxes with this
+      // function.
+      
+      mfunc_output << "bld_conc = [];\n";
+      mfunc_output << "new_conc = [];\n";
 
-      mfunc_output << util->numBuild
-  
-	for(int j=0; j < util->numBuild; j++){
-	  util->xfo[j];
-	  util->yfo[j];
-	  util->zfo[j];
+      // create the building bounds structure
+      mfunc_output << "bldBounds = [\n";
+      for (int bldIdx = 0; bldIdx < util->numBuild; bldIdx++)
+	{
+	  mfunc_output << "\t" << util->xfo[bldIdx] << ' ' << util->xfo[bldIdx] + util->lti[bldIdx] << ' '
+		       << util->yfo[bldIdx] - util->wti[bldIdx]/2.0 << ' ' << util->yfo[bldIdx] + util->wti[bldIdx]/2.0 << ' '
+		       << util->zfo[bldIdx] << ' ' << util->zfo[bldIdx] + util->ht[bldIdx] << ';' << std::endl;
+	}
+      mfunc_output << "];\n";
 
-	  util->ht[j];
-	  util->wti[j];
-	  util->lti[j];
+      mfunc_output << "for idx = 1:size(data,1)\n";
+      mfunc_output << "\tfor bld = 1:size(bldBounds,1)\n";
 
+      // if the center of the collection box is within the building, then remove it.
+      // xfo related to length
+      // yfo related to width and yfo is centered within the width
+      // zfo related to height
 
+      mfunc_output << "\t\tif (bldBounds(bld,1) <= data(idx,1) && data(idx,1) <= bldBounds(bld,2))\n";
+      mfunc_output << "\t\t\t && (bldBounds(bld,3) <= data(idx,2) && data(idx,2) <= bldBounds(bld,4))\n";
+      mfunc_output << "\t\t\t && (bldBounds(bld,5) <= data(idx,3) && data(idx,3) <= bldBounds(bld,6))\n";
+      mfunc_output << "\t\t\t% the collection box center is within the building, so exclude it\n";
+      mfunc_output << "\t\t\tbld_conc = [ bld_conc; data(idx,:) ];\n";
+      mfunc_output << "\t\telse\n";
+      mfunc_output << "\t\t\tnew_conc = [ new_conc; data(idx,:) ];\n";
+      mfunc_output << "\t\tend\n";
+      mfunc_output << "\tend\n";
+      mfunc_output << "end\n";
 
       mfunc_output.close();
-      
 
-      for (int pe_i = 0; pe_i < util->numOfPE; pe_i++)
-	    pe[pe_i]->emit = true;
-
+      // for (int pe_i = 0; pe_i < util->numOfPE; pe_i++)
+      // pe[pe_i]->emit = true;
+    }
 
     //Switches the frame buffer and binding texture
   
@@ -486,7 +507,6 @@ int MultipleBuildingsModel::display(){
       //Render geometry shader outputs to the vertex buffer
       /////////////////////////////////////////////////////
       CheckErrorsGL("before isosurface");
-
 
       if(oneTime < 1){
 	isoSurface->createIsoSurface();
@@ -667,8 +687,6 @@ void MultipleBuildingsModel::initFBO(void){
   isoFbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_3D, isoSurface->tex3d[0]);
   isoFbo->IsValid();
   FramebufferObject::Disable();
-  
-
 }
 
 void MultipleBuildingsModel::setupTextures(){

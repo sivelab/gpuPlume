@@ -1,6 +1,6 @@
 EXEC	= gpuPlume
 
-CC	= g++ -O2 -Wall -DNDEBUG
+CC	= g++ -g -Wall -DNDEBUG -fPIC
 
 #	  GeomTest.cpp \
 
@@ -10,9 +10,11 @@ CSRC	= collectionBox.cpp \
 	  framebufferObject.cpp \
 	  Gaussian_2shaders_Model.cpp \
 	  GaussianModel.cpp \
+	  GeomTest.cpp \
 	  gpuPlume.cpp \
 	  glErrorUtil.cpp \
 	  GLSL.cpp \
+	  IsoSurface.cpp \
 	  lineEmitter.cpp \
 	  MultipleBuildingsModel.cpp \
 	  nonGaussianModel.cpp \
