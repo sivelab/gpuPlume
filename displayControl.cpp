@@ -105,16 +105,6 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   windField_shader.createProgram();
   uniform_windTex = windField_shader.createUniform("Wind");
  
-  toneMap_shader.addShader("Shaders/toneMap_vp.glsl", GLSLObject::VERTEX_SHADER);
-  toneMap_shader.addShader("Shaders/toneMap_fp.glsl", GLSLObject::FRAGMENT_SHADER);
-  toneMap_shader.createProgram();
-
-  uniform_PosTexSampler = toneMap_shader.createUniform("posTexSampler");
-  uniform_DomainX = toneMap_shader.createUniform("nx");
-  uniform_DomainY = toneMap_shader.createUniform("ny");
-  uniform_DomainZ = toneMap_shader.createUniform("nz");
-  uniform_DoNorm = toneMap_shader.createUniform("doNorm");
-
   // For the Sphere Particle Shader, we need the following data:
   // uniform variables for the texture units that hold the point
   // sprite and the normal map
@@ -273,8 +263,6 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
 
       glEnable(texType);
 
-      toneMap_shader.activate();
-
       glUniform1iARB(uniform_PosTexSampler, 0);
       glUniform1iARB(uniform_DomainX, nx);
       glUniform1iARB(uniform_DomainY, ny);
@@ -305,7 +293,6 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
 	glTexCoord2f(0, theight);		glVertex3f(0,  1, -0.5f);
       }
       glEnd();
-      toneMap_shader.deactivate();
 
       glDisable(texType);
 

@@ -103,11 +103,8 @@ class DisplayControl{
   //Copy of Visual Plane for hand control
   VisualPlane* plane;
 
-  GLSLObject sphereParticle_shader, snowParticle_shader;
+  GLSLObject sphereParticle_shader;
   GLSLObject windField_shader;
-
-  GLSLObject toneMap_shader;
-  GLint uniform_PosTexSampler, uniform_DomainX, uniform_DomainY, uniform_DomainZ, uniform_DoNorm;
 
   Timer *clock_timer;
   Timer_t graphics_time[2];
