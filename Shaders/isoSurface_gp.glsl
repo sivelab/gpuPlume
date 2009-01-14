@@ -1,6 +1,5 @@
-//#version 120
-//#extension GL_EXT_geometry_shader4 : enable
-
+#version 120
+#extension GL_EXT_geometry_shader4 : enable
 uniform sampler3D tau;
 uniform sampler1D case_to_numpoly;
 uniform sampler2D edge_connect_list;
@@ -29,7 +28,8 @@ vec3 cubePoints5;
 vec3 cubePoints6;
 vec3 cubePoints7;
 
-vec3 getPointFromEdge(in int edge,in int c){
+vec3 getPointFromEdge(in int edge,in int c)
+{
   float t;
   vec3 p = vec3(edge,50.0,20.0);
   if(c == 0)
@@ -115,7 +115,7 @@ vec3 getPointFromEdge(in int edge,in int c){
 }
 
 
-void main()
+void main(void)
 {
    
   //First find the density function values for 
@@ -171,7 +171,7 @@ void main()
   v7 = value.x;
   cubePoints7 = vec3(point.x+mesh,point.y+mesh,point.z);
 
-  //Now find the case number
+  // Now find the case number
   int caseNum = 0;
   if(v0 >= 0.0){
     caseNum += 1;
@@ -199,10 +199,10 @@ void main()
   }
   //Do a lookup into case_to_numpoly using the caseNum
   vec2 index;
-  index.t = (float)caseNum/255.0;
+  index.t = float(caseNum)/255.0;
 
   vec4 c = vec4(texture1D(case_to_numpoly,caseNum/255.0));
-  int num_poly = (int)c.x;
+  int num_poly = int(c.x);
   
   //Now perform num_poly lookups into edge_connect_list
   
@@ -214,27 +214,27 @@ void main()
 
     for(i=0; i < 5; i++){
      
-      if( (i < num_poly) ){
+      if( i < num_poly ){
 
-	index.s = (float)i/4.0;
+	index.s = float(i)/4.0;
 	edge_list = vec3(texture2D(edge_connect_list,index));
 
 	//for each set of edges, create a triangle
 	//Create first point
          
 	//Position of point = direction*percentage(t) + first point location
-	vec3 pointPlace = getPointFromEdge((int)edge_list.x,0);  
+	vec3 pointPlace = getPointFromEdge(int(edge_list.x),0);  
    	gl_Position = vec4(pointPlace,1.0);
 	EmitVertex();
 
       
 	//Create second point
-	pointPlace = getPointFromEdge((int)edge_list.y,1); 
+	pointPlace = getPointFromEdge(int(edge_list.y),1); 
 	gl_Position = vec4(pointPlace,1.0);
 	EmitVertex();
 
 	//Create third point
-	pointPlace = getPointFromEdge((int)edge_list.z,2);
+	pointPlace = getPointFromEdge(int(edge_list.z),2);
 	gl_Position = vec4(pointPlace,1.0);
 	EmitVertex();
 	EndPrimitive();
@@ -244,47 +244,5 @@ void main()
     }
   
   }
-  
-  /*
-  if(num_poly == 2){
-    gl_Position = point;
-    EmitVertex();
-
-    point.y = point.y + 0.5;
-    gl_Position = point;
-    EmitVertex();
-    
-    point.z = point.z +0.5;
-    gl_Position = point;
-    EmitVertex();
-    EndPrimitive();
-
-    gl_Position = point;
-    EmitVertex();
-    point.y = point.y - 0.5;
-    gl_Position = point;
-    EmitVertex();
-
-    point.z = point.z - 0.5;
-    gl_Position = point;
-    EmitVertex();
-    EndPrimitive();
-  
-    point.z = point.z + 0.5;
-    point.x += 0.5;
-    gl_Position = point;
-    EmitVertex();
-  
-    point.y += 0.5;
-    gl_Position = point;
-    EmitVertex();
-
-    point.z += 0.5;
-    gl_Position = point;
-    EmitVertex();
-    EndPrimitive();
-    }*/
-  
- 
  
 }
