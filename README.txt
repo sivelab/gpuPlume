@@ -1,8 +1,28 @@
-QUICPLUME Code
+GPUPLUME
 
-Describe directory contents and provide basic help with this file.
+GETTING STARTED
+---------------
+The primary file to edit to change the simulation parameters is 
+
+  Settings/input.txt
+
+This file is mostly self-explanatory, but is used to change the number
+of particles, the size of the domain, changing the timestep, setting
+emitters within the domain, and setting up collection boxes for
+concentration calculations.  One of the parameters, "quicFilesPath" is
+used to provide a path in which the various QU and or QP files are
+located.  Be default, the simulation will look in Settings/ for these
+files, but this can be changed by setting the quicFilesPath
+appropriately.
+
+When setting the number of particles, you need to set the twidth and
+theight parameters.  They are multiplied together to determine the
+total number of particles; this is an artifact of using the OpenGL
+system to do the computation and will eventually go away so you can
+simply enter the total number of particles.
 
 Navigation System:
+------------------
 
   Keyboard Keys:
 
@@ -41,7 +61,6 @@ Visual Controls:
       R - increases roll
       r - decreases roll
 
-
   IsoSurfaces:
 
     i - toggles drawing the isosurface
@@ -60,7 +79,7 @@ Simulation Controls:
   f - prints out positions
   z - toggles pause mode
   spacebar - increases one time step when in pause mode
-    
+  t - toggles visuals on or off (visuals off is faster)    
 
   Emitter controls:
   
@@ -69,3 +88,8 @@ Simulation Controls:
     o - switches to release one particle per key press 
       	(press e to release one particle)
     p - switches to release particles per second
+  
+    W - move the emitter in negative Y
+    S - move the emitter in positive Y
+    A - move the emitter in negative X
+    D - move the emitter in positive X
