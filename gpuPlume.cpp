@@ -493,13 +493,6 @@ void keyboard_cb(unsigned char key, int x, int y)
       plume->dc->perform_cpu_sort = !plume->dc->perform_cpu_sort;
       std::cout << "Sorting: " << plume->dc->perform_cpu_sort << std::endl;
     }
-  else if (key == ',')
-    {
-      if (plume->dc->particle_visual_state == DisplayControl::PARTICLE_SPHERE)
-	plume->dc->particle_visual_state = DisplayControl::PARTICLE_SNOW;
-      else 
-	plume->dc->particle_visual_state = DisplayControl::PARTICLE_SPHERE;
-    }
   else if (key == 'i')
     {
       plume->drawIsoSurface = !plume->drawIsoSurface;

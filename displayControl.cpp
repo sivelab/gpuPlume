@@ -99,11 +99,6 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   sphereParticle_shader.addShader("Shaders/sphereVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   sphereParticle_shader.createProgram();
 
-  //This shader is used to make final changes before rendering to the screen
-  snowParticle_shader.addShader("Shaders/snowVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
-  snowParticle_shader.addShader("Shaders/snowVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
-  snowParticle_shader.createProgram();
-
   //Wind Field shader
   windField_shader.addShader("Shaders/windFieldLayer_vp.glsl", GLSLObject::VERTEX_SHADER);
   windField_shader.addShader("Shaders/windFieldLayer_fp.glsl", GLSLObject::FRAGMENT_SHADER);
@@ -133,13 +128,6 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   uniform_ny = sphereParticle_shader.createUniform("ny");
   uniform_nz = sphereParticle_shader.createUniform("nz");
   uniform_numInRow = sphereParticle_shader.createUniform("numInRow");
-
-  // For the Snow Particle Shader, we need the following data:
-  uniform_nx = snowParticle_shader.createUniform("nx");
-  uniform_ny = snowParticle_shader.createUniform("ny");
-  uniform_nz = snowParticle_shader.createUniform("nz");
-  uniform_numInRow = snowParticle_shader.createUniform("numInRow");
-
 
   // POINT_SPRITE
   //
@@ -179,13 +167,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
 				 int numInRow, int twidth, int theight, GLuint PositionTexId, GLuint VelTexId)
 {
 
-  if (particle_visual_state == PARTICLE_SNOW)
-    {
-      glClearColor(0.0, 0.0, 0.0, 1.0);
-      glClear(GL_COLOR_BUFFER_BIT);
-    }
-  else
-    drawSky();
+  drawSky();
   
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
@@ -197,8 +179,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     //glRotatef(azimuth, 0,0,1);  
   }
     
-  if (particle_visual_state != PARTICLE_SNOW)
-    drawAxes();
+  drawAxes();
   
   if(!osgPlume)
     drawGrid();
@@ -207,30 +188,6 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     drawFeatures();
   }
   
-  if (particle_visual_state == PARTICLE_SNOW)
-    {
-      // draw lights
-      
-      // for this experiment, place three lights equally spaced in the domain
-      glPushMatrix();
-      glTranslatef(10.0, 20.0, 6.0);
-      glColor3f(1.0, 1.0, 1.0);
-      glutSolidCube(0.25);
-      glPopMatrix();
-
-      glPushMatrix();
-      glTranslatef(10.0, 40.0, 6.0);
-      glColor3f(1.0, 1.0, 1.0);
-      glutSolidCube(0.25);
-      glPopMatrix();
-
-      glPushMatrix();
-      glTranslatef(10.0, 60.0, 6.0);
-      glColor3f(1.0, 1.0, 1.0);
-      glutSolidCube(0.25);
-      glPopMatrix();
-    }
-
   drawGround();
 
   // render the vertices in the VBO (the particle positions) as points in the domain
@@ -261,55 +218,30 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
       // perform_cpu_sort = false;
     }
 
-  if (particle_visual_state == PARTICLE_SNOW)
-    {
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
+  sphereParticle_shader.activate();  
 
-      snowParticle_shader.activate();  
+  glPointSize(6.0);
+  glUniform1iARB(uniform_nx, nx);
+  glUniform1iARB(uniform_ny, ny);
+  glUniform1iARB(uniform_nz, nz);
+  glUniform1iARB(uniform_numInRow, numInRow);
 
-      glPointSize(6.0);
-      glUniform1iARB(uniform_nx, nx);
-      glUniform1iARB(uniform_ny, ny);
-      glUniform1iARB(uniform_nz, nz);
-      glUniform1iARB(uniform_numInRow, numInRow);
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
-      glEnable(GL_TEXTURE_2D);
-      glEnable(GL_TEXTURE_RECTANGLE_ARB);
-      glActiveTextureARB(GL_TEXTURE0_ARB);
+  glActiveTextureARB(GL_TEXTURE0_ARB);
+  glUniform1iARB(uniform_pointsprite_tex, 0);
+  glBindTexture(GL_TEXTURE_2D, displayTex[0]); // point_sprite_textures[0]);
 
-      glTexEnvf(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
-      glEnable(GL_POINT_SPRITE_ARB);
-      glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-    }
-  else if (particle_visual_state == PARTICLE_SPHERE)
-    {
-      sphereParticle_shader.activate();  
+  glActiveTextureARB(GL_TEXTURE1_ARB);
+  glUniform1iARB(uniform_normalmap_tex, 1);
+  glBindTexture(GL_TEXTURE_2D, point_sprite_textures[1]);
 
-      glPointSize(6.0);
-      glUniform1iARB(uniform_nx, nx);
-      glUniform1iARB(uniform_ny, ny);
-      glUniform1iARB(uniform_nz, nz);
-      glUniform1iARB(uniform_numInRow, numInRow);
+  glActiveTexture(GL_TEXTURE2);
+  glUniform1iARB(uniform_visualization_tex, 2);
+  glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texid3);
 
-      glEnable(GL_TEXTURE_2D);
-      glEnable(GL_TEXTURE_RECTANGLE_ARB);
-
-      glActiveTextureARB(GL_TEXTURE0_ARB);
-      glUniform1iARB(uniform_pointsprite_tex, 0);
-      glBindTexture(GL_TEXTURE_2D, displayTex[0]); // point_sprite_textures[0]);
-
-      glActiveTextureARB(GL_TEXTURE1_ARB);
-      glUniform1iARB(uniform_normalmap_tex, 1);
-      glBindTexture(GL_TEXTURE_2D, point_sprite_textures[1]);
-
-      glActiveTexture(GL_TEXTURE2);
-      glUniform1iARB(uniform_visualization_tex, 2);
-      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texid3);
-
-      glActiveTextureARB(GL_TEXTURE0_ARB);
-
-    }
+  glActiveTextureARB(GL_TEXTURE0_ARB);
 
   // all of our particle rendering methods now use the imposters
   glTexEnvf(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
@@ -325,15 +257,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   glDisable(GL_POINT_SPRITE_ARB);
   glDisable(GL_TEXTURE_2D);
 
-  if (particle_visual_state == PARTICLE_SNOW)
-    {
-      snowParticle_shader.deactivate();  
-      glDisable(GL_BLEND);
-    }
-  else if (particle_visual_state == PARTICLE_SPHERE)
-    {
-      sphereParticle_shader.deactivate();  
-    }
+  sphereParticle_shader.deactivate();  
 
 #if 0
   // Sample code to draw the particle positions...
