@@ -1,5 +1,7 @@
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 #include <assert.h>
 #include "GLSL.h"
 

@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 500
-theight 500
+twidth 10
+theight 10
 
 #Path Lines
 pwidth 3000

@@ -1,6 +1,10 @@
+#include <cstdlib>
+#include <cstring>
+#include <math.h>
+
 #include "VisualPlane.h"
 #include "glErrorUtil.h"
-#include <math.h>
+
 #ifdef WIN32
 #define M_PI 3.141592654
 #define M_PI_2 M_PI/2.0

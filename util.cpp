@@ -1,5 +1,7 @@
-#include "util.h"
 #include <stdio.h>
+#include <cstring>
+
+#include "util.h"
 #include "gpuPlume.h"
 
 Util::Util(){

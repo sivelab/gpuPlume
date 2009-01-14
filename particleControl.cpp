@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -129,7 +130,7 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
 
   //If coloring particles using advect_terms, advect_terms will not be NULL here.
   //Will need to render to a third texture.
-  if(advect_terms != NULL){
+  if(advect_terms != 0){
 
     if(odd){
       GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT,GL_COLOR_ATTACHMENT7_EXT};
@@ -161,7 +162,7 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
   glEnable(texType);
   multipleBuildings_shader.activate();
 
-  if(advect_terms != NULL){
+  if(advect_terms != 0){
     glUniform1iARB(uniform_colorAdvectTerms, 1);
   }
   else{

@@ -1,4 +1,6 @@
+#include <cstdlib>
 #include <iostream>
+#include <cstring>
 #include <math.h>
 #include <assert.h>
 #include "displayControl.h"
