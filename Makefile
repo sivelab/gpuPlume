@@ -10,9 +10,9 @@ COBJS   = $(CSRC:.cpp=.o)
 # LIB_PATH=
 # INCLUDE_PATH=
 
-LIB=-Wl,-rpath=/home/cs/vr/software/glew-1.3.5.dist/lib -lGLEW -lglut -lGL 
-LIB_PATH=-L/home/cs/vr/software/glew-1.3.5.dist/lib
-INCLUDE_PATH=-I/home/cs/vr/software/glew-1.3.5.dist/include 
+LIB=-lGLEW -lglut -lGL 
+LIB_PATH=
+INCLUDE_PATH=
 
 
 FLAGS = $(INCLUDE_PATH) $(LIB_PATH) $(LIB)
