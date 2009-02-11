@@ -58,7 +58,7 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   //Set whether to reuse particles or not
   //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
   //If reuseParticles is set to true: fourth coordinate is <= lifetime if emiited, else lifetime+1
-  reuseParticles = false;
+  reuseParticles = true;
   frameCount = 0;
   if(reuseParticles)
     lifeTime = 30.0;
@@ -200,10 +200,12 @@ void MultipleBuildingsModel::init(bool OSG){
 
   CheckErrorsGL("END of init");
 
-  if(util->useRealTime){
-    display_clock = new Timer(true);
-    sim->init();
-  } 
+  // display_clock = new Timer(true);
+  display_clock = new Timer();
+  if(util->useRealTime)
+    {
+      sim->init();
+    } 
 
 #if 0
   int maxtextures;
@@ -265,9 +267,10 @@ int MultipleBuildingsModel::display(){
     /////////////////////////////////////////////////////////////
     //Reuse particles if their lifespan is up
     /////////////////////////////////////////////////////////////
-    if(reuseParticles){
-      particleReuse();
-    } 
+    if(reuseParticles)
+      {
+	particleReuse();
+      } 
     
     ////////////////////////////////////////////////////////////
     // Emit Particles
