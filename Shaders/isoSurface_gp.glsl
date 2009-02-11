@@ -1,5 +1,5 @@
-#version 120
-#extension GL_EXT_geometry_shader4 : enable
+// #version 120
+// #extension GL_EXT_geometry_shader4 : enable
 uniform sampler3D tau;
 uniform sampler1D case_to_numpoly;
 uniform sampler2D edge_connect_list;
@@ -9,7 +9,6 @@ uniform float dy;
 uniform float dz;
 
 uniform float mesh;
-
 
 float v0;
 float v1;
@@ -246,3 +245,4 @@ void main(void)
   }
  
 }
+
