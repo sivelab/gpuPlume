@@ -49,7 +49,7 @@ void mouse(int button, int state, int x, int y);
 void motion(int x, int y);
 
 // int winwidth = 2048, winheight = 1024;
-int winwidth = 200, winheight = 100;
+int winwidth = 1000, winheight = (int)(1000 * 9/16.0);
 
 //int last_x, last_y;
 
