@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 10
-theight 10
+twidth 256
+theight 256
 
 #Path Lines
 pwidth 3000
@@ -84,7 +84,7 @@ numBox_y   1
 numBox_z   1
 
 #Source/ParticleEmitter information
-num_of_sources 1
+num_of_sources 2
 
 # Source Format:
 # source_info point <X> <Y> <Z> <rate>
@@ -95,10 +95,12 @@ num_of_sources 1
 #source_info line 5.0 20.0 5.0 5.0 30.0 5.0 60.0
 #source_info point 20.0 25.0 15.0 200.0
 #source_info line 10.0 115.0 5.0 90.0 115.0 5.0 200.0
-source_info sphere 5.0 25.0 3.0 0.1 200.0
+# source_info sphere 5.0 25.0 3.0 0.1 200.0
+source_info line 5.0 15.0 3.0 5.0 35.0 3.0 200.0
+source_info line 5.0 25.0 0.5 5.0 25.0 5.0 200.0
 
 #Set the type of Particle Release
-release_type 2
+release_type 1
 
 #Set to 0 and it will release a set number of particles per time step
 #based on simulation duration. 
