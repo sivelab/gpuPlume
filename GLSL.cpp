@@ -268,9 +268,10 @@ void GLSLObject::loadSourceFromFile( const std::string& filename, GLhandleARB& s
     std::list< std::string >::const_iterator li;
     for (li=string_list.begin(), idx=0; li!=string_list.end(); ++li, idx++)
     {
-	shader_string[idx] = new GLcharARB[li->length()+1];
+	shader_string[idx] = new GLcharARB[li->length()+2];
 	for (j=0; j<li->length(); j++)
 	    shader_string[idx][j] = (*li)[j];
+	shader_string[idx][j++] = '\n';  // null terminate the string
 	shader_string[idx][j] = '\0';  // null terminate the string
 
 	if (m_verbose_level)
