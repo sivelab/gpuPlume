@@ -159,8 +159,9 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
 				 int numInRow, int twidth, int theight, GLuint PositionTexId, GLuint VelTexId)
 {
 
-  drawSky();
-  
+//  drawSky();
+
+
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
 	       eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], 
@@ -170,11 +171,13 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     //glRotatef(elevation, 0,1,0);
     //glRotatef(azimuth, 0,0,1);  
   }
-    
-  drawAxes();
+//  DrawSkyBox(0.0, 0.0, 0.0, 100.0, 100.0, 100.0);
+	DrawSkyBox(eye_pos[0], eye_pos[1], eye_pos[2], 50.0, 50.0, 50.0);      
+
+	drawAxes();
   
   if(!osgPlume)
-    drawGrid();
+    //drawGrid();
 
   if(draw_buildings){
     drawFeatures();
@@ -249,7 +252,9 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   glDisable(GL_POINT_SPRITE_ARB);
   glDisable(GL_TEXTURE_2D);
 
-  sphereParticle_shader.deactivate();  
+  sphereParticle_shader.deactivate();
+
+
 
 #if 0
   // Sample code to draw the particle positions...
@@ -304,6 +309,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
       glMatrixMode(GL_MODELVIEW);
       glPopMatrix();
     }
+
 #endif
 
 #if 0
@@ -545,10 +551,15 @@ void DisplayControl::drawGround(){
   glColor4f(0.5,0.5,0.5,1.0);
   glBegin(GL_QUADS);
   {
-    glTexCoord2f(0,0);       glVertex3f(0.0,0.0,-0.05);
+    /*glTexCoord2f(0,0);       glVertex3f(0.0,0.0,-0.05);
     glTexCoord2f(1,0);       glVertex3f(nx,0.0,-0.05);
     glTexCoord2f(1,1);       glVertex3f(nx,ny,-0.05);
-    glTexCoord2f(0,1);       glVertex3f(0.0,ny,-0.05);
+    glTexCoord2f(0,1);       glVertex3f(0.0,ny,-0.05); */
+
+		glTexCoord2f(0,0);       glVertex3f(-nx*5,-ny*5,-0.05);
+    glTexCoord2f(1,0);       glVertex3f(nx*5,-ny*5,-0.05);
+    glTexCoord2f(1,1);       glVertex3f(nx*5,ny*5,-0.05);
+    glTexCoord2f(0,1);       glVertex3f(-nx*5,ny*3,-0.05);
   }
   glEnd();
 
@@ -757,11 +768,95 @@ void DisplayControl::initVars(int nb,float* x, float* y, float* z,
   createImageTex(displayTex[0], "concrete.ppm");
   createImageTex(displayTex[1], "building.ppm");
   createImageTex(displayTex[2], "buildingRoof.ppm");
+
+  glGenTextures(6,skyBoxTex);
+/*  createImageTex(skyBoxTex[0], "SkyBox/front.ppm");
+  createImageTex(skyBoxTex[1], "SkyBox/left.ppm");
+  createImageTex(skyBoxTex[2], "SkyBox/back.ppm");
+  createImageTex(skyBoxTex[3], "SkyBox/right.ppm");
+  createImageTex(skyBoxTex[4], "SkyBox/up.ppm");
+  createImageTex(skyBoxTex[5], "SkyBox/down.ppm"); */
+	createImageTex(skyBoxTex[0], "SkyBox/mystic/mystic_east.ppm"); //front
+  createImageTex(skyBoxTex[1], "SkyBox/mystic/mystic_north.ppm"); //left
+  createImageTex(skyBoxTex[2], "SkyBox/mystic/mystic_west.ppm"); //back
+  createImageTex(skyBoxTex[3], "SkyBox/mystic/mystic_south.ppm");//right
+  createImageTex(skyBoxTex[4], "SkyBox/mystic/mystic_up.ppm");
+  createImageTex(skyBoxTex[5], "SkyBox/mystic/mystic_down.ppm");
+  
  
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
 
 }
+
+void DisplayControl::DrawSkyBox(float x, float y, float z,  float width, float height, float length){
+	glDisable(GL_DEPTH_TEST);
+  glDisable(texType);
+	 glEnable(GL_TEXTURE_2D);
+	//center the box around the postion paramaters
+	x = x - width  / 2;
+	y = y - height / 2;
+	z = z - length / 2;
+	
+	glColor4f(1.0,1.0,1.0,1.0f); //set color to white
+
+	//Draw the Front (in front of you)
+	glBindTexture(GL_TEXTURE_2D, skyBoxTex[0]);
+	glBegin(GL_QUADS);
+	  glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y, z); //bottom left
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y, z+height);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y+width, z+height);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y+width, z);
+	glEnd();
+
+		// Draw Right side
+	glBindTexture(GL_TEXTURE_2D, skyBoxTex[3]);
+	glBegin(GL_QUADS);		
+	  glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y+width, z+height);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y+width, z+height);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y+width, z);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y+width, z);
+	glEnd();
+
+	//Draw Back (behind you)
+	glBindTexture(GL_TEXTURE_2D, skyBoxTex[2]);
+	glBegin(GL_QUADS);
+	  glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y, z+height);
+  	glTexCoord2f(0.0f, 0.0f); glVertex3f(x+length, y+width, z+height);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(x+length, y+width, z);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y, z); //from behind you (facing away)- bottom left.
+	glEnd();
+	//draw the left side
+	glBindTexture(GL_TEXTURE_2D, skyBoxTex[1]);
+	glBegin(GL_QUADS);
+	  glTexCoord2f(0.0f, 0.0f); glVertex3f(x+length, y, z+height);
+	  glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y, z+height);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y, z);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(x+length, y, z);
+	glEnd();
+
+	//draw the top
+	glBindTexture(GL_TEXTURE_2D, skyBoxTex[4]);
+	glBegin(GL_QUADS);
+	  glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y+width, z+height); //back right
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y, z+height); //back left
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y, z+height);  //front left
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y+width, z+height); ///front right
+	glEnd();
+
+	//draw the bottom
+	glBindTexture(GL_TEXTURE_2D, skyBoxTex[5]);
+	glBegin(GL_QUADS);
+	  glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y+width, z); //front right
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y+width, z); //back rigth
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y, z); //back left
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y, z);// front left
+	glEnd();
+	
+	glDisable(GL_TEXTURE_2D);
+	glEnable(texType);
+	glEnable(GL_DEPTH_TEST);
+}//end DrawSkyBox
 
 void DisplayControl::createImageTex(GLuint texture, char* filename){
   GLubyte* testImage;
@@ -779,6 +874,7 @@ void DisplayControl::createImageTex(GLuint texture, char* filename){
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, testImage);
 }
+
 
 void DisplayControl::drawFeatures(void)
 {

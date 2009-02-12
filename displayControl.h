@@ -121,6 +121,7 @@ class DisplayControl{
   double xslide,yslide;
 
   GLuint displayTex[3];
+	GLuint skyBoxTex[6];
 
   GLenum texType;
 
@@ -143,4 +144,7 @@ class DisplayControl{
 
   // * function to create point sprite textures
   void createPointSpriteTextures();
+
+	void DrawSkyBox(float x, float y, float z,  float width, float height, float length);
+
 };
