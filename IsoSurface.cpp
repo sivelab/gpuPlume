@@ -22,7 +22,7 @@ IsoSurface::IsoSurface(ParticleControl *pc){
   int_format = GL_RGBA32F_ARB;
   texType2 = GL_TEXTURE_3D;
 
-  int num_vertices;
+  GLint num_vertices;
   if(GL_EXT_geometry_shader4)
     {
       std::cout << "Ready for geom shader!" << std::endl;

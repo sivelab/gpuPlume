@@ -48,7 +48,7 @@ class IsoSurface{
   GLuint edge_connect_list[1];
   
   GLuint query;
-  int numPrimitives;
+  GLint numPrimitives;
   int mesh;
 
   GLuint iso_buffer[10];
