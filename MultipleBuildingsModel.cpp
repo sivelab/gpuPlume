@@ -58,16 +58,18 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   //Set whether to reuse particles or not
   //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
   //If reuseParticles is set to true: fourth coordinate is <= lifetime if emiited, else lifetime+1
-  reuseParticles = true;
+  reuseParticles = false;
   frameCount = 0;
   if(reuseParticles)
-    lifeTime = 30.0;
+    lifeTime = 1.0;
   else lifeTime = -1.0;
 
   for(int i = twidth*theight-1; i >= 0; i--)
     indices.push_back(i);
 
   oneTime = 0;
+
+  mbaTimer = new Timer(true);
 
 }
 MultipleBuildingsModel::~MultipleBuildingsModel(){}
@@ -215,6 +217,8 @@ void MultipleBuildingsModel::init(bool OSG){
 }
 
 int MultipleBuildingsModel::display(){
+
+  Timer_t displayStart = mbaTimer->tic();    
 
   if(osgPlume){
     glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
@@ -661,6 +665,9 @@ int MultipleBuildingsModel::display(){
     glutSwapBuffers();
   }
 
+  Timer_t displayEnd = mbaTimer->tic();    
+
+  //  std::cout << "MBA Display Time: " << mbaTimer->deltau(displayStart, displayEnd) << " us." << std::endl;  
   if(quitSimulation){
     std::cout << "Simulation ended after " << sim->simDuration << " seconds."<< std::endl;
     std::cout << "Total number of particles used: " << totalNumPar << std::endl;
