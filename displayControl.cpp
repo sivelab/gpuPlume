@@ -776,13 +776,30 @@ void DisplayControl::initVars(int nb,float* x, float* y, float* z,
   createImageTex(skyBoxTex[3], "SkyBox/right.ppm");
   createImageTex(skyBoxTex[4], "SkyBox/up.ppm");
   createImageTex(skyBoxTex[5], "SkyBox/down.ppm"); */
+	/*
+		for the mystic skybox. 
 	createImageTex(skyBoxTex[0], "SkyBox/mystic/mystic_east.ppm"); //front
   createImageTex(skyBoxTex[1], "SkyBox/mystic/mystic_north.ppm"); //left
   createImageTex(skyBoxTex[2], "SkyBox/mystic/mystic_west.ppm"); //back
   createImageTex(skyBoxTex[3], "SkyBox/mystic/mystic_south.ppm");//right
   createImageTex(skyBoxTex[4], "SkyBox/mystic/mystic_up.ppm");
   createImageTex(skyBoxTex[5], "SkyBox/mystic/mystic_down.ppm");
-  
+  */
+	/* for skybox with the cloudy reef
+	createImageTex(skyBoxTex[0], "SkyBox/clouds/reef_east.ppm"); //front
+  createImageTex(skyBoxTex[1], "SkyBox/clouds/reef_north.ppm"); //left
+  createImageTex(skyBoxTex[2], "SkyBox/clouds/reef_west.ppm"); //back
+  createImageTex(skyBoxTex[3], "SkyBox/clouds/reef_south.ppm");//right
+  createImageTex(skyBoxTex[4], "SkyBox/clouds/reef_up.ppm");
+  createImageTex(skyBoxTex[5], "SkyBox/clouds/reef_down.ppm"); */
+
+	createImageTex(skyBoxTex[0], "SkyBox/rays/rays_east.ppm"); //front
+  createImageTex(skyBoxTex[1], "SkyBox/rays/rays_north.ppm"); //left
+  createImageTex(skyBoxTex[2], "SkyBox/rays/rays_west.ppm"); //back
+  createImageTex(skyBoxTex[3], "SkyBox/rays/rays_south.ppm");//right
+  createImageTex(skyBoxTex[4], "SkyBox/rays/rays_up.ppm");
+  createImageTex(skyBoxTex[5], "SkyBox/rays/rays_down.ppm");
+
  
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
