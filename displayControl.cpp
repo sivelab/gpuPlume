@@ -39,6 +39,8 @@ static int cmpVertices(const void *p1, const void *p2)
 
 DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float dy,float dz)
 {
+  dTimer = new Timer(true);
+
   nx = x;
   ny = y;
   nz = z;
@@ -158,6 +160,7 @@ void DisplayControl::setVisualPlane(VisualPlane* vp){
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight, GLuint PositionTexId, GLuint VelTexId)
 {
+  Timer_t displayStart = dTimer->tic();    
 
 //  drawSky();
 
@@ -320,6 +323,10 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     }
   }
 #endif
+
+  Timer_t displayEnd = dTimer->tic();      
+
+  // std::cout << "DC Display Time: " << dTimer->deltau(displayStart, displayEnd) << " us." << std::endl;  
   
 }
 void DisplayControl::increaseVisualLayer(){

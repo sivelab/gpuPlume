@@ -106,6 +106,8 @@ class DisplayControl{
   GLSLObject sphereParticle_shader;
   GLSLObject windField_shader;
 
+  Timer *dTimer;
+
   Timer *clock_timer;
   Timer_t graphics_time[2];
   Timer_t HUP_display_update_time[2];
