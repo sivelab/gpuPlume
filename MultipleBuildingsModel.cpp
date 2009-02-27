@@ -165,7 +165,7 @@ void MultipleBuildingsModel::init(bool OSG){
   
   //Create isosurface
 
-  isoSurface = new IsoSurface(pc);
+  //   isoSurface = new IsoSurface(pc);
 
 
   //
@@ -235,11 +235,13 @@ int MultipleBuildingsModel::display(){
 
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
   
+#if 0
   if(isoSurface->once){
     //render the 3D density function texture
     isoSurface->render3DTexture(isoFbo);
     isoSurface->once = false;
   }
+#endif
 
 
   glEnable(texType);
@@ -561,12 +563,14 @@ int MultipleBuildingsModel::display(){
       /////////////////////////////////////////////////////
       //Render geometry shader outputs to the vertex buffer
       /////////////////////////////////////////////////////
+#if 0
       CheckErrorsGL("before isosurface");
 
       if(oneTime < 1){
 	isoSurface->createIsoSurface();
 	oneTime++;
       }
+#endif
 
 
       CheckErrorsGL("END : after 2nd pass");
@@ -624,10 +628,12 @@ int MultipleBuildingsModel::display(){
 	  dc->drawLayers(windField,numInRow);
       }
       
+#if 0
       //Draw isosurface
       if(drawIsoSurface){
 	isoSurface->draw();
       }
+#endif
 
       //      planeVisual->drawScale();
 
@@ -740,11 +746,13 @@ void MultipleBuildingsModel::initFBO(void){
   pathFbo->IsValid();
   FramebufferObject::Disable();
 
+#if 0
   isoFbo = new FramebufferObject();
   isoFbo->Bind();
   isoFbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_3D, isoSurface->tex3d[0]);
   isoFbo->IsValid();
   FramebufferObject::Disable();
+#endif
 }
 
 void MultipleBuildingsModel::setupTextures(){
