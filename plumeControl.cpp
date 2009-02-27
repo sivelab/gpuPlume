@@ -119,38 +119,45 @@ void PlumeControl::setupTextures()
 {
 }
 
-void PlumeControl::particleReuse(){
-    if(frameCount == 0)
-      if(useRealTime)
-	reuse_time[0] = display_clock->tic();//reuse_clock->tic();
-
-    frameCount++;
-    if(frameCount == 10){
-      
-
+void PlumeControl::particleReuse()
+{
+  if(frameCount == 0 && useRealTime)
+    reuse_time[0] = display_clock->tic();//reuse_clock->tic();
+  
+  frameCount++;
+  if(frameCount == 10)
+    {
       if(useRealTime)
 	reuse_time[1] = display_clock->tic();//reuse_clock->tic();
-      //Iterate list indicesInUse; add time difference; 
-      //if over lifetime; remove from list in indicesInUse
-      //add that index into list indices
+
+      // Iterate list indicesInUse; add time difference; if over
+      // lifetime; remove from list in indicesInUse add that index
+      // into list indices
+
       iter = indicesInUse.begin();
       bool exit = false;
-      while(iter != indicesInUse.end() && !exit){
-	pIndex &reIndex = *iter;
-	if(useRealTime)
-	  reIndex.time += display_clock->deltas(reuse_time[0],reuse_time[1]);
-	else
-	  reIndex.time += frameCount*time_step;
+      while(iter != indicesInUse.end() && !exit)
+	{
+	  pIndex &reIndex = *iter;
+	  if(useRealTime)
+	    reIndex.time += display_clock->deltas(reuse_time[0],reuse_time[1]);
+	  else
+	    reIndex.time += frameCount*time_step;
 	     
-	if(reIndex.time >= lifeTime){
-	  totalNumPar -= 1.0;
-	  indicesInUse.erase(iter);
-	  indices.push_front(reIndex.id);
-	  std::cout << reIndex.time << " " << reIndex.id << std::endl;
-	  exit = true;
+	  if(reIndex.time >= lifeTime)
+	    {
+	      std::cout << "reIndex.time = " << reIndex.time << ", lifeTime = " << lifeTime << std::endl;
+	      totalNumPar -= 1.0;
+
+	      indicesInUse.erase(iter);
+	      std::cout << "Size of indices before = " << indices.size() << std::endl;
+	      indices.push_front(reIndex.id);
+	      std::cout << "Size of indices = " << indices.size() << std::endl;
+	      std::cout << reIndex.time << " " << reIndex.id << std::endl;
+	      exit = true;
+	    }
+	  iter++;
 	}
-	iter++;
-      }
       frameCount = 0;
     }
 

@@ -81,6 +81,7 @@ int main(int argc, char** argv)
   // & query the start time so we have a value in it
   // 
   // Attempt to create a high resolution timer.
+  // plume_clock = new Timer(false);
   plume_clock = new Timer(true);
   plume_timer[0] = plume_clock->tic();
 
@@ -227,7 +228,14 @@ void display(void)
 
   // if quitting the simulation, 0 is returned
   int quitSimulation = 1;
+
+  Timer_t displayStart = plume_clock->tic();    
+
   quitSimulation = plume->display();
+
+  Timer_t displayEnd = plume_clock->tic();    
+
+  // std::cout << "Display Time: " << plume_clock->deltau(displayStart, displayEnd) << " us." << std::endl;  
   
   if (quitSimulation == 0)
     {

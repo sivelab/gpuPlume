@@ -19,7 +19,7 @@ class MultipleBuildingsModel : public PlumeControl{
   virtual void initFBO();
   virtual ~MultipleBuildingsModel();
 
-
+  Timer *mbaTimer;
 
 };
 
