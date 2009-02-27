@@ -18,8 +18,8 @@ float sort_eye[3];
 double Distance2Eye(const float* fp)
 {
   return sqrt( (sort_eye[0]-fp[0])*(sort_eye[0]-fp[0]) 
-	       + (sort_eye[1]-fp[1])*(sort_eye[1]-fp[1]) 
-	       + (sort_eye[2]-fp[2])*(sort_eye[2]-fp[2]) );
+               + (sort_eye[1]-fp[1])*(sort_eye[1]-fp[1]) 
+               + (sort_eye[2]-fp[2])*(sort_eye[2]-fp[2]) );
 }
 
 static int cmpVertices(const void *p1, const void *p2)
@@ -102,8 +102,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   sphereParticle_shader.addShader("Shaders/sphereVisualize_vp.glsl", GLSLObject::VERTEX_SHADER);
   sphereParticle_shader.addShader("Shaders/sphereVisualize_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   sphereParticle_shader.createProgram();
-
-  //Wind Field shader
+  //  Field shader
   windField_shader.addShader("Shaders/windFieldLayer_vp.glsl", GLSLObject::VERTEX_SHADER);
   windField_shader.addShader("Shaders/windFieldLayer_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   windField_shader.createProgram();
@@ -577,8 +576,9 @@ void DisplayControl::drawGround(){
 }
 void DisplayControl::drawGrid(){
   GLint lwidth;
+
   glGetIntegerv(GL_LINE_WIDTH, &lwidth);
-  
+
   glDisable(texType);
 
   glLineWidth(0.5);
@@ -593,6 +593,7 @@ void DisplayControl::drawGrid(){
       glVertex3f(i,-ny,-0.15);
       glVertex3f(i,ny*2,-0.15);
     }
+
   
   }
   glEnd();
