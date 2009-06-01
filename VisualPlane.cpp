@@ -42,20 +42,20 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   if(TMin[3]<tauMin)
     tauMin = TMin[3];
 
-  Taus[0] = "t11";
-  Taus[1] = "t22";
-  Taus[2] = "t33";
-  Taus[3] = "t13";
+  Taus[0] = (char *)"t11";
+  Taus[1] = (char *)"t22";
+  Taus[2] = (char *)"t33";
+  Taus[3] = (char *)"t13";
 
   TauMax = TMax;
   TauMin = TMin;
   tauPos_x = new int[5];
-  //Color scale position on screen 
+  //Color scale position on screen
   scale_xstart = 10.0;
   scale_xend = 310.0;
   scale_ystart = 40.0;
   scale_yend = 55.0;
- 
+
   rangeButton_x = (int)scale_xstart + 10;
   rangeButton_y = (int)scale_ystart - 13;
 
@@ -73,24 +73,24 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   else
     max_layer = ny;
 
-  
+
   getLocalTauValues();
-	
+
   plane_layer = -1;
   plane_layer_z = -1.0;
   plane_layer_x = -1.0;
   plane_layer_y = -1.0;
-  
+
   //GLfloat data2[nz][ny][nx][4];
 
   GLfloat* data = new GLfloat[nxdx*nydy*nzdz*4];
-  
+
   for(int k=0; k < nzdz; k++){
     for(int i=0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
-	
+
 	  int idx = k*nydy*nxdx + i*nxdx + j;
-	
+
 	  int texidx = k*nydy*nxdx*4 + i*nxdx*4 + j*4;
 	  /*
 	  data2[k][i][j][0] =  tau[idx].t11;
@@ -98,7 +98,7 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
 	  data2[k][i][j][2] =  tau[idx].t33;
 	  data2[k][i][j][3] =  tau[idx].t13;*/
 
-	  
+
 	  data[texidx] = tau[idx].t11;
 	  data[texidx+1] = tau[idx].t22;
 	  data[texidx+2] = tau[idx].t33;
@@ -120,8 +120,8 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(texType, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	
-  glTexImage3D(texType, 0, format, nxdx, nydy, nzdz,0,GL_RGBA, GL_FLOAT,data); 
+
+  glTexImage3D(texType, 0, format, nxdx, nydy, nzdz,0,GL_RGBA, GL_FLOAT,data);
   CheckErrorsGL("3D texture\n");
 
   glBindTexture(texType, 0);
@@ -144,7 +144,7 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   u_min13 = plane_shader.createUniform("min13");
   u_controlTau = plane_shader.createUniform("controlTau");
   u_sliderTurb = plane_shader.createUniform("slider");
-    
+
   glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
   //Turbulence Color Scale
@@ -156,7 +156,7 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   uniform_tauMin = scale_shader.createUniform("tauMin");
   uniform_tauMax = scale_shader.createUniform("tauMax");
   uniform_sliderScale = scale_shader.createUniform("slider");
-   
+
 
   //Initialize normals and offsets of the domain planes
   n0.x = 1.0; n0.y = 0.0; n0.z = 0.0;
@@ -165,17 +165,17 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   n3.x = 0.0; n3.y = -1.0; n3.z = 0.0;
   n4.x = -1.0; n4.y = 0.0; n4.z = 0.0;
   n5.x = 0.0; n5.y = 0.0; n5.z = -1.0;
-  
+
   d0 = 0.0;
   d1 = 0.0;
   d2 = 0.0;
   d3 = (ny);
   d4 = (nx);
   d5 = (nz);
-  
+
   num_Points = 0;
   num_Coord = 0;
-  
+
   eps = 0.000001;
 
   yaw = 0.0;
@@ -186,17 +186,17 @@ VisualPlane::VisualPlane(ParticleControl* pc, float* TMax,
   n.y = 0.0;
   n.z = 1.0;
 
-  calculateNormal(); 
+  calculateNormal();
   getIntersectionPoints();
 
   rotationPlane = false;
 
 }
 void VisualPlane::drawAxisAlignedPlane(){
-  
+
   glDisable(GL_TEXTURE_RECTANGLE_ARB);
   glDisable(GL_TEXTURE_2D);
-  
+
   if(plane_normal == 0){
     max_layer = nz;
     plane_layer = (int)plane_layer_z;
@@ -214,11 +214,11 @@ void VisualPlane::drawAxisAlignedPlane(){
 
     if (plane_layer >= 0 && plane_layer < max_layer)
       {
-	
+
 	glPushMatrix();
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//glEnable(GL_TEXTURE_RECTANGLE_ARB)
 
@@ -228,11 +228,11 @@ void VisualPlane::drawAxisAlignedPlane(){
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(texType, tex_id[0]);
 	//glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);    
-	
+	//glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 	//Horizontal Texture coordinates
 	float s,t,r;
-	
+
 	if(plane_normal == 0){
 	  s = 0.0;
 	  t = 0.0;
@@ -250,18 +250,18 @@ void VisualPlane::drawAxisAlignedPlane(){
 	  r = 0.0;
 	}
 	plane_shader.activate();
-      
+
 	glUniform1iARB(u_controlTau, visual_field);
 	glUniform1fARB(u_sliderTurb, slider);
 
 	int tidx = plane_layer*4;
 	if(localValues){
-	  	  
+
 	  glUniform1fARB(u_max11, tauLocalMax[tidx]);
 	  glUniform1fARB(u_max22, tauLocalMax[tidx+1]);
 	  glUniform1fARB(u_max33, tauLocalMax[tidx+2]);
 	  glUniform1fARB(u_max13, tauLocalMax[tidx+3]);
-  
+
 	  glUniform1fARB(u_min11, tauLocalMin[tidx]);
 	  glUniform1fARB(u_min22, tauLocalMin[tidx+1]);
 	  glUniform1fARB(u_min33, tauLocalMin[tidx+2]);
@@ -272,14 +272,14 @@ void VisualPlane::drawAxisAlignedPlane(){
 	  glUniform1fARB(u_max22, TauMax[1]);
 	  glUniform1fARB(u_max33, TauMax[2]);
 	  glUniform1fARB(u_max13, TauMax[3]);
-  
+
 	  glUniform1fARB(u_min11, TauMin[0]);
 	  glUniform1fARB(u_min22, TauMin[1]);
 	  glUniform1fARB(u_min33, TauMin[2]);
 	  glUniform1fARB(u_min13, TauMin[3]);
 	}
-	
-	glUniform1iARB(u_tauTex, 0); 
+
+	glUniform1iARB(u_tauTex, 0);
 	glColor4f(1.0,1.0,1.0,0.8);
 
 	if(plane_normal == 0){
@@ -334,10 +334,10 @@ void VisualPlane::getLocalTauValues(){
 
   tauLocalMax = new float[4*max_layer];
   tauLocalMin = new float[4*max_layer];
- 
-  //Initialize max and min 
+
+  //Initialize max and min
   for(int k=0; k<max_layer; k++){
-    
+
     int idx;
     if(plane_normal == 0){
       idx = k*nydy*nxdx;
@@ -356,12 +356,12 @@ void VisualPlane::getLocalTauValues(){
     tauLocalMax[tidx+2] = tau[idx].t33;
     tauLocalMax[tidx+3] = tau[idx].t13;
 
-    
+
     tauLocalMin[tidx] = tau[idx].t11;
     tauLocalMin[tidx+1] = tau[idx].t22;
     tauLocalMin[tidx+2] = tau[idx].t33;
     tauLocalMin[tidx+3] = tau[idx].t13;
-    
+
   }
 
   //Find max and min tau values for each height value
@@ -377,12 +377,12 @@ void VisualPlane::getLocalTauValues(){
 	  tidx = k*4;
 	}
 	else if(plane_normal == 1){
-	  tidx = j*4;	    
+	  tidx = j*4;
 	}
 	else{
 	  tidx = i*4;
 	}
-	
+
 
 	if(tau[idx].t11 > tauLocalMax[tidx])
 	  tauLocalMax[tidx] = tau[idx].t11;
@@ -407,7 +407,7 @@ void VisualPlane::getLocalTauValues(){
       }
     }
   }
-  
+
 
 }
 void VisualPlane::switchPlane(){
@@ -436,7 +436,7 @@ void VisualPlane::switchPlane(){
 }
 void VisualPlane::increaseYaw(){
   yaw = M_PI_2/60.0;
- 
+
   pitch = 0.0;
   roll = 0.0;
 
@@ -456,7 +456,7 @@ void VisualPlane::increasePitch(){
 }
 void VisualPlane::increaseRoll(){
   roll = M_PI_2/60.0;
- 
+
   yaw = 0.0;
   pitch = 0.0;
 
@@ -475,7 +475,7 @@ void VisualPlane::decreaseYaw(){
 }
 void VisualPlane::decreasePitch(){
   pitch = -M_PI_2/60.0;
- 
+
   yaw = 0.0;
   roll = 0.0;
 
@@ -485,20 +485,20 @@ void VisualPlane::decreasePitch(){
 }
 void VisualPlane::decreaseRoll(){
   roll = -M_PI_2/60.0;
- 
+
   yaw = 0.0;
   pitch = 0.0;
 
   calculateNormal();
   getIntersectionPoints();
-  
+
 }
 void VisualPlane::calculateNormal(){
 
   float a11,a12,a13;
   float a21,a22,a23;
   float a31,a32,a33;
-  
+
   //Transformation matrix
   a11 = cos(pitch)*cos(yaw);
   a12 = sin(roll)*sin(pitch)*cos(yaw) + cos(roll)*sin(yaw);
@@ -533,16 +533,16 @@ void VisualPlane::calculateNormal(){
   n.x = a11*n.x + a12*n.y + a13*n.z;
   n.y = a21*n.x + a22*n.y + a23*n.z;
   n.z = a31*n.x + a32*n.y + a33*n.z;
- 
+
 
   //normalize the normal
   float length;
   length = sqrt((n.x*n.x)+(n.y*n.y)+(n.z*n.z));
-   
+
   n.x = n.x/length;
   n.y = n.y/length;
   n.z = n.z/length;
-   
+
 
   //Attempt to set layer at axis aligned plane when close
   //This seems to work when using an angle change of M_PI_2/60.0
@@ -575,31 +575,31 @@ void VisualPlane::drawRotationalPlane(){
 
 
   if(visual_field > 0){
-	
+
     glPushMatrix();
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(texType);
     glBindTexture(texType, tex_id[0]);
     //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    
+    //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	
+
     plane_shader.activate();
-      
+
     glUniform1iARB(u_controlTau, visual_field);
     glUniform1fARB(u_sliderTurb, slider);
 
     //int tidx = plane_layer*4;
     //if(localValues){
-	  	  
+
     /*glUniform1fARB(u_max11, tauLocalMax[tidx]);
       glUniform1fARB(u_max22, tauLocalMax[tidx+1]);
       glUniform1fARB(u_max33, tauLocalMax[tidx+2]);
       glUniform1fARB(u_max13, tauLocalMax[tidx+3]);
-  
+
       glUniform1fARB(u_min11, tauLocalMin[tidx]);
       glUniform1fARB(u_min22, tauLocalMin[tidx+1]);
       glUniform1fARB(u_min33, tauLocalMin[tidx+2]);
@@ -610,17 +610,17 @@ void VisualPlane::drawRotationalPlane(){
     glUniform1fARB(u_max22, TauMax[1]);
     glUniform1fARB(u_max33, TauMax[2]);
     glUniform1fARB(u_max13, TauMax[3]);
-  
+
     glUniform1fARB(u_min11, TauMin[0]);
     glUniform1fARB(u_min22, TauMin[1]);
     glUniform1fARB(u_min33, TauMin[2]);
     glUniform1fARB(u_min13, TauMin[3]);
     //}
 
-    glUniform1iARB(u_tauTex, 0); 
+    glUniform1iARB(u_tauTex, 0);
     glColor4f(1.0,1.0,1.0,0.8);
-	
-  
+
+
     texlistIter = tiList.begin();
     listIter = piList.begin();
     vec3 tex;
@@ -629,12 +629,12 @@ void VisualPlane::drawRotationalPlane(){
     glBegin(GL_POLYGON);
     {
       glNormal3f(n.x,n.y,n.z);
-	  
+
       while(listIter != piList.end()){
 	tex = *texlistIter;
 	point = *listIter;
 
-	glTexCoord3f(tex.x/(float)(nxdx-1), tex.y/(float)(nydy-1), tex.z/(float)(nzdz-1)); 
+	glTexCoord3f(tex.x/(float)(nxdx-1), tex.y/(float)(nydy-1), tex.z/(float)(nzdz-1));
 	glVertex3f(point.x, point.y, point.z);
 
 	listIter++;
@@ -643,7 +643,7 @@ void VisualPlane::drawRotationalPlane(){
     }
     glEnd();
 
-      	
+
     plane_shader.deactivate();
 
     //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -661,7 +661,7 @@ void VisualPlane::drawRotationalPlane(){
   glPushMatrix();
 
   glColor3f(1.0,1.0,1.0);
- 
+
   glBegin(GL_POINTS);
   {
     glVertex3f(p.x,p.y,p.z);
@@ -673,7 +673,7 @@ void VisualPlane::drawRotationalPlane(){
   {
     glVertex3f(p.x,p.y,p.z);
     glVertex3f(p.x+n.x,p.y+n.y,p.z+n.z);
-    
+
   }
   glEnd();
 
@@ -684,10 +684,10 @@ void VisualPlane::drawRotationalPlane(){
 }
 
 void VisualPlane::getIntersectionPoints(){
-     
+
   // std::cout << "Plane's normal" << std::endl;
   // std::cout << n.x << " " << n.y << " " << n.z << std::endl;
-  
+
   //Point on rotating plane
   p.x = plane_layer_x;
   p.y = plane_layer_y;
@@ -695,12 +695,12 @@ void VisualPlane::getIntersectionPoints(){
 
   //offset of rotating plane
   d = -dotProduct(p,n);
- 
+
   //p, d, and n define the rotating plane
 
   vec3 a,b,c;
   float denom;
-    
+
   //Make sure list is empty first
   pList.clear();
   num_Points = 0;
@@ -713,7 +713,7 @@ void VisualPlane::getIntersectionPoints(){
     a = crossProduct(n0,n1);
     b = crossProduct(n1,n);
     c = crossProduct(n,n0);
-    
+
     p1.x = ((-d)*a.x)/denom;
     p1.y = ((-d)*a.y)/denom;
     p1.z = ((-d)*a.z)/denom;
@@ -744,13 +744,13 @@ void VisualPlane::getIntersectionPoints(){
     }
   }
   if( (dotProduct(n,(crossProduct(n1,n2))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n1,n2)));
 
     a = crossProduct(n1,n2);
     b = crossProduct(n2,n);
     c = crossProduct(n,n1);
-       
+
     p1.x = ((-d)*a.x)/denom;
     p1.y = ((-d)*a.y)/denom;
     p1.z = ((-d)*a.z)/denom;
@@ -758,12 +758,12 @@ void VisualPlane::getIntersectionPoints(){
 	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
       pList.push_back(p1);
       num_Points++;
-   
+
       //std::cout << "1 and 2" << std::endl;
     }
   }
   if( (dotProduct(n,(crossProduct(n1,n5))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n1,n5)));
 
     a = crossProduct(n1,n5);
@@ -781,7 +781,7 @@ void VisualPlane::getIntersectionPoints(){
     }
   }
   if( (dotProduct(n,(crossProduct(n0,n5))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n0,n5)));
 
     a = crossProduct(n0,n5);
@@ -792,7 +792,7 @@ void VisualPlane::getIntersectionPoints(){
     p1.y = (((-d)*a.y) - (d0*b.y) - (d5*c.y))/denom;
     p1.z = (((-d)*a.z) - (d0*b.z) - (d5*c.z))/denom;
     if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
-	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){ 
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
       pList.push_back(p1);
       num_Points++;
 
@@ -800,7 +800,7 @@ void VisualPlane::getIntersectionPoints(){
     }
   }
   if( (dotProduct(n,(crossProduct(n0,n3))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n0,n3)));
 
     a = crossProduct(n0,n3);
@@ -814,12 +814,12 @@ void VisualPlane::getIntersectionPoints(){
 	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
       pList.push_back(p1);
       num_Points++;
-   
+
       //std::cout << "0 and 3" << std::endl;
     }
   }
   if( (dotProduct(n,(crossProduct(n3,n5))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n3,n5)));
 
     a = crossProduct(n3,n5);
@@ -833,13 +833,13 @@ void VisualPlane::getIntersectionPoints(){
 	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
       pList.push_back(p1);
       num_Points++;
-    
+
       //std::cout << "3 and 5" << std::endl;
     }
-    
+
   }
   if( (dotProduct(n,(crossProduct(n3,n2))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n3,n2)));
 
     a = crossProduct(n3,n2);
@@ -857,7 +857,7 @@ void VisualPlane::getIntersectionPoints(){
     }
   }
   if( (dotProduct(n,(crossProduct(n3,n4))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n3,n4)));
 
     a = crossProduct(n3,n4);
@@ -875,7 +875,7 @@ void VisualPlane::getIntersectionPoints(){
     }
   }
   if( (dotProduct(n,(crossProduct(n5,n4))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n5,n4)));
 
     a = crossProduct(n5,n4);
@@ -885,7 +885,7 @@ void VisualPlane::getIntersectionPoints(){
     p1.x = (((-d)*a.x) - (d5*b.x) - (d4*c.x))/denom;
     p1.y = (((-d)*a.y) - (d5*b.y) - (d4*c.y))/denom;
     p1.z = (((-d)*a.z) - (d5*b.z) - (d4*c.z))/denom;
-        
+
     if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
 	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
       pList.push_back(p1);
@@ -894,7 +894,7 @@ void VisualPlane::getIntersectionPoints(){
     }
   }
   if( (dotProduct(n,(crossProduct(n2,n4))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n2,n4)));
 
     a = crossProduct(n2,n4);
@@ -905,7 +905,7 @@ void VisualPlane::getIntersectionPoints(){
     p1.y = (((-d)*a.y) - (d2*b.y) - (d4*c.y))/denom;
     p1.z = (((-d)*a.z) - (d2*b.z) - (d4*c.z))/denom;
     if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
-	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){ 
+	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
       pList.push_back(p1);
       num_Points++;
       //std::cout << "2 and 4" << std::endl;
@@ -913,7 +913,7 @@ void VisualPlane::getIntersectionPoints(){
     }
   }
   if( (dotProduct(n,(crossProduct(n1,n4))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n1,n4)));
 
     a = crossProduct(n1,n4);
@@ -923,7 +923,7 @@ void VisualPlane::getIntersectionPoints(){
     p1.x = (((-d)*a.x) - (d1*b.x) - (d4*c.x))/denom;
     p1.y = (((-d)*a.y) - (d1*b.y) - (d4*c.y))/denom;
     p1.z = (((-d)*a.z) - (d1*b.z) - (d4*c.z))/denom;
-        
+
     if(!(p1.x < 0.0 || p1.y < 0.0 || p1.z < 0.0 ||
 	 p1.x > (nx) || p1.y > (ny) || p1.z > (nz))){
 
@@ -934,10 +934,10 @@ void VisualPlane::getIntersectionPoints(){
     }
   }
   listIter = pList.begin();
-  
+
   while(listIter != pList.end()){
     vec3 &t = *listIter;
-         
+
     if(t.x == -0.0)
       t.x = 0.0;
     if(t.y == -0.0)
@@ -945,20 +945,20 @@ void VisualPlane::getIntersectionPoints(){
     if(t.z == -0.0)
       t.z = 0.0;
 
-  
-    //std::cout << "t.x = " << t.x << " t.y = " << 
+
+    //std::cout << "t.x = " << t.x << " t.y = " <<
     //t.y << " t.z = " << t.z <<std::endl;
-    
+
     listIter++;
   }
-  
+
   //Now we have the four intersection points of the domain
   //They need to be sorted so that they can be specified in
   //counter-clockwise or clockwise order for drawing the plane
- 
+
   if(num_Points > 0)
     sortIntersectionPoints();
-  
+
   getTextureCoordinates();
 
 }
@@ -978,13 +978,13 @@ bool VisualPlane::checkTexCoord(){
     check = false;
   }
 
-  
+
 
   /*listIter = pList.begin();
   vec3 point;
   while(listIter != pList.end()){
     point = *listIter;
-    
+
     if((fabs(point.x-t1.x) <= 1.0) && (fabs(point.y-t1.y) <= 1.0) && (fabs(point.z-t1.z) <=1.0) )
       check = true;
 
@@ -996,9 +996,9 @@ bool VisualPlane::checkTexCoord(){
 
 }
 void VisualPlane::getTextureCoordinates(){
-    
+
   tiList.clear();
-  
+
   listIter = piList.begin();
   vec3 point;
   while(listIter != piList.end()){
@@ -1023,7 +1023,7 @@ void VisualPlane::getTextureCoordinates(){
 
   vec3 a,b,c;
   float denom;
-    
+
   //Make sure list is empty first
   tList.clear();
   num_Coord = 0;
@@ -1036,7 +1036,7 @@ void VisualPlane::getTextureCoordinates(){
     a = crossProduct(n0,n1);
     b = crossProduct(n1,n);
     c = crossProduct(n,n0);
-    
+
     t1.x = ((-d)*a.x)/denom;
     t1.y = ((-d)*a.y)/denom;
     t1.z = ((-d)*a.z)/denom;
@@ -1065,25 +1065,25 @@ void VisualPlane::getTextureCoordinates(){
     }
   }
   if( (dotProduct(n,(crossProduct(n1,n2))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n1,n2)));
 
     a = crossProduct(n1,n2);
     b = crossProduct(n2,n);
     c = crossProduct(n,n1);
-       
+
     t1.x = ((-d)*a.x)/denom;
     t1.y = ((-d)*a.y)/denom;
     t1.z = ((-d)*a.z)/denom;
     if(checkTexCoord()){
       tList.push_back(t1);
       num_Coord++;
-   
+
       std::cout << "1 and 2" << std::endl;
     }
   }
   if( (dotProduct(n,(crossProduct(n1,n5))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n1,n5)));
 
     a = crossProduct(n1,n5);
@@ -1100,7 +1100,7 @@ void VisualPlane::getTextureCoordinates(){
     }
   }
   if( (dotProduct(n,(crossProduct(n0,n5))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n0,n5)));
 
     a = crossProduct(n0,n5);
@@ -1110,7 +1110,7 @@ void VisualPlane::getTextureCoordinates(){
     t1.x = (((-d)*a.x) - (d0*b.x) - (d5*c.x))/denom;
     t1.y = (((-d)*a.y) - (d0*b.y) - (d5*c.y))/denom;
     t1.z = (((-d)*a.z) - (d0*b.z) - (d5*c.z))/denom;
-    if(checkTexCoord()){ 
+    if(checkTexCoord()){
       tList.push_back(t1);
       num_Coord++;
 
@@ -1118,7 +1118,7 @@ void VisualPlane::getTextureCoordinates(){
     }
   }
   if( (dotProduct(n,(crossProduct(n0,n3))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n0,n3)));
 
     a = crossProduct(n0,n3);
@@ -1131,12 +1131,12 @@ void VisualPlane::getTextureCoordinates(){
     if(checkTexCoord()){
       tList.push_back(t1);
       num_Coord++;
-   
+
       std::cout << "0 and 3" << std::endl;
     }
   }
   if( (dotProduct(n,(crossProduct(n3,n5))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n3,n5)));
 
     a = crossProduct(n3,n5);
@@ -1149,13 +1149,13 @@ void VisualPlane::getTextureCoordinates(){
     if(checkTexCoord()){
       tList.push_back(t1);
       num_Coord++;
-    
+
       std::cout << "3 and 5" << std::endl;
     }
-    
+
   }
   if( (dotProduct(n,(crossProduct(n3,n2))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n3,n2)));
 
     a = crossProduct(n3,n2);
@@ -1172,7 +1172,7 @@ void VisualPlane::getTextureCoordinates(){
     }
   }
   if( (dotProduct(n,(crossProduct(n3,n4))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n3,n4)));
 
     a = crossProduct(n3,n4);
@@ -1189,7 +1189,7 @@ void VisualPlane::getTextureCoordinates(){
     }
   }
   if( (dotProduct(n,(crossProduct(n5,n4))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n5,n4)));
 
     a = crossProduct(n5,n4);
@@ -1199,7 +1199,7 @@ void VisualPlane::getTextureCoordinates(){
     t1.x = (((-d)*a.x) - (d5*b.x) - (d4*c.x))/denom;
     t1.y = (((-d)*a.y) - (d5*b.y) - (d4*c.y))/denom;
     t1.z = (((-d)*a.z) - (d5*b.z) - (d4*c.z))/denom;
-        
+
     if(checkTexCoord()){
       tList.push_back(t1);
       num_Coord++;
@@ -1207,7 +1207,7 @@ void VisualPlane::getTextureCoordinates(){
     }
   }
   if( (dotProduct(n,(crossProduct(n2,n4))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n2,n4)));
 
     a = crossProduct(n2,n4);
@@ -1217,7 +1217,7 @@ void VisualPlane::getTextureCoordinates(){
     t1.x = (((-d)*a.x) - (d2*b.x) - (d4*c.x))/denom;
     t1.y = (((-d)*a.y) - (d2*b.y) - (d4*c.y))/denom;
     t1.z = (((-d)*a.z) - (d2*b.z) - (d4*c.z))/denom;
-    if(checkTexCoord()){ 
+    if(checkTexCoord()){
       tList.push_back(t1);
       num_Coord++;
       std::cout << "2 and 4" << std::endl;
@@ -1225,7 +1225,7 @@ void VisualPlane::getTextureCoordinates(){
     }
   }
   if( (dotProduct(n,(crossProduct(n1,n4))) != 0.0) ){
-    
+
     denom = dotProduct(n,(crossProduct(n1,n4)));
 
     a = crossProduct(n1,n4);
@@ -1235,7 +1235,7 @@ void VisualPlane::getTextureCoordinates(){
     t1.x = (((-d)*a.x) - (d1*b.x) - (d4*c.x))/denom;
     t1.y = (((-d)*a.y) - (d1*b.y) - (d4*c.y))/denom;
     t1.z = (((-d)*a.z) - (d1*b.z) - (d4*c.z))/denom;
-        
+
     if(checkTexCoord()){
 
       tList.push_back(t1);
@@ -1245,8 +1245,8 @@ void VisualPlane::getTextureCoordinates(){
     }
   }
 
-  //Now we have all the intersection points, but some 
-  //will be outside the domain.  
+  //Now we have all the intersection points, but some
+  //will be outside the domain.
   //Need to get rid off the points outside the domain
 
   texlistIter = tList.begin();
@@ -1254,17 +1254,17 @@ void VisualPlane::getTextureCoordinates(){
 
   while(texlistIter != tList.end()){
     t = *texlistIter;
-    
 
-    std::cout << "t.x = " << t.x << " t.y = " << 
+
+    std::cout << "t.x = " << t.x << " t.y = " <<
       t.y << " t.z = " << t.z <<std::endl;
-      
-    
+
+
     texlistIter++;
   }
 
   // std::cout << "Num points = " << num_Coord << std::endl;
- 
+
   d3++;
   d4++;
   d5++;
@@ -1283,7 +1283,7 @@ void VisualPlane::sortIntersectionPoints(){
   vec3 point;
   //Compute all minimum distances from point
   float* dist = new float[(num_Points-1)];
-    
+
   //Start with first point in list
   point = pList.back();
   pList.pop_back();
@@ -1291,13 +1291,13 @@ void VisualPlane::sortIntersectionPoints(){
   piList.push_back(point);
 
   listIter = pList.begin();
-  
+
   int i=0;
   while(listIter != pList.end()){
     vec3 t = *listIter;
 
     dist[i] = sqrt((point.x-t.x)*(point.x-t.x) + (point.y-t.y)*(point.y-t.y) + (point.z-t.z)*(point.z-t.z));
-    
+
     i++;
     listIter++;
   }
@@ -1327,7 +1327,7 @@ void VisualPlane::sortIntersectionPoints(){
   float* theta = new float[num_Points];
   //Now use maximum angles to sort the rest of the points
   while(num_Points > 0){
-   
+
     i=0;
     vec3 a;
     vec3 b;
@@ -1370,22 +1370,22 @@ void VisualPlane::sortIntersectionPoints(){
     for(int j=0; j < max; j++)
       listIter++;
 
-    
+
     point3 = *listIter;
     pList.erase(listIter);
     num_Points--;
     piList.push_back(point3);
     //Now change point and point2
-    
+
     vec3 tmp;
     tmp.x = point2.x; tmp.y = point2.y; tmp.z = point2.z;
     point2.x = point3.x; point2.y = point3.y; point2.z = point3.z;
     point.x = tmp.x; point.y = tmp.y; point.z = tmp.z;
-            
+
     //delete [] theta;
-    
+
     //std::cout << "next point is " << point3.x << " " << point3.y << " " << point3.z << std::endl;
-  } 
+  }
 
 }
 void VisualPlane::sortTextureCoordinates(){
@@ -1396,7 +1396,7 @@ void VisualPlane::sortTextureCoordinates(){
   vec3 point;
   //Compute all minimum distances from point
   float* dist = new float[(num_Coord-1)];
-    
+
   //Start with first point in list
   point = tList.back();
   tList.pop_back();
@@ -1404,13 +1404,13 @@ void VisualPlane::sortTextureCoordinates(){
   tiList.push_back(point);
 
   listIter = tList.begin();
-  
+
   int i=0;
   while(listIter != tList.end()){
     vec3 t = *listIter;
 
     dist[i] = sqrt((point.x-t.x)*(point.x-t.x) + (point.y-t.y)*(point.y-t.y) + (point.z-t.z)*(point.z-t.z));
-    
+
     i++;
     listIter++;
   }
@@ -1440,7 +1440,7 @@ void VisualPlane::sortTextureCoordinates(){
   float* theta = new float[num_Coord];
   //Now use maximum angles to sort the rest of the points
   while(num_Coord > 0){
-   
+
     i=0;
     vec3 a;
     vec3 b;
@@ -1483,22 +1483,22 @@ void VisualPlane::sortTextureCoordinates(){
     for(int j=0; j < max; j++)
       listIter++;
 
-    
+
     point3 = *listIter;
     tList.erase(listIter);
     num_Coord--;
     tiList.push_back(point3);
     //Now change point and point2
-    
+
     vec3 tmp;
     tmp.x = point2.x; tmp.y = point2.y; tmp.z = point2.z;
     point2.x = point3.x; point2.y = point3.y; point2.z = point3.z;
     point.x = tmp.x; point.y = tmp.y; point.z = tmp.z;
-            
+
     //delete [] theta;
-    
+
     std::cout << "next point is " << point3.x << " " << point3.y << " " << point3.z << std::endl;
-  } 
+  }
 
 }
 void VisualPlane::Normalize(vec3* a){
@@ -1547,7 +1547,7 @@ void VisualPlane::decreasePlaneLayer(){
     if(plane_layer_y < -1.0)
       plane_layer_y = -1.0;
   }
-  
+
   getIntersectionPoints();
   //plane_layer--;
   //if(plane_layer < -1) plane_layer = -1;
@@ -1561,12 +1561,12 @@ void VisualPlane::drawScale(){
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
-  glOrtho(0, vp[2], 
+  glOrtho(0, vp[2],
 	  0, vp[3], -1, 1);
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
   glLoadIdentity();
- 
+
 
   //Draw Colored Scale
   char* disp;
@@ -1579,7 +1579,7 @@ void VisualPlane::drawScale(){
   if(visual_field != 0){
     int tidx = plane_layer*4;
     for(int i=0; i < 4; i++){
-      
+
       if(localValues){
 	max[i] = tauLocalMax[tidx+i];
 	min[i] = tauLocalMin[tidx+i];
@@ -1616,22 +1616,22 @@ void VisualPlane::drawScale(){
 
   switch(visual_field){
   case 0:
-    disp = "Displaying: Wind Field";
+    disp = (char *)"Displaying: Wind Field";
     break;
   case 1:
-    disp = "Displaying: Tau11";
+    disp = (char *)"Displaying: Tau11";
     break;
   case 2:
-    disp = "Displaying: Tau22";
+    disp = (char *)"Displaying: Tau22";
     break;
   case 3:
-    disp = "Displaying: Tau33";
+    disp = (char *)"Displaying: Tau33";
     break;
   case 4:
-    disp = "Displaying: Tau13";
+    disp = (char *)"Displaying: Tau13";
     break;
   default:
-    disp = "";
+    disp = (char *)"";
   }
 
   //Grey Background
@@ -1682,9 +1682,9 @@ void VisualPlane::drawScale(){
   if(visual_field != 0){
 
     if(localValues)
-      disp = "(Local Range)";
+      disp = (char *)"(Local Range)";
     else
-      disp = "(Global Range)";
+      disp = (char *)"(Global Range)";
     //Local or Global Display
     glColor3ub(255,255,0);
     glRasterPos2i(rangeButton_x, rangeButton_y);
@@ -1698,7 +1698,7 @@ void VisualPlane::drawScale(){
     for(int i=0; i < (int)strlen(number); i++){
       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
     }
- 
+
     //Display Max Values on Scale
     /////////////////////////////////////////////////////////////////
     for(int j=0; j <= 3; j++){
@@ -1711,7 +1711,7 @@ void VisualPlane::drawScale(){
       int x = (int)(((max[j]-globalMin)/(globalMax-globalMin))*(scale_xend-scale_xstart)+scale_xstart);
 
       int yPos = y;
-        
+
       for(int i=j; i <=4; i++){
 	if(abs(x-tauPos_x[i]) < 10 && abs(x-tauPos_x[i]) != 0)
 	  yPos += 20;
@@ -1721,14 +1721,14 @@ void VisualPlane::drawScale(){
       glColor3ub(255,255,0);
       glRasterPos2i(x,yPos);
       for(int i=0; i < (int)strlen(number); i++)
-	glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]); 
+	glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, number[i]);
 
       glRasterPos2i(x,yPos+12);
       disp = allDisp[j];
       for(int i=0; i < (int)strlen(disp); i++)
-	glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]); 
+	glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, disp[i]);
 
-    
+
       glColor3f(0.0,0.0,0.0);
       glBegin(GL_LINES);
       {
@@ -1774,13 +1774,13 @@ bool VisualPlane::clickedSlider(int x,int y){
 void VisualPlane::moveSlider(int x){
   //slider_x = (int)((scale_xend-scale_xstart)*slider+scale_xstart);
   //slider_x = x;
-  if((x <= scale_xend) && (x >= scale_xstart)) 
+  if((x <= scale_xend) && (x >= scale_xstart))
     slider = (float)(x - scale_xstart)/(float)(scale_xend-scale_xstart);
-  
+
 }
 void VisualPlane::clickedRangeButton(int x, int y){
   y = glutGet(GLUT_WINDOW_HEIGHT)-y;
-  
+
   if((x >= rangeButton_x) && ( x <= rangeButton_x + 80) &&
      (y >= rangeButton_y) && ( y <= rangeButton_y + 10)){
     localValues = !localValues;
@@ -1789,7 +1789,7 @@ void VisualPlane::clickedRangeButton(int x, int y){
 /*void VisualPlane::clickedDisplayTauButton(int x, int y){
   y = glutGet(GLUT_WINDOW_HEIGHT) - y;
 
-  
+
 
   }*/
 void VisualPlane::moveSliderDown(){
@@ -1802,18 +1802,18 @@ void VisualPlane::moveSliderUp(){
 }
 vec3 VisualPlane::crossProduct(vec3 a, vec3 b){
   vec3 c;
-  
+
   c.x = (a.y*b.z)-(a.z*b.y);
   c.y = (a.z*b.x)-(a.x*b.z);
   c.z = (a.x*b.y)-(a.y*b.x);
 
-  return c;  
+  return c;
 }
 float VisualPlane::dotProduct(vec3 a, vec3 b){
   float c;
 
   c = (a.x*b.x) + (a.y*b.y) + (a.z*b.z);
-  
+
   return c;
-  
+
 }

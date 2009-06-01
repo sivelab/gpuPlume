@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2005, 
+Copyright (c) 2005,
 
 	Aaron Lefohn	(lefohn@cs.ucdavis.edu)
 
@@ -18,59 +18,59 @@ http://www.opensource.org/licenses/bsd-license.php for more detail.
 
 *************************************************************
 
-Redistribution and use in source and binary forms, with or 
+Redistribution and use in source and binary forms, with or
 
-without modification, are permitted provided that the following 
+without modification, are permitted provided that the following
 
 conditions are met:
 
 
 
-Redistributions of source code must retain the above copyright notice, 
+Redistributions of source code must retain the above copyright notice,
 
-this list of conditions and the following disclaimer. 
-
-
-
-Redistributions in binary form must reproduce the above copyright notice, 
-
-this list of conditions and the following disclaimer in the documentation 
-
-and/or other materials provided with the distribution. 
+this list of conditions and the following disclaimer.
 
 
 
-Neither the name of the University of Californa, Davis nor the names of 
+Redistributions in binary form must reproduce the above copyright notice,
 
-the contributors may be used to endorse or promote products derived 
+this list of conditions and the following disclaimer in the documentation
+
+and/or other materials provided with the distribution.
+
+
+
+Neither the name of the University of Californa, Davis nor the names of
+
+the contributors may be used to endorse or promote products derived
 
 from this software without specific prior written permission.
 
 
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
 
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
 
-THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
 
-INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE 
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
 
-GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
 
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 
-THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 
 OF SUCH DAMAGE.
 
@@ -95,12 +95,12 @@ Renderbuffer::~Renderbuffer()
 	glDeleteRenderbuffersEXT(1, &m_bufId);
 }
 
-void Renderbuffer::Bind() 
+void Renderbuffer::Bind()
 {
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_bufId);
 }
 
-void Renderbuffer::Unbind() 
+void Renderbuffer::Unbind()
 {
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
 }
@@ -117,20 +117,20 @@ void Renderbuffer::Set(GLenum internalFormat, int width, int height)
 	// Guarded bind
 	GLint savedId = 0;
 	glGetIntegerv( GL_RENDERBUFFER_BINDING_EXT, &savedId );
-	if (savedId != m_bufId) {
+	if (savedId != (GLint)m_bufId) {
 		Bind();
 	}
 
 	// Allocate memory for renderBuffer
 	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, internalFormat, width, height );
-	
+
 	// Guarded unbind
-	if (savedId != m_bufId) {
+	if (savedId != (GLint)m_bufId) {
 		Unbind();
 	}
 }
 
-GLuint Renderbuffer::GetId() const 
+GLuint Renderbuffer::GetId() const
 {
 	return m_bufId;
 }
@@ -142,7 +142,7 @@ GLint Renderbuffer::GetMaxSize()
 	return maxAttach;
 }
 
-GLuint Renderbuffer::_CreateBufferId() 
+GLuint Renderbuffer::_CreateBufferId()
 {
 	GLuint id = 0;
 	glGenRenderbuffersEXT(1, &id);

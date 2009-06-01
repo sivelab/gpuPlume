@@ -17,8 +17,8 @@ static char text_buffer[128];
 float sort_eye[3];
 double Distance2Eye(const float* fp)
 {
-  return sqrt( (sort_eye[0]-fp[0])*(sort_eye[0]-fp[0]) 
-               + (sort_eye[1]-fp[1])*(sort_eye[1]-fp[1]) 
+  return sqrt( (sort_eye[0]-fp[0])*(sort_eye[0]-fp[0])
+               + (sort_eye[1]-fp[1])*(sort_eye[1]-fp[1])
                + (sort_eye[2]-fp[2])*(sort_eye[2]-fp[2]) );
 }
 
@@ -32,7 +32,7 @@ static int cmpVertices(const void *p1, const void *p2)
 
   if (d2 < d1)
     return -1;
-  else 
+  else
     return 1;
 }
 
@@ -54,7 +54,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   eye_pos[0] = nx+50;
   eye_pos[1] = 0;
   eye_pos[2] = 5;
-  
+
   eye_gaze[0] = -1.0;
   eye_gaze[1] = 0;
   eye_gaze[2] = 0;
@@ -64,7 +64,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   eye_pos[0] = 20;
   eye_pos[1] = -10;
   eye_pos[2] = 5;
-  
+
   eye_gaze[0] = 0.0;
   eye_gaze[1] = 1.0;
   eye_gaze[2] = 0.0;
@@ -92,7 +92,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
 
   frame_rate = true;
   osgPlume = false;
-  
+
   visual_layer = -1;
 
   // Set particle visual state to point based particles initially
@@ -107,7 +107,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   windField_shader.addShader("Shaders/windFieldLayer_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   windField_shader.createProgram();
   uniform_windTex = windField_shader.createUniform("Wind");
- 
+
   // For the Sphere Particle Shader, we need the following data:
   // uniform variables for the texture units that hold the point
   // sprite and the normal map
@@ -138,7 +138,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   glGetFloatv(GL_POINT_SIZE, &currSize);
   glPointParameterfARB(GL_POINT_SIZE_MAX_ARB, currSize + 3.0);
   glPointParameterfARB(GL_POINT_SIZE_MIN_ARB, 1.0);
-  
+
   // Create a high resolution clock timer - only works on Linux, x86
   // systems.  The basic timer works on Windows.  Setting the argument
   // to true will have no affect on windows implementations.
@@ -156,49 +156,49 @@ void DisplayControl::setEmitter(ParticleEmitter* p){
 void DisplayControl::setVisualPlane(VisualPlane* vp){
   plane = vp;
 }
-void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
+void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer,
 				 int numInRow, int twidth, int theight, GLuint PositionTexId, GLuint VelTexId)
 {
-  Timer_t displayStart = dTimer->tic();    
+  Timer_t displayStart = dTimer->tic();
 
 //  drawSky();
 
 
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
-	       eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], 
+	       eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1],
 	       eye_gaze[2]+eye_pos[2], 0, 0, 1 );
 
     // allow rotation of this object
     //glRotatef(elevation, 0,1,0);
-    //glRotatef(azimuth, 0,0,1);  
+    //glRotatef(azimuth, 0,0,1);
   }
 //  DrawSkyBox(0.0, 0.0, 0.0, 100.0, 100.0, 100.0);
-	DrawSkyBox(eye_pos[0], eye_pos[1], eye_pos[2], 50.0, 50.0, 50.0);      
+	DrawSkyBox(eye_pos[0], eye_pos[1], eye_pos[2], 50.0, 50.0, 50.0);
 
 	drawAxes();
-  
+
   if(!osgPlume)
     //drawGrid();
 
   if(draw_buildings){
     drawFeatures();
   }
-  
+
   drawGround();
 
   // render the vertices in the VBO (the particle positions) as points in the domain
-  
+
   if(color_buffer != 0){
-    glEnableClientState(GL_COLOR_ARRAY); 
+    glEnableClientState(GL_COLOR_ARRAY);
     glBindBufferARB(GL_ARRAY_BUFFER, color_buffer);
     glColorPointer(4, GL_FLOAT, 0, 0);
   }
   glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
   glVertexPointer(4, GL_FLOAT, 0, 0);
-  
-  glEnableClientState(GL_VERTEX_ARRAY); 
-  
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+
   // see what the cost is for sorting the vertex buffer elements based on distance from the eye
   if (perform_cpu_sort)
     {
@@ -215,7 +215,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
       // perform_cpu_sort = false;
     }
 
-  sphereParticle_shader.activate();  
+  sphereParticle_shader.activate();
 
   glPointSize(6.0);
   glUniform1iARB(uniform_nx, nx);
@@ -323,10 +323,10 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   }
 #endif
 
-  Timer_t displayEnd = dTimer->tic();      
+  Timer_t displayEnd = dTimer->tic();
 
-  // std::cout << "DC Display Time: " << dTimer->deltau(displayStart, displayEnd) << " us." << std::endl;  
-  
+  // std::cout << "DC Display Time: " << dTimer->deltau(displayStart, displayEnd) << " us." << std::endl;
+
 }
 void DisplayControl::increaseVisualLayer(){
   visual_layer++;
@@ -428,7 +428,7 @@ void DisplayControl::setRotateAround(float change){
 
   /*if(change < 0)
     angle = angle + (M_PI/90.0);
-  else 
+  else
     angle = angle - (M_PI/90.0);
 
   if(angle > 2*M_PI)
@@ -445,7 +445,7 @@ void DisplayControl::setRotateAround(float change){
 
   //xslide = cos(angle-M_PI/2.0);
   // yslide = sin(angle-M_PI/2.0);
-  
+
 
 }
 void DisplayControl::calculateNormal(){
@@ -453,7 +453,7 @@ void DisplayControl::calculateNormal(){
   float a11;//,a12,a13;
   float a21;//,a22,a23;
   float a31;//,a32,a33;
-  
+
   //Transformation matrix
   a11 = cos(pitch)*cos(yaw);
   //a12 = sin(roll)*sin(pitch)*cos(yaw) + cos(roll)*sin(yaw);
@@ -468,14 +468,14 @@ void DisplayControl::calculateNormal(){
   norm_x = a11*(-1.0);
   norm_y = a21*(-1.0);
   norm_z = a31*(-1.0);
-  
+
   //norm_x = a11*norm_x + a12*norm_y + a13*norm_z;
   //norm_y = a21*norm_x + a22*norm_y + a23*norm_z;
   //norm_z = a31*norm_x + a32*norm_y + a33*norm_z;
   //normalize the normal
   float length;
   length = sqrt((norm_x*norm_x)+(norm_y*norm_y)+(norm_z*norm_z));
-   
+
   norm_x = norm_x/length;
   norm_y = norm_y/length;
   norm_z = norm_z/length;
@@ -483,7 +483,7 @@ void DisplayControl::calculateNormal(){
   float b11;//,a12,a13;
   float b21;//,a22,a23;
   //float b31;//,a32,a33;
-  
+
   //Transformation matrix
   b11 = cos(pitch)*cos(yaw-M_PI_2);
   //a12 = sin(roll)*sin(pitch)*cos(yaw) + cos(roll)*sin(yaw);
@@ -497,17 +497,17 @@ void DisplayControl::calculateNormal(){
 
   xslide = b11*(1.0);
   yslide = b21*(1.0);
-    
+
   //norm_x = a11*norm_x + a12*norm_y + a13*norm_z;
   //norm_y = a21*norm_x + a22*norm_y + a23*norm_z;
   //norm_z = a31*norm_x + a32*norm_y + a33*norm_z;
   //normalize the normal
-  
+
   length = sqrt((xslide*xslide)+(yslide*yslide));
-   
+
   xslide = xslide/length;
   yslide = yslide/length;
-  
+
 }
 void DisplayControl::drawSky(){
   // double skyr = 0.4, skyg = 0.5, skyb = 0.8;
@@ -523,7 +523,7 @@ void DisplayControl::drawSky(){
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
- 
+
   //Put sky in background
   glBegin(GL_POLYGON);
   glColor4f(0.9,0.9,1.0, 1.0); //mid color
@@ -537,7 +537,7 @@ void DisplayControl::drawSky(){
   glVertex3f(1,1,-1);
   glVertex3f(-1,1,-1);
   glEnd();
- 
+
   glDepthMask(GL_TRUE);
   glPopMatrix();
   glMatrixMode(GL_MODELVIEW);
@@ -552,8 +552,8 @@ void DisplayControl::drawGround(){
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, displayTex[0]);
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);  
-  
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
   glColor4f(0.5,0.5,0.5,1.0);
   glBegin(GL_QUADS);
   {
@@ -594,12 +594,12 @@ void DisplayControl::drawGrid(){
       glVertex3f(i,ny*2,-0.15);
     }
 
-  
+
   }
   glEnd();
 
   glLineWidth(lwidth);
- 
+
   glEnable(texType);
 }
 
@@ -614,7 +614,7 @@ void DisplayControl::drawAxes(){
 
   // Modified colors of axes to represent the manner in which
   // direction is being visualized.
-  // 
+  //
   // Which makes me think we might want to make the axes' colors
   // dependent on what is being visualized.
 
@@ -650,7 +650,7 @@ void DisplayControl::drawAxes(){
     glTexCoord2f(1, 1);      glVertex3f(0.5, 0.5, nz+1.0);
     glTexCoord2f(0, 1);      glVertex3f(-0.5, 0.5, nz+1.0);
   }
-  
+
 
   glEnd();
 
@@ -673,22 +673,22 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       //glEnable(GL_LIGHT0);
       glEnable(GL_COLOR_MATERIAL);
       glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
       glEnable(texType);
       glBindTexture(texType, texId);
       //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      
+
       //Since the alpha value is the epsilon value, we need
       //to make sure alpha value of displayed layer is 1.0;
       /*static GLfloat col[4] = {0.0,0.0,0.0,1.0};
       glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, col);
 
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);  
+      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
       glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_ADD);
       glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE);*/
-      
+
       //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
       // The s and t parameters reference pixels on the UVW texture
@@ -703,7 +703,7 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       // cells of the 3D uvw wind field data.  It is packed because we
       // flatten the 3D structure into a series of discrete 2D
       // elements. The variable numInRow is the number of these
-      // discrete 2D layers that can fit in each row the texture. 
+      // discrete 2D layers that can fit in each row the texture.
 
       // The coordinate frame we use is with Y up, so X and Z (at Y=0)
       // forms the ground plane.
@@ -714,10 +714,10 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       // that can be held in each row of the texutre. [ COMPLETE DESCRIPTION ]
       s = (int)(visual_layer % numInRow) * nxdx;
 
-      // t (or the value in the y dimension of the texture) can be 
+      // t (or the value in the y dimension of the texture) can be
       // calculated by the floor of the layer to be visualized divided
       // by the number of layers that can be held in each row of
-      // the texture. 
+      // the texture.
       t = (int)(floor(visual_layer/(float)numInRow) * nydy);
 
       windField_shader.activate();
@@ -725,7 +725,7 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
       //glUniform1iARB(uniform_controlWind, visual_field);
       //glUniform1fARB(uniform_sliderWind, slider);
 
-      glUniform1iARB(uniform_windTex, 0); 
+      glUniform1iARB(uniform_windTex, 0);
 
       // Create a quad at this layer with 50% transparency
       glColor4f(1.0, 1.0, 1.0, 0.8);
@@ -752,7 +752,7 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
 
       glPopMatrix();
     }
-  
+
 }
 
 void instanceCube()
@@ -768,11 +768,11 @@ void DisplayControl::initVars(int nb,float* x, float* y, float* z,
   ht = h;
   wti = w;
   lti = l;
-  
+
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
   glGenTextures(3,displayTex);
-  
+
   createImageTex(displayTex[0], "concrete.ppm");
   createImageTex(displayTex[1], "building.ppm");
   createImageTex(displayTex[2], "buildingRoof.ppm");
@@ -785,7 +785,7 @@ void DisplayControl::initVars(int nb,float* x, float* y, float* z,
   createImageTex(skyBoxTex[4], "SkyBox/up.ppm");
   createImageTex(skyBoxTex[5], "SkyBox/down.ppm"); */
 	/*
-		for the mystic skybox. 
+		for the mystic skybox.
 	createImageTex(skyBoxTex[0], "SkyBox/mystic/mystic_east.ppm"); //front
   createImageTex(skyBoxTex[1], "SkyBox/mystic/mystic_north.ppm"); //left
   createImageTex(skyBoxTex[2], "SkyBox/mystic/mystic_west.ppm"); //back
@@ -808,7 +808,7 @@ void DisplayControl::initVars(int nb,float* x, float* y, float* z,
   createImageTex(skyBoxTex[4], "SkyBox/rays/rays_up.ppm");
   createImageTex(skyBoxTex[5], "SkyBox/rays/rays_down.ppm");
 
- 
+
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
 
@@ -822,7 +822,7 @@ void DisplayControl::DrawSkyBox(float x, float y, float z,  float width, float h
 	x = x - width  / 2;
 	y = y - height / 2;
 	z = z - length / 2;
-	
+
 	glColor4f(1.0,1.0,1.0,1.0f); //set color to white
 
 	//Draw the Front (in front of you)
@@ -836,7 +836,7 @@ void DisplayControl::DrawSkyBox(float x, float y, float z,  float width, float h
 
 		// Draw Right side
 	glBindTexture(GL_TEXTURE_2D, skyBoxTex[3]);
-	glBegin(GL_QUADS);		
+	glBegin(GL_QUADS);
 	  glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y+width, z+height);
 		glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y+width, z+height);
 		glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y+width, z);
@@ -877,13 +877,13 @@ void DisplayControl::DrawSkyBox(float x, float y, float z,  float width, float h
 		glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y, z); //back left
 		glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y, z);// front left
 	glEnd();
-	
+
 	glDisable(GL_TEXTURE_2D);
 	glEnable(texType);
 	glEnable(GL_DEPTH_TEST);
 }//end DrawSkyBox
 
-void DisplayControl::createImageTex(GLuint texture, char* filename){
+void DisplayControl::createImageTex(GLuint texture, const char* filename){
   GLubyte* testImage;
   int w, h;
 
@@ -891,7 +891,7 @@ void DisplayControl::createImageTex(GLuint texture, char* filename){
   if(testImage == 0){
     std::cout << "Didn't Load Texture File" << std::endl;
   }
-  glBindTexture(GL_TEXTURE_2D, texture); 
+  glBindTexture(GL_TEXTURE_2D, texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -909,9 +909,9 @@ void DisplayControl::drawFeatures(void)
   // glEnable(GL_COLOR_MATERIAL);
   // glEnable(GL_LIGHTING);
   // glEnable(GL_LIGHT0);
-  
+
   // Draw the building
-  for (int qi=0; qi<numBuild; qi++) 
+  for (int qi=0; qi<numBuild; qi++)
     {
       //glPushMatrix();
       glColor4f(1.0, 1.0, 1.0,1.0);
@@ -935,12 +935,12 @@ void DisplayControl::drawFeatures(void)
 	glTexCoord2f(1,0);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]);
 	glTexCoord2f(1,1);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
 	glTexCoord2f(0,1);       glVertex3f(xfo[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
-	
+
 	glTexCoord2f(0,0);       glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]);
 	glTexCoord2f(1,0);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]);
 	glTexCoord2f(1,1);       glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
 	glTexCoord2f(0,1);       glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
-	
+
 	glTexCoord2f(0,0);       glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]);
 	glTexCoord2f(1,0);       glVertex3f(xfo[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]);
 	glTexCoord2f(1,1);       glVertex3f(xfo[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
@@ -960,17 +960,17 @@ void DisplayControl::drawFeatures(void)
 	glTexCoord2f(1,0);	glVertex3f(xfo[qi]+lti[qi],yfo[qi]-(wti[qi]/2.0),zfo[qi]+ht[qi]);
 	glTexCoord2f(1,1);	glVertex3f(xfo[qi]+lti[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
 	glTexCoord2f(0,1);	glVertex3f(xfo[qi],yfo[qi]+(wti[qi]/2.0),zfo[qi]+ht[qi]);
-		
+
       }
       glEnd();
     }
-	
+
   // glDisable(GL_LIGHT0);
   // glDisable(GL_LIGHTING);
   glDisable(GL_TEXTURE_2D);
-	
+
   glEnable(texType);
-	
+
 }
 
 //text: draws a string of text with an 18 point helvetica bitmap font
@@ -987,13 +987,13 @@ void DisplayControl::drawFrameRate(int twidth, int theight)
 
   sampled_rate = clock_timer->deltam( graphics_time[0], graphics_time[1] );
 
-  if (do_first_time_only) 
+  if (do_first_time_only)
     {
       estimated_rate = sampled_rate;
       last_estimated_rate = sampled_rate;
       do_first_time_only = false;
     }
-  else 
+  else
     estimated_rate = (1.0 - alpha) * estimated_rate + alpha * sampled_rate;
 
   //
@@ -1026,7 +1026,7 @@ void DisplayControl::OpenGLText(int x, int y, char* s)
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
-  glOrtho(0, vp[2], 
+  glOrtho(0, vp[2],
 	  0, vp[3], -1, 1);
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
@@ -1059,19 +1059,19 @@ void DisplayControl::OpenGLText(int x, int y, char* s)
 
 }
 
-GLubyte* DisplayControl::readPPM(char* filename, int* width, int* height)
+GLubyte* DisplayControl::readPPM(const char* filename, int* width, int* height)
 {
     FILE* fp;
     int i, w, h, d;
     unsigned char* image;
     char head[70];          /* max line <= 70 in PPM (per spec). */
-    
+
     fp = fopen(filename, "rb");
     if (!fp) {
         perror(filename);
         return NULL;
     }
-    
+
     /* grab first two chars of the file and make sure that it has the
        correct magic cookie for a raw PPM file. */
     fgets(head, 70, fp);
@@ -1079,7 +1079,7 @@ GLubyte* DisplayControl::readPPM(char* filename, int* width, int* height)
         fprintf(stderr, "%s: Not a raw PPM file\n", filename);
         return NULL;
     }
-    
+
     /* grab the three elements in the header (width, height, maxval). */
     i = 0;
     while(i < 3) {
@@ -1093,12 +1093,12 @@ GLubyte* DisplayControl::readPPM(char* filename, int* width, int* height)
         else if (i == 2)
             i += sscanf(head, "%d", &d);
     }
-    
+
     /* grab all the image data in one fell swoop. */
     image = (unsigned char*)malloc(sizeof(unsigned char)*w*h*3);
     fread(image, sizeof(unsigned char), w*h*3, fp);
     fclose(fp);
-    
+
     *width = w;
     *height = h;
     return image;
@@ -1148,7 +1148,7 @@ void DisplayControl::createPointSpriteTextures()
 	    data[idx] = 1.0; data[idx+1] = data[idx+2] = 0.0;
 	    data[idx+3] = 1.0;
 	  }
-	else 
+	else
 	  {
 	    // store transparent white in image space
 	    data[idx] = data[idx+1] = data[idx+2] = 1.0;
@@ -1158,8 +1158,8 @@ void DisplayControl::createPointSpriteTextures()
 
   gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_FLOAT, data);
   // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, data);
-  
-  // 
+
+  //
   // make the normal map
   //
   glBindTexture(GL_TEXTURE_2D, point_sprite_textures[1]);
@@ -1209,14 +1209,14 @@ void DisplayControl::createPointSpriteTextures()
 	    data[idx] = 0.0; data[idx+1] = 0.0; data[idx+2] = 1.0;
 	    data[idx+3] = 1.0;
 	  }
-	else 
+	else
 	  {
 	    // store transparent white in image space
 	    data[idx] = data[idx+1] = data[idx+2] = 1.0;
 	    data[idx+3] = 0.0;
 	  }
       }
-	
+
   // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, data);
   gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_FLOAT, data);
 

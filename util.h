@@ -8,7 +8,7 @@
 class Util{
 
  public:
-  
+
   Util();
   void readInput(std::string);
 
@@ -21,7 +21,7 @@ class Util{
   float time_step;
   //domain
   int nx,ny,nz;
-  
+
   //
   float dx,dy,dz;
 
@@ -51,15 +51,15 @@ class Util{
   int numBox_y;
   //number of conc. boxes in z-direction
   int numBox_z;
-  
+
   //values for initializing the prime textures
   float ustar,sigU,sigV,sigW;
-  
+
   //toggle visualization
   bool show_particle_visuals;
   //toggle collection box visuals
   bool show_collectionBox_visuals;
-  
+
   //initializes pause mode
   bool pauseMode;
 
@@ -83,7 +83,7 @@ class Util{
   float* rate;
   //particle emitter release method
   int releaseType;
-  
+
   //method for emitting particles
   int emit_method;
 
@@ -97,7 +97,7 @@ class Util{
   int numBuild;
 
   std::string quicFilesPath;
-  
+
   //holds the quicPlume Data for the wind field
   //double* u;
   //double* v;
@@ -119,7 +119,7 @@ class Util{
   bool read3Float(char*,std::string,float*);
   bool readSourceInfo(char*,std::string,int&,float*);
   bool readComment(const char*);
-  bool read1String(const char*,char*,std::string*);
+  bool read1String(const char*, const char*,std::string*);
 
   //keeps track of number of sources
   int num;

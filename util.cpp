@@ -15,13 +15,13 @@ void Util::readInput(std::string file){
 
   std::ifstream in;
   in.open(file.c_str(),std::ios::in);
-    	
+
   if(in == NULL) std::cout << "input file didn't open" << std::endl;
-    
+
   char line[1024];
 
   while(  !in.eof() )
-  {  
+  {
 	 in.getline(line, 1024);
 	 if( line[ strlen(line)] == '\n' ){
 		   line[ strlen(line)] = '\0';
@@ -29,12 +29,12 @@ void Util::readInput(std::string file){
 
        parseLine(line);
   }
-    
+
   in.close();
 
 }
 void Util::parseLine(char* line){
-  
+
   float f1;
   float* b = new float[6];
   int s_type;
@@ -251,7 +251,7 @@ bool Util::readSourceInfo(char *line, std::string settingName, int &source_type,
 	std::string w, source_typename;
 
 	ist >> w;  // in other words, "source_info"
-	if(w == settingName){	 
+	if(w == settingName){
 
 	  // check the source type, which will determine the remaining arguments
 	  ist >> source_typename;
@@ -293,7 +293,7 @@ bool Util::readSourceInfo(char *line, std::string settingName, int &source_type,
 	      ist >> f[4];
 	      ist >> f[5];
 	    }
-	  else 
+	  else
 	    {
 	      std::cerr << "\n*********************\nUnknown source type in settings file!\n*********************" << std::endl;
 	      return false;
@@ -301,7 +301,7 @@ bool Util::readSourceInfo(char *line, std::string settingName, int &source_type,
 
 	  return true;
 	}
-	
+
     return false;
 }
 bool Util::read3Float(char *line, std::string settingName, float *f)
@@ -316,7 +316,7 @@ bool Util::read3Float(char *line, std::string settingName, float *f)
 		ist >> f[2];
 		return true;
 	}
-	
+
     return false;
 }
 
@@ -335,7 +335,7 @@ bool Util::read6Float(char *line, std::string settingName, float *f)
 		ist >> f[5];
 		return true;
 	}
-	
+
     return false;
 }
 
@@ -349,7 +349,7 @@ bool Util::read1Float(char *line, std::string settingName, float *f)
 		ist >> *f;
 		return true;
 	}
-	
+
     return false;
 }
 bool Util::readComment(const char *line)
@@ -372,7 +372,7 @@ bool Util::readComment(const char *line)
     return false;
 
 }
-bool Util::read1String(const char *line, char *settingName, std::string *s)
+bool Util::read1String(const char *line, const char *settingName, std::string *s)
 {
 	std::istringstream ist(line);
 
