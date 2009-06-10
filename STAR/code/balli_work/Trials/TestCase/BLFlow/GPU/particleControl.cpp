@@ -2986,9 +2986,9 @@ void ParticleControl::find_tauLocalMax(){
 }
 
 void ParticleControl::turbinit(){
+   //Balli's new additions this is essentially a direct copy of the FORTRAN 
     
-    
-    float dx=1.0;
+    float dx=1.0;	
     float dy=1.0;
     float dz=1.0;
     float rcl=0.0;
@@ -3029,7 +3029,8 @@ void ParticleControl::turbinit(){
     }
     
     float ht_avg = 0.0;
-    int inumveg  = 9999999999;
+    // PETE CHANGE THIS to long from int
+    int inumveg  = INT_MAX;// 9999999999;
     int k;
     
     if(numBuild > 0 && numBuild != inumveg){
