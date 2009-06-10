@@ -3045,7 +3045,6 @@ void ParticleControl::turbinit(){
         k=2;
     }
     
-    
     int i=1;
     int j=0;
     float u_left=0;
@@ -3079,10 +3078,6 @@ void ParticleControl::turbinit(){
     float u_b=(u_left+ u_top+ u_right+ u_bottom)/4.0;
     float nu_b=1.5e-5;
     float del_b=(0.328* pow(nu_b/u_b,.2f) ) * pow(ht_avg,.8f);
-    
-    
-    
-    
     
     for(int k=0;k<nz-1;k++){
         for(int j=0;j<ny-1;j++){
