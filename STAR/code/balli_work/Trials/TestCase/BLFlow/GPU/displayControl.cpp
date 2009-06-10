@@ -1,6 +1,8 @@
 #include <iostream>
 #include <math.h>
 #include <assert.h>
+#include <cstdlib>
+#include <cstring>
 #include "displayControl.h"
 #include "glErrorUtil.h"
 

@@ -4,6 +4,7 @@
 #include <math.h>
 #include <vector>
 #include <algorithm>
+#include <limits.h>
 #include "particleControl.h"
 #include "Random.h"
 #include "glErrorUtil.h"

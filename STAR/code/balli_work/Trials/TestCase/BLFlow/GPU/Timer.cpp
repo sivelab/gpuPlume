@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include "Timer.h"
 
 #ifdef WIN32
