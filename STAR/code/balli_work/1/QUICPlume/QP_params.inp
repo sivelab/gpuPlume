@@ -1,0 +1,28 @@
+1			!Source type flag (1 = Basic, 2 = Dense Gas, 3 = Distributed Particle Size, 4 = Explosive, 5 = ERAD source)
+0			!normal QUIC (isitefl=0) or sensor siting (=1) mode
+0			!indoor calculations turned off (=0) or turned on (=1)
+1			!1 - inner grid, 2 - outer grid
+0			!Location of western edge of inner grid relative to outer grid (m)
+0			!Location of southern edge of inner relative to outer grid (m)
+0.01			!Wall Surface Roughness Length (m)
+0			!Reciprocal Monin-Obukhov length(1/m)
+48    		!Boundary Layer height (m)
+1			!use 1 to enable non-local mixing
+400000 		!number of particles released over entire simulation
+1			!total particle number increase factor
+0			!number of particles a particle is split into
+0			!Enable Taylor microscale lower limit to sub-time steps
+.2			!time step (s)
+1600		      !duration (s)
+1599		      !concentration averaging time (s) !199
+0			!starting time for concentration averaging (s) !50
+1600			!particle output period (s)
+60			!in x direction, # of collecting boxes (concentration grid cells) 
+40			!in y direction, # of collecting boxes (concentration grid cells) 
+36			!in z direction, # of collecting boxes (concentration grid cells) 
+22			!lower limits for collecting boxes in x in meters
+40			!upper limits for collecting boxes in x direction in meters
+0			!lower limits for collecting boxes in y in meters
+40			!upper limits for collecting boxes in y direction in meters
+0			!lower limits for collecting boxes in z in meters
+36			!upper limits for collecting boxes in z direction in meters

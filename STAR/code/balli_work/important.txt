@@ -1,0 +1,2 @@
+floder "1" has c++ syntax of fortran turbulence and rotation subroutines. They are not working as they variables need to seen by each other like in fortran.
+"TestCase" folder will improve the code as we can make one to one comparison. QU is not working as its in fortran95, therefore i am using exe sent by Eric to run the QU.

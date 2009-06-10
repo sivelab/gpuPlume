@@ -1,0 +1,8 @@
+0			!x subdomain coordinate (southwest corner) (Cells)
+0			!y subdomain coordinate (southwest corner) (Cells)
+56			!x subdomain coordinate (northeast corner) (Cells)
+40			!y subdomain coordinate (northeast corner) (Cells)
+0.01			!Wall roughness length (m)
+1			!Number of Structures
+!Bld #	Group	Type	Height	Width	Length	Xfo	Yfo	Zfo	Gamma	Attenuation	Values in grid cell units
+1		1	1	24		8	8		14	20	0	0	0

@@ -1,0 +1,29 @@
+0			!RDD flag (1=on)
+0			!Buoyant Plume flag (1=on)
+0			!normal QUIC (isitefl=0) or sensor siting (=1) mode
+0			!indoor calculations turned off (=0) or turned on (=1)
+0			!0 - nested grid option off, 1 - nested grid option on,inner grid, 2 - nest option on, outer grid
+0			!Location of western edge of inner grid relative to outer grid (m)
+0			!Location of southern edge of inner relative to outer grid (m)
+0.00002 		!Znaut for dissipation calculations (m)      !0.00002505
+0.00002		!Wall Surface Roughness Length (m)
+1			!Roughness length of the outer grid (m)
+0			!Reciprocal Monin-Obukhov length(1/m)
+1.8			!Boundary Layer height (m)
+1			!use 1 to enable non-local mixing
+1000			!number of particles released over entire simulation
+0.012			!time step (s)
+12			!duration (s)
+6			!concentration averaging times (s)
+0			!starting time for concentration averaging (s)
+0.372			!particle output period (s)
+gasideal-			!material name - 9 characters
+2			!in x direction, # of collecting boxes (concentration grid cells) 
+2			!in y direction, # of collecting boxes (concentration grid cells) 
+2			!in z direction, # of collecting boxes (concentration grid cells) 
+0.015			!lower limits for collecting boxes in x in meters
+2.28			!upper limits for collecting boxes in x direction in meters
+0.015			!lower limits for collecting boxes in y in meters
+1.635			!upper limits for collecting boxes in y direction in meters
+0			!lower limits for collecting boxes in z in meters
+0.285			!upper limits for collecting boxes in z direction in meters
