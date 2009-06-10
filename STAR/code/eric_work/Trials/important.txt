@@ -1,0 +1,9 @@
+floder "1" has c++ syntax of fortran turbulence and rotation subroutines. They are not working as the variables need to seen by each other like in fortran. The
+"TestCase" folder will improve the code as we can make one to one comparison. QU is not working as its in fortran95, therefore i am using exe sent by Eric to run the QU called QU_Exe.
+
+Folder TestCase:
+BLFlow - folder with simple boundary layer flow
+QUIC - FORTRAN code with the boundary layer test case 
+GPU  - has FORTRAN converted to C++ code
+
+See also README_turbmod.txt in GPU folder
