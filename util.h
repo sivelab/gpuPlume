@@ -66,6 +66,9 @@ class Util{
   //Set to do mean velocity calculations
   bool calculateMeanVel;
 
+  //Set to actually perform the colorization step in which the mean velocitys are used to color particles.
+  bool updateParticleColors;
+
   //type of advection ; i.e. determines which shaders and textures to load.
   int advectChoice;
 

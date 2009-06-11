@@ -234,6 +234,17 @@ void Util::parseLine(char* line){
     else
       calculateMeanVel = true;
   }
+
+  if(read1Float(line, "updateParticleColors", &f1)){
+    if(f1 == 0)
+      updateParticleColors = false;
+    else
+      updateParticleColors = true;
+  }
+  else
+    // if there's no updateParticles line... make sure we turn it on
+    updateParticleColors = true;    
+
   if(read3Float(line, "back_color", c)){
     bcolor[0] = c[0];
     bcolor[1] = c[1];

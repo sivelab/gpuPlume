@@ -356,16 +356,19 @@ int MultipleBuildingsModel::display(){
     ///////////////////////////////////////////////////////////
     // Update Particle Colors
     ///////////////////////////////////////////////////////////
-    if(maxColorAttachments <= 4){
-      FramebufferObject::Disable();
-      fbo2->Bind();
-    }
-    pc->updateParticleColors(odd,prime0,prime1,windField,positions0,positions1);
+    if (util->updateParticleColors)
+      {
+	if(maxColorAttachments <= 4){
+	  FramebufferObject::Disable();
+	  fbo2->Bind();
+	}
+	pc->updateParticleColors(odd,prime0,prime1,windField,positions0,positions1);
 
-    if(maxColorAttachments <= 4){
-      FramebufferObject::Disable();
-      fbo->Bind();
-    }
+	if(maxColorAttachments <= 4){
+	  FramebufferObject::Disable();
+	  fbo->Bind();
+	}
+      }
 
     ///////////////////////////////////////////////////////////
     // In some circumstances, we may want to dump the contents of
@@ -538,14 +541,17 @@ int MultipleBuildingsModel::display(){
 	
       }
       else{
-	if(maxColorAttachments <= 4){
-	  FramebufferObject::Disable();
-	  fbo2->Bind();
-	}
-	glReadBuffer(particleColorBuffer);
+	if (util->updateParticleColors)
+	  {
+	    if(maxColorAttachments <= 4){
+	      FramebufferObject::Disable();
+	      fbo2->Bind();
+	    }
+	    glReadBuffer(particleColorBuffer);
       
-	glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
-	glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
+	    glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
+	    glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
+	  }
       }
       
       //update path line vbos
@@ -558,6 +564,9 @@ int MultipleBuildingsModel::display(){
 
       // Disable the framebuffer object
       FramebufferObject::Disable();
+      if (util->updateParticleColors == false)
+	glColor3f(1.0, 0.0, 0.0);  // general color if we're not supplying it from the FBO textures.
+
       glDrawBuffer(draw_buffer); // send it to the original buffer
 
       /////////////////////////////////////////////////////

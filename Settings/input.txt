@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 256
-theight 256
+twidth 500
+theight 500
 
 
 #Path Lines
@@ -101,7 +101,7 @@ source_info line 5.0 15.0 3.0 5.0 35.0 3.0 800.0
 source_info line 5.0 25.0 0.5 5.0 25.0 5.0 800.0
 
 #Set the type of Particle Release
-release_type 1
+release_type 2
 
 #Set to 0 and it will release a set number of particles per time step
 #based on simulation duration. 
@@ -179,6 +179,8 @@ pauseMode 0
 
 #Set to 1 to do mean velocity calculation; else 0
 calculateMeanVel 0
+
+updateParticleColors 1
 
 #Number of contour regions
 contour_regions 5
