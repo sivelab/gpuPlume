@@ -56,19 +56,23 @@ int winwidth = 1000, winheight = (int)(1000 * 9/16.0);
 int main(int argc, char** argv)
 {
 #ifdef WIN32
-  TCHAR buffer[MAX_PATH];
-  DWORD dwRet;
+  if (argc == 1)
+  {	
+		// only do this if we have not been supplied a command line argument ... in other words, if we are likely running from Visual Studio!
+	TCHAR buffer[MAX_PATH];
+	DWORD dwRet;
 
-  // dwRet = GetCurrentDirectory(MAX_PATH, buffer);
+	// dwRet = GetCurrentDirectory(MAX_PATH, buffer);
 
-  // Set the current working directory back a level so shader access is uniform across platforms
-  if (!SetCurrentDirectory(_T("..")))
-  {
-	  std::cerr << "SetCurrentDirectory failed (" << GetLastError() << ")" << std::endl;
-  }
-  else 
-  {
-	   dwRet = GetCurrentDirectory(MAX_PATH, buffer);
+	// Set the current working directory back a level so shader access is uniform across platforms
+	if (!SetCurrentDirectory(_T("..")))
+	{
+		std::cerr << "SetCurrentDirectory failed (" << GetLastError() << ")" << std::endl;
+	}
+	else 
+	{
+		dwRet = GetCurrentDirectory(MAX_PATH, buffer);
+	}
   }
 #endif
  
