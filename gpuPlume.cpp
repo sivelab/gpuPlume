@@ -247,10 +247,10 @@ void display(void)
       std::cout << "Total Simulation Time: " << plume_clock->deltas(total_timer[0], total_timer[1]) << " seconds." << std::endl;
 
 #ifdef WIN32
-      system("pause");
+	// We do not want to do this when we run this through optimization experiments...  
+	//  system("pause");
 #endif
 
-      // system("pause");
       glutDestroyWindow(plume->winid);
       exit(0);      
     }
@@ -396,7 +396,9 @@ void keyboard_cb(unsigned char key, int x, int y)
       delete [] timing_array;
 
 #ifdef WIN32
-	  system("pause");
+	// Note: We do not want to do this with optimization experiments as it will cause the system to 
+	  // wait for the user to press a key... bad for thousands of simulation runs!
+	 // system("pause");
 #endif
 
       // Next, destroy the glut window and exit
