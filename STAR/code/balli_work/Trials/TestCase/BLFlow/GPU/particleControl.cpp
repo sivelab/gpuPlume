@@ -47,7 +47,6 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
 void ParticleControl::setBuildingParameters(int nB,float* x,float* y,float* z,
 					   float* h,float* w,float* l){
 
-    std::cout<<"OKAY HERE...............................!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
   numBuild = nB;
   xfo = x;
   yfo = y;
@@ -1604,7 +1603,6 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
   GLfloat *data = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
   GLfloat *data3 = new GLfloat[width*height*4];
-  std::cout<<"in here -1"<<std::endl;
 
   int qi, qj, qk;
   int p2idx = 0, texidx = 0, texidxBelow = 0;
@@ -1803,8 +1801,7 @@ void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint
 }
 void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, 
 							  GLuint tauTex){
-    std::cout<<"turbinit....."<<std::endl;
-    turbinit();
+    
   GLfloat *data = new GLfloat[ width * height * 4 ]; 
   GLfloat *dataWind = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
@@ -1834,7 +1831,8 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 
   //initializes the array cellQuic[]
   initCellType();
- 
+  std::cout<<"turbinit....."<<std::endl;
+  turbinit();
   //Reading turbulence data from the QUIC generated file
   std::ifstream turbulence;
   std::string path;
@@ -2989,44 +2987,58 @@ void ParticleControl::find_tauLocalMax(){
 void ParticleControl::turbinit(){
    //Balli's new additions this is essentially a direct copy of the FORTRAN 
     
-    float dx=1.0;	
+    float dx=1.0;//dx,dy,dz should be mentioned in the input file-Balli-06/10/09	
     float dy=1.0;
     float dz=1.0;
-    float rcl=0.0;
+    
+    float rcl=0.0;// monin-obo length, should be in the input file-Balli-06/10/09
     float pi=4.*atan(1.0);
-    float z0=0.01;
-    float kkar=0.4;
-    float theta=0.;
-    int roofflag=2;
-    float ualoft=0.;
+    float z0=0.001;//should be in the input file-Balli-06/10/09
+    float kkar=0.4;//von karman constant
+    // "theta" is never read into or initilized in the FORTRAN code, but used for calculating ualoft and valoft.
+    // For this test case (BL Flow)we can use the values of ualoft and valoft directly from QP
+    float theta=0.; // this varibale is not used anymore in QP but the legacy code still uses it-Balli-06/10/09
+    int roofflag=2; //should be in the input file-Balli-06/10/09
+    float ualoft=0.; 
     float valoft=0.;
     float knlc=0.113;
     float ctau13=1.;
     float cusq=2.5*2.5;
     float cvsq=2.*2.;
     float cwsq=1.3*1.3;
-    float h=nzdz;//check::
+    float h=30.;//Boundary Layer Height-should be in the input file-Balli-06/10/09 check::
+    //From the following list of arrays(or vectors) we need to decide which one will go to the header file so that all functions can see
+    //that arrays (or vectors) globally. Rest all should be used as local arrays (or vectors)
     std::vector<float> elz,ustarz,dutotdzi,sigwi,sigvi,ustarij,xi,yi,zi,hgt,eleff,xcb,ycb,icb,jcb,phib,weff,leff,lfr,zcorf,lr;
     std::vector<float>uref,urefu,urefv,urefw, utotktp,uktop,vktop,wktop,deluc,ustargz,elzg,ustarg;
     std::vector<float>ufsqgi,vfsqgi,wfsqgi,ufvfgi,ufwfgi,vfwfgi,utotcl1,utotmax;
-        
-    eleff.resize(nxdx*nydy*nzdz,0.0);
 
-    std::cout<<nzdz<<"  "<<nydy<<"  "<<nxdx<<std::endl;
+    //vectors needs to be resized before they are  used otherwise theysometime give runtime errors
+    eleff.resize(nxdx*nydy*nzdz,0.0);// efective length scale-initialized with zero values.
+	ustarg.resize(nxdx*nydy*nzdz,0.0);
+
+    //QP differs from GPU in the indices i,j,k of all the arrays (u,v,w etc.)
+    //QP velocity vectors, for example u(i,j,k), i goes from 1(0.5) to nx(9.5), j goes from 1(0.5) to ny(9.5)
+    //and k goes from 1(-0.5) to nz+1(29.5)
+    //[Note: nx,ny,nz above are what QP reads from input file, QP adds 1 to nx and ny, and 2 to nz after reading them from input file]
+
+    //QP's k goes from 1 to nz+2, therefore for dz=1, zi goes from -0.5(k=1) to 30.5(k=32)
+    //GPU k goes from 0 to nz-1, therefore for dz=1, zi goes from 0.5(k=0) to 29.5 (k=29)
     zi.resize(nzdz);
     for(int k=0;k<nzdz;k++){ 
-        zi.at(k)=.5*dz+dz*k;
-        std::cout<<"z"<<"  "<<k<<"  "<<zi.at(k)<<std::endl;
+        zi.at(k)=.5*dz+dz*k; //this expression is different from that used in the QP
     }
+    //QP's j goes from 1 to ny+1, therefore for dy=1, yi goes from 0.5(j=1) to 10.5(j=11)
+    //GPU j goes from 0 to ny-1, therefore for dy=1, yi goes from 0.5(j=0) to 9.5 (j=9)
     yi.resize(nydy);
     for(int j=0;j<nydy;j++){
         yi.at(j)=.5*dy+dy*j;
-        std::cout<<"y"<<"  "<<j<<"  "<<yi.at(j)<<std::endl;
     }
+    //QP's i goes from 1 to nx+1, therefore for dx=1, xi goes from 0.5(i=1) to 10.5(i=11)
+    //GPU i goes from 0 to nx-1, therefore for dx=1, xi goes from 0.5(i=0) to 9.5 (i=9)
     xi.resize(nxdx);
     for(int i=0;i<nxdx;i++){
         xi.at(i)=.5*dx+dx*i;
-        std::cout<<"x"<<"  "<<i<<"  "<<xi.at(i)<<std::endl;
     }
     
     float ht_avg = 0.0;
@@ -3034,7 +3046,7 @@ void ParticleControl::turbinit(){
     int inumveg  = INT_MAX;// 9999999999;
     int k;
     
-    if(numBuild > 0 && numBuild != inumveg){
+    if(numBuild > 0 && numBuild != inumveg){// this part of the if condition will be verified when we test a case with buildings**
         for(int  i_b=0;i_b<numBuild;i_b++){
             ht_avg=ht[i_b]+zfo[i_b]+ht_avg;
         }
@@ -3042,53 +3054,68 @@ void ParticleControl::turbinit(){
         k=int(ht_avg/dz)+1;
     }
     else{
-        k=2;
+        //control comes here as we have no buildings for this test case
+        k=0; //altered to comply with GPU
     }
-    
-    int i=1;
+    //Obtain avg. velocity from the boundary of the domain at above cal avg ht of the buildings
+    int i=0;//altered to cmply with GPU
     int j=0;
     float u_left=0;
-    for(int j=0;j<nydy-1;j++){
+    for(j=0;j<nydy;j++){
         int p2idx = k*nxdx*nydy + j*nxdx + i;
         u_left=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u + wind_vel[p2idx].v*wind_vel[p2idx].v + wind_vel[p2idx].w*wind_vel[p2idx].w) +u_left;
     }
-    u_left=u_left/(nydy-1);
-    j=nydy-1;
-    
+    u_left=u_left/(nydy);//altered to comply GPU
+    // in QP, total number of cells in y is read from input file as ny and then QP adds 1to ny, therefore, 1 is substracted from ny above in QP.
+    j=nydy-1;// substracted 1 as edge of the domain in y is nydy-1
     float u_top=0;
-    for(i=0;i<nx-1;i++){
+    for(i=0;i<nxdx;i++){
         int p2idx = k*nxdx*nydy + j*nxdx + i;
         u_top=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u + wind_vel[p2idx].v*wind_vel[p2idx].v + wind_vel[p2idx].w*wind_vel[p2idx].w) +u_top;
     }
-    u_top=u_top/(nxdx-1);
-    i=nxdx-1;
+    u_top=u_top/nxdx;
+    i=nxdx-1;//same explanation as in case of j above
     float u_right=0;
-    for(int j=0;j<ny-1;j++){
+    for(j=0;j<nydy;j++){
         int p2idx = k*nxdx*nydy + j*nxdx + i;
         u_right=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u + wind_vel[p2idx].v*wind_vel[p2idx].v + wind_vel[p2idx].w*wind_vel[p2idx].w) +u_right;
     }
-    u_right=u_right/(nydy-1);
-    j=1;
+    u_right=u_right/nydy;
+    j=0;//alterted for GPU
+    
     float u_bottom=0;
-    for(int i=0;i<nx-1;i++){
+    for(i=0;i<nxdx;i++){
         int p2idx = k*nxdx*nydy + j*nxdx + i;
         u_bottom=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u + wind_vel[p2idx].v*wind_vel[p2idx].v + wind_vel[p2idx].w*wind_vel[p2idx].w) +u_bottom;
     }
-    u_bottom=u_bottom/(nxdx-1);
-    float u_b=(u_left+ u_top+ u_right+ u_bottom)/4.0;
-    float nu_b=1.5e-5;
-    float del_b=(0.328* pow(nu_b/u_b,.2f) ) * pow(ht_avg,.8f);
+    u_bottom=u_bottom/(nxdx);
     
-    for(int k=0;k<nz-1;k++){
-        for(int j=0;j<ny-1;j++){
-            for(int i=0;i<nx-1;i++){
-                //if(k.eq.1)icellflag(i,j,k)=0.
-                //if(k.ne.1)then
+    float u_b=(u_left+ u_top+ u_right+ u_bottom)/4.0;//average velocity
+    float nu_b=1.5e-5; //nu for air
+    float del_b=(0.328* pow(nu_b/u_b,.2f) ) * pow(ht_avg,.8f);//expression for BL layer thickness (growth) (i think)
+   // above expression is used for obtaining turbulence close to the walls of the buildings
+
+    elz.resize(nxdx*nydy*nzdz);
+    ustarz.resize(nxdx*nydy*nzdz);
+    dutotdzi.resize(nxdx*nydy*nzdz);
+    sigwi.resize(nxdx*nydy*nzdz);
+    sigvi.resize(nxdx*nydy*nzdz);
+    ustarij.resize(nxdx*nydy*nzdz);
+    ustarz.resize(nxdx*nydy*nzdz);
+    hgt.resize(nxdx*nydy*nzdz);
+        
+   // Following loop may not be required as all the following varibale are re initilized again.
+   // I kept it to make it similar to QP, we can remove this loop later after making sure that it is not required at all
+    
+    for(int k=0;k<nzdz;k++){
+        for(int j=0;j<nydy;j++){
+            for(int i=0;i<nxdx;i++){
                 float phim,psim;
                 int km1   = (k-1)*nxdx*nydy + j*nxdx + i;
                 int kp1   = (k+1)*nxdx*nydy + j*nxdx + i;
                 int p2idx = k*nxdx*nydy + j*nxdx + i;
                 int ij = j*nxdx + i;
+                                                
                 
                 float utotl    = 0.;
                 float utotu    = 0.;
@@ -3100,7 +3127,8 @@ void ParticleControl::turbinit(){
                 float dutotdzp = 0.;
                 float dutotdzm = 0.;
                 float dutotdza = 0.;
-                
+				float ustar    = 0.;
+				                
                 if( (cellQuic[km1].c==0 && cellQuic[p2idx].c!=0) || k==0){ //k==0 is just above the ground
                     utotl=0.;
                     utotu=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u + wind_vel[p2idx].v*wind_vel[p2idx].v + wind_vel[p2idx].w*wind_vel[p2idx].w);
@@ -3115,17 +3143,19 @@ void ParticleControl::turbinit(){
                         phim=pow( (1.-15.*rcl*.5*dz),-.25);
                         psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2) )/2.)-2.*atan(1./phim)+pi/2.;
                     }
-                    float ustar=kkar*utotu/(log(.5*dz/z0)-psim);
+                    ustar=kkar*utotu/(log(.5*dz/z0)-psim);
+                    //std::cout<<kkar<<"  "<<utotu<<" "<<dz<<"  "<<z0<<"  "<<psim<<std::endl;
                     elz.at(p2idx)=kkar*.5*dz;
-                    
-               
+                    //std::cout<<i<<"  "<<j<<"  "<<k<<"  "<<phim<<"  "<<psim<<"  "<<ustar<<"  "<<elz.at(p2idx)<<std::endl;
+                                        
+                    //removed few arrays here as they were to make sure that array values at ground are zero
+                    // In GPU we dont store array values at ground at all , as they are zero
                     ustarz.at(p2idx)=ustar;
                     dutotdzi.at(p2idx)=ustar*phim/(kkar*.5*dz);
-                    sigwi.at(km1)     =0.;
-                    sigvi.at(km1)     =0.;
-                    ustarij.at(km1)   =0.;
-                    ustarz.at(km1)    =0.;
-                    hgt.at(ij)=zi.at(k-1)+.5*dz;
+                    hgt.at(ij)=zi.at(k)-0.5*dz; //altered for GPU
+                    //std::cout<< ustarz.at(p2idx)<<"  "<<dutotdzi.at(p2idx)<<"  "<<hgt.at(ij)<<std::endl;
+                    
+                    
                 }
                 else{
                     if(k==nzdz-1){// find gradient using a non-CDD approach
@@ -3135,13 +3165,14 @@ void ParticleControl::turbinit(){
                         int km2=(k-2)*nxdx*nydy + j*nxdx + i;
                         dutotdzi.at(knzm1)=dutotdzi.at(km2);
                         elz.at(p2idx)=kkar*eleff.at(p2idx);
+                        //std::cout<<i<<"  "<<j<<"  "<<k<<"  "<<wind_vel[p2idx].u<<"  "<<utotl<<"  "<<utotu<<"  "<<dutotdzi.at(knzm1)<<"  "<<elz.at(p2idx)<<std::endl;
                     }
                     else{// ! find gradient using a CDD approach
                         utotl=sqrt(wind_vel[km1].u*wind_vel[km1].u + wind_vel[km1].v*wind_vel[km1].v + wind_vel[km1].w*wind_vel[km1].w);
                         utotu=sqrt(wind_vel[kp1].u*wind_vel[kp1].u + wind_vel[kp1].v*wind_vel[kp1].v + wind_vel[kp1].w*wind_vel[kp1].w);
                         // mdw 7-08-2005 changed the way vertical gradients are calculated to better represent
                         // log-law behavior
-                        int klow=int((hgt.at(ij)+.5*dz+dz)/dz)+1;
+                        int klow=int((hgt.at(ij)/dz));
                         int klowId=klow*nxdx*nydy + j*nxdx + i;
                         if(rcl>0){
                             phim=1.+4.7*rcl*eleff.at(km1);
@@ -3164,6 +3195,7 @@ void ParticleControl::turbinit(){
                         dutotu=utotu-ustarz.at(klowId)*(log(zi.at(k+1)/z0)-psim)/kkar;
                         dutotdzi.at(p2idx)=(dutotu-dutotl)/(2.*dz)+ustarz.at(klowId)*psim/(kkar*zi.at(k));
                         elz.at(p2idx)=kkar*eleff.at(p2idx);
+                        //std::cout<<i<<"  "<<j<<"  "<<k<<"  "<<wind_vel[p2idx].u<<utotl<<"  "<<utotu<<"  "<<phim<<"  "<<psim<<"  "<<dutotl<<"  "<<dutotu<<"  "<<dutotdzi.at(p2idx)<<"  "<<elz.at(p2idx)<<std::endl;
                         
                         if(cellQuic[kp1].c != 0 && cellQuic[p2idx].c != 0 && cellQuic[km1].c != 0){
                             //! mdw 7-01-2005 centered around k instead of k-1 and ajusted for log-law behavior
@@ -3209,7 +3241,10 @@ void ParticleControl::turbinit(){
                               else
                                   dutotdzi.at(p2idx)=dutotdzm+ustarz.at(klowId)*phim/(kkar*zi.at(k));
                               
-                              //! use centered differences away from the boundaries*/
+                              //std::cout<<i<<"  "<<j<<"  "<<k<<"  "<<wind_vel[p2idx].u<<utot<<"  "<<utotl<<"  "<<utotu<<"  "<<phim<<"  "<<psim<<"  "<<dutotl<<"  "<<dutotu<<"  "<<dutot<<"  "<<dutotdzc<<"  "<<dutotdzp<<"  "<<dutotdzm<<"  "<< dutotdza <<"  "<<dutotdzi.at(p2idx)<<"  "<<elz.at(p2idx)<<std::endl;
+                              
+                              //! use centered differences away from the boundaries
+                
                         }
                         
                     }
@@ -3217,7 +3252,10 @@ void ParticleControl::turbinit(){
             }
         }
     }//end for loops
-
+    //above loop is alright. I have matched every variable value with QP (Balli-06/14/09)
+	// theta is never read from input file. so its values will be zero always.
+	//Therefore following few lines do not effect the final solution at all
+	// phi will be calculated again by taking into account the actual wind angle at each building.
     float phi=270.-theta;
     phi=phi*pi/180.;
     float cosphi=cos(phi);
@@ -3240,7 +3278,7 @@ void ParticleControl::turbinit(){
 
     
     
-    
+    //following variables are required for non-local mixing.
     float xcelt=0.;
     float ycelt=0.;
     int icelt=0;
@@ -3254,10 +3292,7 @@ void ParticleControl::turbinit(){
     float delut=0.;
     float delutz=0.;
 
-
-
-
-    //1100 lines code start
+//following loop is not covered for this test case and numBuild for this case is zero
     for(int i=0;i<numBuild;i++){
 
         //! mdw 4-16-2004 added proper treatment of zfo
@@ -4540,11 +4575,12 @@ void ParticleControl::turbinit(){
           check=check+1*/
 
         
-    }//for loop for buildings
+    }//for loop for buildings for non-local mixing ends
 
-    // 1100 line code ends
-    // 500 line code start
+    // about 1100 lines code ends
+    // about 500 lines code start
 
+	// Following code is for local mixing-Balli -0/14/09
     // calculate distance to ground and walls if within 2 cells
     float zbrac=0.;
     float m_roof=0.;
@@ -4585,35 +4621,53 @@ void ParticleControl::turbinit(){
     float wfsq=0.;
     float dwall=0.;
     
-
     std::vector<float> dzm,dzp,dym,dyp,dxm,dxp,dutotdxi,dutotdyi,dutotdni,ufwfi,ufvfi,vfwfi,sigui,upwpi,epsi;
-    for(int k=2;k<=nzdz-1;k++){//do k=2,nz-1
-        zbrac=pow( (1.f-zi.at(k)/h),1.5f);
-        for(j=1;j<=nydy;j++){//do j=1,ny-1
-            for(i=1;i<=nx-1;i++){//do i=1,nx-1
+	
+	dzm.resize(nzdz*nydy*nxdx);
+	dzp.resize(nzdz*nydy*nxdx);
+	dxm.resize(nzdz*nydy*nxdx);
+	dxp.resize(nzdz*nydy*nxdx);
+	dym.resize(nzdz*nydy*nxdx);
+	dyp.resize(nzdz*nydy*nxdx);
+	dutotdxi.resize(nzdz*nydy*nxdx);
+	dutotdyi.resize(nzdz*nydy*nxdx);
+	dutotdni.resize(nzdz*nydy*nxdx);
+	ufwfi.resize(nzdz*nydy*nxdx);
+	ufvfi.resize(nzdz*nydy*nxdx);
+	vfwfi.resize(nzdz*nydy*nxdx);
+	sigui.resize(nzdz*nydy*nxdx);
+	upwpi.resize(nzdz*nydy*nxdx);
+	epsi.resize(nzdz*nydy*nxdx);
+
+    for(int k=0;k<nzdz;k++){ //altered for GPU, in QP it was ->do k=2,nz-1 -Balli(06/14/09)
+        zbrac=pow( (1.f-zi.at(k)/h),1.5f); //h here is BL depth-Balli(06/14/09)
+		std::cout<<k<<"  "<<zbrac<<std::endl;
+        for(int j=0;j<nydy;j++){//altered for GPU, in QP it was ->do j=1,ny-1 -Balli(06/14/09)
+            for(int i=0;i<nxdx;i++){//altered for GPU, in QP it was ->do i=1,nx-1 -Balli(06/14/09)
                 // for vertical downward distance (dzm)
-                int klim=1;
+                int klim=0;
                 int id=k*nxdx*nydy +j*nxdx +i;
-                dzm.at(id)=-.5*dz+(k-1)*dz;
-                // MAN 9/21/2005 roof top mixing length fix
+                dzm.at(id)=.5*dz+k*dz;// altered for GPU (Balli-06/14/09)
                 eleff.at(id)=dzm.at(id);
-                int kdif=k-1;
-                for(int kk=k;kk<klim;kk--){//do kk=k,klim,-1
+                int kdif=k-1; //this is never used -Balli(06/14/09)
+                for(int kk=k;kk>klim;kk--){//do kk=k,klim,-1
                     // calculation of dzm; the distance from the cell center to the
                     // nearest horizontal surface
                     int idkk=kk*nxdx*nydy +j*nxdx +i;
                     if(cellQuic[idkk].c == 0){
                         // MAN 9/21/2005 roof top mixing length fix
-                        eleff.at(id)=dzm.at(id)-(kk-1)*dz*pow( ((kk-1.f)*dz/dzm.at(id)),m_roof);
+                        eleff.at(id)=dzm.at(id)-(kk-1)*dz*pow( ((kk-1.f)*dz/dzm.at(id)),m_roof);//did not chage, may need fixing for building test case
                         dzm.at(id)=.5*dz+(k-kk-1)*dz;
                         kdif=k-kk;
                         break;
                     }
                 } 
+				
                 // for vertical upward distance (dzp)
                 klim=nzdz-1;
                 // calculation of ustar in the vertical
                 int idkm1=(k-1)*nxdx*nydy +j*nxdx +i;
+				if(idkm1<0)cellQuic[idkm1].c=0;//this make sure that for i=j=k=0, we dont get junk values
                 if(cellQuic[idkm1].c == 0 && cellQuic[id].c != 0){
                     utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
                     if(rcl>0){
@@ -4652,8 +4706,10 @@ void ParticleControl::turbinit(){
                         ustarz.at(id)=ustar;
                     }
                 }
+				std::cout<<ustarz.at(id)<<"  "<<cellQuic[idkm1].c<<"  "<<cellQuic[id].c<<"  "<<dutotdzi.at(id)<<"  "<<sigwi.at(id)<<std::endl;
                 // for neutral conditions sigw is only dependent on ustar
-                dzp.at(id)=.5*dz+(klim-k)*dz+10.*dz;
+                dzp.at(id)=.5*dz+(klim-k)*dz+10.*dz;//left this expression as it is as this value act as a maximum distance and will not...
+				// interfare with the actual turbulence calculations.-Balli(06/14/09)
                 for(int kk=k;kk<=klim;kk++){//do kk=k,klim
                     int idkk=kk*nxdx*nydy +j*nxdx +i;
                      if(cellQuic[idkk].c == 0){
@@ -4661,11 +4717,12 @@ void ParticleControl::turbinit(){
                          break;
                      }
                 }
+				
                 //23456789112345678921234567893123456789412345678951234567896123456789712
                 // for distance to the left (dxm)
-                int ilim=1;
-                dxm.at(id)=.5*dx+(i-1)*dx+(nxdx)*dx;
-                for(int ii=i;ii<=ilim;ii--){//do ii=i,ilim,-1
+                int ilim=0;
+                dxm.at(id)=.5*dx+i*dx+(nxdx+1)*dx;//altered for GPU [added 1 to nxdx as in QP nx is nx+1 actually] -Balli(06/14/09)
+                for(int ii=i;ii>ilim;ii--){//do ii=i,ilim,-1
                     // calculation of the distance to the wall in the negative x direction
                     int idii=k*nxdx*nydy +j*nxdx +ii;
                      if(cellQuic[idii].c == 0){
@@ -4673,9 +4730,10 @@ void ParticleControl::turbinit(){
                          break;
                      }
                 }
+				
                 // for distance to the right (dxp)
                 ilim=nxdx-1;
-                dxp.at(id)=.5*dx+(ilim-i)*dx+(nxdx)*dx;
+                dxp.at(id)=.5*dx+(ilim-i)*dx+(nxdx+1)*dx;
                 for(int ii=i;ii<=ilim;ii++){// ii=i,ilim
                     // calculation of the distance to the wall in the positive x direction
                     int idii=k*nxdx*nydy +j*nxdx +ii;
@@ -4684,10 +4742,11 @@ void ParticleControl::turbinit(){
                         break;
                     }
                 }
+				
                 // for distance  from the back (dym)
-                int jlim=1;
-                dym.at(id)=.5*dy+(j-1)*dy+(nydy)*dy;
-                for(int jj=j;jj<=jlim;jj--){//do jj=j,jlim,-1
+                int jlim=0;
+                dym.at(id)=.5*dy+j*dy+(nydy+1)*dy; //added 1 to nydy ,same reason as in x-directiom, see above-Balli(06/14/09)
+                for(int jj=j;jj>jlim;jj--){//do jj=j,jlim,-1
                     // calculation of the distance to the wall in the negative y direction
                     int idjj=k*nxdx*nydy +jj*nxdx +i;
                      if(cellQuic[idjj].c == 0){
@@ -4695,9 +4754,10 @@ void ParticleControl::turbinit(){
                          break;
                      }
                 }
+				if(k==3 && i==5)std::cout<<"dym:"<<dym.at(id)<<std::endl;
                 // for distance to the front  (dyp)
                 jlim=nydy-1;
-                dyp.at(id)=.5*dy+(jlim-j)*dy+(ny)*dy;
+                dyp.at(id)=.5*dy+(jlim-j)*dy+(nydy+1)*dy; //added 1 to nydy ,same reason as in x-directiom, see above-Balli(06/14/09)
                 for(int jj=j;jj<=jlim;jj++){//do jj=j,jlim
                     // calculation of the distance to the wall in the positive x direction
                     int idjj=k*nxdx*nydy +jj*nxdx +i;
@@ -4706,6 +4766,7 @@ void ParticleControl::turbinit(){
                         break;
                     }
                 }
+				if(k==3 && i==5)std::cout<<"dyp:"<<dyp.at(id)<<std::endl;
                 // we need to calculate the largest change in utot
                 if(cellQuic[id].c == 0){
                     eps=0.;
@@ -4940,6 +5001,13 @@ void ParticleControl::turbinit(){
     }//         lp029
 
     std::vector<float>dsigwdni,dsigvdni,dsigudni,dupwpdni,ani,bni,cni;
+	dsigwdni.resize(nzdz*nydy*nxdx);
+	dsigvdni.resize(nzdz*nydy*nxdx);
+	dsigudni.resize(nzdz*nydy*nxdx);
+	dupwpdni.resize(nzdz*nydy*nxdx);
+	ani.resize(nzdz*nydy*nxdx);
+	bni.resize(nzdz*nydy*nxdx);
+	cni.resize(nzdz*nydy*nxdx);
     
     for(int k=2; k<=nzdz-1;k++){//do k=2,nz-1
         for(int j=1;j<=nydy-1;j++){//do j=1,ny-1
