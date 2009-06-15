@@ -426,6 +426,7 @@ int MultipleBuildingsModel::display(){
 
       mfunc_output << "% Building information\n";
       mfunc_output << "% xmin xmax ymin ymax zmin zmax\n";
+      mfunc_output << "% These values represent the indices of the various building bounds in the bldBound array (i.e. minX bound, maxX bound and so forth)\n";
       mfunc_output << "minX = 1;\n";
       mfunc_output << "maxX = 2;\n";
       mfunc_output << "minY = 3;\n";
@@ -468,26 +469,56 @@ int MultipleBuildingsModel::display(){
       mfunc_output << "  end\n";
       mfunc_output << "\n";
 
-      mfunc_output << "  % also see if the collection box is in the emitter... for now, this is hardcoded for our fixed emitter locations for the experiment- Pete\n";
-      mfunc_output << "  minXL1 = 45;\n";
-      mfunc_output << "  maxXL1 = 46;\n";
-      mfunc_output << "  minYL1 = 29;\n";
-      mfunc_output << "  maxYL1 = 60;\n";
-      mfunc_output << "\n";
-      mfunc_output << "  minXL2 = 29;\n";
-      mfunc_output << "  maxXL2 = 60;\n";
-      mfunc_output << "  minYL2 = 45;\n";
-      mfunc_output << "  maxYL2 = 46;\n";
-      mfunc_output << "\n";
-      mfunc_output << "  minLZ = 0;\n";
-      mfunc_output << "  maxLZ = 1;\n";
+      mfunc_output << "  % also see if the collection box contains the emitters... for now, only handles line emitters- Pete\n";
+      mfunc_output << "emitterBounds = [\n";
+      for (int peIdx = 0; peIdx < util->numOfPE; peIdx++)
+	{
+	  // pe[pe_i]->emit = true;
+	  LineEmitter *le = dynamic_cast<LineEmitter*>(pe[peIdx]);
+
+	  int xmin = -1, xmax = -1, ymin = -1, ymax = -1, zmin = -1, zmax = -1;
+	  if (le->xpos < le->xpos_end)
+	    {
+	      xmin = (int)floor(le->xpos);  xmax = (int)ceil(le->xpos_end);
+	    }
+	  else 
+	    {
+	      xmin = (int)floor(le->xpos_end);  xmax = (int)ceil(le->xpos);
+	    }
+
+	  if (le->ypos < le->ypos_end)
+	    {
+	      ymin = (int)floor(le->ypos);  ymax = (int)ceil(le->ypos_end);
+	    }
+	  else 
+	    {
+	      ymin = (int)floor(le->ypos_end);  ymax = (int)ceil(le->ypos);
+	    }
+
+	  if (le->zpos < le->zpos_end)
+	    {
+	      zmin = (int)floor(le->zpos);  zmax = (int)ceil(le->zpos_end);
+	    }
+	  else 
+	    {
+	      zmin = (int)floor(le->zpos_end);  zmax = (int)ceil(le->zpos);
+	    }
+	  
+	  mfunc_output << "\t" << xmin << ' ' << xmax << ' ' << ymin << ' ' << ymax << ' ' << zmin << ' ' << zmax << ';' << std::endl;
+	}
+      mfunc_output << "];\n";
+
       mfunc_output << "\n";
       mfunc_output << "  emitFound = 0;\n";
       mfunc_output << "\n";
-      mfunc_output << "  if ( ( ((cBox_X >= minXL1) && (cBox_X <= maxXL1))   &&   ((cBox_Y >= minYL1) && (cBox_Y <= maxYL1))    &&    ((cBox_Z >= minLZ) && (cBox_Z <= maxLZ)) ) || ( ((cBox_X >= minXL2) && (cBox_X <= maxXL2))   &&   ((cBox_Y >= minYL2) && (cBox_Y <= maxYL2))    &&    ((cBox_Z >= minLZ) && (cBox_Z <= maxLZ)) )   )\n";
-      mfunc_output << "     emitFound = 1;\n";
-      mfunc_output << "  end\n";
 
+      mfunc_output << "  for emitIdx = 1:size(emitterBounds,1)\n";
+      mfunc_output << "    if (  ((cBox_X >= emitterBounds(emitIdx,minX)) && (cBox_X <= emitterBounds(emitIdx,maxX)))   &&   ((cBox_Y >= emitterBounds(emitIdx,minY)) && (cBox_Y <= emitterBounds(emitIdx,maxY)))    &&    ((cBox_Z >= emitterBounds(emitIdx,minZ)) && (cBox_Z <= emitterBounds(emitIdx,maxZ)))  )\n";
+      mfunc_output << "      % found the emitter, so make note and break out\n";
+      mfunc_output << "      emitFound = 1;\n";
+      mfunc_output << "      break;\n";
+      mfunc_output << "    end\n";
+      mfunc_output << "\n";
       mfunc_output << "  if bldFound == 1\n";
       mfunc_output << "     " << util->output_id << "_bldconc = [ " << util->output_id << "_bldconc; " << util->output_id << "_conc(idx,:) ];\n";
       mfunc_output << "  elseif emitFound == 1\n";
@@ -500,10 +531,6 @@ int MultipleBuildingsModel::display(){
 
       mfunc_output << "clear minX maxX minY maxY minZ maxZ bldBounds idx bld cBox_X cBox_Y cBox_Z minXL1 maxXL1 minYL1 maxYL1 minXL2 maxXL2 minYL2 maxYL2 minLZ maxLZ bldFound emitFound \n";
       mfunc_output.close();
-
-
-      // for (int pe_i = 0; pe_i < util->numOfPE; pe_i++)
-      // pe[pe_i]->emit = true;
     }
 
     //Switches the frame buffer and binding texture

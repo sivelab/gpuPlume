@@ -21,14 +21,15 @@ class LineEmitter : public ParticleEmitter{
   virtual void Draw();
   virtual void getReleasedPosition(float*,float*,float*);
  
- protected:
-  virtual ~LineEmitter();  
-
- private:
-
   // we can use the xpos, ypos, and zpos variables from the base class
   // to hold the starting vertex of the line
   float xpos_end, ypos_end, zpos_end;
+
+ protected:
+  virtual ~LineEmitter();  
+
+
+ private:
 
   float offsetx;
   float offsety;
