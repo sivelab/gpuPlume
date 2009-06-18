@@ -2077,6 +2077,8 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   delete [] data;
 
 }
+// erp Function to calculate Taus not using the turb field from QUIC
+// us a model
 void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, 
 							   GLuint tauTex){
 
@@ -5056,6 +5058,9 @@ void ParticleControl::turbinit(){
                         
                     }
                     epsi.at(id)=eps;
+// erp June 18, 2009  shader needs sigu sigv
+// convert them to taus and load them onto the shaders
+//tau13= ufwf; tau12 = ufvf; tau23 = vfwf need to be written to shaders
                     //std::cout<<sigu<<"  "<<sigv<<"  "<<sigw<<"  "<<elz.at(id)<<"  "<<eleff.at(id)<<"  "<<eps<<std::endl;//,ufvf,ufwf,vfwf
                     /*if(format_flag==1||format_flag==3){
                       if(iturbfieldflag==1) write(13,23000)xi(i),yi(j),zi.at(k),sigu,sigv,sigw,&
@@ -5363,6 +5368,8 @@ void ParticleControl::turbinit(){
                             }
                                 
                         }
+// erp June 18, 2009: only need diswdni used to calculate tau gradients
+// export this value to be used, send to shaders
                         if((dxm.at(id)>=dx)&&(dxp.at(id)>=dx)&&(dym.at(id)>=dy)&& 
                            (dyp.at(id)>=dy)&&(dzm.at(id)>=dz)&&(dzp.at(id)>=dz)){
                             dsigwdn=ani.at(id)*dsigwdx+bni.at(id)*dsigwdy+cni.at(id)*dsigwdz;
