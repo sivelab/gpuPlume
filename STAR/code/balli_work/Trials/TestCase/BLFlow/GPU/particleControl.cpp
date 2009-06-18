@@ -2,7 +2,6 @@
 #include <fstream>
 #include <sstream>
 #include <math.h>
-#include <vector>
 #include <algorithm>
 #include <limits.h>
 #include "particleControl.h"
@@ -2772,6 +2771,7 @@ void ParticleControl::QUICWindField(){
     for(int i = 0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
 	int p2idx = k*nxdx*nydy + i*nxdx + j;
+	
 	QUICWindField>>quicIndex; // ignoring the X,Y and Z values
 	QUICWindField>>quicIndex;
 	QUICWindField>>quicIndex;
@@ -3009,9 +3009,9 @@ void ParticleControl::turbinit(){
     float h=30.;//Boundary Layer Height-should be in the input file-Balli-06/10/09 check::
     //From the following list of arrays(or vectors) we need to decide which one will go to the header file so that all functions can see
     //that arrays (or vectors) globally. Rest all should be used as local arrays (or vectors)
-    std::vector<float> elz,ustarz,dutotdzi,sigwi,sigvi,ustarij,xi,yi,zi,hgt,eleff,xcb,ycb,icb,jcb,phib,weff,leff,lfr,zcorf,lr;
+    std::vector<float> elz,ustarz,sigwi,sigvi,ustarij,xi,yi,zi,hgt,eleff,xcb,ycb,icb,jcb,phib,weff,leff,lfr,zcorf,lr;
     std::vector<float>uref,urefu,urefv,urefw, utotktp,uktop,vktop,wktop,deluc,ustargz,elzg,ustarg;
-    std::vector<float>ufsqgi,vfsqgi,wfsqgi,ufvfgi,ufwfgi,vfwfgi,utotcl1,utotmax;
+    std::vector<float>utotcl1,utotmax;
 
     //vectors needs to be resized before they are  used otherwise theysometime give runtime errors
     eleff.resize(nxdx*nydy*nzdz,0.0);// efective length scale-initialized with zero values.
@@ -3097,12 +3097,45 @@ void ParticleControl::turbinit(){
 
     elz.resize(nxdx*nydy*nzdz);
     ustarz.resize(nxdx*nydy*nzdz);
-    dutotdzi.resize(nxdx*nydy*nzdz);
     sigwi.resize(nxdx*nydy*nzdz);
     sigvi.resize(nxdx*nydy*nzdz);
     ustarij.resize(nxdx*nydy*nzdz);
     ustarz.resize(nxdx*nydy*nzdz);
     hgt.resize(nxdx*nydy*nzdz);
+
+	//allocating global arrays
+	dutotdxi.resize(nxdx*nydy*nzdz);
+	dutotdyi.resize(nxdx*nydy*nzdz);
+	dutotdzi.resize(nxdx*nydy*nzdz,0.0);
+	dutotdni.resize(nxdx*nydy*nzdz);
+	dutotdsi.resize(nxdx*nydy*nzdz);
+	alph1ij.resize(nxdx*nydy*nzdz);
+	alph2ij.resize(nxdx*nydy*nzdz);
+	alph3ij.resize(nxdx*nydy*nzdz);
+	bet1ij.resize(nxdx*nydy*nzdz);
+	bet2ij.resize(nxdx*nydy*nzdz);
+	bet3ij.resize(nxdx*nydy*nzdz);
+	gam1ij.resize(nxdx*nydy*nzdz);
+	gam2ij.resize(nxdx*nydy*nzdz);
+	gam3ij.resize(nxdx*nydy*nzdz);
+	alphn1ij.resize(nxdx*nydy*nzdz);
+    alphn2ij.resize(nxdx*nydy*nzdz);
+	alphn3ij.resize(nxdx*nydy*nzdz);
+	betn1ij.resize(nxdx*nydy*nzdz);
+	betn2ij.resize(nxdx*nydy*nzdz);
+	betn3ij.resize(nxdx*nydy*nzdz);
+	gamn1ij.resize(nxdx*nydy*nzdz);
+	gamn2ij.resize(nxdx*nydy*nzdz);
+	gamn3ij.resize(nxdx*nydy*nzdz);
+	ani.resize(nxdx*nydy*nzdz);
+	bni.resize(nxdx*nydy*nzdz);
+	cni.resize(nxdx*nydy*nzdz);
+	ufsqgi.resize(nxdx*nydy*nzdz);
+	vfsqgi.resize(nxdx*nydy*nzdz);
+	wfsqgi.resize(nxdx*nydy*nzdz);
+	ufvfgi.resize(nxdx*nydy*nzdz);
+	ufwfgi.resize(nxdx*nydy*nzdz);
+	vfwfgi.resize(nxdx*nydy*nzdz);
         
    // Following loop may not be required as all the following varibale are re initilized again.
    // I kept it to make it similar to QP, we can remove this loop later after making sure that it is not required at all
@@ -4580,7 +4613,7 @@ void ParticleControl::turbinit(){
     // about 1100 lines code ends
     // about 500 lines code start
 
-	// Following code is for local mixing-Balli -0/14/09
+	// Following code is for local mixing-Balli -06/14/09
     // calculate distance to ground and walls if within 2 cells
     float zbrac=0.;
     float m_roof=0.;
@@ -4620,8 +4653,11 @@ void ParticleControl::turbinit(){
     float vfsq=0.;
     float wfsq=0.;
     float dwall=0.;
+	float ufsqb=0.;
+	float wfsqb=0.;
+	float vfsqb=0.;
     
-    std::vector<float> dzm,dzp,dym,dyp,dxm,dxp,dutotdxi,dutotdyi,dutotdni,ufwfi,ufvfi,vfwfi,sigui,upwpi,epsi;
+    std::vector<float> dzm,dzp,dym,dyp,dxm,dxp,ufwfi,ufvfi,vfwfi,sigui,upwpi,epsi;
 	
 	dzm.resize(nzdz*nydy*nxdx);
 	dzp.resize(nzdz*nydy*nxdx);
@@ -4629,9 +4665,6 @@ void ParticleControl::turbinit(){
 	dxp.resize(nzdz*nydy*nxdx);
 	dym.resize(nzdz*nydy*nxdx);
 	dyp.resize(nzdz*nydy*nxdx);
-	dutotdxi.resize(nzdz*nydy*nxdx);
-	dutotdyi.resize(nzdz*nydy*nxdx);
-	dutotdni.resize(nzdz*nydy*nxdx);
 	ufwfi.resize(nzdz*nydy*nxdx);
 	ufvfi.resize(nzdz*nydy*nxdx);
 	vfwfi.resize(nzdz*nydy*nxdx);
@@ -4639,60 +4672,321 @@ void ParticleControl::turbinit(){
 	upwpi.resize(nzdz*nydy*nxdx);
 	epsi.resize(nzdz*nydy*nxdx);
 
-    for(int k=0;k<nzdz;k++){ //altered for GPU, in QP it was ->do k=2,nz-1 -Balli(06/14/09)
-        zbrac=pow( (1.f-zi.at(k)/h),1.5f); //h here is BL depth-Balli(06/14/09)
-		std::cout<<k<<"  "<<zbrac<<std::endl;
-        for(int j=0;j<nydy;j++){//altered for GPU, in QP it was ->do j=1,ny-1 -Balli(06/14/09)
-            for(int i=0;i<nxdx;i++){//altered for GPU, in QP it was ->do i=1,nx-1 -Balli(06/14/09)
-                // for vertical downward distance (dzm)
-                int klim=0;
-                int id=k*nxdx*nydy +j*nxdx +i;
-                dzm.at(id)=.5*dz+k*dz;// altered for GPU (Balli-06/14/09)
-                eleff.at(id)=dzm.at(id);
-                int kdif=k-1; //this is never used -Balli(06/14/09)
-                for(int kk=k;kk>klim;kk--){//do kk=k,klim,-1
-                    // calculation of dzm; the distance from the cell center to the
-                    // nearest horizontal surface
-                    int idkk=kk*nxdx*nydy +j*nxdx +i;
-                    if(cellQuic[idkk].c == 0){
-                        // MAN 9/21/2005 roof top mixing length fix
-                        eleff.at(id)=dzm.at(id)-(kk-1)*dz*pow( ((kk-1.f)*dz/dzm.at(id)),m_roof);//did not chage, may need fixing for building test case
-                        dzm.at(id)=.5*dz+(k-kk-1)*dz;
-                        kdif=k-kk;
-                        break;
-                    }
-                } 
-				
-                // for vertical upward distance (dzp)
-                klim=nzdz-1;
-                // calculation of ustar in the vertical
-                int idkm1=(k-1)*nxdx*nydy +j*nxdx +i;
-				if(idkm1<0)cellQuic[idkm1].c=0;//this make sure that for i=j=k=0, we dont get junk values
-                if(cellQuic[idkm1].c == 0 && cellQuic[id].c != 0){
-                    utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
-                    if(rcl>0){
-                        phim=1.+4.7*rcl*0.5*dz;
-                        psim=-4.7*rcl*0.5*dz;
-                    }
-                    else{
-                        phim=pow( (1.-15.*rcl*0.5*dz),(-.25));
-                        psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
-                    }
-                    ustar=kkar*utot/(log(.5*dz/z0)-psim);
-                    dutotdzi.at(id)=ustar*phim/(kkar*.5*dz);
-                    ustarz.at(id)=elz.at(id)*dutotdzi.at(id)/phim;
-                    sigwi.at(id)=1.3*ustarz.at(id);
-                }
-                else{
-                    if(cellQuic[id].c != 0){
-                        utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
-                        if(fabs(dutotdzi.at(id))>1.e-06){
-                            elz.at(id)=kkar*utot/fabs(dutotdzi.at(id));
+        for(int k=0;k<nzdz;k++){ //altered for GPU, in QP it was ->do k=2,nz-1 -Balli(06/14/09)
+            zbrac=pow( (1.f-zi.at(k)/h),1.5f); //h here is BL depth-Balli(06/14/09)
+            //std::cout<<k<<"  "<<zbrac<<std::endl;
+            for(int j=0;j<nydy;j++){//altered for GPU, in QP it was ->do j=1,ny-1 -Balli(06/14/09)
+                for(int i=0;i<nxdx;i++){//altered for GPU, in QP it was ->do i=1,nx-1 -Balli(06/14/09)
+                    // for vertical downward distance (dzm)
+                    int klim=0;
+                    int id=k*nxdx*nydy +j*nxdx +i;
+                    dzm.at(id)=.5*dz+k*dz;// altered for GPU (Balli-06/14/09)
+                    eleff.at(id)=dzm.at(id);
+                    int kdif=k-1; //this is never used -Balli(06/14/09)
+                    for(int kk=k;kk>klim;kk--){//do kk=k,klim,-1
+                        // calculation of dzm; the distance from the cell center to the
+                        // nearest horizontal surface
+                        int idkk=kk*nxdx*nydy +j*nxdx +i;
+                        if(idkk<0){
+                            idkk=INT_MAX;
+                            cellQuic[idkk].c = 0;
+                        }
+                        if(cellQuic[idkk].c == 0){
                             // MAN 9/21/2005 roof top mixing length fix
-                            if((kkar*eleff.at(id))<elz.at(id)) elz.at(id)=kkar*eleff.at(id);
+                            eleff.at(id)=dzm.at(id)-(kk-1)*dz*pow( ((kk-1.f)*dz/dzm.at(id)),m_roof);//did not chage, may need fixing for building test case
+                            dzm.at(id)=.5*dz+(k-kk-1)*dz;
+                            kdif=k-kk;
+                            break;
+                        }
+                    } 
+                    
+                    // for vertical upward distance (dzp)
+                    klim=nzdz-1;
+                    // calculation of ustar in the vertical
+                    int idkm1=(k-1)*nxdx*nydy +j*nxdx +i;
+                    if(idkm1<0){
+                        idkm1=INT_MAX;
+                        cellQuic[idkm1].c=0;//this make sure that for i=j=k=0, we dont get junk values
+                    }
+                    if(cellQuic[idkm1].c == 0 && cellQuic[id].c != 0){
+                        utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
+                        if(rcl>0){
+                            phim=1.+4.7*rcl*0.5*dz;
+                            psim=-4.7*rcl*0.5*dz;
                         }
                         else{
+                            phim=pow( (1.-15.*rcl*0.5*dz),(-.25));
+                            psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
+                        }
+                        ustar=kkar*utot/(log(.5*dz/z0)-psim);
+                        dutotdzi.at(id)=ustar*phim/(kkar*.5*dz);
+                        ustarz.at(id)=elz.at(id)*dutotdzi.at(id)/phim;
+                        sigwi.at(id)=1.3*ustarz.at(id);
+                    }
+                    else{
+                        if(cellQuic[id].c != 0){
+                            utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
+                            if(fabs(dutotdzi.at(id))>1.e-06){
+                                elz.at(id)=kkar*utot/fabs(dutotdzi.at(id));
+                                // MAN 9/21/2005 roof top mixing length fix
+                                if((kkar*eleff.at(id))<elz.at(id)) elz.at(id)=kkar*eleff.at(id);
+                            }
+                            else{
+                                elz.at(id)=kkar*eleff.at(id);
+                            }
+                            if(rcl>0){
+                                phim=1.+4.7*rcl*eleff.at(id);
+                                psim=-4.7*rcl*eleff.at(id);
+                            }
+                            else{
+                                phim=pow( (1.f-15.f*rcl*eleff.at(id)),(-.25f) );
+                                psim=2.f*log((1.f+1.f/phim)/2.f)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
+                            }
+                            ustar=kkar*eleff.at(id)*dutotdzi.at(id)/phim;
+                            ustarz.at(id)=ustar;
+                        }
+                    }
+                    //std::cout<<ustarz.at(id)<<"  "<<cellQuic[idkm1].c<<"  "<<cellQuic[id].c<<"  "<<dutotdzi.at(id)<<"  "<<sigwi.at(id)<<std::endl;
+                    // for neutral conditions sigw is only dependent on ustar
+                    dzp.at(id)=.5*dz+(klim-k)*dz+10.*dz;//left this expression as it is as this value act as a maximum distance and will not...
+                    // interfare with the actual turbulence calculations.-Balli(06/14/09)
+                    for(int kk=k;kk<=klim;kk++){//do kk=k,klim
+                        int idkk=kk*nxdx*nydy +j*nxdx +i;
+                        if(idkk<0){
+                            idkk=INT_MAX;
+                            cellQuic[idkk].c = 0;
+                        }
+                        if(cellQuic[idkk].c == 0){
+                            dzp.at(id)=.5*dz+(kk-k-1)*dz;
+                            break;
+                        }
+                    }
+                    
+                    //23456789112345678921234567893123456789412345678951234567896123456789712
+                    // for distance to the left (dxm)
+                    int ilim=0;
+                    dxm.at(id)=.5*dx+i*dx+(nxdx+1)*dx;//altered for GPU [added 1 to nxdx as in QP nx is nx+1 actually] -Balli(06/14/09)
+                    for(int ii=i;ii>ilim;ii--){//do ii=i,ilim,-1
+                        // calculation of the distance to the wall in the negative x direction
+                        int idii=k*nxdx*nydy +j*nxdx +ii;
+                        if(idii<0){
+                            idii=INT_MAX;
+                            cellQuic[idii].c = 1;
+                        }
+                        if(cellQuic[idii].c == 0){
+                            dxm.at(id)=.5*dx+(i-ii-1)*dx;
+                            break;
+                        }
+                    }
+                    
+                    // for distance to the right (dxp)
+                    ilim=nxdx-1;
+                    dxp.at(id)=.5*dx+(ilim-i)*dx+(nxdx+1)*dx;
+                    for(int ii=i;ii<=ilim;ii++){// ii=i,ilim
+                        // calculation of the distance to the wall in the positive x direction
+                        int idii=k*nxdx*nydy +j*nxdx +ii;
+                        if(idii<0){
+                            idii=INT_MAX;
+                            cellQuic[idii].c = 1;
+                        }
+                        if(cellQuic[idii].c == 0){
+                            dxp.at(id)=.5*dx+(ii-i-1)*dx;
+                            break;
+                        }
+                    }
+                    
+                    // for distance  from the back (dym)
+                    int jlim=0;
+                    dym.at(id)=.5*dy+j*dy+(nydy+1)*dy; //added 1 to nydy ,same reason as in x-directiom, see above-Balli(06/14/09)
+                    for(int jj=j;jj>jlim;jj--){//do jj=j,jlim,-1
+                        // calculation of the distance to the wall in the negative y direction
+                        int idjj=k*nxdx*nydy +jj*nxdx +i;
+                        if(idjj<0){
+                            idjj=INT_MAX;
+                            cellQuic[idjj].c = 1;
+                        }
+                        if(idjj<0)cellQuic[idjj].c == 0;
+                        if(cellQuic[idjj].c == 0){
+                            dym.at(id)=.5*dy+(j-jj-1)*dy;
+                            break;
+                        }
+                    }
+                    //if(k==3 && i==5)std::cout<<"dym:"<<dym.at(id)<<std::endl;
+                    // for distance to the front  (dyp)
+                    jlim=nydy-1;
+                    dyp.at(id)=.5*dy+(jlim-j)*dy+(nydy+1)*dy; //added 1 to nydy ,same reason as in x-directiom, see above-Balli(06/14/09)
+                    for(int jj=j;jj<=jlim;jj++){//do jj=j,jlim
+                        // calculation of the distance to the wall in the positive x direction
+                        int idjj=k*nxdx*nydy +jj*nxdx +i;
+                        if(idjj<0){
+                            idjj=INT_MAX;
+                            cellQuic[idjj].c = 1;
+                        }
+                        if(cellQuic[idjj].c == 0){
+                            dyp.at(id)=.5*dy+(jj-j-1)*dy;
+                            break;
+                        }
+                    }
+                    //if(k==3 && i==5)std::cout<<"dyp:"<<dyp.at(id)<<std::endl;
+                    // we need to calculate the largest change in utot
+                    if(cellQuic[id].c == 0){
+                        eps=0.;
+                        sigu=0.;
+                        sigv=0.;
+                        sigw=0.;
+                        upwp=0.;
+                        elz.at(id)=0.;
+                        eleff.at(id)=0.;
+                    }
+                    if(cellQuic[id].c != 0){//for all fuid cells
+                        // first we set up parameters for cells near boundary
+                        if(j<1||j>=ny-1||i<1||i>=nx-1){//boundary cells
+                            //if(k==5)std::cout<<"i,j:"<<"  "<<i<<"  "<<j<<std::endl;
+                            // calculation of near-boundary values of u*y, ly, dely, and the
+                            // gradients of speed in the x and y directions
+                            delym=(nydy+1)*dy;
+                            utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
+                            sigvi.at(id)=0.;
+                            delxm=dx*(nxdx-1);
+                            dutotdxi.at(id)=0.;
+                            dutotdyi.at(id)=0.;
                             elz.at(id)=kkar*eleff.at(id);
+                            dutotdni.at(id)=dutotdzi.at(id);
+                            detang(0,id);
+                            if(rcl>0){
+                                phim=1.+4.7*rcl*eleff.at(id);
+                                psim=-4.7*rcl*eleff.at(id);
+                            }
+                            else{
+                                phim=pow( (1.-15.*rcl*eleff.at(id)),(-.25) );
+                                psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
+                            }
+                            ustarz.at(id)=elz.at(id)*dutotdni.at(id)/phim; // calculate local ustar
+                            ustarz.at(id)=std::max(ustarz.at(id),3.e-02f);
+                            u3psq=cusq*zbrac*ustarz.at(id)*ustarz.at(id);   //// (u''')^2
+                            v3psq=cvsq*zbrac*ustarz.at(id)*ustarz.at(id);   //...
+                            w3psq=cwsq*zbrac*ustarz.at(id)*ustarz.at(id); //...
+                            upwp=-ctau13*zbrac*ustarz.at(id)*ustarz.at(id); // -tau13
+                            upvp=0.;
+                            vpwp=0.;
+                            if(rcl<0.){
+                                u3psq=u3psq+.6*(ustarz.at(id)*ustarz.at(id))*pow( (-h*rcl),(2.f/3.f));
+                                v3psq=v3psq+.6*(ustarz.at(id)*ustarz.at(id))*pow( (-h*rcl),(2.f/3.f));
+                                w3psq=w3psq+3.3*(ustarz.at(id)*ustarz.at(id))*pow( (-zi.at(k)*rcl),(2.3f))*pow( (1.f-.8f*zi.at(k)/h),2.f);
+                                upwp=upwp*pow( (1.f-zi.at(k)/h),(.5f*rcl*h/(1.0f-rcl*h)) );
+                            }
+                            //std::cout<<"calling rotu3psq  1.."<<i<<"  "<<j<<"  "<<k<<std::endl;
+                            rotu3psq(id,u3psq,utot,upvp,upwp,vpwp,v3psq,w3psq,ufsqb,wfsqb,vfsqb,ufvf,ufwf,vfwf); // rotate values back into the orig. grid
+                            ufwfi.at(id)=ufwf;
+                            ufvfi.at(id)=ufvf;
+                            vfwfi.at(id)=vfwf;
+                            ustarij.at(id)=ustarz.at(id);
+                            sigui.at(id)=sqrt(u3psq);
+                            sigvi.at(id)=sqrt(v3psq);
+                            sigwi.at(id)=sqrt(w3psq);
+                            upwpi.at(id)=upwp;
+                            // along the boundaries we make y effects negligible
+                            //std::cout<<sigvi.at(id)<<"  "<<dutotdxi.at(id)<<" "<<dutotdyi.at(id)<<"  "<<elz.at(id)<<"  "<<eleff.at(id)<<std::endl;
+                        }
+                        else{
+                            //if(k==5)std::cout<<"i,j,else:"<<"  "<<i<<"  "<<j<<std::endl;
+                            utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
+                            // away from boundaries u*y, ly, dely, and gradients
+                            int idim1=k*nxdx*nydy +j*nxdx +(i-1);
+                            int idip1=k*nxdx*nydy +j*nxdx +(i+1);
+                            if(cellQuic[idim1].c != 0 && cellQuic[id].c != 0  && cellQuic[idip1].c != 0){
+                                //mdw 3-08-2004 start changes for highest gradient
+                                utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
+                                utotm=sqrt(wind_vel[idim1].u*wind_vel[idim1].u+wind_vel[idim1].v*wind_vel[idim1].v+wind_vel[idim1].w*wind_vel[idim1].w);
+                                utotp=sqrt(wind_vel[idip1].u*wind_vel[idip1].u+wind_vel[idip1].v*wind_vel[idip1].v+wind_vel[idip1].w*wind_vel[idip1].w);
+                                dutotdxp=(utotp-utot)/dx;
+                                dutotdxm=(utot-utotm)/dx;
+                                dutotdxa=std::max(fabs(dutotdxp),fabs(dutotdxm));
+                                if(dutotdxa==fabs(dutotdxm)){
+                                    dutotdxi.at(id)=dutotdxm;
+                                }
+                                else{
+                                    dutotdxi.at(id)=dutotdxp;
+                                }
+                                // mdw 3-08-2004end changes
+                            }
+                            else{
+                                if(cellQuic[id].c == 0){ ////BALLI
+                                    dutotdxi.at(id)=0.;
+                                }
+                                else{
+                                    if(cellQuic[idim1].c == 0){ ////BALLI
+                                        dutotdxi.at(id)=2.*sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)/dx;
+                                        dutotdxi.at(id)=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)
+                                            /(log((.5*dx)/z0)*(.5*dx));
+                                    }
+                                    else{
+                                        dutotdxi.at(id)=-sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)
+                                            /(log((.5*dx)/z0)*(.5*dx));
+                                    }
+                                }
+                            }
+                            
+                            int idjm1=k*nxdx*nydy +(j-1)*nxdx +i;
+                            int idjp1=k*nxdx*nydy +(j+1)*nxdx +i;
+                            if(cellQuic[id].c != 0 && cellQuic[idjm1].c != 0 && cellQuic[idjp1].c != 0){
+                                //mdw 3-08-2008 start gradient changes
+                                utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
+                                utotm=sqrt(wind_vel[idjm1].u*wind_vel[idjm1].u+wind_vel[idjm1].v*wind_vel[idjm1].v+wind_vel[idjm1].w*wind_vel[idjm1].w);
+                                utotp=sqrt(wind_vel[idjp1].u*wind_vel[idjp1].u+wind_vel[idjp1].v*wind_vel[idjp1].v+wind_vel[idjp1].w*wind_vel[idjp1].w);
+                                dutotdyc=0.5*(utotp-utotm)/dy;
+                                dutotdyp=(utotp-utot)/dy;
+                                dutotdym=(utot-utotm)/dy;
+                                dutotdya=std::max(fabs(dutotdyp),fabs(dutotdym));
+                                if(dutotdya==fabs(dutotdym)){
+                                    dutotdyi.at(id)=dutotdym;
+                                }
+                                else{
+                                    dutotdyi.at(id)=dutotdyp;
+                                }
+                                // mdw 3-08-2004end changes
+                            }
+                            else{
+                                if(cellQuic[id].c == 0){
+                                    dutotdyi.at(id)=0.;
+                                }
+                                else{
+                                    if(cellQuic[idjm1].c == 0){
+                                        dutotdyi.at(id)=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)
+                                            /(log((.5*dy)/z0)*(.5*dy));
+                                    }
+                                    else{
+                                        dutotdyi.at(id)=-sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)
+                                            /(log((.5*dy)/z0)*(.5*dy));
+                                    }
+                                }
+                            }
+                        }
+                        detang(0,id); // Calculates the parameters fot the triple rotatation of coord sys.
+                        dwall=std::min(std::min(eleff.at(id),std::min(dxm.at(id),dxp.at(id))),std::min(dym.at(id),dyp.at(id)));
+                        //if(iturbtypeflag==1) local_option(i,j,k)=3
+                        elz.at(id)=kkar*dwall; // length scale based on distance to wall
+                        if(fabs(dutotdni.at(id))>1.e-6){
+                            x_b=std::min(dxm.at(id),dxp.at(id));
+                            if(x_b>std::max(del_b,dx)) x_b=0;
+                            y_b=std::min(dym.at(id),dyp.at(id));
+                            if(y_b>std::max(del_b,dy)) y_b=0;
+                            dwallg=fabs(dutotdyi.at(id))*y_b+fabs(dutotdxi.at(id))*x_b;
+                            dwallg=dwallg+fabs(dutotdzi.at(id))*eleff.at(id);
+                            dwallg=dwallg/dutotdni.at(id);
+                            elzv=kkar*utot/dutotdni.at(id); // length scale based on distance to null wind
+                            if(dwallg*kkar<elzv && (x_b+y_b)>0.) {
+                                // mdw 6-29-2006 changed test so that must be near vertical wall
+                                //if(iturbtypeflag==1)local_option(i,j,k)=1
+                                elz.at(id)=kkar*dwallg; // pick the smallest length scale
+                            }
+                            else{
+                                // mdw 6-30-2006 changed test so that vortex test does not override normal stuff
+                                if(elzv<=elz.at(id)){
+                                    //if(iturbtypeflag==1) local_option(i,j,k)=2
+                                    elz.at(id)=elzv;
+                                }
+                            }
                         }
                         if(rcl>0){
                             phim=1.+4.7*rcl*eleff.at(id);
@@ -4700,307 +4994,81 @@ void ParticleControl::turbinit(){
                         }
                         else{
                             phim=pow( (1.f-15.f*rcl*eleff.at(id)),(-.25f) );
-                            psim=2.f*log((1.f+1.f/phim)/2.f)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
-                        }
-                        ustar=kkar*eleff.at(id)*dutotdzi.at(id)/phim;
-                        ustarz.at(id)=ustar;
-                    }
-                }
-				std::cout<<ustarz.at(id)<<"  "<<cellQuic[idkm1].c<<"  "<<cellQuic[id].c<<"  "<<dutotdzi.at(id)<<"  "<<sigwi.at(id)<<std::endl;
-                // for neutral conditions sigw is only dependent on ustar
-                dzp.at(id)=.5*dz+(klim-k)*dz+10.*dz;//left this expression as it is as this value act as a maximum distance and will not...
-				// interfare with the actual turbulence calculations.-Balli(06/14/09)
-                for(int kk=k;kk<=klim;kk++){//do kk=k,klim
-                    int idkk=kk*nxdx*nydy +j*nxdx +i;
-                     if(cellQuic[idkk].c == 0){
-                         dzp.at(id)=.5*dz+(kk-k-1)*dz;
-                         break;
-                     }
-                }
-				
-                //23456789112345678921234567893123456789412345678951234567896123456789712
-                // for distance to the left (dxm)
-                int ilim=0;
-                dxm.at(id)=.5*dx+i*dx+(nxdx+1)*dx;//altered for GPU [added 1 to nxdx as in QP nx is nx+1 actually] -Balli(06/14/09)
-                for(int ii=i;ii>ilim;ii--){//do ii=i,ilim,-1
-                    // calculation of the distance to the wall in the negative x direction
-                    int idii=k*nxdx*nydy +j*nxdx +ii;
-                     if(cellQuic[idii].c == 0){
-                         dxm.at(id)=.5*dx+(i-ii-1)*dx;
-                         break;
-                     }
-                }
-				
-                // for distance to the right (dxp)
-                ilim=nxdx-1;
-                dxp.at(id)=.5*dx+(ilim-i)*dx+(nxdx+1)*dx;
-                for(int ii=i;ii<=ilim;ii++){// ii=i,ilim
-                    // calculation of the distance to the wall in the positive x direction
-                    int idii=k*nxdx*nydy +j*nxdx +ii;
-                    if(cellQuic[idii].c == 0){
-                        dxp.at(id)=.5*dx+(ii-i-1)*dx;
-                        break;
-                    }
-                }
-				
-                // for distance  from the back (dym)
-                int jlim=0;
-                dym.at(id)=.5*dy+j*dy+(nydy+1)*dy; //added 1 to nydy ,same reason as in x-directiom, see above-Balli(06/14/09)
-                for(int jj=j;jj>jlim;jj--){//do jj=j,jlim,-1
-                    // calculation of the distance to the wall in the negative y direction
-                    int idjj=k*nxdx*nydy +jj*nxdx +i;
-                     if(cellQuic[idjj].c == 0){
-                         dym.at(id)=.5*dy+(j-jj-1)*dy;
-                         break;
-                     }
-                }
-				if(k==3 && i==5)std::cout<<"dym:"<<dym.at(id)<<std::endl;
-                // for distance to the front  (dyp)
-                jlim=nydy-1;
-                dyp.at(id)=.5*dy+(jlim-j)*dy+(nydy+1)*dy; //added 1 to nydy ,same reason as in x-directiom, see above-Balli(06/14/09)
-                for(int jj=j;jj<=jlim;jj++){//do jj=j,jlim
-                    // calculation of the distance to the wall in the positive x direction
-                    int idjj=k*nxdx*nydy +jj*nxdx +i;
-                    if(cellQuic[idjj].c == 0){
-                        dyp.at(id)=.5*dy+(jj-j-1)*dy;
-                        break;
-                    }
-                }
-				if(k==3 && i==5)std::cout<<"dyp:"<<dyp.at(id)<<std::endl;
-                // we need to calculate the largest change in utot
-                if(cellQuic[id].c == 0){
-                    eps=0.;
-                    sigu=0.;
-                    sigv=0.;
-                    sigw=0.;
-                    upwp=0.;
-                    elz.at(id)=0.;
-                    eleff.at(id)=0.;
-                }
-                if(cellQuic[id].c != 0){
-                    // first we set up parameters for cells near boundary
-                    if(j<2||j>=ny-1||i<2||i>=nx-1){
-                        // calculation of near-boundary values of u*y, ly, dely, and the
-                        // gradients of speed in the x and y directions
-                        delym=(nydy)*dy;
-                        utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
-                        sigvi.at(id)=0.;
-                        delxm=dx*(nxdx-2);
-                        dutotdxi.at(id)=0.;
-                        dutotdyi.at(id)=0.;
-                        elz.at(id)=kkar*eleff.at(id);
-                        dutotdni.at(id)=dutotdzi.at(id);
-                        //call detang(0)
-                        if(rcl>0){
-                            phim=1.+4.7*rcl*eleff.at(id);
-                            psim=-4.7*rcl*eleff.at(id);
-                        }
-                        else{
-                           phim=pow( (1.-15.*rcl*eleff.at(id)),(-.25) );
-                           psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
+                            psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.f)-2.*atan(1./phim)+pi/2.;
                         }
                         ustarz.at(id)=elz.at(id)*dutotdni.at(id)/phim; // calculate local ustar
                         ustarz.at(id)=std::max(ustarz.at(id),3.e-02f);
-                        u3psq=cusq*zbrac*ustarz.at(id)*ustarz.at(id);   //// (u''')^2
+                        //mdw 6-23-2004 adjust for vertical structure
+                        u3psq=cusq*zbrac*ustarz.at(id)*ustarz.at(id);   // (u''')^2
                         v3psq=cvsq*zbrac*ustarz.at(id)*ustarz.at(id);   //...
                         w3psq=cwsq*zbrac*ustarz.at(id)*ustarz.at(id); //...
                         upwp=-ctau13*zbrac*ustarz.at(id)*ustarz.at(id); // -tau13
                         upvp=0.;
                         vpwp=0.;
-                        if(rcl<0.){
-                            u3psq=u3psq+.6*(ustarz.at(id)*ustarz.at(id))*pow( (-h*rcl),(2.f/3.f));
-                            v3psq=v3psq+.6*(ustarz.at(id)*ustarz.at(id))*pow( (-h*rcl),(2.f/3.f));
-                           w3psq=w3psq+3.3*(ustarz.at(id)*ustarz.at(id))*pow( (-zi.at(k)*rcl),(2.3f))*pow( (1.f-.8f*zi.at(k)/h),2.f);
-                           upwp=upwp*pow( (1.f-zi.at(k)/h),(.5f*rcl*h/(1.0f-rcl*h)) );
-                        }
-                        //call rotu3psq // rotate values back into the orig. grid
-                        ufwfi.at(id)=ufwf;
-                        ufvfi.at(id)=ufvf;
-                        vfwfi.at(id)=vfwf;
-                        ustarij.at(id)=ustarz.at(id);
-                        sigui.at(id)=sqrt(u3psq);
-                        sigvi.at(id)=sqrt(v3psq);
-                        sigwi.at(id)=sqrt(w3psq);
-                        upwpi.at(id)=upwp;
-                        // along the boundaries we make y effects negligible
-                    }
-                    else{
-                        utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
-                        // away from boundaries u*y, ly, dely, and gradients
-                        int idim1=k*nxdx*nydy +j*nxdx +(i-1);
-                        int idip1=k*nxdx*nydy +j*nxdx +(i+1);
-                        if(cellQuic[idim1].c != 0 && cellQuic[id].c != 0  && cellQuic[idip1].c != 0){
-                            //mdw 3-08-2004 start changes for highest gradient
-                            utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
-                            utotm=sqrt(wind_vel[idim1].u*wind_vel[idim1].u+wind_vel[idim1].v*wind_vel[idim1].v+wind_vel[idim1].w*wind_vel[idim1].w);
-                            utotp=sqrt(wind_vel[idip1].u*wind_vel[idip1].u+wind_vel[idip1].v*wind_vel[idip1].v+wind_vel[idip1].w*wind_vel[idip1].w);
-                            dutotdxp=(utotp-utot)/dx;
-                            dutotdxm=(utot-utotm)/dx;
-                            dutotdxa=std::max(fabs(dutotdxp),fabs(dutotdxm));
-                            if(dutotdxa==fabs(dutotdxm)){
-                                dutotdxi.at(id)=dutotdxm;
-                            }
-                            else{
-                                dutotdxi.at(id)=dutotdxp;
-                            }
-                            // mdw 3-08-2004end changes
-                        }
-                        else{
-                            if(cellQuic[id].c == 0){ ////BALLI
-                                dutotdxi.at(id)=0.;
-                            }
-                            else{
-                                if(cellQuic[idim1].c == 0){ ////BALLI
-                                    dutotdxi.at(id)=2.*sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)/dx;
-                                    dutotdxi.at(id)=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)
-                                        /(log((.5*dx)/z0)*(.5*dx));
-                                }
-                                else{
-                                    dutotdxi.at(id)=-sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)
-                                        /(log((.5*dx)/z0)*(.5*dx));
-                                }
-                            }
-                        }
                         
-                        int idjm1=k*nxdx*nydy +(j-1)*nxdx +i;
-                        int idjp1=k*nxdx*nydy +(j+1)*nxdx +i;
-                        if(cellQuic[id].c != 0 && cellQuic[idjm1].c != 0 && cellQuic[idjp1].c != 0){
-                            //mdw 3-08-2008 start gradient changes
-                            utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
-                            utotm=sqrt(wind_vel[idjm1].u*wind_vel[idjm1].u+wind_vel[idjm1].v*wind_vel[idjm1].v+wind_vel[idjm1].w*wind_vel[idjm1].w);
-                            utotp=sqrt(wind_vel[idjp1].u*wind_vel[idjp1].u+wind_vel[idjp1].v*wind_vel[idjp1].v+wind_vel[idjp1].w*wind_vel[idjp1].w);
-                            dutotdyc=0.5*(utotp-utotm)/dy;
-                            dutotdyp=(utotp-utot)/dy;
-                            dutotdym=(utot-utotm)/dy;
-                            dutotdya=std::max(fabs(dutotdyp),fabs(dutotdym));
-                            if(dutotdya==fabs(dutotdym)){
-                                dutotdyi.at(id)=dutotdym;
+                        if(ustarz.at(id)>xloc*ustarg.at(id)){
+                            if(rcl<0.){
+                                u3psq=u3psq+.6*(ustarz.at(id)*ustarz.at(id))*pow( (-h*rcl),(2.f/3.f));
+                                v3psq=v3psq+.6*(ustarz.at(id)*ustarz.at(id))*pow( (-h*rcl),(2.f/3.f));
+                                w3psq=w3psq+3.3*(ustarz.at(id)*ustarz.at(id))*pow( (-zi.at(k)*rcl),(2.3f))*pow( (1.f-.8f*zi.at(k)/h),2.f);
+                                upwp=upwp*pow( (1.f-zi.at(k)/h),(.5f*rcl*h/(1.f-rcl*h)) );
                             }
-                            else{
-                                dutotdyi.at(id)=dutotdyp;
-                            }
-                            // mdw 3-08-2004end changes
+                            //std::cout<<"calling rotu3psq  2.."<<i<<"  "<<j<<"  "<<k<<std::endl;
+                            rotu3psq(id,u3psq,utot,upvp,upwp,vpwp,v3psq,w3psq,ufsqb,wfsqb,vfsqb,ufvf,ufwf,vfwf); // rotate values back into the orig. grid
+                            ufwfi.at(id)=ufwf;
+                            ufvfi.at(id)=ufvf;
+                            vfwfi.at(id)=vfwf;
+                            ustarij.at(id)=ustarz.at(id);
+                            sigui.at(id)=sqrt(u3psq);
+                            sigvi.at(id)=sqrt(v3psq);
+                            sigwi.at(id)=sqrt(w3psq);
+                            upwpi.at(id)=upwp;
+                            
+                            //if(iturbtypeflag==1)turb_options(i,j,k)=local_option(i,j,k)
                         }
-                        else{
-                            if(cellQuic[id].c == 0){
-                                dutotdyi.at(id)=0.;
-                            }
-                            else{
-                                if(cellQuic[idjm1].c == 0){
-                                    dutotdyi.at(id)=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)
-                                        /(log((.5*dy)/z0)*(.5*dy));
-                                }
-                                else{
-                                    dutotdyi.at(id)=-sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)
-                                        /(log((.5*dy)/z0)*(.5*dy));
-                                }
-                            }
+                        else{ // non-local dominates (possible place for into of TPT)
+                            //if(iturbtypeflag==1)turb_options(i,j,k)=nonlocal_option(i,j,k)
+                            ufsq=ufsqgi.at(id);
+                            vfsq=vfsqgi.at(id);
+                            wfsq=wfsqgi.at(id);
+                            ufvf=ufvfgi.at(id);
+                            ufwf=ufwfgi.at(id);
+                            vfwf=vfwfgi.at(id);
+                            sigui.at(id)=sqrt(ufsq);
+                            sigvi.at(id)=sqrt(vfsq);
+                            sigwi.at(id)=sqrt(wfsq);
+                            ufwfi.at(id)=ufwf;
+                            ufvf=0.;
+                            ufvfi.at(id)=ufvf;
+                            vfwfi.at(id)=vfwf;
+                            //mdw 7-25-2005 corrections for axis rotation with non-local mixing
+                            ustarij.at(id)=ustarg.at(id);
+                            rotufsq(id,u3psq,upwp,v3psq,w3psq,ufsq,ufvf,ufwf,vfsq,vfwf,wfsq);
+                            sigui.at(id)=sqrt(u3psq);
+                            sigvi.at(id)=sqrt(v3psq);
+                            sigwi.at(id)=sqrt(w3psq);
+                            upwpi.at(id)=upwp;
                         }
-                    }
-                    //call detang(0) // Calculates the parameters fot the triple rotatation of coord sys.
-                    dwall=std::min(std::min(eleff.at(id),std::min(dxm.at(id),dxp.at(id))),std::min(dym.at(id),dyp.at(id)));
-                    //if(iturbtypeflag==1) local_option(i,j,k)=3
-                    elz.at(id)=kkar*dwall; // length scale based on distance to wall
-                    if(fabs(dutotdni.at(id))>1.e-6){
-                        x_b=std::min(dxm.at(id),dxp.at(id));
-                        if(x_b>std::max(del_b,dx)) x_b=0;
-                        y_b=std::min(dym.at(id),dyp.at(id));
-                        if(y_b>std::max(del_b,dy)) y_b=0;
-                        dwallg=fabs(dutotdyi.at(id))*y_b+fabs(dutotdxi.at(id))*x_b;
-                        dwallg=dwallg+fabs(dutotdzi.at(id))*eleff.at(id);
-                        dwallg=dwallg/dutotdni.at(id);
-                        elzv=kkar*utot/dutotdni.at(id); // length scale based on distance to null wind
-                        if(dwallg*kkar<elzv && (x_b+y_b)>0.) {
-                            // mdw 6-29-2006 changed test so that must be near vertical wall
-                            //if(iturbtypeflag==1)local_option(i,j,k)=1
-                            elz.at(id)=kkar*dwallg; // pick the smallest length scale
-                        }
-                        else{
-                            // mdw 6-30-2006 changed test so that vortex test does not override normal stuff
-                           if(elzv<=elz.at(id)){
-                               //if(iturbtypeflag==1) local_option(i,j,k)=2
-                               elz.at(id)=elzv;
-                           }
-                        }
-                    }
-                    if(rcl>0){
-                        phim=1.+4.7*rcl*eleff.at(id);
-                        psim=-4.7*rcl*eleff.at(id);
-                     }
-                    else{
-                        phim=pow( (1.f-15.f*rcl*eleff.at(id)),(-.25f) );
-                        psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.f)-2.*atan(1./phim)+pi/2.;
-                    }
-                    ustarz.at(id)=elz.at(id)*dutotdni.at(id)/phim; // calculate local ustar
-                    ustarz.at(id)=std::max(ustarz.at(id),3.e-02f);
-                    //mdw 6-23-2004 adjust for vertical structure
-                    u3psq=cusq*zbrac*ustarz.at(id)*ustarz.at(id);   // (u''')^2
-                    v3psq=cvsq*zbrac*ustarz.at(id)*ustarz.at(id);   //...
-                    w3psq=cwsq*zbrac*ustarz.at(id)*ustarz.at(id); //...
-                    upwp=-ctau13*zbrac*ustarz.at(id)*ustarz.at(id); // -tau13
-                    upvp=0.;
-                    vpwp=0.;
-
-                    if(ustarz.at(id)>xloc*ustarg.at(id)){
-                        if(rcl<0.){
-                            u3psq=u3psq+.6*(ustarz.at(id)*ustarz.at(id))*pow( (-h*rcl),(2.f/3.f));
-                            v3psq=v3psq+.6*(ustarz.at(id)*ustarz.at(id))*pow( (-h*rcl),(2.f/3.f));
-                            w3psq=w3psq+3.3*(ustarz.at(id)*ustarz.at(id))*pow( (-zi.at(k)*rcl),(2.3f))*pow( (1.f-.8f*zi.at(k)/h),2.f);
-                            upwp=upwp*pow( (1.f-zi.at(k)/h),(.5f*rcl*h/(1.f-rcl*h)) );
-                        }
-                        //call rotu3psq // rotate values back into the orig. grid
-                        ufwfi.at(id)=ufwf;
-                        ufvfi.at(id)=ufvf;
-                        vfwfi.at(id)=vfwf;
-                        ustarij.at(id)=ustarz.at(id);
-                        sigui.at(id)=sqrt(u3psq);
-                        sigvi.at(id)=sqrt(v3psq);
-                        sigwi.at(id)=sqrt(w3psq);
-                        upwpi.at(id)=upwp;
+                        sigu=sigui.at(id);
+                        sigv=sigvi.at(id);
+                        sigw=sigwi.at(id);
+                        eps=pow(ustarij.at(id),3.f)*(1.f-.75f*zi.at(k)*rcl)*pow((1.f-.85f*zi.at(k)/h),(1.5f))/eleff.at(id); // calculate epsilon for grid cell centers
                         
-                        //if(iturbtypeflag==1)turb_options(i,j,k)=local_option(i,j,k)
                     }
-                    else{ // non-local dominates (possible place for into of TPT)
-                        //if(iturbtypeflag==1)turb_options(i,j,k)=nonlocal_option(i,j,k)
-                        ufsq=ufsqgi.at(id);
-                        vfsq=vfsqgi.at(id);
-                        wfsq=wfsqgi.at(id);
-                        ufvf=ufvfgi.at(id);
-                        ufwf=ufwfgi.at(id);
-                        vfwf=vfwfgi.at(id);
-                        sigui.at(id)=sqrt(ufsq);
-                        sigvi.at(id)=sqrt(vfsq);
-                        sigwi.at(id)=sqrt(wfsq);
-                        ufwfi.at(id)=ufwf;
-                        ufvf=0.;
-                        ufvfi.at(id)=ufvf;
-                        vfwfi.at(id)=vfwf;
-                        //mdw 7-25-2005 corrections for axis rotation with non-local mixing
-                        ustarij.at(id)=ustarg.at(id);
-                        //call rotufsq
-                        sigui.at(id)=sqrt(u3psq);
-                        sigvi.at(id)=sqrt(v3psq);
-                        sigwi.at(id)=sqrt(w3psq);
-                        upwpi.at(id)=upwp;
-                    }
-                    sigu=sigui.at(id);
-                    sigv=sigvi.at(id);
-                    sigw=sigwi.at(id);
-                    eps=pow(ustarij.at(id),3.f)*(1.f-.75f*zi.at(k)*rcl)*pow((1.f-.85f*zi.at(k)/h),(1.5f))/eleff.at(id); // calculate epsilon for grid cell centers
-                  }
-                epsi.at(id)=eps;
-                /*if(format_flag==1||format_flag==3){
-                     if(iturbfieldflag==1) write(13,23000)xi(i),yi(j),zi.at(k),sigu,sigv,sigw,&
-                                             elz.at(id),eleff.at(id),eps,ufvf,ufwf,vfwf
-                  }
-                  if(format_flag==2||format_flag==3){
-                     if(iturbfieldflag==1) write(63)sigu,sigv,sigw,ufvf,ufwf,vfwf,eps
-                     }*/
-            }//   lp027
-        }//      lp028
-    }//         lp029
-
-    std::vector<float>dsigwdni,dsigvdni,dsigudni,dupwpdni,ani,bni,cni;
+                    epsi.at(id)=eps;
+                    //std::cout<<sigu<<"  "<<sigv<<"  "<<sigw<<"  "<<elz.at(id)<<"  "<<eleff.at(id)<<"  "<<eps<<std::endl;//,ufvf,ufwf,vfwf
+                    /*if(format_flag==1||format_flag==3){
+                      if(iturbfieldflag==1) write(13,23000)xi(i),yi(j),zi.at(k),sigu,sigv,sigw,&
+                      elz.at(id),eleff.at(id),eps,ufvf,ufwf,vfwf
+                      }
+                      if(format_flag==2||format_flag==3){
+                      if(iturbfieldflag==1) write(63)sigu,sigv,sigw,ufvf,ufwf,vfwf,eps
+                      }*/
+                }//   lp027
+            }//      lp028
+        }//         lp029
+        
+        std::vector<float>dsigwdni,dsigvdni,dsigudni,dupwpdni;
 	dsigwdni.resize(nzdz*nydy*nxdx);
 	dsigvdni.resize(nzdz*nydy*nxdx);
 	dsigudni.resize(nzdz*nydy*nxdx);
@@ -5009,243 +5077,328 @@ void ParticleControl::turbinit(){
 	bni.resize(nzdz*nydy*nxdx);
 	cni.resize(nzdz*nydy*nxdx);
     
-    for(int k=2; k<=nzdz-1;k++){//do k=2,nz-1
-        for(int j=1;j<=nydy-1;j++){//do j=1,ny-1
-            for(int i=1;i<=nxdx-1;i++){//do i=1,nx-1
-                int id=k*nxdx*nydy + j*nxdx + i;
-                float dsigwdx=0.;
-                float dsigwdy=0.;
-                float dsigudx=0.;
-                float dsigudy=0.;
-                float dsigvdx=0.;
-                float dsigvdy=0.;
-                float dupwpdx=0.;
-                float dupwpdy=0.;
-                float dsigwdz=0.;
-                float dsigvdz=0.;
-                float dsigudz=0.;
-                float dupwpdz=0.;
-                float dsigwdn=0.;
-                float dsigvdn=0.;
-                float dsigudn=0.;
-                float dupwpdn=0.;
-                
-                  if(cellQuic[id].c != 0){
-                      int idim1=k*nxdx*nydy +j*nxdx +(i-1);
-                      int idip1=k*nxdx*nydy +j*nxdx +(i+1);
-
-                      int idjm1=k*nxdx*nydy +(j-1)*nxdx +i;
-                      int idjp1=k*nxdx*nydy +(j+1)*nxdx +i;
-                      
-                      int idkm1=(k-1)*nxdx*nydy +j*nxdx +i;
-                      int idkp1=(k+1)*nxdx*nydy +j*nxdx +i;
-
-                      if(j<2||j>=ny-2||i<2||i>=nx-2){
-                          dsigwdx=0.;
-                          dsigwdy=0.;
-                          dsigudx=0.;
-                          dsigudy=0.;
-                          dsigvdx=0.;
-                          dsigvdy=0.;
-                          dupwpdx=0.;
-                          dupwpdy=0.;
-                      }
-                      //
-                      // calculate the gradient of sigma w normal to the flow using a CDD
-                      //
-                      utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
-                      if(dxm.at(id)>=dx && dxp.at(id)>=dx && i!=1 && i!=nxdx-1){
-                          dsigwdx=.5*(sigwi.at(idip1)-sigwi.at(idim1))/dx;
-                          dsigvdx=.5*(sigvi.at(idip1)-sigvi.at(idim1))/dx;
-                          dsigudx=.5*(sigui.at(idip1)-sigui.at(idim1))/dx;
-                          dupwpdx=.5*(upwpi.at(idip1)-upwpi.at(idim1))/dx;
-                      }
-                      else{
-                          if(i==1||i==nxdx-1){
-                              dsigwdx=0.;
-                              dsigvdx=0.;
-                              dsigudx=0.;
-                              dupwpdx=0.;
-                          }
-                          else{
-                              if(dxm.at(id)<dx&&dxp.at(id)>dx){
-//mdw 11-21-2005 modified if statements to address particle in 3-walled cells
-                                  dsigwdni.at(id)=(sigwi.at(idip1)-sigwi.at(id))/dx;
-                                  dsigvdni.at(id)=(sigvi.at(idip1)-sigvi.at(id))/dx;
-                                  dsigudni.at(id)=(sigui.at(idip1)-sigui.at(id))/dx;
-                                  dupwpdni.at(id)=(upwpi.at(idip1)-upwpi.at(id))/dx;
-                                  dsigwdni.at(id)=0.;
-                                  dsigvdni.at(id)=0.;
-                                  dsigudni.at(id)=0.;
-                                  dupwpdni.at(id)=0.;
-                                  sigwi.at(id)=std::max(sigwi.at(idip1),sigwi.at(id));
-                                  sigvi.at(id)=std::max(sigvi.at(idip1),sigvi.at(id));
-                                  sigui.at(id)=std::max(sigui.at(idip1),sigui.at(id));
-                                  ustarij.at(id)=std::max(ustarij.at(idip1),ustarij.at(id));
-                              if(fabs(upwpi.at(id))<fabs(upwpi.at(idip1))){
-                                  upwpi.at(id)=upwpi.at(idip1);
-                              }
-                              else{
-                                  upwpi.at(idip1)=upwpi.at(id);
-                              }
-                           }
-                           if(dxp.at(id)<dx&&dxm.at(id)>dx){
-//mdw 11-21-2005 modified if statements to address particle in 3-walled cells
-                               dsigwdni.at(id)=(sigwi.at(idim1)-sigwi.at(id))/dx;
-                               dsigvdni.at(id)=(sigvi.at(idim1)-sigvi.at(id))/dx;
-                               dsigudni.at(id)=(sigui.at(idim1)-sigui.at(id))/dx;
-                               dupwpdni.at(id)=(upwpi.at(idim1)-upwpi.at(id))/dx;
-                               dsigwdni.at(id)=0.;
-                               dsigvdni.at(id)=0.;
-                               dsigudni.at(id)=0.;
-                               dupwpdni.at(id)=0.;
-                               sigwi.at(id)=std::max(sigwi.at(idim1),sigwi.at(id));
-                               sigvi.at(id)=std::max(sigvi.at(idim1),sigvi.at(idim1));
-                               sigui.at(id)=std::max(sigui.at(idim1),sigui.at(id));
-                               ustarij.at(id)=std::max(ustarij.at(idim1),ustarij.at(id));
-                               if(fabs(upwpi.at(id))<fabs(upwpi.at(idim1))){
-                                  upwpi.at(id)=upwpi.at(idim1);
-                              }
-                              else{
-                                  upwpi.at(idim1)=upwpi.at(id);
-                              }
-                           }
+        for(int k=0; k<nzdz;k++){//do k=2,nz-1
+            for(int j=0;j<nydy;j++){//do j=1,ny-1
+                for(int i=0;i<nxdx;i++){//do i=1,nx-1
+                    int id=k*nxdx*nydy + j*nxdx + i;
+                    float dsigwdx=0.;
+                    float dsigwdy=0.;
+                    float dsigudx=0.;
+                    float dsigudy=0.;
+                    float dsigvdx=0.;
+                    float dsigvdy=0.;
+                    float dupwpdx=0.;
+                    float dupwpdy=0.;
+                    float dsigwdz=0.;
+                    float dsigvdz=0.;
+                    float dsigudz=0.;
+                    float dupwpdz=0.;
+                    float dsigwdn=0.;
+                    float dsigvdn=0.;
+                    float dsigudn=0.;
+                    float dupwpdn=0.;
+                    
+                    if(cellQuic[id].c != 0){
+                        int idim1=k*nxdx*nydy +j*nxdx +(i-1);
+                        int idip1=k*nxdx*nydy +j*nxdx +(i+1);
+                        
+                        int idjm1=k*nxdx*nydy +(j-1)*nxdx +i;
+                        int idjp1=k*nxdx*nydy +(j+1)*nxdx +i;
+                        
+                        int idkm1=(k-1)*nxdx*nydy +j*nxdx +i;
+                        int idkp1=(k+1)*nxdx*nydy +j*nxdx +i;
+                        
+                        if(j<1||j>=nydy-1||i<1||i>=nxdx-1){
+                            dsigwdx=0.;
+                            dsigwdy=0.;
+                            dsigudx=0.;
+                            dsigudy=0.;
+                            dsigvdx=0.;
+                            dsigvdy=0.;
+                            dupwpdx=0.;
+                            dupwpdy=0.;
                         }
-                     }
-                     if(dym.at(id)>=dy&&dyp.at(id)>=dy&&j!=1&&j!=ny-1){
-                         dsigwdy=.5*(sigwi.at(idjp1)-sigwi.at(idjm1))/dy;
-                         dsigvdy=.5*(sigvi.at(idjp1)-sigvi.at(idjm1))/dy;
-                         dsigudy=.5*(sigui.at(idjp1)-sigui.at(idjm1))/dy;
-                         dupwpdy=.5*(upwpi.at(idjp1)-upwpi.at(idjm1))/dy;
-                     }
-                     else{
-                         if(j==1||j==ny-1){
-                             dsigwdy=0.;
-                         }
-                         else{
-                             if(dym.at(id)<dy&&dyp.at(id)>dy){
-                                 //mdw 11-21-2006 modified if statements to address particle in 3-walled cells
-                                 dsigwdni.at(id)=(sigwi.at(idjp1)-sigwi.at(id))/dy;
-                                 dsigvdni.at(id)=(sigvi.at(idjp1)-sigvi.at(id))/dy;
-                                 dsigudni.at(id)=(sigui.at(idjp1)-sigui.at(id))/dy;
-                                 dupwpdni.at(id)=(upwpi.at(idjp1)-upwpi.at(id))/dy;
-                                 dsigwdni.at(id)=0.;
-                                 dsigvdni.at(id)=0.;
-                                 dsigudni.at(id)=0.;
-                                 dupwpdni.at(id)=0.;
-                                 sigwi.at(id)=std::max(sigwi.at(idjp1),sigwi.at(id));
-                                 sigvi.at(id)=std::max(sigvi.at(idjp1),sigvi.at(id));
-                                 sigui.at(id)=std::max(sigui.at(idjp1),sigui.at(id));
-                                 ustarij.at(id)=std::max(ustarij.at(idjp1),ustarij.at(id));
-                                 if(fabs(upwpi.at(id))<fabs(upwpi.at(idjp1))){
-                                     upwpi.at(id)=upwpi.at(idjp1);
-                                 }
-                                 else{
-                                     upwpi.at(idjp1)=upwpi.at(id);
-                                 }
-                             }
-                             if(dyp.at(id)<dy&&dym.at(id)>dy){
-                                 //mdw 11-21-2005 modified if statements to address particle in 3-walled cells
-                                 dsigwdni.at(id)=(sigwi.at(idjm1)-sigwi.at(id))/dy;
-                                 dsigvdni.at(id)=(sigvi.at(idjm1)-sigvi.at(id))/dy;
-                                 dsigudni.at(id)=(sigui.at(idjm1)-sigui.at(id))/dy;
-                                 dupwpdni.at(id)=(upwpi.at(idjm1)-upwpi.at(id))/dy;
-                                 dsigwdni.at(id)=0.;
-                                 dsigvdni.at(id)=0.;
-                                 dsigudni.at(id)=0.;
-                                 dupwpdni.at(id)=0.;
-                                 sigwi.at(id)=std::max(sigwi.at(idjm1),sigwi.at(id));
-                                 sigvi.at(id)=std::max(sigvi.at(idjm1),sigvi.at(id));
-                                 sigui.at(id)=std::max(sigui.at(idjm1),sigui.at(id));
-                                 ustarij.at(id)=std::max(ustarij.at(idjm1),ustarij.at(id));
-                                 if(fabs(upwpi.at(id))<fabs(upwpi.at(idjm1))){
-                                     upwpi.at(id)=upwpi.at(idjm1);
-                                 }
-                                 else{
-                                     upwpi.at(idjm1)=upwpi.at(id);
-                                 }
-                             }
-                         }
-                     }
-                     if(dzm.at(id)>dz&&k!=1&&k!=nz-1&&dzp.at(id)>dz){
-                         dsigwdz=.5*(sigwi.at(idkp1)-sigwi.at(idkm1))/dz;
-                         dsigvdz=.5*(sigvi.at(idkp1)-sigvi.at(idkm1))/dz;
-                         dsigudz=.5*(sigui.at(idkp1)-sigui.at(idkm1))/dz;
-                         dupwpdz=.5*(upwpi.at(idkp1)-upwpi.at(idkm1))/dz;
-                     }
-                     if(dzm.at(id)<=dz&&k!=1&&k!=nz-1&&dzp.at(id)>dz){
-                         dsigwdn=(sigwi.at(idkp1)-sigwi.at(id))/dz;
-                         dsigvdn=(sigvi.at(idkp1)-sigvi.at(id))/dz;
-                         dsigudn=(sigui.at(idkp1)-sigui.at(id))/dz;
-                         dupwpdn=(upwpi.at(idkp1)-upwpi.at(id))/dz;
-                         //mdw 9-26-2005 force dsigwdn to be zero near surface
-                         dsigwdn=0.;
-                         dsigudn=0.;
-                         dsigvdn=0.;
-                         dupwpdn=0.;
-                         sigui.at(id)=std::max(sigui.at(idkp1),sigui.at(id));
-                         sigvi.at(id)=std::max(sigvi.at(idkp1),sigvi.at(id));
-                         sigwi.at(id)=std::max(sigwi.at(idkp1),sigwi.at(id));
-                         ustarij.at(id)=std::max(ustarij.at(idkp1),ustarij.at(id));
-                        if(fabs(upwpi.at(id))<fabs(upwpi.at(idkp1))){
-                            upwpi.at(id)=upwpi.at(idkp1);
+                        //
+                        // calculate the gradient of sigma w normal to the flow using a CDD
+                        //
+                        utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
+                        if(dxm.at(id)>=dx && dxp.at(id)>=dx && i!=0 && i!=nxdx-1){
+                            if(idim1<0){
+                                dsigwdx=.5*(sigwi.at(idip1)-sigwi.at(id))/dx;
+                                dsigvdx=.5*(sigvi.at(idip1)-sigvi.at(id))/dx;
+                                dsigudx=.5*(sigui.at(idip1)-sigui.at(id))/dx;
+                                dupwpdx=.5*(upwpi.at(idip1)-upwpi.at(id))/dx;
+                            }
+                            else{
+                                dsigwdx=.5*(sigwi.at(idip1)-sigwi.at(idim1))/dx;
+                                dsigvdx=.5*(sigvi.at(idip1)-sigvi.at(idim1))/dx;
+                                dsigudx=.5*(sigui.at(idip1)-sigui.at(idim1))/dx;
+                                dupwpdx=.5*(upwpi.at(idip1)-upwpi.at(idim1))/dx;							  
+                            }
                         }
                         else{
-                            upwpi.at(idkp1)=upwpi.at(id);
+                            if(i==1||i==nxdx-1){
+                                dsigwdx=0.;
+                                dsigvdx=0.;
+                                dsigudx=0.;
+                                dupwpdx=0.;
+                            }
+                            else{
+                                if(dxm.at(id)<dx && dxp.at(id)>dx){
+                                    //mdw 11-21-2005 modified if statements to address particle in 3-walled cells
+                                    dsigwdni.at(id)=(sigwi.at(idip1)-sigwi.at(id))/dx;
+                                    dsigvdni.at(id)=(sigvi.at(idip1)-sigvi.at(id))/dx;
+                                    dsigudni.at(id)=(sigui.at(idip1)-sigui.at(id))/dx;
+                                    dupwpdni.at(id)=(upwpi.at(idip1)-upwpi.at(id))/dx;
+                                    dsigwdni.at(id)=0.;
+                                    dsigvdni.at(id)=0.;
+                                    dsigudni.at(id)=0.;
+                                    dupwpdni.at(id)=0.;
+                                    sigwi.at(id)=std::max(sigwi.at(idip1),sigwi.at(id));
+                                    sigvi.at(id)=std::max(sigvi.at(idip1),sigvi.at(id));
+                                    sigui.at(id)=std::max(sigui.at(idip1),sigui.at(id));
+                                    ustarij.at(id)=std::max(ustarij.at(idip1),ustarij.at(id));
+                                    if(fabs(upwpi.at(id))<fabs(upwpi.at(idip1))){
+                                        upwpi.at(id)=upwpi.at(idip1);
+                                    }
+                                    else{
+                                        upwpi.at(idip1)=upwpi.at(id);
+                                    }
+                                }
+                                if(dxp.at(id)<dx && dxm.at(id)>dx){
+                                    //mdw 11-21-2005 modified if statements to address particle in 3-walled cells
+                                    if(idim1<0){
+                                        dsigwdni.at(id)=0.;//(sigwi.at(id)-sigwi.at(id))/dx;
+                                        dsigvdni.at(id)=0.;//(sigvi.at(id)-sigvi.at(id))/dx;
+                                        dsigudni.at(id)=0.;//(sigui.at(id)-sigui.at(id))/dx;
+                                        dupwpdni.at(id)=0.;//(upwpi.at(id)-upwpi.at(id))/dx;
+                                        sigwi.at(id)=std::max(0.f,sigwi.at(id));
+                                        sigvi.at(id)=std::max(0.f,sigvi.at(idim1));
+                                        sigui.at(id)=std::max(0.f,sigui.at(id));
+                                        ustarij.at(id)=std::max(0.f,ustarij.at(id));
+                                    }
+                                    else{
+                                        dsigwdni.at(id)=(sigwi.at(idim1)-sigwi.at(id))/dx;
+                                        dsigvdni.at(id)=(sigvi.at(idim1)-sigvi.at(id))/dx;
+                                        dsigudni.at(id)=(sigui.at(idim1)-sigui.at(id))/dx;
+                                        dupwpdni.at(id)=(upwpi.at(idim1)-upwpi.at(id))/dx;
+                                        sigwi.at(id)=std::max(sigwi.at(idim1),sigwi.at(id));
+                                        sigvi.at(id)=std::max(sigvi.at(idim1),sigvi.at(idim1));
+                                        sigui.at(id)=std::max(sigui.at(idim1),sigui.at(id));
+                                        ustarij.at(id)=std::max(ustarij.at(idim1),ustarij.at(id));
+                                    }
+                                    dsigwdni.at(id)=0.f;
+                                    dsigvdni.at(id)=0.f;
+                                    dsigudni.at(id)=0.f;
+                                    dupwpdni.at(id)=0.f;
+                                    
+                                    if(idim1<0){
+                                        if(fabs(upwpi.at(id))<fabs(0.f)){
+                                            upwpi.at(id)=upwpi.at(id);
+                                        }
+                                    }
+                                    else{
+                                        if(fabs(upwpi.at(id))<fabs(upwpi.at(idim1))){
+                                            upwpi.at(id)=upwpi.at(idim1);
+                                        }
+                                        else{
+                                            upwpi.at(idim1)=upwpi.at(id);
+                                        }
+                                    }
+                                }  
+                            }
                         }
-                     }
-                     if(dzp.at(id)<=dz&&k!=1&&k!=nz-1&&dzm.at(id)>dz){
-                         //mdw 9-26-2005 force dsigwdn to be zero near surface
-                         dsigwdn=0.;
-                         dsigudn=0.;
-                         dsigvdn=0.;
-                         dupwpdn=0.;
-                         sigui.at(id)=std::max(sigui.at(idkm1),sigui.at(id));
-                         sigvi.at(id)=std::max(sigvi.at(idkm1),sigvi.at(id));
-                         sigwi.at(id)=std::max(sigwi.at(idkm1),sigwi.at(id));
-                         ustarij.at(id)=std::max(ustarij.at(idkm1),ustarij.at(id));
-                         if(fabs(upwpi.at(id))<fabs(upwpi.at(idkm1))){
-                             upwpi.at(id)=upwpi.at(idkm1);
-                         }
-                         else{
-                             upwpi.at(idkm1)=upwpi.at(id);
-                         }
-                     }
-                     if((dxm.at(id)>=dx)&&(dxp.at(id)>=dx)&&(dym.at(id)>=dy)&& 
-                        (dyp.at(id)>=dy)&&(dzm.at(id)>=dz)&&(dzp.at(id)>=dz)){
-                         dsigwdn=ani.at(id)*dsigwdx+bni.at(id)*dsigwdy+cni.at(id)*dsigwdz;
-                         dsigvdn=ani.at(id)*dsigvdx+bni.at(id)*dsigvdy+cni.at(id)*dsigvdz;
-                         dsigudn=ani.at(id)*dsigudx+bni.at(id)*dsigudy+cni.at(id)*dsigudz;
-                         dupwpdn=ani.at(id)*dupwpdx+bni.at(id)*dupwpdy+cni.at(id)*dupwpdz;
-                     }
-                     dsigwdni.at(id)=dsigwdn;
-                     dsigvdni.at(id)=dsigvdn;
-                     dsigudni.at(id)=dsigudn;
-                     dupwpdni.at(id)=dupwpdn;
-                     // limiting form for near wall circumstances
-                     }
-            }//   lp030
-        }//   lp031
-    } //  lp032
-    //    if(iturbtypeflag==1)write(101)(((turb_options.at(id),i=1,nx-1),j=1,ny-1),k=1,nz-1)
+                    
+                        if(dym.at(id)>=dy && dyp.at(id)>=dy && j!=0 && j!=ny-1){
+                            if(idjm1<0){
+                                dsigwdy=.5*(sigwi.at(idjp1)-sigwi.at(id))/dy;
+                                dsigvdy=.5*(sigvi.at(idjp1)-sigvi.at(id))/dy;
+                                dsigudy=.5*(sigui.at(idjp1)-sigui.at(id))/dy;
+                                dupwpdy=.5*(upwpi.at(idjp1)-upwpi.at(id))/dy;
+                            }
+                            else{
+                                dsigwdy=.5*(sigwi.at(idjp1)-sigwi.at(idjm1))/dy;
+                                dsigvdy=.5*(sigvi.at(idjp1)-sigvi.at(idjm1))/dy;
+                                dsigudy=.5*(sigui.at(idjp1)-sigui.at(idjm1))/dy;
+                                dupwpdy=.5*(upwpi.at(idjp1)-upwpi.at(idjm1))/dy;
+                            }
+                        }
+                        else{
+                            if(j==1||j==ny-1){
+                                dsigwdy=0.;
+                            }
+                            else{
+                                if(dym.at(id)<dy && dyp.at(id)>dy){
+                                    //mdw 11-21-2006 modified if statements to address particle in 3-walled cells
+                                    dsigwdni.at(id)=(sigwi.at(idjp1)-sigwi.at(id))/dy;
+                                    dsigvdni.at(id)=(sigvi.at(idjp1)-sigvi.at(id))/dy;
+                                    dsigudni.at(id)=(sigui.at(idjp1)-sigui.at(id))/dy;
+                                    dupwpdni.at(id)=(upwpi.at(idjp1)-upwpi.at(id))/dy;
+                                    dsigwdni.at(id)=0.;
+                                    dsigvdni.at(id)=0.;
+                                    dsigudni.at(id)=0.;
+                                    dupwpdni.at(id)=0.;
+                                    sigwi.at(id)=std::max(sigwi.at(idjp1),sigwi.at(id));
+                                    sigvi.at(id)=std::max(sigvi.at(idjp1),sigvi.at(id));
+                                    sigui.at(id)=std::max(sigui.at(idjp1),sigui.at(id));
+                                    ustarij.at(id)=std::max(ustarij.at(idjp1),ustarij.at(id));
+                                    if(fabs(upwpi.at(id))<fabs(upwpi.at(idjp1))){
+                                        upwpi.at(id)=upwpi.at(idjp1);
+                                    }
+                                    else{
+                                        upwpi.at(idjp1)=upwpi.at(id);
+                                    }
+                                }
+                                if(dyp.at(id)<dy && dym.at(id)>dy){
+                                    //mdw 11-21-2005 modified if statements to address particle in 3-walled cells
+                                    if(idjm1<0){
+                                        dsigwdni.at(id)=0.;//(sigwi.at(id)-sigwi.at(id))/dy;
+                                        dsigvdni.at(id)=0.;//(sigvi.at(id)-sigvi.at(id))/dy;
+                                        dsigudni.at(id)=0.;//(sigui.at(id)-sigui.at(id))/dy;
+                                        dupwpdni.at(id)=0.;//(upwpi.at(id)-upwpi.at(id))/dy;
+                                        
+                                        sigwi.at(id)=std::max(0.f,sigwi.at(id));
+                                        sigvi.at(id)=std::max(0.f,sigvi.at(id));
+                                        sigui.at(id)=std::max(0.f,sigui.at(id));
+                                        ustarij.at(id)=std::max(0.f,ustarij.at(id));
+                                    }
+                                    else{
+                                        dsigwdni.at(id)=(sigwi.at(idjm1)-sigwi.at(id))/dy;
+                                        dsigvdni.at(id)=(sigvi.at(idjm1)-sigvi.at(id))/dy;
+                                        dsigudni.at(id)=(sigui.at(idjm1)-sigui.at(id))/dy;
+                                        dupwpdni.at(id)=(upwpi.at(idjm1)-upwpi.at(id))/dy;
+                                        
+                                        sigwi.at(id)=std::max(sigwi.at(idjm1),sigwi.at(id));
+                                        sigvi.at(id)=std::max(sigvi.at(idjm1),sigvi.at(id));
+                                        sigui.at(id)=std::max(sigui.at(idjm1),sigui.at(id));
+                                        ustarij.at(id)=std::max(ustarij.at(idjm1),ustarij.at(id));
+                                    }
+                                    
+                                    dsigwdni.at(id)=0.f;
+                                    dsigvdni.at(id)=0.f;
+                                    dsigudni.at(id)=0.f;
+                                    dupwpdni.at(id)=0.f;
+                                    if(idjm1<0){
+                                        if(fabs(upwpi.at(id))<fabs(0.f)){
+                                            upwpi.at(id)=upwpi.at(idjm1);
+                                        }
+                                    }
+                                    else{
+                                        if(fabs(upwpi.at(id))<fabs(upwpi.at(idjm1))){
+                                            upwpi.at(id)=upwpi.at(idjm1);
+                                        }
+                                        else{
+                                            upwpi.at(idjm1)=upwpi.at(id);
+                                        }
+                                    }
+					
+                                }
+                            }
+                        }
+                        if(dzm.at(id)>dz && k!=nz-1 && dzp.at(id)>dz){
+                            if(idkm1<0){
+                                dsigwdz=.5*(sigwi.at(idkp1))/dz;
+                                dsigvdz=.5*(sigvi.at(idkp1))/dz;
+                                dsigudz=.5*(sigui.at(idkp1))/dz;
+                                dupwpdz=.5*(upwpi.at(idkp1))/dz;
+                            }
+                            else{
+                                dsigwdz=.5*(sigwi.at(idkp1)-sigwi.at(idkm1))/dz;
+                                dsigvdz=.5*(sigvi.at(idkp1)-sigvi.at(idkm1))/dz;
+                                dsigudz=.5*(sigui.at(idkp1)-sigui.at(idkm1))/dz;
+                                dupwpdz=.5*(upwpi.at(idkp1)-upwpi.at(idkm1))/dz;
+                            }
+                        }
+                        if(dzm.at(id)<=dz  && k!=nz-1 && dzp.at(id)>dz){
+                            dsigwdn=(sigwi.at(idkp1)-sigwi.at(id))/dz;
+                            dsigvdn=(sigvi.at(idkp1)-sigvi.at(id))/dz;
+                            dsigudn=(sigui.at(idkp1)-sigui.at(id))/dz;
+                            dupwpdn=(upwpi.at(idkp1)-upwpi.at(id))/dz;
+                            //mdw 9-26-2005 force dsigwdn to be zero near surface
+                            dsigwdn=0.;
+                            dsigudn=0.;
+                            dsigvdn=0.;
+                            dupwpdn=0.;
+                            sigui.at(id)=std::max(sigui.at(idkp1),sigui.at(id));
+                            sigvi.at(id)=std::max(sigvi.at(idkp1),sigvi.at(id));
+                            sigwi.at(id)=std::max(sigwi.at(idkp1),sigwi.at(id));
+                            ustarij.at(id)=std::max(ustarij.at(idkp1),ustarij.at(id));
+                            if(fabs(upwpi.at(id))<fabs(upwpi.at(idkp1))){
+                                upwpi.at(id)=upwpi.at(idkp1);
+                            }
+                            else{
+                                upwpi.at(idkp1)=upwpi.at(id);
+                            }
+                        }
+                        if(dzp.at(id)<=dz && k!=nz-1 && dzm.at(id)>dz){
+                            //mdw 9-26-2005 force dsigwdn to be zero near surface
+                            dsigwdn=0.;
+                            dsigudn=0.;
+                            dsigvdn=0.;
+                            dupwpdn=0.;
+                            if(idkm1<0){
+                                sigui.at(id)=std::max(0.f,sigui.at(id));
+                                sigvi.at(id)=std::max(0.f,sigvi.at(id));
+                                sigwi.at(id)=std::max(0.f,sigwi.at(id));
+                                ustarij.at(id)=std::max(0.f,ustarij.at(id));
+                            }
+                            else{
+                                sigui.at(id)=std::max(sigui.at(idkm1),sigui.at(id));
+                                sigvi.at(id)=std::max(sigvi.at(idkm1),sigvi.at(id));
+                                sigwi.at(id)=std::max(sigwi.at(idkm1),sigwi.at(id));
+                                ustarij.at(id)=std::max(ustarij.at(idkm1),ustarij.at(id));
+                            }
+                            if(idkm1<0){
+                                if(fabs(upwpi.at(id))<0.f){
+                                    upwpi.at(id)=0.;
+                                }
+                            }
+                            else{
+                                if(fabs(upwpi.at(id))<fabs(upwpi.at(idkm1))){
+                                    upwpi.at(id)=upwpi.at(idkm1);
+                                }
+                                else{
+                                    upwpi.at(idkm1)=upwpi.at(id);
+                                }
+                            }
+                                
+                        }
+                        if((dxm.at(id)>=dx)&&(dxp.at(id)>=dx)&&(dym.at(id)>=dy)&& 
+                           (dyp.at(id)>=dy)&&(dzm.at(id)>=dz)&&(dzp.at(id)>=dz)){
+                            dsigwdn=ani.at(id)*dsigwdx+bni.at(id)*dsigwdy+cni.at(id)*dsigwdz;
+                            dsigvdn=ani.at(id)*dsigvdx+bni.at(id)*dsigvdy+cni.at(id)*dsigvdz;
+                            dsigudn=ani.at(id)*dsigudx+bni.at(id)*dsigudy+cni.at(id)*dsigudz;
+                            dupwpdn=ani.at(id)*dupwpdx+bni.at(id)*dupwpdy+cni.at(id)*dupwpdz;
+                        }
+                        dsigwdni.at(id)=dsigwdn;
+                        dsigvdni.at(id)=dsigvdn;
+                        dsigudni.at(id)=dsigudn;
+                        dupwpdni.at(id)=dupwpdn;
 
-    //500 line code ends
-
-
-
-
+                        // std::cout<<i<<"  "<<j<<"  "<<k<<"  "<<dsigwdni.at(id)<<"  "<<dsigvdni.at(id)<<"  "<<dsigudni.at(id)<<"  "<<dupwpdni.at(id)<<std::endl;
+                        
+                        // limiting form for near wall circumstances
+                    }
+                }//   lp030
+            }//   lp031
+        } //  lp032
+            //    if(iturbtypeflag==1)write(101)(((turb_options.at(id),i=1,nx-1),j=1,ny-1),k=1,nz-1)
+        
+            //500 line code ends
+        
+        
+            
+        
 }//end turbinit
 
 //rotation subroutines
 
-void ParticleControl:: detang(int iomega){
+void ParticleControl:: detang(const int iomega,const int &id){
     float  e11,e12,e13,e21,e22,e23,e31,e32,e33;
     float cospsi,sinpsi,sinphiw,cosphiw,omenum,omeden,cosomeg,sinomeg,dutotdn,tanomeg,omeg1,cosomeg1,sinomeg1;
     float omeg2,cosomeg2,sinomeg2,dutotdn2,dutotdn1,pi,omeg,dutotds;
-    std::vector<float> dutotdxi,dutotdyi,dutotdzi,alph1ij,alph2ij,alph3ij,bet1ij,bet2ij,bet3ij,gam1ij,gam2ij,gam3ij,alphn1ij;
-    std::vector<float>alphn2ij,alphn3ij,betn1ij,betn2ij,betn3ij,gamn1ij,gamn2ij,gamn3ij,dutotdni,dutotdsi,ani,bni,cni;
-    int i,j,k;
-    int id=k*nxdx*nydy+j*nxdx +i;
+
+	pi=4.*atan(1.0);
     
     if(sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v)>1.e-05){
         cospsi=wind_vel[id].u/(sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v));
@@ -5265,7 +5418,7 @@ void ParticleControl:: detang(int iomega){
             }
             else{
                 tanomeg=omenum/omeden;
-                omeg1=atan(tanomeg);
+				omeg1=atan(tanomeg);
                 cosomeg1=cos(omeg1);
                 sinomeg1=sin(omeg1);
                 dutotdn1=dutotdxi.at(id)*(sinpsi*sinomeg1-cospsi*sinphiw*cosomeg1) 
@@ -5303,9 +5456,9 @@ void ParticleControl:: detang(int iomega){
                 if(fabs(cospsi)>0.5){
                     omeg=pi/2.;
                     cosomeg=0.;
-                    //                    sinomeg=-sign(cospsi,1.0);//check:: sign??
+					sinomeg=-sign(cospsi,1.0);
                     if(iomega==3){
-                        //                        sinomeg=sign(cospsi,1.0);
+                        sinomeg=sign(cospsi,1.0);
                         omeg=-omeg;
                     }
                 }
@@ -5462,16 +5615,23 @@ void ParticleControl:: detang(int iomega){
     e23=bet1ij.at(id)*alphn3ij.at(id)+bet2ij.at(id)*betn3ij.at(id)+bet3ij.at(id)*gamn3ij.at(id);
     e31=gam1ij.at(id)*alphn1ij.at(id)+gam2ij.at(id)*betn1ij.at(id)+gam3ij.at(id)*gamn1ij.at(id);
     e32=gam1ij.at(id)*alphn2ij.at(id)+gam2ij.at(id)*betn2ij.at(id)+gam3ij.at(id)*gamn2ij.at(id);
-    e33=gam1ij.at(id)*alphn3ij.at(id)+gam2ij.at(id)*betn3ij.at(id)+gam3ij.at(id)*gamn3ij.at(id);
+    e33=gam1ij.at(id)*alphn3ij.at(id)+gam2ij.at(id)*betn3ij.at(id)+gam3ij.at(id)*gamn3ij.at(id);	
 }
-void ParticleControl::rotu3psq(){
+float ParticleControl::sign(const float &A,const float &B){
+	float R;
+	if(B>=0)
+		R=fabs(A);
+	else
+		R=-fabs(A);
+	return R;	
+
+}
+void ParticleControl::rotu3psq(const int &id,const float &u3psq,const float &utot,const float &upvp,const float &upwp
+							   ,const float &vpwp,const float &v3psq,const float &w3psq,float &ufsqb,float &wfsqb,float &vfsqb
+							   ,float &ufvf,float &ufwf,float &vfwf){
     //this subroutine rotates the fluctuating quanitities back into the normal
     // coordinate sytem
-    int i,j,k;
-    int id=k*nxdx*nydy+j*nxdx+i;
-    float ufsqb,wfsqb,vfsqb,ufvf,ufwf,vfwf;
-    float u3psq,utot,upvp,upwp,vpwp,v3psq,w3psq;
-    std::vector<float> alph1ij,alph2ij,alph3ij,bet1ij,bet2ij,bet3ij,gam1ij,gam2ij,gam3ij;
+								   
     ufsqb=u3psq*alph1ij.at(id)*alph1ij.at(id)+utot*utot*alph1ij.at(id)*alph1ij.at(id)+2.*upvp*alph1ij.at(id)*alph2ij.at(id) 
         +2.*upwp*alph1ij.at(id)*alph3ij.at(id)+v3psq*alph2ij.at(id)*alph2ij.at(id) 
         +2.*vpwp*alph2ij.at(id)*alph3ij.at(id)+w3psq*alph3ij.at(id)*alph3ij.at(id)-wind_vel[id].u*wind_vel[id].u;
@@ -5500,15 +5660,10 @@ void ParticleControl::rotu3psq(){
         +w3psq*bet3ij.at(id)*gam3ij.at(id)-wind_vel[id].v*wind_vel[id].w;
 }
 
-
-
-void ParticleControl:: rotufsq(){
-    float  e11,e12,e13,e21,e22,e23,e31,e32,e33;
-    float u3psq,ufsq,ufvf,ufwf,vfsq,vfwf,wfsq,w3psq,v3psq,upwp;
-    int i,j,k;
-    int id=k*nxdx*nydy+j*nxdx+i;
-    std::vector<float> alph1ij,alph2ij,alph3ij,bet1ij,bet2ij,bet3ij,gam1ij,gam2ij,gam3ij;
-    std::vector<float>alphn1ij,alphn2ij,alphn3ij,betn1ij,betn2ij,betn3ij,gamn1ij,gamn2ij,gamn3ij;//,dutotdni,dutotdsi,ani,bni,cni;
+void ParticleControl:: rotufsq(const int &id,float &u3psq,float &upwp
+							   ,float &v3psq,float &w3psq,const float &ufsq,const float &ufvf
+							   ,const float &ufwf,const float &vfsq,const float &vfwf,const float &wfsq){
+    float  e11,e12,e13,e21,e22,e23,e31,e32,e33;    
     
     u3psq=ufsq*alphn1ij.at(id)*alphn1ij.at(id)+wind_vel[id].u*wind_vel[id].u*alphn1ij.at(id)*alphn1ij.at(id) 
         +2.*ufvf*alphn1ij.at(id)*alphn2ij.at(id)+2.*wind_vel[id].u*wind_vel[id].v*alphn1ij.at(id) 
@@ -5542,6 +5697,8 @@ void ParticleControl:: rotufsq(){
         +vfwf*(alphn2ij.at(id)*gamn3ij.at(id)+alphn3ij.at(id)*gamn2ij.at(id)) 
         +wind_vel[id].v*wind_vel[id].w*(alphn2ij.at(id)*gamn3ij.at(id)+alphn3ij.at(id)*gamn2ij.at(id))+wfsq*alphn3ij.at(id)
         *gamn3ij.at(id)+wind_vel[id].w*wind_vel[id].w *alphn3ij.at(id)*gamn3ij.at(id);
+
+    //std::cout<<u3psq<<"  "<<v3psq<<"  "<<w3psq<<"  "<<upwp<<std::endl;
     
     e11=alph1ij.at(id)*alphn1ij.at(id)+alph2ij.at(id)*betn1ij.at(id)+alph3ij.at(id)*gamn1ij.at(id);
     e12=alph1ij.at(id)*alphn2ij.at(id)+alph2ij.at(id)*betn2ij.at(id)+alph3ij.at(id)*gamn2ij.at(id);
@@ -5559,7 +5716,7 @@ void ParticleControl::rotate2d(int ic,int jc,int kc){
     // this subroutine rotates variables from primed system aligned with the overall wind
     // into the regular grid system
     float ub,vb,wb,cosphi,sinphi,upsqg,upb,upvpg,vpb,vpsqg,wpsqg,upwpg,vpwpg;
-    std::vector<float>ufsqgi,vfsqgi,wfsqgi,ufvfgi,ufwfgi,vfwfgi;
+    
     int id=kc*nxdx*nydy+jc*nxdx +ic;
     ub=wind_vel[id].u;
     vb=wind_vel[id].v;
@@ -5577,4 +5734,3 @@ void ParticleControl::rotate2d(int ic,int jc,int kc){
     ufwfgi.at(id)=upwpg*cosphi+upb*wb*cosphi-vpwpg*sinphi-vpb*wb*sinphi-ub*wb;
     vfwfgi.at(id)=upwpg*sinphi+upb*wb*sinphi+vpwpg*cosphi+vpb*wb*cosphi-vb*wb;
 }
-
