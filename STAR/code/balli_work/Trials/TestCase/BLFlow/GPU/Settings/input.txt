@@ -1,14 +1,14 @@
 #Number of particles(twidth*theight)
 twidth 1000
-theight 100
+theight 1000
 
 #Path Lines
 pwidth 3000
 pheight 1000
 
 #Set the Domain
-nx 10
-ny 10
+nx 30
+ny 30
 nz 30
 
 
@@ -41,7 +41,7 @@ advectChoice 4
 #use value of 4 for the varied in U direction
 #use value of 5 for reading in from QUIC-FILES
 #use value of 6 for creating fields from calculations
-windFieldData 5
+windFieldData 2
 
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
@@ -68,7 +68,7 @@ endCBoxTime 10.0
 averagingTime 9.0
 
 #Collection box bounds; lower_x,lower_y,lower_z, upper_x,upper_y,upper_z
-bounds 5.0 0.0 0.0 100.0 50.0 20.0
+bounds 2.0 2.0 2.0 20.0 20.0 20.0
 
 #Collection box discretization
 
@@ -91,7 +91,7 @@ num_of_sources 1
 #source_info line 5.0 20.0 5.0 5.0 30.0 5.0 60.0
 #source_info point 20.0 25.0 15.0 200.0
 #source_info line 10.0 115.0 5.0 90.0 115.0 5.0 200.0
-source_info sphere 5.0 25.0 3.0 0.1 200.0
+source_info sphere 15.0 15.0 15.0 0.2 200.0
 
 #Set the type of Particle Release
 release_type 1
@@ -118,6 +118,7 @@ numBuild 0
 #quicFilesPath Settings/SingleBuildingFiles/
 #quicFilesPath Settings/MultipleBuildingFiles/
 #quicFilesPath Settings/35BuildingFiles/
+quicFilesPath Settings/BLFlow/
 
 #Building Parameters
 #I'm defining it the same as in QUIC
