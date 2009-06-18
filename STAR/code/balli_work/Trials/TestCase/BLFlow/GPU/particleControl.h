@@ -11,6 +11,7 @@
 #include "framebufferObject.h"
 #include "GLSL.h"
 #include <string>
+#include <vector>
 
 typedef struct{
     float t11;
@@ -198,11 +199,19 @@ private:
     
     void updateMaxandMinWindVel(float,float,float,float);
     //calculating turbulence field    
+	std::vector<float> dutotdxi,dutotdyi,dutotdzi,dutotdni,dutotdsi;
+	std::vector<float> alph1ij,alph2ij,alph3ij,bet1ij,bet2ij,bet3ij,gam1ij,gam2ij,gam3ij,alphn1ij;
+    std::vector<float> alphn2ij,alphn3ij,betn1ij,betn2ij,betn3ij,gamn1ij,gamn2ij,gamn3ij,ani,bni,cni;
+	std::vector<float>ufsqgi,vfsqgi,wfsqgi,ufvfgi,ufwfgi,vfwfgi;
     void turbinit();
-    void detang(int);
-    void rotu3psq();
-    void rotufsq();
+    void detang(const int,const int&);
+    void rotu3psq(const int&,const float&,const float&,const float&,const float&
+							   ,const float&,const float& ,const float& ,float&,float&,float&
+							   ,float&,float&,float&);
+		
+    void rotufsq(const int&,float&,float&,float&,float&,const float&,const float&,const float&,const float&,const float&,const float&);
     void rotate2d(int,int,int);
+	float sign(const float&,const float&);
     
     wind* wind_vel;
     cellType* cellQuic;
