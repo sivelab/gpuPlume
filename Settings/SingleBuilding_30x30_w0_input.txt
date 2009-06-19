@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 500
-theight 500
+twidth 256
+theight 256
 
 
 #Path Lines
@@ -46,7 +46,7 @@ windFieldData 5
 #Set useRealTime to 0 for false and 1 for true
 useRealTime 0
 
-time_step 0.01
+time_step 0.001
 
 #output file for the values of the collection boxes
 output_file data.txt
