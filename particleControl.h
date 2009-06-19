@@ -180,6 +180,9 @@ class ParticleControl{
 
   GLenum texType;
 
+  GLuint windFieldVector_vbo;
+  int windFieldVector_w, windFieldVector_h;
+
  private:
   float min,max; 
 
@@ -256,6 +259,8 @@ class ParticleControl{
   GLint currentbuffer;
 
   std::string quicFilesPath;
+
+
 
 };
 #endif //__PC_H__

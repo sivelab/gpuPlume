@@ -55,6 +55,9 @@ class Util{
   //values for initializing the prime textures
   float ustar,sigU,sigV,sigW;
 
+  // toggle particle reuse
+  bool reuse_particles;
+
   //toggle visualization
   bool show_particle_visuals;
   //toggle collection box visuals

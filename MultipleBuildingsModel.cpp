@@ -60,7 +60,8 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   //If reuseParticles is set to true: fourth coordinate is <= lifetime if emiited, else lifetime+1
   reuseParticles = false;
   //Set this flag for continuous flow of particles.
-  continuousParticleFlow = true;
+  continuousParticleFlow = util->reuse_particles;
+  std::cout << "Particle Reuse is " << ((continuousParticleFlow == true) ? "ON" : "OFF") << std::endl;
   frameCount = 0;
   if(reuseParticles)
     lifeTime = 1.0;
@@ -672,6 +673,18 @@ int MultipleBuildingsModel::display(){
 	isoSurface->draw();
       }
 #endif
+
+      // Draw the wind field vectors...
+      glBindBufferARB(GL_ARRAY_BUFFER_ARB, pc->windFieldVector_vbo);
+      glColor3f(1.0, 0.0, 0.0);
+      glVertexPointer(3, GL_FLOAT, 0, 0);
+      glEnableClientState(GL_VERTEX_ARRAY);
+      // glDrawArrays(GL_LINES, 0, pc->windFieldVector_w*pc->windFieldVector_h);
+      glDrawArrays(GL_POINTS, 0, 10);
+      glDisableClientState(GL_VERTEX_ARRAY);
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
 
       //      planeVisual->drawScale();
 

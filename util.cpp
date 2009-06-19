@@ -9,6 +9,7 @@ Util::Util(){
   numb = 0;
   bounds = new float[6];
   output_id = "";
+  reuse_particles = false;
 }
 
 void Util::readInput(std::string file){
@@ -124,6 +125,13 @@ void Util::parseLine(char* line){
     sigU = 2.0f*f1;
     sigV = 2.0f*f1;
     sigW = 1.3f*f1;
+  }
+  if(read1Float(line, "reuse_particles", &f1)){
+    reuse_particles = false;
+    if((int)f1 == 0)
+      reuse_particles = false;
+    else
+      reuse_particles = true;
   }
   if(read1Float(line, "show_particle_visuals", &f1)){
     if(f1 == 0)
