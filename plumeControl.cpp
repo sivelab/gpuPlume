@@ -51,8 +51,10 @@ void PlumeControl::setupEmitters()
     }
  
   for(int i=0; i < util->numOfPE; i++){
-    if(reuseParticles)
-      pe[i]->setParticleReuse(&indicesInUse, lifeTime);
+    //if(reuseParticles)
+      //pe[i]->setParticleReuse(&indicesInUse, lifeTime);
+    if(continuousParticleFlow)
+	pe[i]->setContinuousParticleFlow(&indicesInUse, lifeTime);
 
     pe[i]->emit = false;
     //Set for different methods of emitting particles

@@ -59,6 +59,8 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
   //If reuseParticles is set to true: fourth coordinate is <= lifetime if emiited, else lifetime+1
   reuseParticles = false;
+  //Set this flag for continuous flow of particles.
+  continuousParticleFlow = true;
   frameCount = 0;
   if(reuseParticles)
     lifeTime = 1.0;

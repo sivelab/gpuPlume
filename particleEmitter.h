@@ -48,6 +48,8 @@ class ParticleEmitter{
 
   virtual void setParticleReuse(std::list<pIndex>*, float time);
 
+  virtual void setContinuousParticleFlow(std::list<pIndex>*, float time);
+
   virtual void setNumToEmit(float);
 
   virtual void setEmitAmount(float);
@@ -85,6 +87,7 @@ class ParticleEmitter{
   GLuint m_posTexID0, m_posTexID1;
 
   bool reuse;
+  bool continuosParticles;
 
   //Lifetime of particle
   float lifeTime;

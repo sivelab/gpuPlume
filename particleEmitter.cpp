@@ -166,6 +166,14 @@ void ParticleEmitter::setParticleReuse(std::list<pIndex>* ind, float time){
   reuse = true;
 
 }
+
+void ParticleEmitter::setContinuousParticleFlow(std::list<pIndex>* ind, float time)
+{
+  indicesInUse = ind;
+  lifeTime = time;
+  continuosParticles = true;
+}
+
 void ParticleEmitter::setNumToEmit(float num){
   emitAmount = num;
 }

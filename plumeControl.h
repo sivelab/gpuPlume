@@ -141,6 +141,7 @@ class PlumeControl{
 
   bool odd;
   bool reuseParticles;
+  bool continuousParticleFlow;
 
   GLSLObject emit_shader;
   GLenum int_format; 

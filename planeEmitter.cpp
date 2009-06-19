@@ -8,6 +8,8 @@
 #include <GL/glut.h>
 #endif
 
+static int frame_count = 0;
+
 PlaneEmitter::PlaneEmitter(float x, float y, float z,
 			   float wid, float ht,
 			   float rate,
@@ -143,6 +145,15 @@ int PlaneEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
 	//First get available index
 	p_index = indices->back();
 	indices->pop_back();
+
+	if(continuosParticles)
+	{	
+	   pIndex newIndex;
+	   newIndex.id = p_index;
+	   newIndex.time = 0;
+	   indicesInUse->push_back(newIndex);
+	}
+
 	if(reuse){
 	  pIndex newIndex;
 	  newIndex.id = p_index;
@@ -225,6 +236,25 @@ int PlaneEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
     }
     
   }
+  else
+  {
+    if(continuosParticles && frame_count > 100)
+    {
+	std::list<pIndex>::iterator iter;
+	pIndex reIndex;
+      
+	indices->clear();
+
+	for(iter = indicesInUse->begin(); iter != indicesInUse->end(); ++iter)
+	{
+	  reIndex = *iter;
+	  indices->push_front(reIndex.id);
+	}
+	indicesInUse->clear();
+	frame_count = 0;
+    }
+  }
+
   return count;
    
 }

@@ -1,5 +1,7 @@
 #include "pointEmitter.h"
 
+static int frame_count = 0;
+
 PointEmitter::PointEmitter(float x,float y,float z,float rate, int w, 
 			   int h,std::list<int>* ind,GLSLObject* emit_shader,
 			   std::vector<float>* randoms,wind* sig,
@@ -96,6 +98,15 @@ int PointEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
 	//First get available index
 	p_index = indices->back();
 	indices->pop_back();
+	
+	if(continuosParticles)
+	{	
+	   pIndex newIndex;
+	   newIndex.id = p_index;
+	   newIndex.time = 0;
+	   indicesInUse->push_back(newIndex);
+	}
+	
 	if(reuse){
 	  pIndex newIndex;
 	  newIndex.id = p_index;
@@ -171,6 +182,25 @@ int PointEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
     }    
 
   }
+  else
+  {
+    if(continuosParticles && frame_count > 100)
+    {
+	std::list<pIndex>::iterator iter;
+	pIndex reIndex;
+      
+	indices->clear();
+
+	for(iter = indicesInUse->begin(); iter != indicesInUse->end(); ++iter)
+	{
+	  reIndex = *iter;
+	  indices->push_front(reIndex.id);
+	}
+	indicesInUse->clear();
+	frame_count = 0;
+    }
+  }
+
   //return numToEmit;
   return count;
    
