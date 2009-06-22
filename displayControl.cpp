@@ -256,8 +256,6 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
 
   sphereParticle_shader.deactivate();
 
-
-
 #if 0
   // Sample code to draw the particle positions...
     {

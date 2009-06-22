@@ -674,6 +674,7 @@ int MultipleBuildingsModel::display(){
       }
 #endif
 
+#if 0
       // Draw the wind field vectors...
       glBindBufferARB(GL_ARRAY_BUFFER_ARB, pc->windFieldVector_vbo);
       glColor3f(1.0, 0.0, 0.0);
@@ -683,7 +684,7 @@ int MultipleBuildingsModel::display(){
       glDrawArrays(GL_POINTS, 0, 10);
       glDisableClientState(GL_VERTEX_ARRAY);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+#endif
 
 
       //      planeVisual->drawScale();

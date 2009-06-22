@@ -1593,8 +1593,8 @@ void ParticleControl::initWindTex(GLuint windField, int* numberInRow, int dataSe
     createTexture(windField, GL_RGBA32F_ARB, width, height, data);
 
     delete [] data;
-  }
 
+  }
 }
 void ParticleControl::initLambda_and_TauTex(GLuint lambda, GLuint tau_dz, GLuint duvw_dz){
   GLfloat *data = new GLfloat[ width * height * 4 ];
@@ -1851,6 +1851,14 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 
   float indexVal,extraVal,elz,eps; // indexVal is for x,y and z locations , eps and elz are required for ustar calculations.
 
+#if 0
+    //
+    // Create a VBO to hold the data for drawing arrows
+    //
+  
+  GLfloat *windVBOdata = new GLfloat[ width * height * 3];  // Enough to hold the wind field direction vectors AND the center position of each cell
+#endif
+
   for (qk=0; qk<nzdz; qk++) 
     for (qi=0; qi<nydy; qi++)
       for (qj=0; qj<nxdx; qj++)
@@ -1945,6 +1953,23 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//(0.5*5.7)*(ustar*ustar*ustar)/(0.4*(minDistance));
 	    //This value is the '0.5*CoEps' value	
 
+	    // Each of these are going to be considered lines so the first will be the cell center..
+	    // Store the
+	    // std::cout << "(" << qj << ", " << qi << ", " << qk << ")" << std::endl;
+
+#if 0
+	      windVBOdata[texidx] = qj;
+	    windVBOdata[texidx+1] = qi;
+	    windVBOdata[texidx+2] = qk;
+
+
+	    float windMag = sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u + wind_vel[p2idx].v*wind_vel[p2idx].v + wind_vel[p2idx].w*wind_vel[p2idx].w);	 
+
+	    windVBOdata[texidx+3] = qj + 0.5 + wind_vel[p2idx].u/windMag;
+	    windVBOdata[texidx+4] = qi + 0.5 + wind_vel[p2idx].v/windMag;
+	    windVBOdata[texidx+5] = qk + 0.5 + wind_vel[p2idx].w/windMag;	 
+#endif
+
 	    updateMaxandMinWindVel(dataWind[texidx],dataWind[texidx+1],dataWind[texidx+2],dataWind[texidx+3]);
 
 	  }
@@ -1981,10 +2006,30 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    dataWind[texidx+2] = wind_vel[p2idx].w;	  
 	    dataWind[texidx+3] = (0.5f*5.7f)*eps;//This value is the '0.5*CoEps' value
 
+#if 0
+	    windVBOdata[texidx] = -1.0;
+	    windVBOdata[texidx+1] = -1.0;
+	    windVBOdata[texidx+2] = -1.0;
+#endif
+
 	  }
 	}
 
   find_tauLocalMax();
+
+
+#if 0
+    windFieldVector_w = width;
+    windFieldVector_h = height;
+    glGenBuffersARB(1, &windFieldVector_vbo);
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, windFieldVector_vbo);
+    glBufferDataARB(GL_ARRAY_BUFFER_ARB, width*height*4*sizeof(GLfloat), windVBOdata, GL_STATIC_DRAW_ARB);
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+
+    delete [] windVBOdata;
+#endif
+
+
 
 
   /*std::cout << "WindMax x = " << windMax[0] << std::endl;
@@ -2785,7 +2830,6 @@ void ParticleControl::QUICWindField(){
   }
   
   QUICWindField.close();
-
 }
 void ParticleControl::initCellType(){
   std::ifstream QUICCellType;
