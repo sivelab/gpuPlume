@@ -8,8 +8,8 @@ pwidth 300
 pheight 100
 
 #Set the Domain
-nx 30
-ny 60
+nx 50
+ny 80
 nz 20
 
 dx 1.0
@@ -84,7 +84,7 @@ num_of_sources 1
 
 # Source Format:
 # source_info sphere <Xcenter> <Ycenter> <Zcenter> <radius> <rate>
-source_info sphere 15.0 50.0 1.0 0.5 800.0
+source_info sphere 25.0 70.0 1.0 0.5 800.0
 
 #Set the type of Particle Release
 release_type 2
@@ -113,7 +113,7 @@ quicFilesPath Settings/SingleBuilding_30x60_w0/
 #Building Parameters
 #I'm defining it the same as in QUIC
 #(x,y,z) (height, width, length)
-build_param 10.0 35.0 0.0 10.0 10.0 10.0 
+build_param 20.0 60.0 0.0 10.0 10.0 10.0 
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
