@@ -7,7 +7,7 @@ pwidth 300
 pheight 100
 
 #Set the Domain
-nx 30
+nx 50
 ny 80
 nz 30
 
@@ -67,7 +67,7 @@ endCBoxTime 0.0
 averagingTime 0.0
 
 #Collection box bounds; lower_x,lower_y,lower_z, upper_x,upper_y,upper_z
-bounds 5.0 0.0 0.0 100.0 50.0 20.0
+bounds 0.0 0.0 0.0 50.0 80.0 20.0
 
 #Collection box discretization
 
@@ -83,7 +83,7 @@ num_of_sources 1
 
 # Source Format:
 # source_info sphere <Xcenter> <Ycenter> <Zcenter> <radius> <rate>
-source_info sphere 25.0 63.0 1.0 0.5 800.0
+source_info sphere 35.0 60.0 1.0 0.5 800.0
 
 #Set the type of Particle Release
 release_type 2
@@ -112,8 +112,8 @@ quicFilesPath Settings/TwoBuildings_30x80_w30/
 #Building Parameters
 #I'm defining it the same as in QUIC
 #(x,y,z) (height, width, length)
-build_param 10.0 45.0 0.0 20.0 10.0 10.0 
-build_param 10.0 25.0 0.0 10.0 10.0 10.0 
+build_param 20.0 60.0 0.0 20.0 10.0 10.0 
+build_param 20.0 40.0 0.0 10.0 10.0 10.0 
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
