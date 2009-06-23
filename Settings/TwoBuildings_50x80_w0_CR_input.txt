@@ -85,10 +85,10 @@ num_of_sources 1
 
 # Source Format:
 # source_info sphere <Xcenter> <Ycenter> <Zcenter> <radius> <rate>
-source_info sphere 25.0 68.0 1.0 0.5 800.0
+source_info sphere 25.0 68.0 1.0 0.5 1000.0
 
 #Set the type of Particle Release
-release_type 2
+release_type 1
 
 #Set to 0 and it will release a set number of particles per time step
 #based on simulation duration. 

@@ -1,6 +1,6 @@
 #Number of particles(twidth*theight)
-twidth 512
-theight 512
+twidth 1000
+theight 1000
 
 reuse_particles 1
 

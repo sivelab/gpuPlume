@@ -1,7 +1,8 @@
 #Number of particles(twidth*theight)
-twidth 256
-theight 256
+twidth 1000
+theight 1000
 
+# reuse_particles 1
 
 #Path Lines
 pwidth 300

@@ -11,7 +11,7 @@ pheight 100
 #Set the Domain
 nx 50
 ny 80
-nz 30
+nz 20
 
 dx 1.0
 dy 1.0  
@@ -85,10 +85,10 @@ num_of_sources 1
 
 # Source Format:
 # source_info sphere <Xcenter> <Ycenter> <Zcenter> <radius> <rate>
-source_info sphere 25.0 68.0 1.0 0.5 800.0
+source_info sphere 25.0 70.0 1.0 0.5 1000.0
 
 #Set the type of Particle Release
-release_type 2
+release_type 1
 
 #Set to 0 and it will release a set number of particles per time step
 #based on simulation duration. 
@@ -104,18 +104,17 @@ emit_method 0
 
 #Number of Buildings
 #Set to 0 for no buildings
-numBuild 2
+numBuild 1
 
 #Path to read QUICFILES
 #6 Buildings case: Settings/MultipleBuildingFiles/
 #Single Building case: Settings/SingleBuildingFiles/
-quicFilesPath Settings/TwoBuildings_50x80_w0/
+quicFilesPath Settings/SingleBuilding_30x60_w0/
 
 #Building Parameters
 #I'm defining it the same as in QUIC
 #(x,y,z) (height, width, length)
-build_param 20.0 60.0 0.0 20.0 10.0 10.0 
-build_param 20.0 40.0 0.0 10.0 10.0 10.0 
+build_param 20.0 60.0 0.0 10.0 10.0 10.0 
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
