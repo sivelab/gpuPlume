@@ -93,12 +93,21 @@ int main(int argc, char** argv)
 
   if (argc == 2)
     {
-      std::cout << "Reading input file from " << argv[1] << std::endl;
-      util->readInput(argv[1]);
-      // util->readInput("/tmp/file");
+      std::cout << "Reading input from file: \"" << argv[1] << "\"" << std::endl;
+      if (util->readInput(argv[1]) == false)
+	{
+	  std::cerr << "Could not open or parse input file: \"" << argv[1] << "\"\nExiting." << std::endl;
+	  exit(EXIT_FAILURE);
+	}
     }
   else 
-    util->readInput("Settings/input.txt");
+    {
+      if (util->readInput("Settings/input.txt") == false)
+	{
+	  std::cerr << "Could not open or parse input file: \"" << argv[1] << "\"\nExiting." << std::endl;
+	  exit(EXIT_FAILURE);
+	}
+    }
 
   //plume = new PlumeControl(util);
   //Options are:

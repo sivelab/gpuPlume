@@ -10,7 +10,7 @@ class Util{
  public:
 
   Util();
-  void readInput(std::string);
+  bool readInput(std::string);
 
   //number of particles
   int twidth,theight;
@@ -126,6 +126,9 @@ class Util{
   bool readSourceInfo(char*,std::string,int&,float*);
   bool readComment(const char*);
   bool read1String(const char*, const char*,std::string*);
+
+  bool isQUICProjFile(std::ifstream& inputStream);
+  bool readQUICBaseFiles( std::string& QUICFilesPath );
 
   //keeps track of number of sources
   int num;
