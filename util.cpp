@@ -6,7 +6,7 @@
 #include "util.h"
 #include "gpuPlume.h"
 
-#include "/home/cs/vr/users/willemsn/quicurbCUDA/fileParser/standard/legacyFileParser.h"
+#include "legacyFileParser.h"
 
 Util::Util(){
   num = 0;
