@@ -42,9 +42,9 @@ COBJS   = $(CSRC:.cpp=.o)
 # FOBJS =  $(FSRCS:.f90=.o)
 # FOBJSS = DataModule.o ReadFiles.o
 
-LIB=-lGLEW -framework GLUT -framework OpenGL -framework Foundation
+LIB=-lGLEW -framework GLUT -framework OpenGL -framework Foundation -LfileParser/standard -lStandardFileParser
 LIB_PATH=
-INCLUDE_PATH=
+INCLUDE_PATH=-IfileParser/standard
 
 # LIB=-Wl,-rpath=/home/cs/vr/software/glew-1.3.4.dist/lib -lGLEW -lglut -lGL 
 # LIB_PATH=-L/home/cs/vr/software/glew-1.3.4.dist/lib
