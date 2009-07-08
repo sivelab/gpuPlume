@@ -1155,10 +1155,10 @@ void DisplayControl::drawFeatures(void)
                  t2=float((Theta+incr)/360.0);
                  //printf(" \n %f %f %f %f\n",xfo[qi]-((lti[qi]/2.0)*cos(Theta)),yfo[qi]-((lti[qi]/2.0)*sin(Theta)),xfo[qi]-((lti[qi]/2.0)*cos(Theta+incr)),yfo[qi]-((lti[qi]/2.0)*sin(Theta+incr)));
                  //printf(" \n %f %f\n",cos(Theta+incr),sin(Theta+incr));
-                 glTexCoord2f(t1,0);       glVertex3f(xfo[qi]-((lti[qi]/2.0)*cos(Theta*(3.14/180.0))-lti[qi]/2.0),yfo[qi]-((lti[qi]/2.0)*sin(Theta*(3.14/180.0))),zfo[qi]);
-	         glTexCoord2f(t2,0);       glVertex3f(xfo[qi]-((lti[qi]/2.0)*cos((Theta+incr)*(3.14/180.0))-lti[qi]/2.0),yfo[qi]-((lti[qi]/2.0)*sin((Theta+incr)*(3.14/180.0))),zfo[qi]);
-	         glTexCoord2f(t2,1);       glVertex3f(xfo[qi]-((lti[qi]/2.0)*cos((Theta+incr)*(3.14/180.0))-lti[qi]/2.0),yfo[qi]-((lti[qi]/2.0)*sin((Theta+incr)*(3.14/180.0))),zfo[qi]+ht[qi]); 
-	         glTexCoord2f(t1,1);       glVertex3f(xfo[qi]-((lti[qi]/2.0)*cos(Theta*(3.14/180.0))-lti[qi]/2.0),yfo[qi]-((lti[qi]/2.0)*sin(Theta*(3.14/180.0))),zfo[qi]+ht[qi]);               
+                 glTexCoord2f(t1,0);       glVertex3f(xfo[qi]-((lti[qi]/2.0)*cos(Theta*(3.14/180.0))-lti[qi]/2.0),yfo[qi]-((wti[qi]/2.0)*sin(Theta*(3.14/180.0))),zfo[qi]);
+	         glTexCoord2f(t2,0);       glVertex3f(xfo[qi]-((lti[qi]/2.0)*cos((Theta+incr)*(3.14/180.0))-lti[qi]/2.0),yfo[qi]-((wti[qi]/2.0)*sin((Theta+incr)*(3.14/180.0))),zfo[qi]);
+	         glTexCoord2f(t2,1);       glVertex3f(xfo[qi]-((lti[qi]/2.0)*cos((Theta+incr)*(3.14/180.0))-lti[qi]/2.0),yfo[qi]-((wti[qi]/2.0)*sin((Theta+incr)*(3.14/180.0))),zfo[qi]+ht[qi]); 
+	         glTexCoord2f(t1,1);       glVertex3f(xfo[qi]-((lti[qi]/2.0)*cos(Theta*(3.14/180.0))-lti[qi]/2.0),yfo[qi]-((wti[qi]/2.0)*sin(Theta*(3.14/180.0))),zfo[qi]+ht[qi]);               
               }
          }
          glEnd();
