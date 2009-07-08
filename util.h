@@ -100,6 +100,7 @@ class Util{
   float* ht;
   float* wti;
   float* lti;
+  float* gamma;
   int numBuild;
 
   std::string quicFilesPath;

@@ -1,3 +1,9 @@
+/* util.cpp
+   
+   Last Author: $Author$
+   Last Date Changed in Repository: $Date$
+
+ */
 #include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
@@ -595,6 +601,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   ht = new float[numBuild];
   wti = new float[numBuild];
   lti = new float[numBuild];
+  // gamma = new float[numBuild];
 		
   // building description !Bld #	Group	Type	Height	Width	Length	Xfo	Yfo	Zfo	Gamma	Attenuation	Values in grid cell units
   //						!1	1	1	10	48	49	37	63	0	0	0
@@ -631,6 +638,8 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
 	    ht[i] = h;
 	    wti[i] = w;
 	    lti[i] = l;
+
+	    // gamma[i] = gamma_degrees;
 	    break;
 	    
 	    //case building::PENTAGON:		b = new pentagon(); 	break;

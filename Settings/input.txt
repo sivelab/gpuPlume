@@ -2,7 +2,7 @@
 twidth 1000
 theight 1000
 
-# reuse_particles 1
+reuse_particles 1
 
 #Path Lines
 pwidth 3000

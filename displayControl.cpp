@@ -912,6 +912,8 @@ void DisplayControl::drawFeatures(void)
   for (int qi=0; qi<numBuild; qi++)
     {
       //glPushMatrix();
+      // glRotatef(gamma[qi], 0.0, 0.0, 1.0);
+
       glColor4f(1.0, 1.0, 1.0,1.0);
 
       /*glTranslatef(xfo[qi]*grid_scale+ (lti[qi]*grid_scale)/2.0,
@@ -962,6 +964,8 @@ void DisplayControl::drawFeatures(void)
       }
       glEnd();
     }
+  
+  // glPopMatrix();
 
   // glDisable(GL_LIGHT0);
   // glDisable(GL_LIGHTING);

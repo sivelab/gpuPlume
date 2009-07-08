@@ -10,9 +10,9 @@ COBJS   = $(CSRC:.cpp=.o)
 # LIB_PATH=
 # INCLUDE_PATH=
 
-LIB=-lGLEW -lglut -lGL -L/home/cs/vr/users/willemsn/quicurbCUDA/fileParser/standard -lStandardFileParser
+LIB=-lGLEW -lglut -lGL -LfileParser/standard -lStandardFileParser
 LIB_PATH=
-INCLUDE_PATH=
+INCLUDE_PATH=-IfileParser/standard 
 
 
 FLAGS = $(INCLUDE_PATH) $(LIB_PATH) $(LIB)
