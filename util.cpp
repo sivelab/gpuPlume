@@ -608,7 +608,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   wti = new float[numBuild];
   lti = new float[numBuild];
   numSides = new int[numBuild];
-  // gamma = new float[numBuild];
+  gamma = new float[numBuild];
 		
   // building description !Bld #	Group	Type	Height	Width	Length	Xfo	Yfo	Zfo	Gamma	Attenuation	Values in grid cell units
   //						!1	1	1	10	48	49	37	63	0	0	0
@@ -619,7 +619,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   int group = 0;
   int type = 0;
 		
-  float gamma_degrees = 0.0, attenuation = 0.0;
+  float gamma_degrees=0.0,attenuation = 0.0;
 	    
   float h,w,l;
   float x,y,z;
@@ -629,55 +629,31 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
       getline(bldFile, line);
       ss.str(line);
       ss >> num	>> group >> type;
-				
+      ss >> h >> w >> l >> x >> y >> z >> gamma_degrees >> attenuation;
+      ss.clear();
+      xfo[i] = x;
+      yfo[i] = y;
+      zfo[i] = z;      
+      ht[i] = h;
+      wti[i] = w;
+      lti[i] = l;
+      gamma[i] = gamma_degrees;			
+      
       switch(type)
-	{
+      {
 	  case 1:
-	    ss	>> h >> w >> l
-		>> x >> y >> z
-		>> gamma_degrees >> attenuation;
-	    ss.clear();
             numSides[i]=4;
-	    xfo[i] = x;
-	    yfo[i] = y;
-	    zfo[i] = z;
-	      
-	    ht[i] = h;
-	    wti[i] = w;
-	    lti[i] = l;
-
-	    // gamma[i] = gamma_degrees;
 	    break;
 	    
 	case 2:    // building::CYLINDICAL
-            ss	>> h >> w >> l
-		>> x >> y >> z
-		>> gamma_degrees >> attenuation;
-	    ss.clear();
+            
             numSides[i]=1;
-	    xfo[i] = x;
-	    yfo[i] = y;
-	    zfo[i] = z;
-	      
-	    ht[i] = h;
-	    wti[i] = w;
-	    lti[i] = l;
 	    break;
 	    
 	case 3:         // building::PENTAGON:
-            ss	>> h >> w >> l
-		>> x >> y >> z
-		>> gamma_degrees >> attenuation;
-	    ss.clear();
+           
             numSides[i]=5;
-	    xfo[i] = x;
-	    yfo[i] = y;
-	    zfo[i] = z;
-	      
-	    ht[i] = h;
-	    wti[i] = w;
-	    lti[i] = l;
-	  break;
+	    break;
 
 	    //case building::VEGETATION:	b = new vegetation(); break;
 

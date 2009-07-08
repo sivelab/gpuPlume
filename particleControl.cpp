@@ -45,7 +45,7 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
 
 }
 void ParticleControl::setBuildingParameters(int nB,int* ns,float* x,float* y,float* z,
-					   float* h,float* w,float* l){
+					   float* h,float* w,float* l,float* g){
   numBuild = nB;
   numSides = ns;
   xfo = x;
@@ -54,6 +54,7 @@ void ParticleControl::setBuildingParameters(int nB,int* ns,float* x,float* y,flo
   ht = h;
   wti = w;
   lti = l; 
+  gamma =g;
 }
 void ParticleControl::setQuicFilesPath(std::string path){
   quicFilesPath = path;

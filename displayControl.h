@@ -41,7 +41,7 @@ class DisplayControl{
   void setRotateAround(float);
   void lookUporDown(float);
   void initVars(int,int*,float*,float*,float*,
-		      float*,float*,float*);
+		      float*,float*,float*,float*);
   
   void setEmitter(ParticleEmitter*);
   void setVisualPlane(VisualPlane*);
@@ -91,6 +91,7 @@ class DisplayControl{
   //Feature Variables
   int numBuild;
   int* numSides;
+  float* gamma;
   float* xfo;
   float* yfo;
   float* zfo;

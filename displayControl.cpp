@@ -759,7 +759,7 @@ void instanceCube()
 {
 }
 void DisplayControl::initVars(int nb,int* ns,float* x, float* y, float* z,
-				    float* h, float* w, float* l)
+				    float* h, float* w, float* l,float* g)
 {
   numBuild = nb;
   numSides = ns;
@@ -769,7 +769,7 @@ void DisplayControl::initVars(int nb,int* ns,float* x, float* y, float* z,
   ht = h;
   wti = w;
   lti = l;
-  
+  gamma=g;
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
   glGenTextures(3,displayTex);
@@ -914,11 +914,13 @@ void DisplayControl::drawFeatures(void)
   // Draw the building
   for (int qi=0; qi<numBuild; qi++) 
     {
-      //glPushMatrix();
-
+      
       if(numSides[qi]==4)
       {
-      // glRotatef(gamma[qi], 0.0, 0.0, 1.0);
+      glPushMatrix();
+      glTranslatef(xfo[qi],yfo[qi],zfo[qi]);
+      glRotatef((GLfloat)(gamma[qi]), 0.0, 0.0, 1.0);
+      glTranslatef(-xfo[qi],-yfo[qi],-zfo[qi]);
       glColor4f(1.0, 1.0, 1.0,1.0);
 
       glBindTexture(GL_TEXTURE_2D, displayTex[1]);
@@ -957,11 +959,16 @@ void DisplayControl::drawFeatures(void)
 		
       }
       glEnd();
+      glPopMatrix();
      }
 
     //drawing a pentagon
      else if(numSides[qi]==5)
      {
+        glPushMatrix();
+        glTranslatef(xfo[qi],yfo[qi],zfo[qi]);
+      glRotatef((GLfloat)(gamma[qi]), 0.0, 0.0, 1.0);
+      glTranslatef(-xfo[qi],-yfo[qi],-zfo[qi]);
         glBindTexture(GL_TEXTURE_2D, displayTex[1]);
         //glTranslatef(3,0,0);
 
@@ -1057,6 +1064,7 @@ void DisplayControl::drawFeatures(void)
 
       }
       glEnd();
+      glPopMatrix();
       //glTranslatef(-3,0,0);
 
      }
@@ -1064,8 +1072,12 @@ void DisplayControl::drawFeatures(void)
      //drawing a hexagon
      else if(numSides[qi]==6)
      {
+        glPushMatrix();
+        glTranslatef(xfo[qi],yfo[qi],zfo[qi]);
+      glRotatef((GLfloat)(gamma[qi]), 0.0, 0.0, 1.0);
+      glTranslatef(-xfo[qi],-yfo[qi],-zfo[qi]);
         glBindTexture(GL_TEXTURE_2D, displayTex[1]);
-        glTranslatef(3,0,0);
+        //glTranslatef(3,0,0);
 
       glBegin(GL_QUADS);
       {
@@ -1120,7 +1132,8 @@ void DisplayControl::drawFeatures(void)
 
       }
       glEnd();
-      glTranslatef(-3,0,0);
+      glPopMatrix();
+      //glTranslatef(-3,0,0);
 
      }
     //drawing a cylinder 
@@ -1128,6 +1141,10 @@ void DisplayControl::drawFeatures(void)
     {
          
          float t1,t2;
+         glPushMatrix();
+         glTranslatef(xfo[qi],yfo[qi],zfo[qi]);
+      glRotatef((GLfloat)(gamma[qi]), 0.0, 0.0, 1.0);
+      glTranslatef(-xfo[qi],-yfo[qi],-zfo[qi]);
          glBindTexture(GL_TEXTURE_2D, displayTex[1]);
          glBegin(GL_QUADS);
          {
@@ -1159,7 +1176,7 @@ void DisplayControl::drawFeatures(void)
               }
          }
          glEnd();
-
+         glPopMatrix();
     }
   
   // glPopMatrix();
