@@ -69,7 +69,7 @@ void GaussianModel::init(bool OSG){
   pc->setUstarAndSigmas(util->ustar);
 
   dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
-  dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
+  dc->initVars(util->numBuild,util->numSides,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
   dc->draw_buildings = false;
   
   if(osgPlume){

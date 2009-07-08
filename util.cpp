@@ -155,6 +155,7 @@ bool Util::readInput(std::string file){
 void Util::parseLine(char* line){
 
   float f1;
+  float* b1 = new float[7];
   float* b = new float[6];
   int s_type;
   float* s = new float[8];
@@ -329,6 +330,8 @@ void Util::parseLine(char* line){
   }
   if(read1Float(line, "numBuild", &f1)){
     numBuild = (int)f1;
+    //introducing number of sides of the building for drawing purpose
+    numSides = new int[numBuild];
     xfo = new float[numBuild];
     yfo = new float[numBuild];
     zfo = new float[numBuild];
@@ -336,13 +339,16 @@ void Util::parseLine(char* line){
     wti = new float[numBuild];
     lti = new float[numBuild];
   }
-  if(read6Float(line, "build_param", b)){
-    xfo[numb] = b[0];
-    yfo[numb] = b[1];
-    zfo[numb] = b[2];
-    ht[numb]  = b[3];
-    wti[numb] = b[4];
-    lti[numb] = b[5];
+   if(read7Float(line, "build_param", b1)){
+	//printf("\n %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n", b1[0], b1[1], b1[2], b1[3], b1[4], b1[5], b1[6]);
+    numSides[numb] = b1[0];
+    xfo[numb] = b1[1];
+    yfo[numb] = b1[2];
+    zfo[numb] = b1[3];
+    ht[numb]  = b1[4];
+    wti[numb] = b1[5];
+    lti[numb] = b1[6];
+    printf("\n %d %f %f %f %f %f %f \n",numSides[numb], xfo[numb], yfo[numb], zfo[numb], ht[numb], wti[numb], b1[6]);
     numb++;
   }
   if(read1String(line, "quicFilesPath", &s1)){
@@ -411,7 +417,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   windFieldData = 5; // #use value of 5 for reading in from QUIC-FILES
 
   useRealTime = false;
-  time_step = 0.01;   // should read this from QP_params.inp
+  time_step = 0.1;   // should read this from QP_params.inp
 
   emit_method = 0;
 
@@ -601,6 +607,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   ht = new float[numBuild];
   wti = new float[numBuild];
   lti = new float[numBuild];
+  numSides = new int[numBuild];
   // gamma = new float[numBuild];
 		
   // building description !Bld #	Group	Type	Height	Width	Length	Xfo	Yfo	Zfo	Gamma	Attenuation	Values in grid cell units
@@ -630,7 +637,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
 		>> x >> y >> z
 		>> gamma_degrees >> attenuation;
 	    ss.clear();
-
+            numSides[i]=4;
 	    xfo[i] = x;
 	    yfo[i] = y;
 	    zfo[i] = z;
@@ -642,8 +649,36 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
 	    // gamma[i] = gamma_degrees;
 	    break;
 	    
-	    //case building::PENTAGON:		b = new pentagon(); 	break;
-	    //case building::CYLINDICAL:	b = new cylinder(); 	break;
+	case 2:    // building::CYLINDICAL
+            ss	>> h >> w >> l
+		>> x >> y >> z
+		>> gamma_degrees >> attenuation;
+	    ss.clear();
+            numSides[i]=1;
+	    xfo[i] = x;
+	    yfo[i] = y;
+	    zfo[i] = z;
+	      
+	    ht[i] = h;
+	    wti[i] = w;
+	    lti[i] = l;
+	    break;
+	    
+	case 3:         // building::PENTAGON:
+            ss	>> h >> w >> l
+		>> x >> y >> z
+		>> gamma_degrees >> attenuation;
+	    ss.clear();
+            numSides[i]=5;
+	    xfo[i] = x;
+	    yfo[i] = y;
+	    zfo[i] = z;
+	      
+	    ht[i] = h;
+	    wti[i] = w;
+	    lti[i] = l;
+	  break;
+
 	    //case building::VEGETATION:	b = new vegetation(); break;
 
 	  default:
@@ -1033,7 +1068,25 @@ bool Util::read3Float(char *line, std::string settingName, float *f)
 
     return false;
 }
+bool Util::read7Float(char *line, std::string settingName, float *f)
+{
+	std::istringstream ist(line);
 
+	std::string w;
+	ist >> w;
+	if(w == settingName){
+		ist >> f[0];
+		ist >> f[1];
+		ist >> f[2];
+		ist >> f[3];
+		ist >> f[4];
+		ist >> f[5];
+                ist >> f[6];
+		return true;
+	}
+	
+    return false;
+}
 bool Util::read6Float(char *line, std::string settingName, float *f)
 {
 	std::istringstream ist(line);

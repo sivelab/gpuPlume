@@ -36,7 +36,31 @@ uniform int random_texWidth;
 uniform int random_texHeight;
 uniform vec2 random_texCoordOffset;
 int check; //to check how many times CFL condition got applied
+//function returns the celltype of the location i,j,k
+float ReturnCellType(int i,int j,int k)
+{
+          vec4 cell_type=vec4(1.0,1.0,1.0,1.0);
+          vec2 cIndex;
+          if(k < 0)
+	    k = 0;
 
+	  if(k >= 0){
+	    cIndex.s = float(i) + float(mod(float(k),float(numInRow)))*float(nxdx);
+	    cIndex.t = float(j) + float(floor(float(k)/float(numInRow)))*float(nydy);
+	    cell_type = vec4(texture2DRect(cellType, cIndex));  
+	  }
+          return cell_type.x;
+}
+float absolute(float i)
+{
+      if(i<0) return -i;
+      else return i;
+}
+int maximum(int i,int j)
+{
+     if(i>j) return i;
+     else return j;
+}
 void main(void)
 {
   vec3 drift_term;
@@ -112,19 +136,19 @@ void main(void)
 
     //The floor of the position in 3D space is needed to find the index into
     //the 2D Texture.
-    int i = int(floor(pos.y));
-    int j = int(floor(pos.x));
+    int j = int(floor(pos.y));
+    int i = int(floor(pos.x));
     int k = int(floor(pos.z));
 	
     //This statement doesn't allow particles to move outside the domain.
     //So, the particles inside the domain are the only ones operated on. 
-    if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0) && (k >= 0)){
+    if((i < nx) && (j < ny) && (k < nz) && (i >= 0) && (j >= 0) && (k >= 0)){
    
       
       //This is the initial lookup into the 2D texture that holds the wind field.
       vec2 index;
-      index.s = float(j) + float(mod(float(k),float(numInRow)))*float(nxdx);
-      index.t = float(i) + float(floor(float(k)/float(numInRow)))*float(nydy);
+      index.s = float(i) + float(mod(float(k),float(numInRow)))*float(nxdx);
+      index.t = float(j) + float(floor(float(k)/float(numInRow)))*float(nydy);
 
       vec4 wind = vec4(texture2DRect(wind_texunit, index));
       vec4 lam = vec4(texture2DRect(lambda, index));
@@ -227,7 +251,8 @@ void main(void)
 
 	//Now move the particle by adding the direction.
 	pos = pos + vec4(wind.x,wind.y,wind.z,0.0)*timeStepSim + vec4(0.5*(prmPrev+prmCurr),0.0)*timeStepSim;
-   
+        //if(ReturnCellType(i,j,k)==0) pos=pos+vec4(1.0,-2.0,0.0,0.0);
+        vec3 n;
 	//Now do Reflection		
 	vec3 u;
 	//point of intersection
@@ -240,149 +265,156 @@ void main(void)
 	vec3 normal;
 	//distance from reflected surface
 	float dis;
-
+        float d;
 	float denom;
 	float numer;
 	
 	vec2 cIndex;	
 
-	i = int(floor(pos.y));
-	j = int(floor(pos.x));
+	j = int(floor(pos.y));
+	i = int(floor(pos.x));
 	k = int(floor(pos.z));
-	int count = 0;	
+	int cnt = 0;	
 	float eps_S = 0.0001;
 	float eps_d = 0.01;
 	float smallestS = 100.0;
-
-	if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0)){
-	  vec4 cell_type = vec4(1.0,1.0,1.0,1.0);
-	
-	  if(k < 0)
-	    k = 0;
-
-	  if(k >= 0){
-	    cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nxdx);
-	    cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(nydy);
-	    //cIndex.s = j + mod(k,numInRow)*nx;
-	    //cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
-
-	    //Perform lookup into wind texture to see if new position is inside a building
-	    cell_type = vec4(texture2DRect(cellType, cIndex));  
-	  }
-	  count = 0;
-	  while(((cell_type.x == 0.0 && cell_type.y == 0.0 && cell_type.z == 0.0) || (pos.z < 0.0)) && (count < 20)){
-	    count = count + 1;
-	    u = vec3(pos) - prevPos;
-	       
-	    float d;
-	    vec3 n;
-	    float s1 = -1.0;
-	    float s2 = -1.0;
-	    float s3 = -1.0;
-	    float s4 = -1.0;
-	    float s5 = -1.0;
-	    float s6 = -1.0;
-	    float s7 = -1.0;
-
-	    smallestS = 100.0;
-
-	    int id = int(cell_type.w);
-	    vec2 bindex;
-	    bindex.s = 0.0;
-	    bindex.t = float(id);
-		
-	    vec3 bcoords = vec3(texture2DRect(buildings, bindex));
-	    float xfo = bcoords.x;
-	    float yfo = bcoords.y;
-	    float zfo = bcoords.z;
-
-	    bindex.x = 1.0;
-	    vec3 bdim = vec3(texture2DRect(buildings,bindex));
-	    float ht = bdim.x;
-	    float wti = bdim.y;
-	    float lti = bdim.z;
-	    
-	    //-x normal  
-	    n = vec3(-1.0,0.0,0.0);
-	    d = -dot(n,vec3(xfo,0.0,0.0));
-	    denom = dot(n,u);
-	    numer = dot(n,prevPos) + d;
-	    s1 = -numer/denom;
-      
-	    //+x normal
-	    n = vec3(1.0,0.0,0.0);
-	    d = -dot(n,vec3(xfo+lti,0.0,0.0));
-	    denom = dot(n,u);
-	    numer = dot(n,prevPos) + d;
-	    s2 = -numer/denom;
         
-	    //+y normal
-	    n = vec3(0.0,1.0,0.0);
-	    d = -dot(n,vec3(xfo,yfo+(wti/2.0),0.0));
-	    denom = dot(n,u);
-	    numer = dot(n,prevPos) + d;
-	    s3 = -numer/denom;
-           
-	    //-y normal
-	    n = vec3(0.0,-1.0,0.0);
-	    d = -dot(n,vec3(xfo,yfo-(wti/2.0),0.0));
-	    denom = dot(n,u);
-	    numer = dot(n,prevPos) + d;
-	    s4 = -numer/denom;
-      	
-	    //+z normal
-	    n = vec3(0.0,0.0,1.0);
-	    d = -dot(n,vec3(xfo,0.0,zfo+ht));
-	    denom = dot(n,u);
-	    numer = dot(n,prevPos) + d;
-	    s5 = -numer/denom;
-	    //-z normal
-	    /*n = vec3(0.0,0.0,-1.0);
-	      d = -dot(n,vec3(xfo,0.0,zfo));
-	      denom = dot(n,u);
-	      numer = dot(n,prevPos) + d;
-	      s6 = -numer/denom;*/
+        float s1 = -1.0;
+	float s2 = -1.0;
+        float s3 = -1.0;
+	float s4 = -1.0;
+	float s5 = -1.0;
+	float s6 = -1.0;
+	float s7 = -1.0;
+         
+        if(k<0)
+        {
+               u = vec3(pos) - prevPos;
+               normal=vec3(0.0,0.0,1.0);
+               n = vec3(0.0,0.0,1.0);
+	       numer = dot(n,prevPos);
+	       denom = dot(n,u);
+	       float s1 = -1.0;
+               s1=-numer/denom;
+               pI = s1*u + prevPos;
+	       if((s1 >= -0.0001) && (s1 <= 0.0001)){
+	            pI = prevPos;
+	            r = normal;
+	       }	
+	       else{
+	            l = normalize(pI-prevPos);
+	            r = normalize(reflect(l,normal));
+	         }
+	    dis = distance(pI,vec3(pos));		
+	    pos = vec4(pI+(dis*r),pos.a);
+	    prmCurr = reflect(prmCurr,normal);
+        }       
+	if((i < nx) && (j < ny) && (k < nz) && (i >= 0) && (j >= 0)){ 
+          /*vec4 cell_type = vec4(1.0,1.0,1.0,1.0);
+	            if(k < 0)
+	               k = 0;
+	            if(k >= 0){
+	                cIndex.s = float(i) + float(mod(float(k),float(numInRow)))*float(nxdx);
+	                cIndex.t = float(j) + float(floor(float(k)/float(numInRow)))*float(nydy);
+	                cell_type = vec4(texture2DRect(cellType, cIndex));}*/
+          //if(ReturnCellType(i,j,k)==0){pos.x=prevPos.x;pos.y=prevPos.y;pos.z=prevPos.z;}
+          if(ReturnCellType(i,j,k)==0)
+          {   
+            //Reflection using the celltypes of the building 
+            float isign,jsign,ksign;
+            int imm,jmm,kmm;
+            while((ReturnCellType(i,j,k)==0) && (cnt<1))
+            {
+            imm=int(floor(pos.x)); 
+            jmm=int(floor(pos.y)); 
+            kmm=int(floor(pos.z));  
 
-	    //Ground plane
-	    n = vec3(0.0,0.0,1.0);
-	    numer = dot(n,prevPos);
-	    denom = dot(n,u);
-	    s7 = -numer/denom;
+            u = vec3(pos)-prevPos;
+            vec3 prevPos1;
+            prevPos1=prevPos;
+            //calculating S values for each face of the cell type.
+                //-x normal  
+	  	n = vec3(-1.0,0.0,0.0);
+	   	d = -dot(n,vec3(imm,jmm+0.5,kmm+0.5));
+	   	denom = dot(n,u);
+	    	numer = dot(n,prevPos) + d;
+	  	s1 = -numer/denom;
+      
+	    	//+x normal
+	    	n = vec3(1.0,0.0,0.0);
+	    	d = -dot(n,vec3(imm+1.0,jmm+0.5,kmm+0.5));
+	    	denom = dot(n,u);
+	    	numer = dot(n,prevPos) + d;
+	    	s2 = -numer/denom;
+        
+	    	//+y normal
+	    	n = vec3(0.0,1.0,0.0);
+	    	d = -dot(n,vec3(imm+0.5,jmm+1,kmm+0.5));
+	    	denom = dot(n,u);
+	    	numer = dot(n,prevPos) + d;
+	    	s3 = -numer/denom;
+           
+	    	//-y normal
+	    	n = vec3(0.0,-1.0,0.0);
+	    	d = -dot(n,vec3(imm+0.5,jmm,kmm+0.5));
+	    	denom = dot(n,u);
+	    	numer = dot(n,prevPos) + d;
+	    	s4 = -numer/denom;
+      	
+	    	//+z normal
+	    	n = vec3(0.0,0.0,1.0);
+	    	d = -dot(n,vec3(imm+0.5,jmm+0.5,kmm+1));
+	    	denom = dot(n,u);
+	    	numer = dot(n,prevPos) + d;
+	    	s5 = -numer/denom;
+
+	    	//-z normal
+	    	/*n = vec3(0.0,0.0,-1.0);
+	     	 d = -dot(n,vec3(xfo,0.0,zfo));
+	      	denom = dot(n,u);
+	      	numer = dot(n,prevPos) + d;
+	      	s6 = -numer/denom;*/
+
+	    	//Ground plane
+	    	n = vec3(0.0,0.0,1.0);
+	    	numer = dot(n,prevPos);
+	    	denom = dot(n,u);
+	    	s7 = -numer/denom;
 	   
            
-	    if((s1 < smallestS) && (s1 >= -eps_S)){
-	      smallestS = s1;
-	      normal = vec3(-1.0,0.0,0.0);
-	    }
-	    if((s2 < smallestS) && (s2 >= -eps_S)){
-	      normal = vec3(1.0,0.0,0.0);
-	      smallestS = s2;
-	    }
-	    if((s3 < smallestS) && (s3 >= -eps_S)){
-	      normal = vec3(0.0,1.0,0.0);
-	      smallestS = s3;
-	    }	
-	    if((s4 < smallestS) && (s4 >= -eps_S)){
-	      normal = vec3(0.0,-1.0,0.0);
-	      smallestS = s4;
-	    }	   
-	    if((s5 < smallestS) && (s5 >= -eps_S)){
-	      normal = vec3(0.0,0.0,1.0);
-	      smallestS = s5;
-	    }	 
+	    	if((s1 < smallestS) && (s1 >= -eps_S)){
+	      	  smallestS = s1;
+	      	  normal = vec3(-1.0,0.0,0.0);
+	    	}
+	    	if((s2 < smallestS) && (s2 >= -eps_S)){
+	      	  normal = vec3(1.0,0.0,0.0);
+	      	  smallestS = s2;
+	    	}
+	    	if((s3 < smallestS) && (s3 >= -eps_S)){
+	      	  normal = vec3(0.0,1.0,0.0);
+	      	  smallestS = s3;
+	    	}	
+	    	if((s4 < smallestS) && (s4 >= -eps_S)){
+	          normal = vec3(0.0,-1.0,0.0);
+	      	  smallestS = s4;
+	    	}	   
+	        if((s5 < smallestS) && (s5 >= -eps_S)){
+	      	  normal = vec3(0.0,0.0,1.0);
+	      	  smallestS = s5;
+	        }	 
 	    
-	    //Detect Edge Collision
-	    float edgeS = abs(smallestS-s7);
-	    if((edgeS < eps_d)){
-	      //smallestS = s6;
-	      normal = normalize(normal+vec3(0.0,0.0,1.0));
-	    }
-	    else if((s7 < smallestS) && (s7 >= -eps_S)){
-	      normal = vec3(0.0,0.0,1.0);
-	      smallestS = s7;
-	    }
+	        /* //Detect Edge Collision
+	        float edgeS = abs(smallestS-s7);
+	    	if((edgeS < eps_d)){
+	      	  //smallestS = s6;
+	      	  normal = normalize(normal+vec3(0.0,0.0,1.0));
+	    	}
+	    	else */if((s7 < smallestS) && (s7 >= -eps_S)){
+	      	  normal = vec3(0.0,0.0,1.0);
+	      	  smallestS = s7;
+	    	}
 
-	    pI = smallestS*u + prevPos;
+                 pI = smallestS*u + prevPos;
 	    if((smallestS >= -eps_S) && (smallestS <= eps_S)){
 	      pI = prevPos;
 	      r = normal;
@@ -392,30 +424,32 @@ void main(void)
 	      r = normalize(reflect(l,normal));
 	    }
 	      
-	    dis = distance(pI,vec3(pos));		
+	   dis = distance(pI,vec3(pos));		
       	
 	    prevPos = pI;
 	    pos = vec4(pI+(dis*r),pos.a);
 	    prmCurr = reflect(prmCurr,normal);
       	      
-	    i = int(floor(pos.y));
-	    j = int(floor(pos.x));
+	    j = int(floor(pos.y));
+	    i = int(floor(pos.x));
 	    k = int(floor(pos.z));
+            if(ReturnCellType(i,j,k)==0){pos.x=prevPos1.x; pos.y=prevPos1.y; pos.z=prevPos1.z;}
 
 	    //NOTE: Consider what happens if building is too close to domain.
 	    //Do check to make sure i,j,k's are valid;
-	    cell_type = vec4(1.0,1.0,1.0,1.0);
+	    /*vec4 cell_type = vec4(1.0,1.0,1.0,1.0);
 	    if(k < 0)
 	      k = 0;
 	    if(k >= 0){
-	      cIndex.s = float(j) + float(mod(float(k),float(numInRow)))*float(nxdx);
-	      cIndex.t = float(i) + float(floor(float(k)/float(numInRow)))*float(nydy);
+	      cIndex.s = float(i) + float(mod(float(k),float(numInRow)))*float(nxdx);
+	      cIndex.t = float(j) + float(floor(float(k)/float(numInRow)))*float(nydy);
 	      //cIndex.s = j + mod(k,numInRow)*nx;
 	      //cIndex.t = i + int(floor(float(k)/float(numInRow)))*ny;
 	      cell_type = vec4(texture2DRect(cellType, cIndex));
-	    }
-	  }//while loop for reflection
-
+	    }*/
+            cnt++;
+           }
+          }//end reflection-if loop
 	  timeStepUsed = timeStepUsed + timeStepSim;// stores total time used
 	  timeStepRem = time_step - timeStepUsed; //stores time remaining in the time_step
 	  timeStepSim = timeStepRem; // time stepfor next iteration
@@ -504,5 +538,7 @@ void main(void)
   }
    
 }
+
+
 //CFL Constant=1.4
 //Other constant 2.0

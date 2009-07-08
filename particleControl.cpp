@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <cstring>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -42,9 +44,10 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
 
 
 }
-void ParticleControl::setBuildingParameters(int nB,float* x,float* y,float* z,
+void ParticleControl::setBuildingParameters(int nB,int* ns,float* x,float* y,float* z,
 					   float* h,float* w,float* l){
   numBuild = nB;
+  numSides = ns;
   xfo = x;
   yfo = y;
   zfo = z;
@@ -2712,7 +2715,9 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
 
   GLfloat* data = new GLfloat[width*height*4];
   wind* cell_type = new wind[nxdx*nydy*nzdz];
-  
+
+
+
   for(int k = 0; k < nzdz; k++){   
     for(int i = 0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
@@ -2724,9 +2729,278 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
       }
     }
    }
+  //// READ A LINE
+  // CONVERT POS TO INDEX
+  // IF CELL TYPE == 0 THEN
+  //     U,V,W = 1.0
+  //       ID = -1.0
+  // ELSE 
+  //     U,V,W = 0.0
+  //    ID = CELL_TYPE VAL
+  std::string path;
+  if(quicFilesPath.c_str() != NULL){
+    path = quicFilesPath + "QU_celltype.dat";
+  }
+  else
+    path = "Settings/QU_celltype.dat";
+  
+  std::ifstream in;
+  in.open(path.c_str(),std::ios::in);
+    	
+  if(in == NULL) std::cout << "input file didn't open" << std::endl;
+    
+  char line[1024];
+
+  while(  !in.eof() )
+  {  
+	 in.getline(line, 1024);
+	 if( line[ strlen(line)] == '\n' ){
+		   line[ strlen(line)] = '\0';
+	  }
+          
+          std::istringstream ist(line);
+	  float x1,y1,z1,id1;
+	  ist >> x1 >> y1 >> z1 >> id1;
+          float x=x1;
+          float y=y1;
+          float z=z1;
+          int id=int(id1);
+          if(id==0 && z>0)
+          {
+            
+	     int p2idx = int(z)*nxdx*nydy + int(y)*nxdx + int(x);
+             cell_type[p2idx].u = 0.0;
+	     cell_type[p2idx].v = 0.0;
+	     cell_type[p2idx].w = 0.0;
+              for(int n=0; n < numBuild; n++)
+              {
+                  /*if(numSides[n]==4)
+                  {
+                     float lk = zfo[n];
+                     float uk = zfo[n]+ht[n];
+                     float li = yfo[n]-(wti[n]/2.0);
+                     float ui = yfo[n]+(wti[n]/2.0);
+                     float lj = xfo[n];
+                     float uj = xfo[n]+lti[n];
+
+                     if(x >= lj && x <= uj && y >= li && y <= ui && z >= lk && z <= uk) cell_type[p2idx].id = float(n);
+                      
+                  }*/
+                  if(numSides[n]==5)
+                  {
+                      float lk = zfo[n];
+                      float uk = zfo[n]+ht[n];
+                      float j = yfo[n];
+                      float i = xfo[n];
+                     if(z >= lk && z<= uk)
+                     {
+                         float xi[5],yi[5];
+                         float cp1[5];
+                         int count=0;
+                         xi[0]=xfo[n]-(lti[n]/3.0);
+                         yi[0]=yfo[n]-(wti[n]/2.0);
+                         xi[1]=xfo[n]+(lti[n]/3.0);
+                         yi[1]=yfo[n]-(wti[n]/2.0);
+                         xi[2]=xfo[n]+(lti[n]/2.0);
+                         yi[2]=yfo[n]+(wti[n]/6.0);
+                         xi[3]=xfo[n];
+                         yi[3]=yfo[n]+(wti[n]/2.0);
+                         xi[4]=xfo[n]-(lti[n]/2.0);
+                         yi[4]=yfo[n]+(wti[n]/6.0);
+
+                         for(int m=0;m<5;m++)
+                         {
+                              if(m<4)
+                              {
+                                cp1[m]=(((xi[m+1]-xi[m])*(j-yi[m]))*((xi[m+1]-xi[m])*(y-yi[m])))+(((yi[m+1]-yi[m])*(i-xi[m]))*((yi[m+1]-yi[m])*(x-xi[m])));
+                              }
+                              else
+                              {
+                                cp1[m]=(((xi[0]-xi[m])*(j-yi[m]))*((xi[0]-xi[m])*(y-yi[m])))+(((yi[0]-yi[m])*(i-xi[m]))*((yi[0]-yi[m])*(x-xi[m])));
+                              
+                              }
+                              if(cp1[m]>=0)count++;
+                         }
+                         if(count==5){ cell_type[p2idx].id = float(n); //printf("%f %f %f %d %d\n",x,y,z,p2idx,n);}
+
+                     }
+                        
+                  }
+                  else if(numSides[n]==1)
+                  {
+                     float lk = zfo[n];
+                     float uk = zfo[n]+ht[n];
+                     float j = yfo[n];
+                     float r = lti[n]/2.0;
+                     float i = xfo[n]+(lti[n]/2.0);
+                     if(z >= lk && z<= uk)
+                     {
+                          float dist=sqrt((pow(x-i,2)+pow(y-j,2)));
+                          if(dist<=r) cell_type[p2idx].id = float(n);
+                     }
+                  }
+                  
+              }  
+          }
+
+  }
+  }  
+  in.close();
+
+
+ /* for(int k = 0; k < nzdz; k++){   
+    for(int i = 0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
+	int p2idx = k*nxdx*nydy + i*nxdx + j;
+	cell_type[p2idx].u = 1.0;
+	cell_type[p2idx].v = 1.0;
+	cell_type[p2idx].w = 1.0;
+	cell_type[p2idx].id = -1.0;
+      }
+    }
+   }*/
   
 
-  for(int n=0; n < numBuild; n++){
+ /*
+  for(int nb=0;nb<numBuild;nb++)
+  {
+      /* if(numSides[nb]==4)
+       {
+          for(int hr=int(zfo[nb]);hr<=int(zfo[nb]+ht[nb]);hr++)
+          {
+           for(int wr=0;wr<=wti[nb];wr++)
+           {
+                int p2idx = int(zfo[nb]+hr)*nxdx*nydy + int((yfo[nb]- (wti[nb]/2.0))+wr)*nydy + int(xfo[nb]); 
+                cell_type[p2idx].u = 0.0;
+	        cell_type[p2idx].v = 0.0;
+	        cell_type[p2idx].w = 0.0;
+                cell_type[p2idx].id = float(nb);
+           }
+           for(int wr=0;wr<=wti[nb];wr++)
+           {
+                int p2idx = int(zfo[nb]+hr)*nxdx*nydy + int((yfo[nb]- (wti[nb]/2.0))+wr)*nydy + int(xfo[nb]+lti[nb]); 
+                cell_type[p2idx].u = 0.0;
+	        cell_type[p2idx].v = 0.0;
+	        cell_type[p2idx].w = 0.0;
+                cell_type[p2idx].id = float(nb);       
+           }
+           for(int lr=0;lr<=lti[nb];lr++)
+           {
+                int p2idx = int(zfo[nb]+hr)*nxdx*nydy + int(yfo[nb]- (wti[nb]/2.0))*nydy + int(xfo[nb]+lr); 
+                cell_type[p2idx].u = 0.0;
+	        cell_type[p2idx].v = 0.0;
+	        cell_type[p2idx].w = 0.0;
+                cell_type[p2idx].id = float(nb);
+           }
+           for(int lr=0;lr<=lti[nb];lr++)
+           {
+                int p2idx = int(zfo[nb]+hr)*nxdx*nydy + int((yfo[nb]+ (wti[nb]/2.0)))*nydy + int(xfo[nb]+lr); 
+                cell_type[p2idx].u = 0.0;
+	        cell_type[p2idx].v = 0.0;
+	        cell_type[p2idx].w = 0.0;
+                cell_type[p2idx].id = float(nb);
+           }
+          }
+       }
+       else*//*
+       if(numSides[nb]==5)
+       {
+
+           float s1,s2,s3,s4,s5,c1,c2,c3,c4,c5;
+           s1=(sin(-54.0*3.14/180)-sin(18.0*3.14/180))/(cos(-54.0*3.14/180)-cos(18.0*3.14/180));
+           s2=(sin(-126.0*3.14/180)-sin(-54.0*3.14/180))/(cos(-126.0*3.14/180)-cos(-54.0*3.14/180));
+           s3=(sin(162.0*3.14/180)-sin(-126.0*3.14/180))/(cos(162.0*3.14/180)-cos(-126.0*3.14/180));
+           s4=(sin(90.0*3.14/180)-sin(162.0*3.14/180))/(cos(90.0*3.14/180)-cos(162.0*3.14/180));
+           s5=(sin(18.0*3.14/180)-sin(90.0*3.14/180))/(cos(18.0*3.14/180)-cos(90.0*3.14/180));
+           c1=(yfo[nb]+((wti[nb]/2.0)*sin((18.0*3.14)/180.0)))-s1*(xfo[nb]+((wti[nb]/2.0)*cos((18.0*3.14)/180.0)));
+           c2=(yfo[nb]+((wti[nb]/2.0)*sin((-54.0*3.14)/180.0)))-s2*(xfo[nb]+((wti[nb]/2.0)*cos((-54.0*3.14)/180.0)));
+           c3=(yfo[nb]+((wti[nb]/2.0)*sin((-126.0*3.14)/180.0)))-s3*(xfo[nb]+((wti[nb]/2.0)*cos((-126.0*3.14)/180.0)));
+           c4=(yfo[nb]+((wti[nb]/2.0)*sin((162.0*3.14)/180.0)))-s4*(xfo[nb]+((wti[nb]/2.0)*cos((162.0*3.14)/180.0)));
+           c5=(yfo[nb]+((wti[nb]/2.0)*sin((90.0*3.14)/180.0)))-s5*(xfo[nb]+((wti[nb]/2.0)*cos((90.0*3.14)/180.0)));
+           
+           for(int h=int(zfo[nb]);h<=int(zfo[nb]+ht[nb]);h++)
+           {
+              //printf("%f %f \n",xfo[nb]+((wti[nb]/2.0)*cos((-54.0*3.14)/180.0)),yfo[nb]+((wti[nb]/2.0)*sin((-54.0*3.14)/180.0)));
+              for(float x1=xfo[nb]+(wti[nb]/2.0)*cos(18.0*3.14/180);x1>=xfo[nb]+(wti[nb]/2.0)*cos(-54.0*3.14/180);x1=x1-0.2)
+              {
+                 float y1=x1*s1+c1;
+                 int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
+                 cell_type[p2idx].u = 0.0;
+	         cell_type[p2idx].v = 0.0;
+	         cell_type[p2idx].w = 0.0; 
+                 cell_type[p2idx].id = float(nb);
+                 //printf("%f %f \n",xfo[nb]+(wti[nb]/2.0)*cos((18.0*3.14)/180.0),xfo[nb]+(wti[nb]/2.0)*sin((-54.0*3.14)/180.0));
+                 //printf("%f %f \n",x1,y1);
+              }
+              for(float x1=xfo[nb]+(wti[nb]/2.0)*cos(-54.0*3.14/180);x1>=xfo[nb]+(wti[nb]/2.0)*cos(-126.0*3.14/180);x1=x1-0.2)
+              {
+                 float y1=x1*s2+c2;
+                  int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
+                 cell_type[p2idx].u = 0.0;
+	         cell_type[p2idx].v = 0.0;
+	         cell_type[p2idx].w = 0.0; 
+                 cell_type[p2idx].id = float(nb);
+                 //printf("%f %f \n",xfo[nb]+(wti[nb]/2.0)*cos((18.0*3.14)/180.0),xfo[nb]+(wti[nb]/2.0)*sin((-54.0*3.14)/180.0));
+                 //printf("%f %f %d \n",x1,y1,h);
+              }
+              for(float x1=xfo[nb]+(wti[nb]/2.0)*cos(-126.0*3.14/180);x1>=xfo[nb]+(wti[nb]/2.0)*cos(162.0*3.14/180);x1=x1-0.2)
+              {
+                 float y1=x1*s3+c3;
+                  int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
+                 cell_type[p2idx].u = 0.0;
+	         cell_type[p2idx].v = 0.0;
+	         cell_type[p2idx].w = 0.0; 
+                 cell_type[p2idx].id = float(nb);
+                 //printf("%f %f \n",xfo[nb]+(wti[nb]/2.0)*cos((18.0*3.14)/180.0),xfo[nb]+(wti[nb]/2.0)*sin((-54.0*3.14)/180.0));
+                 //printf("%f %f %d \n",x1,y1,h);
+              }
+             for(float x1=xfo[nb]+(wti[nb]/2.0)*cos(162.0*3.14/180);x1<=xfo[nb]+(wti[nb]/2.0)*cos(90.0*3.14/180);x1=x1+0.2)
+              {
+                 float y1=x1*s4+c4;
+                  int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
+                 cell_type[p2idx].u = 0.0;
+	         cell_type[p2idx].v = 0.0;
+	         cell_type[p2idx].w = 0.0; 
+                 cell_type[p2idx].id = float(nb);
+                 //printf("%f %f \n",xfo[nb]+(wti[nb]/2.0)*cos((18.0*3.14)/180.0),xfo[nb]+(wti[nb]/2.0)*sin((-54.0*3.14)/180.0));
+                 //printf("%f %f %d \n",x1,y1,h);
+              }
+              for(float x1=xfo[nb]+(wti[nb]/2.0)*cos(90.0*3.14/180);x1<=xfo[nb]+(wti[nb]/2.0)*cos(18.0*3.14/180);x1=x1+0.2)
+              {
+                 float y1=x1*s5+c5;
+                 int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
+                 cell_type[p2idx].u = 0.0;
+	         cell_type[p2idx].v = 0.0;
+	         cell_type[p2idx].w = 0.0; 
+                 cell_type[p2idx].id = float(nb);
+                 //printf("%f %f \n",xfo[nb]+(wti[nb]/2.0)*cos((18.0*3.14)/180.0),xfo[nb]+(wti[nb]/2.0)*sin((-54.0*3.14)/180.0));
+                
+              }
+           }
+       }
+       else if(numSides[nb]==1)
+       {
+           float incr=1.0;
+           for(int h=int(zfo[nb]);h<=int(zfo[nb]+ht[nb]);h++)
+           {
+              for(float Theta=0.0;Theta<=360.0;Theta+=incr)
+              {
+                
+                    float x1=xfo[nb]-((lti[nb]/2.0)*cos(Theta*(3.14/180.0))-lti[nb]/2.0);
+                    float y1=yfo[nb]-((lti[nb]/2.0)*sin(Theta*(3.14/180.0)));
+                    int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
+                    cell_type[p2idx].u = 0.0;
+	            cell_type[p2idx].v = 0.0;
+	            cell_type[p2idx].w = 0.0; 
+                    cell_type[p2idx].id = float(nb);
+	      }         
+           }          
+       }
+       
+  }*/
+ for(int n=0; n < numBuild; n++){
+   if(numSides[n]==4)
+   {
     int lk = int(zfo[n]);
     int uk = int(zfo[n]+ht[n]);
     int li = int(yfo[n]-(wti[n]/2.0));
@@ -2747,8 +3021,8 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
 	 }
        }
      }
+    }
    }
-
    int qk,qi,qj;
    int row,texidx,p2idx;
 

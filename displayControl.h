@@ -20,7 +20,7 @@ enum tau_visual_type{draw_contours,draw_layers};
 class DisplayControl{
 
  public:
-
+  
   DisplayControl(int, int, int, GLenum,float,float,float);
 
   void drawVisuals(GLuint, GLuint, GLuint, int, int, int, GLuint postexid, GLuint veltexid);
@@ -40,9 +40,9 @@ class DisplayControl{
   void setElevation(float, float);
   void setRotateAround(float);
   void lookUporDown(float);
-  void initVars(int,float*,float*,float*,
+  void initVars(int,int*,float*,float*,float*,
 		      float*,float*,float*);
-
+  
   void setEmitter(ParticleEmitter*);
   void setVisualPlane(VisualPlane*);
 
@@ -64,16 +64,16 @@ class DisplayControl{
   int visual_layer;
   float eye_pos[3];
   float eye_gaze[3];
-
+  
   tau_visual_type tau_visual;
 
   // sorting preference
   bool perform_cpu_sort;
 
  private:
-
-  void createImageTex(GLuint, const char*);
-  GLubyte* readPPM(const char*, int*, int*);
+  
+  void createImageTex(GLuint, char*);
+  GLubyte* readPPM(char*, int*, int*);
 
   int nx;
   int ny;
@@ -90,13 +90,14 @@ class DisplayControl{
 
   //Feature Variables
   int numBuild;
+  int* numSides;
   float* xfo;
   float* yfo;
   float* zfo;
   float* ht;
   float* wti;
   float* lti;
-
+  
   //Copy of Particle Emitter for hand control
   ParticleEmitter* pe;
 
@@ -116,7 +117,7 @@ class DisplayControl{
 
   GLfloat azimuth;
   GLfloat elevation;
-
+  
   double tranx,trany,tranz;
   double angle,yangle;
   double xlook,ylook,zlook;
@@ -128,7 +129,7 @@ class DisplayControl{
   GLenum texType;
 
   GLint uniform_vel_color; //, uniform_tauTex;
-
+ 
   //GLint uniform_max_x,uniform_max_y,uniform_max_z,uniform_max_c;
   //GLint uniform_min_x,uniform_min_y,uniform_min_z,uniform_min_c;
   //GLint uniform_controlWind, uniform_sliderWind, uniform_windTex;
@@ -141,7 +142,7 @@ class DisplayControl{
 
   // * variable to reference the texture units for the point sprite
   // * and normal map textures
-  GLint uniform_pointsprite_tex, uniform_normalmap_tex, uniform_visualization_tex, uniform_pointsprite_visuals,
+  GLint uniform_pointsprite_tex, uniform_normalmap_tex, uniform_visualization_tex, uniform_pointsprite_visuals, 
     uniform_nx, uniform_ny, uniform_nz, uniform_numInRow;
 
   // * function to create point sprite textures

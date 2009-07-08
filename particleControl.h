@@ -122,7 +122,7 @@ class ParticleControl{
 
   void setRandomTexCoords();
 
-  void setBuildingParameters(int,float*,float*,float*,float*,float*,float*);
+  void setBuildingParameters(int,int*,float*,float*,float*,float*,float*,float*);
   void addBuildingsInWindField(GLuint);
   void setQuicFilesPath(std::string);
   
@@ -205,6 +205,7 @@ class ParticleControl{
   cellType* cellQuic;
 
   int numBuild;
+  int* numSides;
   float* xfo;
   float* yfo;
   float* zfo;

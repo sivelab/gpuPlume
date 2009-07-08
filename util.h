@@ -94,6 +94,7 @@ class Util{
   int emit_method;
 
   //building paramters
+  int* numSides;
   float* xfo;
   float* yfo;
   float* zfo;
@@ -123,6 +124,7 @@ class Util{
   void parseLine(char*);
   bool read1Float(char*,std::string,float*);
   bool read6Float(char*,std::string,float*);
+  bool read7Float(char*,std::string,float*);
   bool read3Float(char*,std::string,float*);
   bool readSourceInfo(char*,std::string,int&,float*);
   bool readComment(const char*);

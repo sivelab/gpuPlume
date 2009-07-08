@@ -84,11 +84,11 @@ void MultipleBuildingsModel::init(bool OSG){
 
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz);
   pc->setUstarAndSigmas(util->ustar);
-  pc->setBuildingParameters(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
+  pc->setBuildingParameters(util->numBuild,util->numSides,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
   pc->setQuicFilesPath(util->quicFilesPath);
 
   dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
-  dc->initVars(util->numBuild,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
+  dc->initVars(util->numBuild,util->numSides,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti);
 
   //??Don't remember why I wanted to do this
   //Send copy of particle emitter to displayControl
@@ -1043,7 +1043,7 @@ void MultipleBuildingsModel::setupTextures(){
     bdata[idx] = util->xfo[j];
     bdata[idx+1] = util->yfo[j];
     bdata[idx+2] = util->zfo[j];
-    bdata[idx+3] = 0.0;
+    bdata[idx+3] = util->numSides[j];
     
     bdata[idx+4] = util->ht[j];
     bdata[idx+5] = util->wti[j];
