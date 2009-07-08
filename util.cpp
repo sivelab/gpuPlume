@@ -417,7 +417,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   windFieldData = 5; // #use value of 5 for reading in from QUIC-FILES
 
   useRealTime = false;
-  time_step = 0.1;   // should read this from QP_params.inp
+  time_step = 0.01;   // should read this from QP_params.inp
 
   emit_method = 0;
 
