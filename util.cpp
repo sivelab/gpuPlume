@@ -4,7 +4,10 @@
    Last Date Changed in Repository: $Date$
 
  */
+#ifndef WIN32
 #include <unistd.h>
+#endif
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -91,7 +94,7 @@ bool Util::readInput(std::string file){
       // bad input file
       return false;
     }
-
+#ifndef WIN32
   // Check to see if the input file is a project file.  If it is, then
   // attempt to load all of the information from the standard QUIC
   // files.  Other parameters can currently be set to defaults and
@@ -135,7 +138,7 @@ bool Util::readInput(std::string file){
     {
       std::cout << "Input file is NOT a QUIC project file.  Attempting to use original settings file parser." << std::endl;
     }
-
+#endif
   // re-open the file for parsing
   in.open(file.c_str(),std::ios::in);
   char line[1024];
