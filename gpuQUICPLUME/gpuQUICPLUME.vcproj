@@ -41,6 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="..\fileParser\standard"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -178,6 +179,22 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\fileParser\attribute.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\attributeList.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\basicElements.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\buildingArrayElement.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\collectionBox.cpp"
 				>
 			</File>
@@ -186,7 +203,39 @@
 				>
 			</File>
 			<File
+				RelativePath="..\fileParser\datam.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\datamList.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\dimensionElements.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\displayControl.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\element.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\emitterArrayElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\fileParser.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\floatMatrixElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\floatVectorElement.cpp"
 				>
 			</File>
 			<File
@@ -219,6 +268,10 @@
 			</File>
 			<File
 				RelativePath="..\IsoSurface.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\legacyFileParser.cpp"
 				>
 			</File>
 			<File
@@ -278,6 +331,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\fileParser\standard\standardElements.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\standardFileParser.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\streamLine.cpp"
 				>
 			</File>
@@ -300,6 +361,22 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\fileParser\attribute.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\attributeList.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\basicElements.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\buildingArrayElement.h"
+				>
+			</File>
+			<File
 				RelativePath="..\collectionBox.h"
 				>
 			</File>
@@ -308,11 +385,43 @@
 				>
 			</File>
 			<File
+				RelativePath="..\fileParser\datam.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\datamList.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\dimensionElements.h"
+				>
+			</File>
+			<File
 				RelativePath="..\displayControl.h"
 				>
 			</File>
 			<File
+				RelativePath="..\fileParser\element.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\emitterArrayElement.h"
+				>
+			</File>
+			<File
 				RelativePath="..\emitterTransform.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\fileParser.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\floatMatrixElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\floatVectorElement.h"
 				>
 			</File>
 			<File
@@ -348,7 +457,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\fileParser\standard\legacyFileParser.h"
+				>
+			</File>
+			<File
 				RelativePath="..\lineEmitter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\mixingMatrixElement.h"
 				>
 			</File>
 			<File
@@ -369,6 +486,10 @@
 			</File>
 			<File
 				RelativePath="..\PathLine.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\peekline.h"
 				>
 			</File>
 			<File
@@ -404,6 +525,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\fileParser\standard\standardElements.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\standardFileParser.h"
+				>
+			</File>
+			<File
 				RelativePath="..\streamLine.h"
 				>
 			</File>
@@ -413,6 +542,10 @@
 			</File>
 			<File
 				RelativePath="..\util.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fileParser\standard\velocityMatrixElement.h"
 				>
 			</File>
 			<File
