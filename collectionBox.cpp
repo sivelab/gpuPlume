@@ -355,7 +355,7 @@ void CollectionBox::outputConcStd(std::string file, std::string id, double avera
 	  offsetx = float(((ux-lx)/(float)numBox_x)/2.0);
 	  offsety = float(((uy-ly)/(float)numBox_y)/2.0);
 	  offsetz = float(((uz-lz)/(float)numBox_z)/2.0);
-	  static float concFactor= (time_step)/(averagingTime*volume*numPar);
+	  static float concFactor= (float)((time_step)/(averagingTime*volume*numPar));
 	  
 	  output << '\t' << x+offsetx << ' ' << y+offsety << ' ' << z+offsetz 
 		 << ' ' << cBox[idx] *(concFactor) << ";\n";

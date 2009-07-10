@@ -281,7 +281,8 @@ void GLSLObject::loadSourceFromFile( const std::string& filename, GLhandleARB& s
     //
     // Load the shader source into the shader object 
     //
-    glShaderSourceARB( shader_obj, string_list.size(), (const GLcharARB**)shader_string, 0 );
+	GLuint stringSz = static_cast<GLuint>(string_list.size());
+    glShaderSourceARB( shader_obj, stringSz, (const GLcharARB**)shader_string, 0 );
 
     // Clean up allocated memory
     for (idx=0; idx<string_list.size(); idx++)
