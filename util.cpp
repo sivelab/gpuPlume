@@ -8,6 +8,13 @@
 #include <unistd.h>
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#include <stdio.h>
+#include <conio.h>
+#include <tchar.h>
+#endif
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -94,7 +101,7 @@ bool Util::readInput(std::string file){
       // bad input file
       return false;
     }
-#ifndef WIN32
+
   // Check to see if the input file is a project file.  If it is, then
   // attempt to load all of the information from the standard QUIC
   // files.  Other parameters can currently be set to defaults and
@@ -109,9 +116,18 @@ bool Util::readInput(std::string file){
     {
       // extract the path to the file name
       // find the current working directory
-      char *cwd = new char[1024];
-      getcwd(cwd, 1024);
-
+		std::string cwdStr;
+     
+#ifdef WIN32
+		  const size_t bufferSz = MAX_PATH;
+		  TCHAR buffer[bufferSz];
+		  GetCurrentDirectory(bufferSz, buffer);
+		  cwdStr = std::string(buffer);
+#else
+		char *cwd = new char[MAX_PATH];
+		getcwd(cwd, 1024);
+		cwdStr = cwd;
+#endif
       // next, extract base name from the file name, and attempt open the files we need...
       size_t lastSlashPos = file.find_last_of( "/" );
       size_t lastDotPos = file.find_last_of( "." );
@@ -121,12 +137,15 @@ bool Util::readInput(std::string file){
       std::string filePrefix, pathPrefix;
       pathPrefix = file.substr(0, lastSlashPos);
       filePrefix = file.substr(lastSlashPos+1, prefixLength);
-      // std::cout << "Path Prefix: " << pathPrefix << std::endl;
-      // std::cout << "File Prefix: " << filePrefix << std::endl;
+      std::cout << "Path Prefix: " << pathPrefix << std::endl;
+      std::cout << "File Prefix: " << filePrefix << std::endl;
 
       // attempt to get the path to the QU_* and QP_* files
-      std::string cwdStr(cwd);
+#ifdef WIN32
+	  std::string localQuicFilePath = cwdStr + "\\" + filePrefix + "_inner\\";
+#else
       std::string localQuicFilePath = cwdStr + "/" + pathPrefix + "/" + filePrefix + "_inner/";
+#endif
       std::cout << "QUIC Files Path: " << localQuicFilePath << std::endl;
 
       readQUICBaseFiles( localQuicFilePath );
@@ -138,7 +157,7 @@ bool Util::readInput(std::string file){
     {
       std::cout << "Input file is NOT a QUIC project file.  Attempting to use original settings file parser." << std::endl;
     }
-#endif
+
   // re-open the file for parsing
   in.open(file.c_str(),std::ios::in);
   char line[1024];
