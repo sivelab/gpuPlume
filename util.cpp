@@ -124,8 +124,8 @@ bool Util::readInput(std::string file){
 		  GetCurrentDirectory(bufferSz, buffer);
 		  cwdStr = std::string(buffer);
 #else
-		char *cwd = new char[MAX_PATH];
-		getcwd(cwd, 1024);
+		char *cwd = new char[PATH_MAX];
+		getcwd(cwd, PATH_MAX);
 		cwdStr = cwd;
 #endif
       // next, extract base name from the file name, and attempt open the files we need...

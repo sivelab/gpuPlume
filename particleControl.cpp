@@ -1931,8 +1931,9 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 	    float tau22=sigV*sigV;
 	    float tau33=sigW*sigW;
 	    float tau13=ustar*ustar;
-	    float tauDetInv=1.0f/((tau11*tau22*tau33)-(tau13*tau13*tau22));
 
+	    // The following is unused...
+	    // float tauDetInv=1.0f/((tau11*tau22*tau33)-(tau13*tau13*tau22));
 	  
 	    updateMaxandMinTaus(tau11,tau22,tau33,tau13);
 			    
@@ -2139,7 +2140,12 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
   
   //cell below, cell above, cell two below
   int idxBelow, idxAbove, idx2Below, idxFront, idxBehind;
-  float dz = 1.0,dx=1.0,dy=1.0; //Hardwired** should be in input file
+
+  float dz = 1.0;
+  // The following should no longer be needed... not sure why dz is
+  // still needed; need to check.
+  // ,dx=1.0,dy=1.0; //Hardwired** should be in input file
+
   //Surface roughness
   float znaut = 0.1f;//Hardwired** should be in input file
 
@@ -2229,7 +2235,9 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 	  tau22=sigV*sigV;
 	  tau33=sigW*sigW;
 	  tau13=ustar*ustar;
-	  float tauDetInv=1.0f/((tau11*tau22*tau33)-(tau13*tau13*tau22));
+
+	  // The following is unused
+	  // float tauDetInv=1.0f/((tau11*tau22*tau33)-(tau13*tau13*tau22));
 		
 	  updateMaxandMinTaus(tau11,tau22,tau33,tau13);
 			    
@@ -2382,7 +2390,7 @@ float ParticleControl::getMinDistance(int qj, int qi, int qk){
   int totBuild=6;
   int xfo[]={20,20,35,35,50,50};//{25};
   int yfo[]={18,32,18,32,18,32};//{25};
-  int zfo[]={0,0,0,0,0,0};//{0};
+  // int zfo[]={0,0,0,0,0,0};//{0};
   int length[]={10,10,10,10,10,10};//{10};
   int width[]={6,6,6,6,6,6};//{10};
   int height[]={6,6,10,10,14,14};//{10};
@@ -2401,7 +2409,7 @@ float ParticleControl::getMinDistance(int qj, int qi, int qk){
   
     int x=xfo[build]; //storing the building parameters 
     int y=yfo[build];
-    int z=zfo[build];
+    // int z=zfo[build];
     int l=length[build];
     int w=width[build];
     int h=height[build];
@@ -2848,157 +2856,6 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
   }  
   in.close();
 
-
- /* for(int k = 0; k < nzdz; k++){   
-    for(int i = 0; i < nydy; i++){
-      for(int j = 0; j < nxdx; j++){
-	int p2idx = k*nxdx*nydy + i*nxdx + j;
-	cell_type[p2idx].u = 1.0;
-	cell_type[p2idx].v = 1.0;
-	cell_type[p2idx].w = 1.0;
-	cell_type[p2idx].id = -1.0;
-      }
-    }
-   }*/
-  
-
- /*
-  for(int nb=0;nb<numBuild;nb++)
-  {
-      /* if(numSides[nb]==4)
-       {
-          for(int hr=int(zfo[nb]);hr<=int(zfo[nb]+ht[nb]);hr++)
-          {
-           for(int wr=0;wr<=wti[nb];wr++)
-           {
-                int p2idx = int(zfo[nb]+hr)*nxdx*nydy + int((yfo[nb]- (wti[nb]/2.0))+wr)*nydy + int(xfo[nb]); 
-                cell_type[p2idx].u = 0.0;
-	        cell_type[p2idx].v = 0.0;
-	        cell_type[p2idx].w = 0.0;
-                cell_type[p2idx].id = float(nb);
-           }
-           for(int wr=0;wr<=wti[nb];wr++)
-           {
-                int p2idx = int(zfo[nb]+hr)*nxdx*nydy + int((yfo[nb]- (wti[nb]/2.0))+wr)*nydy + int(xfo[nb]+lti[nb]); 
-                cell_type[p2idx].u = 0.0;
-	        cell_type[p2idx].v = 0.0;
-	        cell_type[p2idx].w = 0.0;
-                cell_type[p2idx].id = float(nb);       
-           }
-           for(int lr=0;lr<=lti[nb];lr++)
-           {
-                int p2idx = int(zfo[nb]+hr)*nxdx*nydy + int(yfo[nb]- (wti[nb]/2.0))*nydy + int(xfo[nb]+lr); 
-                cell_type[p2idx].u = 0.0;
-	        cell_type[p2idx].v = 0.0;
-	        cell_type[p2idx].w = 0.0;
-                cell_type[p2idx].id = float(nb);
-           }
-           for(int lr=0;lr<=lti[nb];lr++)
-           {
-                int p2idx = int(zfo[nb]+hr)*nxdx*nydy + int((yfo[nb]+ (wti[nb]/2.0)))*nydy + int(xfo[nb]+lr); 
-                cell_type[p2idx].u = 0.0;
-	        cell_type[p2idx].v = 0.0;
-	        cell_type[p2idx].w = 0.0;
-                cell_type[p2idx].id = float(nb);
-           }
-          }
-       }
-       else*//*
-       if(numSides[nb]==5)
-       {
-
-           float s1,s2,s3,s4,s5,c1,c2,c3,c4,c5;
-           s1=(sin(-54.0*3.14/180)-sin(18.0*3.14/180))/(cos(-54.0*3.14/180)-cos(18.0*3.14/180));
-           s2=(sin(-126.0*3.14/180)-sin(-54.0*3.14/180))/(cos(-126.0*3.14/180)-cos(-54.0*3.14/180));
-           s3=(sin(162.0*3.14/180)-sin(-126.0*3.14/180))/(cos(162.0*3.14/180)-cos(-126.0*3.14/180));
-           s4=(sin(90.0*3.14/180)-sin(162.0*3.14/180))/(cos(90.0*3.14/180)-cos(162.0*3.14/180));
-           s5=(sin(18.0*3.14/180)-sin(90.0*3.14/180))/(cos(18.0*3.14/180)-cos(90.0*3.14/180));
-           c1=(yfo[nb]+((wti[nb]/2.0)*sin((18.0*3.14)/180.0)))-s1*(xfo[nb]+((wti[nb]/2.0)*cos((18.0*3.14)/180.0)));
-           c2=(yfo[nb]+((wti[nb]/2.0)*sin((-54.0*3.14)/180.0)))-s2*(xfo[nb]+((wti[nb]/2.0)*cos((-54.0*3.14)/180.0)));
-           c3=(yfo[nb]+((wti[nb]/2.0)*sin((-126.0*3.14)/180.0)))-s3*(xfo[nb]+((wti[nb]/2.0)*cos((-126.0*3.14)/180.0)));
-           c4=(yfo[nb]+((wti[nb]/2.0)*sin((162.0*3.14)/180.0)))-s4*(xfo[nb]+((wti[nb]/2.0)*cos((162.0*3.14)/180.0)));
-           c5=(yfo[nb]+((wti[nb]/2.0)*sin((90.0*3.14)/180.0)))-s5*(xfo[nb]+((wti[nb]/2.0)*cos((90.0*3.14)/180.0)));
-           
-           for(int h=int(zfo[nb]);h<=int(zfo[nb]+ht[nb]);h++)
-           {
-              //printf("%f %f \n",xfo[nb]+((wti[nb]/2.0)*cos((-54.0*3.14)/180.0)),yfo[nb]+((wti[nb]/2.0)*sin((-54.0*3.14)/180.0)));
-              for(float x1=xfo[nb]+(wti[nb]/2.0)*cos(18.0*3.14/180);x1>=xfo[nb]+(wti[nb]/2.0)*cos(-54.0*3.14/180);x1=x1-0.2)
-              {
-                 float y1=x1*s1+c1;
-                 int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
-                 cell_type[p2idx].u = 0.0;
-	         cell_type[p2idx].v = 0.0;
-	         cell_type[p2idx].w = 0.0; 
-                 cell_type[p2idx].id = float(nb);
-                 //printf("%f %f \n",xfo[nb]+(wti[nb]/2.0)*cos((18.0*3.14)/180.0),xfo[nb]+(wti[nb]/2.0)*sin((-54.0*3.14)/180.0));
-                 //printf("%f %f \n",x1,y1);
-              }
-              for(float x1=xfo[nb]+(wti[nb]/2.0)*cos(-54.0*3.14/180);x1>=xfo[nb]+(wti[nb]/2.0)*cos(-126.0*3.14/180);x1=x1-0.2)
-              {
-                 float y1=x1*s2+c2;
-                  int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
-                 cell_type[p2idx].u = 0.0;
-	         cell_type[p2idx].v = 0.0;
-	         cell_type[p2idx].w = 0.0; 
-                 cell_type[p2idx].id = float(nb);
-                 //printf("%f %f \n",xfo[nb]+(wti[nb]/2.0)*cos((18.0*3.14)/180.0),xfo[nb]+(wti[nb]/2.0)*sin((-54.0*3.14)/180.0));
-                 //printf("%f %f %d \n",x1,y1,h);
-              }
-              for(float x1=xfo[nb]+(wti[nb]/2.0)*cos(-126.0*3.14/180);x1>=xfo[nb]+(wti[nb]/2.0)*cos(162.0*3.14/180);x1=x1-0.2)
-              {
-                 float y1=x1*s3+c3;
-                  int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
-                 cell_type[p2idx].u = 0.0;
-	         cell_type[p2idx].v = 0.0;
-	         cell_type[p2idx].w = 0.0; 
-                 cell_type[p2idx].id = float(nb);
-                 //printf("%f %f \n",xfo[nb]+(wti[nb]/2.0)*cos((18.0*3.14)/180.0),xfo[nb]+(wti[nb]/2.0)*sin((-54.0*3.14)/180.0));
-                 //printf("%f %f %d \n",x1,y1,h);
-              }
-             for(float x1=xfo[nb]+(wti[nb]/2.0)*cos(162.0*3.14/180);x1<=xfo[nb]+(wti[nb]/2.0)*cos(90.0*3.14/180);x1=x1+0.2)
-              {
-                 float y1=x1*s4+c4;
-                  int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
-                 cell_type[p2idx].u = 0.0;
-	         cell_type[p2idx].v = 0.0;
-	         cell_type[p2idx].w = 0.0; 
-                 cell_type[p2idx].id = float(nb);
-                 //printf("%f %f \n",xfo[nb]+(wti[nb]/2.0)*cos((18.0*3.14)/180.0),xfo[nb]+(wti[nb]/2.0)*sin((-54.0*3.14)/180.0));
-                 //printf("%f %f %d \n",x1,y1,h);
-              }
-              for(float x1=xfo[nb]+(wti[nb]/2.0)*cos(90.0*3.14/180);x1<=xfo[nb]+(wti[nb]/2.0)*cos(18.0*3.14/180);x1=x1+0.2)
-              {
-                 float y1=x1*s5+c5;
-                 int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
-                 cell_type[p2idx].u = 0.0;
-	         cell_type[p2idx].v = 0.0;
-	         cell_type[p2idx].w = 0.0; 
-                 cell_type[p2idx].id = float(nb);
-                 //printf("%f %f \n",xfo[nb]+(wti[nb]/2.0)*cos((18.0*3.14)/180.0),xfo[nb]+(wti[nb]/2.0)*sin((-54.0*3.14)/180.0));
-                
-              }
-           }
-       }
-       else if(numSides[nb]==1)
-       {
-           float incr=1.0;
-           for(int h=int(zfo[nb]);h<=int(zfo[nb]+ht[nb]);h++)
-           {
-              for(float Theta=0.0;Theta<=360.0;Theta+=incr)
-              {
-                
-                    float x1=xfo[nb]-((lti[nb]/2.0)*cos(Theta*(3.14/180.0))-lti[nb]/2.0);
-                    float y1=yfo[nb]-((lti[nb]/2.0)*sin(Theta*(3.14/180.0)));
-                    int p2idx = int(zfo[nb]+h)*nxdx*nydy + int(y1)*nydy + int(x1);
-                    cell_type[p2idx].u = 0.0;
-	            cell_type[p2idx].v = 0.0;
-	            cell_type[p2idx].w = 0.0; 
-                    cell_type[p2idx].id = float(nb);
-	      }         
-           }          
-       }
-       
-  }*/
  for(int n=0; n < numBuild; n++){
    if(numSides[n]==4)
    {

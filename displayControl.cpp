@@ -159,10 +159,7 @@ void DisplayControl::setVisualPlane(VisualPlane* vp){
 void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight, GLuint PositionTexId, GLuint VelTexId)
 {
-  Timer_t displayStart = dTimer->tic();    
-
-//  drawSky();
-
+  // Timer_t displayStart = dTimer->tic();    
 
   if(!osgPlume){
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
@@ -173,15 +170,11 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
     //glRotatef(elevation, 0,1,0);
     //glRotatef(azimuth, 0,0,1);  
   }
-//  DrawSkyBox(0.0, 0.0, 0.0, 100.0, 100.0, 100.0);
-	DrawSkyBox(eye_pos[0], eye_pos[1], eye_pos[2], 50.0, 50.0, 50.0);      
 
-	drawAxes();
+  DrawSkyBox(eye_pos[0], eye_pos[1], eye_pos[2], 50.0, 50.0, 50.0);      
+  drawAxes();
   
-  if(!osgPlume)
-    //drawGrid();
-
-  if(draw_buildings){
+  if(draw_buildings) {
     drawFeatures();
   }
   
@@ -323,8 +316,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   }
 #endif
 
-  Timer_t displayEnd = dTimer->tic();      
-
+  // Timer_t displayEnd = dTimer->tic();      
   // std::cout << "DC Display Time: " << dTimer->deltau(displayStart, displayEnd) << " us." << std::endl;  
   
 }

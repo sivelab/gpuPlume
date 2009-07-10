@@ -221,7 +221,7 @@ void MultipleBuildingsModel::init(bool OSG){
 
 int MultipleBuildingsModel::display(){
 
-  Timer_t displayStart = mbaTimer->tic();    
+  // Timer_t displayStart = mbaTimer->tic();    
 
   if(osgPlume){
     glGetFloatv(GL_MODELVIEW_MATRIX,mvm);
@@ -723,9 +723,9 @@ int MultipleBuildingsModel::display(){
     glutSwapBuffers();
   }
 
-  Timer_t displayEnd = mbaTimer->tic();    
-
+  // Timer_t displayEnd = mbaTimer->tic();    
   //  std::cout << "MBA Display Time: " << mbaTimer->deltau(displayStart, displayEnd) << " us." << std::endl;  
+
   if(quitSimulation){
     std::cout << "Simulation ended after " << sim->simDuration << " seconds."<< std::endl;
     std::cout << "Total number of particles used: " << totalNumPar << std::endl;

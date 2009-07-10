@@ -242,11 +242,11 @@ void display(void)
   // if quitting the simulation, 0 is returned
   int quitSimulation = 1;
 
-  Timer_t displayStart = plume_clock->tic();    
+  // Timer_t displayStart = plume_clock->tic();    
 
   quitSimulation = plume->display();
 
-  Timer_t displayEnd = plume_clock->tic();    
+  // Timer_t displayEnd = plume_clock->tic();    
 
   // std::cout << "Display Time: " << plume_clock->deltau(displayStart, displayEnd) << " us." << std::endl;  
   
