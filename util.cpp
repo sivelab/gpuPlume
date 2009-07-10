@@ -4,10 +4,6 @@
    Last Date Changed in Repository: $Date$
 
  */
-#ifndef WIN32
-#include <unistd.h>
-#endif
-
 #ifdef WIN32
 #include <windows.h>
 #include <stdio.h>
@@ -15,9 +11,14 @@
 #include <tchar.h>
 #endif
 
+#ifndef WIN32
+#include <unistd.h>
+#endif
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits.h>
 
 #include "util.h"
 #include "gpuPlume.h"
