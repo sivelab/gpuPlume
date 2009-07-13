@@ -1,16 +1,24 @@
 #include <math.h>
 #include "MultipleBuildingsModel.h"
 #include "glErrorUtil.h"
-
+#include <fstream>
+#include<cstring>
+#include<sstream>
+#include<stdlib.h>
+#include<stdio.h>
 
 #ifdef WIN32
+#include <fstream>
 #include <windows.h>
 #include <stdio.h>
 #include <conio.h>
 #include <tchar.h>
 
 #endif
-
+GLfloat* int_buffer;
+FILE * fp; 
+std::ofstream outputFile;
+std::vector<float> str;
 MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   util = u;
   //pwidth = util->pwidth;
@@ -29,7 +37,6 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   nzdz = (int)(nz*(1.0/util->dz));
 
   time_step = util->time_step;
-
   //Sets up the type of simulation to run
   sim = new Simulation(util->useRealTime,util->duration,&time_step);
   
@@ -73,9 +80,11 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   oneTime = 0;
 
   mbaTimer = new Timer(true);
-
+  std::string str1=util->quicFilesPath+"QU_deposition.dat";
+  //outputFile.open(str1.c_str(),std::ios::out);
+  fp=fopen(str1.c_str(),"wb");
 }
-MultipleBuildingsModel::~MultipleBuildingsModel(){}
+MultipleBuildingsModel::~MultipleBuildingsModel(){fclose(fp);}//outputFile.close();}
 
 void MultipleBuildingsModel::init(bool OSG){
   osgPlume = OSG;
@@ -320,19 +329,44 @@ int MultipleBuildingsModel::display(){
     ////////////////////////////////////////////////////////////
     // Update Prime Values and Particle Positions
     ////////////////////////////////////////////////////////////
-    if(color_by_advect_terms){
-
-      pc->multipleBuildingsAdvect(odd,windField,positions0,positions1,
-				prime0,prime1,randomValues,lambda,tau_dz,duvw_dz,
-				time_step,buildings,cellType,advect_terms);
-
-    }
-    else{
+   
+    /*else{*/
       pc->multipleBuildingsAdvect(odd,windField,positions0,positions1,prime0,prime1,
 				randomValues,lambda,tau_dz,duvw_dz,time_step,buildings, 
-				  cellType, NULL);
+				  cellType, advect_terms);
+    //}
+     
+     if(color_by_advect_terms){
+     int_buffer = new GLfloat[ twidth * theight * 4 ];
+     glReadBuffer(GL_COLOR_ATTACHMENT7_EXT);
+     glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, int_buffer); 
+     for(int i = 3; i <= (theight*twidth*4); i+=4){
+       //If particle has been reflected
+      if(int_buffer[i] == 2.0){
+	
+	 //Get the x,y,z position of the particle
+	 float x = int_buffer[i-3];
+	 float y = int_buffer[i-2];
+	 float z = int_buffer[i-1];
+         //fwrite(x,sizeof(x),1,fp);
+         fprintf(fp,"%f %f %f\n",x,y,z);
+         //outputFile<<float(x)<<"\t"<<float(y)<<"\t"<<float(z)<<"\n";
+
+         /*char* ch=new char[10];
+         char* ch1=new char[10];
+         char* ch2=new char[10];
+         gcvt(x,4,ch);
+         gcvt(y,4,ch1);
+         gcvt(z,4,ch2);
+         outputFile.write(ch,sizeof(ch));
+         outputFile.write(ch,sizeof(ch)); 
+         outputFile.write(ch,sizeof(ch));*/
+      }
+     }    
+	delete [] int_buffer;
+
     }
-      
+ 
     ////////////////////////////////////////////////////////////
     // Get Position for Streams
     ////////////////////////////////////////////////////////////
@@ -564,13 +598,13 @@ int MultipleBuildingsModel::display(){
       glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, vertex_buffer);
       glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
 
-      if(color_by_advect_terms){
+      /*if(color_by_advect_terms){
 	glReadBuffer(GL_COLOR_ATTACHMENT7_EXT);
 	glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
 	glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
 	
       }
-      else{
+      else{*/
 	if (util->updateParticleColors)
 	  {
 	    if(maxColorAttachments <= 4){
@@ -582,7 +616,7 @@ int MultipleBuildingsModel::display(){
 	    glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, color_buffer);
 	    glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, 0);
 	  }
-      }
+      //}
       
       //update path line vbos
       pathFbo->Bind();

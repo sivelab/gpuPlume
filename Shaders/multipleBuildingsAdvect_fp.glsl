@@ -35,6 +35,7 @@ uniform int velocity_to_color_by;
 uniform int random_texWidth;
 uniform int random_texHeight;
 uniform vec2 random_texCoordOffset;
+
 int check; //to check how many times CFL condition got applied
 //function returns the celltype of the location i,j,k
 float ReturnCellType(int i,int j,int k)
@@ -63,6 +64,7 @@ int maximum(int i,int j)
 }
 void main(void)
 {
+  vec4 poi=vec4(-1.0,-1.0,-1.0,-1.0);
   vec3 drift_term;
   vec3 memory_term;
   vec3 random_term;
@@ -425,7 +427,7 @@ void main(void)
 	    }
 	      
 	   dis = distance(pI,vec3(pos));		
-      	
+      	    poi=vec4(pI,2.0);
 	    prevPos = pI;
 	    pos = vec4(pI+(dis*r),pos.a);
 	    prmCurr = reflect(prmCurr,normal);
@@ -513,7 +515,7 @@ void main(void)
  
   
   if(color_advect_terms == 1){
-
+    color=poi;   
     if(pos.a <= 0.0 && (!(life_time <= 0.0))){
       gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
       gl_FragData[1] = vec4(prmCurr, 1.0);

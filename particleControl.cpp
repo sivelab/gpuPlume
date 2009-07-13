@@ -2754,7 +2754,7 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
     path = "Settings/QU_celltype.dat";
   
   std::ifstream in;
-  in.open(path.c_str(),std::ios::in);
+  in.open(path.c_str(),std::ios::binary|std::ios::in);
     	
   if(in == NULL) std::cout << "input file didn't open" << std::endl;
     
@@ -2783,7 +2783,7 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
 	     cell_type[p2idx].w = 0.0;
               for(int n=0; n < numBuild; n++)
               {
-                  /*if(numSides[n]==4)
+                  if(numSides[n]==4)
                   {
                      float lk = zfo[n];
                      float uk = zfo[n]+ht[n];
@@ -2794,7 +2794,7 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
 
                      if(x >= lj && x <= uj && y >= li && y <= ui && z >= lk && z <= uk) cell_type[p2idx].id = float(n);
                       
-                  }*/
+                  }
                   if(numSides[n]==5)
                   {
                       float lk = zfo[n];
@@ -2856,7 +2856,7 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
   }  
   in.close();
 
- for(int n=0; n < numBuild; n++){
+ /*for(int n=0; n < numBuild; n++){
    if(numSides[n]==4)
    {
     int lk = int(zfo[n]);
@@ -2880,7 +2880,7 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
        }
      }
     }
-   }
+   }*/
    int qk,qi,qj;
    int row,texidx,p2idx;
 
