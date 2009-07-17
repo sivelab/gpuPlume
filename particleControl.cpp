@@ -9,6 +9,11 @@
 #include "Random.h"
 #include "glErrorUtil.h"
 
+
+float max_vel=0.0;
+ParticleControl::ParticleControl()
+{
+}
 ParticleControl::ParticleControl(GLenum type,int width,int height,
 				 int x, int y, int z,
 				 float c_dx, float c_dy, float c_dz){
@@ -2950,7 +2955,6 @@ void ParticleControl::QUICWindField(){
 	QUICWindField>>wind_vel[p2idx].u ;//storing the velocity values in the wind structure
 	QUICWindField>>wind_vel[p2idx].v ;
 	QUICWindField>>wind_vel[p2idx].w ;
-
 	/*QUICCellType>>quicIndex;// ignoring the X,Y and Z values
 	QUICCellType>>quicIndex;
 	QUICCellType>>quicIndex;
@@ -2961,8 +2965,42 @@ void ParticleControl::QUICWindField(){
     }
   }
   
+  float vel=0.0,mx,my,mz,avg_vel,sd,sum_of_squares=0.0;
+  long double tot_vel=0.0;
+  for(int k = 0; k < nzdz; k++){   
+    for(int i = 0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
+                int p2idx = k*nxdx*nydy + i*nxdx + j;
+                vel=sqrt(pow(wind_vel[p2idx].u,2)+pow(wind_vel[p2idx].v,2)+pow(wind_vel[p2idx].w,2));
+                if(vel>max_vel) {max_vel=vel;  mx=wind_vel[p2idx].u;   my=wind_vel[p2idx].v;   mz=wind_vel[p2idx].w;}
+                tot_vel+=vel;
+            }
+         }
+      }
+  avg_vel=tot_vel/(nxdx*nydy*nzdz);
+  for(int k = 0; k < nzdz; k++){   
+    for(int i = 0; i < nydy; i++){
+      for(int j = 0; j < nxdx; j++){
+                 
+              int p2idx = k*nxdx*nydy + i*nxdx + j;
+              vel=sqrt(pow(wind_vel[p2idx].u,2)+pow(wind_vel[p2idx].v,2)+pow(wind_vel[p2idx].w,2));
+              sum_of_squares+=pow((vel-avg_vel),2);                   
+     }
+    }
+   }
+
+  sd=sqrt(sum_of_squares/(nxdx*nydy*nzdz));
+  max_vel=avg_vel+3*sd;
+  //util->max_vel = max_vel;
+  printf("\n max velocity is: %f %f %f\n",max_vel,avg_vel,sd);
   QUICWindField.close();
 }
+
+float ParticleControl::calculateMaxVel()
+{
+  return max_vel;
+}
+
 void ParticleControl::initCellType(){
   std::ifstream QUICCellType;
   std::string path;

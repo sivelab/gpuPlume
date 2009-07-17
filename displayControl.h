@@ -52,6 +52,7 @@ class DisplayControl{
   bool draw_buildings;
   bool osgPlume;
 
+  float max_vel;
   // Determine which visual state to draw the particles.  The default
   // should probably be point.
   enum ParticleVisualState
@@ -99,6 +100,7 @@ class DisplayControl{
   float* wti;
   float* lti;
   
+  
   //Copy of Particle Emitter for hand control
   ParticleEmitter* pe;
 
@@ -118,6 +120,7 @@ class DisplayControl{
 
   GLfloat azimuth;
   GLfloat elevation;
+  
   
   double tranx,trany,tranz;
   double angle,yangle;
@@ -145,6 +148,8 @@ class DisplayControl{
   // * and normal map textures
   GLint uniform_pointsprite_tex, uniform_normalmap_tex, uniform_visualization_tex, uniform_pointsprite_visuals, 
     uniform_nx, uniform_ny, uniform_nz, uniform_numInRow;
+
+  GLfloat uniform_max_vel;
 
   // * function to create point sprite textures
   void createPointSpriteTextures();

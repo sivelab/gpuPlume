@@ -327,9 +327,9 @@ void main(void)
             int imm,jmm,kmm;
             while((ReturnCellType(i,j,k)==0) && (cnt<1))
             {
-            imm=int(floor(pos.x)); 
-            jmm=int(floor(pos.y)); 
-            kmm=int(floor(pos.z));  
+            //imm=int(floor(pos.x)); 
+            //jmm=int(floor(pos.y)); 
+            //kmm=int(floor(pos.z));  
 
             u = vec3(pos)-prevPos;
             vec3 prevPos1;
@@ -337,35 +337,35 @@ void main(void)
             //calculating S values for each face of the cell type.
                 //-x normal  
 	  	n = vec3(-1.0,0.0,0.0);
-	   	d = -dot(n,vec3(imm,jmm+0.5,kmm+0.5));
+	   	d = -dot(n,vec3(i,j+0.5,k+0.5));
 	   	denom = dot(n,u);
 	    	numer = dot(n,prevPos) + d;
 	  	s1 = -numer/denom;
       
 	    	//+x normal
 	    	n = vec3(1.0,0.0,0.0);
-	    	d = -dot(n,vec3(imm+1.0,jmm+0.5,kmm+0.5));
+	    	d = -dot(n,vec3(i+1.0,j+0.5,k+0.5));
 	    	denom = dot(n,u);
 	    	numer = dot(n,prevPos) + d;
 	    	s2 = -numer/denom;
         
 	    	//+y normal
 	    	n = vec3(0.0,1.0,0.0);
-	    	d = -dot(n,vec3(imm+0.5,jmm+1,kmm+0.5));
+	    	d = -dot(n,vec3(i+0.5,j+1,k+0.5));
 	    	denom = dot(n,u);
 	    	numer = dot(n,prevPos) + d;
 	    	s3 = -numer/denom;
            
 	    	//-y normal
 	    	n = vec3(0.0,-1.0,0.0);
-	    	d = -dot(n,vec3(imm+0.5,jmm,kmm+0.5));
+	    	d = -dot(n,vec3(i+0.5,j,k+0.5));
 	    	denom = dot(n,u);
 	    	numer = dot(n,prevPos) + d;
 	    	s4 = -numer/denom;
       	
 	    	//+z normal
 	    	n = vec3(0.0,0.0,1.0);
-	    	d = -dot(n,vec3(imm+0.5,jmm+0.5,kmm+1));
+	    	d = -dot(n,vec3(i+0.5,j+0.5,k+1));
 	    	denom = dot(n,u);
 	    	numer = dot(n,prevPos) + d;
 	    	s5 = -numer/denom;

@@ -13,6 +13,7 @@ static char text_buffer[128];
 #define M_PI_2 M_PI/2.0
 #endif
 
+ 
 // sorting tests /////////////////////////
 float sort_eye[3];
 double Distance2Eye(const float* fp)
@@ -95,6 +96,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   
   visual_layer = -1;
 
+  
   // Set particle visual state to point based particles initially
   particle_visual_state = PARTICLE_SPHERE;
 
@@ -106,6 +108,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   windField_shader.addShader("Shaders/windFieldLayer_vp.glsl", GLSLObject::VERTEX_SHADER);
   windField_shader.addShader("Shaders/windFieldLayer_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   windField_shader.createProgram();
+  
   uniform_windTex = windField_shader.createUniform("Wind");
  
   // For the Sphere Particle Shader, we need the following data:
@@ -660,6 +663,14 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
 
   if (visual_layer >= 0 && visual_layer < nz)
     {
+
+     ParticleControl* pc;
+     pc=new ParticleControl();
+     float max_vel1=pc->calculateMaxVel();
+ 
+  //printf("max vel in dc is: %f\n",max_vel);
+      
+      
       glPushMatrix();
       //glEnable(GL_LIGHTING);
       //glEnable(GL_LIGHT0);
@@ -714,6 +725,8 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
 
       windField_shader.activate();
 
+      GLfloat uniform_max_velocity = windField_shader.createUniform("max_vel");
+      glUniform1fARB(uniform_max_velocity, max_vel1);
       //glUniform1iARB(uniform_controlWind, visual_field);
       //glUniform1fARB(uniform_sliderWind, slider);
 

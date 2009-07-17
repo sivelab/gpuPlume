@@ -30,6 +30,8 @@ class ParticleControl{
 
  public:
  
+  ParticleControl(); 
+ 
   ParticleControl(GLenum,int,int,int,int,int,float,float,float);
 
   void setupAdvectShader(float);
@@ -130,9 +132,8 @@ class ParticleControl{
 
   bool osgPlume;
    
+  float calculateMaxVel();
  
-
-  
   typedef struct{
     int u;
     int v;

@@ -103,6 +103,7 @@ class Util{
   float* lti;
   float* gamma;
   int numBuild;
+  float max_vel;
 
   std::string quicFilesPath;
 

@@ -2,6 +2,7 @@
 //uniform sampler2D pointspritenormal_texunit;
 //uniform int point_visuals;
 uniform sampler2DRect Wind;
+uniform float max_vel;
 
 varying vec4 pcolor;
 
@@ -10,23 +11,62 @@ void main(void)
   vec2 texCoord = gl_TexCoord[0].xy;
   vec4 wind_dir = vec4(texture2DRect(Wind, texCoord)); 
   
+  float vel=sqrt(wind_dir.x*wind_dir.x+wind_dir.y*wind_dir.y+wind_dir.z*wind_dir.z);
   // mat3 opponent2rgb = mat3(1.0,  0.1140,  0.7436, 
   // 1.0,  0.1140, -0.4111, 
   // 1.0, -0.8860, 0.1663);
-  mat3 opponent2rgb = mat3(0.299,  0.587,  0.114, 
+  /*mat3 opponent2rgb = mat3(0.299,  0.587,  0.114, 
 			   0.500,  0.500, -1.000, 
 			   0.866, -0.886,  0.000);
-  vec3 opponent_color = normalize(wind_dir).zxy;
+  /*mat3 opponent2rgb = mat3(1.0,  0.0,  0.0, 
+			   0.0,  0.0, 0.0, 
+			   0.0, 0.0,  0.0);*/
+   vec3 color; 
+ mat3 opponent2rgb = mat3(1,1,1, 
+			   1,  1, 1, 
+			   1, 1, 1);
+  //vec3 opponent_color = normalize(wind_dir).zxy;
 
+ vec3 nor_col;
+ if((vel/max_vel)<0.25) 
+ { nor_col=vec3(vel,0,0);
+   mat3 opponent2rgb = mat3(0,0,1, 
+			   0, 0, 1, 
+			   0, 0, 1);
+    color = opponent2rgb * nor_col;
+}
+else if((vel/max_vel)<0.50) 
+ { nor_col=vec3(vel,0,0);
+   mat3 opponent2rgb = mat3(0,1,1, 
+			   0, 1, 1, 
+			   0, 1, 1);
+    color = opponent2rgb * nor_col;
+}
+ else if((vel/max_vel)<0.75)
+{ nor_col=vec3(vel,vel,0.0);
+  mat3 opponent2rgb = mat3(1,1,0, 
+			   1,  1, 0, 
+			   1, 1, 0);
+   color = opponent2rgb * nor_col;
+}
+ else
+{ nor_col=vec3(0.0,0.0,vel);
+  mat3 opponent2rgb = mat3(1,0,0, 
+			   1,0, 0, 
+			   1, 0, 0);
+   color = opponent2rgb * nor_col;
+}
   // opponent_color = normalize(wind);
 
-  opponent_color.x = (1.0 + opponent_color.x)/2.0;
+  /*opponent_color.x = (1.0 + opponent_color.x)/2.0;
   opponent_color.y = opponent_color.y * sqrt(2.0);
-  opponent_color.z = opponent_color.z * sqrt(2.0);
+  opponent_color.z = opponent_color.z * sqrt(2.0);*/
 
-  vec3 color = opponent2rgb * opponent_color;
+  //color = opponent2rgb * nor_col;
+  //if((vel/max_vel)<0.02) color=vec3(0.0,0.0,1.0);
+  if(vel>max_vel) color=vec3(0.5,0.0,0.0);
 
-      float pi = 3.141592654;
+   /*   float pi = 3.141592654;
       float pi_3 = 1.047197551;
       float theta_0 = 0.0;
 
@@ -63,7 +103,7 @@ void main(void)
 	}
 
       color.y = oRGB_new.x;  
-      color.z = oRGB_new.y;
+      color.z = oRGB_new.y;*/
 
   gl_FragColor = vec4(color,1.0);
 
