@@ -186,6 +186,7 @@ class ParticleControl{
 
  private:
   float min,max; 
+  float max_vel;
 
   void test1();
   void randomWindField();
