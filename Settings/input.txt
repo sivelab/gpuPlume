@@ -1,26 +1,12 @@
 #Number of particles(twidth*theight)
-twidth 1000
-theight 1000
+twidth 256
+theight 256
 
 reuse_particles 1
 
 #Path Lines
 pwidth 3000
 pheight 1000
-
-#Set the Domain
-nx 100
-ny 50
-nz 20
-
-#size of domain for 35 building case
-#nx 100
-#ny 120
-#nz 30
-
-dx 1.0
-dy 1.0  
-dz 1.0
 
 #Set this to 1 to show the particle display, else 0
 show_particle_visuals 1
@@ -54,9 +40,6 @@ useRealTime 0
 
 time_step 0.01
 
-#output file for the values of the collection boxes
-output_file data.txt
-
 #Total time in seconds to run simulation
 #set to 0 to let user decide when to quit
 duration 0
@@ -85,22 +68,6 @@ numBox_y   1
 #number of boxes in z direction 
 numBox_z   1
 
-#Source/ParticleEmitter information
-num_of_sources 2
-
-# Source Format:
-# source_info point <X> <Y> <Z> <rate>
-# source_info line <X1> <Y1> <Z1> <X2> <Y2> <Z2> <rate>
-# source_info sphere <Xcenter> <Ycenter> <Zcenter> <radius> <rate>
-
-# A line emitter
-#source_info line 5.0 20.0 5.0 5.0 30.0 5.0 60.0
-#source_info point 20.0 25.0 15.0 200.0
-#source_info line 10.0 115.0 5.0 90.0 115.0 5.0 200.0
-# source_info sphere 5.0 25.0 3.0 0.1 200.0
-source_info line 5.0 15.0 3.0 5.0 35.0 3.0 1000.0
-source_info line 5.0 25.0 0.5 5.0 25.0 5.0 1000.0
-
 #Set the type of Particle Release
 release_type 1
 
@@ -115,64 +82,6 @@ release_type 1
 #Set the method of emitting particles into simulation
 #Set to 0 for Punch Hole method and 1 for texture copy method
 emit_method 0
-
-#Number of Buildings
-#Set to 0 for no buildings
-numBuild 6
-
-#Path to read QUICFILES
-#6 Buildings case: Settings/MultipleBuildingFiles/
-#Single Building case: Settings/SingleBuildingFiles/
-#quicFilesPath Settings/SingleBuildingFiles/
-quicFilesPath Settings/MultipleBuildingFiles/
-#quicFilesPath Settings/35BuildingFiles/
-
-#Building Parameters
-#I'm defining it the same as in QUIC
-#(x,y,z) (height, width, length)
-#build_param 25.0 25.0 0.0 10.0 10.0 10.0
-build_param 20.0 18.0 0.0 6.0 6.0 10.0
-build_param 20.0 32.0 0.0 6.0 6.0 10.0
-build_param 35.0 18.0 0.0 10.0 6.0 10.0
-build_param 35.0 32.0 0.0 10.0 6.0 10.0
-build_param 50.0 18.0 0.0 14.0 6.0 10.0
-build_param 50.0 32.0 0.0 14.0 6.0 10.0
-#35 building files
-#build_param 12.0 40.0 0.0 10.0 8.0 8.0
-#build_param 24.0 40.0 0.0 12.0 8.0 10.0
-#build_param 12.0 22.0 0.0 8.0 8.0 10.0
-#build_param 26.0 22.0 0.0 10.0 8.0 8.0
-#build_param 38.0 22.0 0.0 12.0 8.0 8.0
-#build_param 14.0 40.0 10.0 4.0 4.0 4.0
-#build_param 26.0 40.0 12.0 8.0 4.0 6.0
-#build_param 40.0 22.0 12.0 6.0 4.0 4.0
-#build_param 40.0 40.0 0.0 12.0 8.0 6.0
-#build_param 12.0 52.0 0.0 10.0 12.0 20.0
-#build_param 12.0 54.0 10.0 10.0 8.0 20.0
-#build_param 50.0 22.0 0.0 14.0 8.0 18.0
-#build_param 52.0 40.0 0.0 6.0 8.0 16.0
-#build_param 56.0 41.0 6.0 10.0 6.0 12.0
-#build_param 40.0 54.0 0.0 10.0 8.0 12.0
-#build_param 60.0 52.0 0.0 18.0 12.0 8.0
-#build_param 78.0 22.0 0.0 16.0 8.0 14.0
-#build_param 78.0 42.0 0.0 10.0 12.0 18.0
-#build_param 78.0 42.0 10.0 10.0 12.0 10.0
-#build_param 78.0 55.0 0.0 8.0 6.0 16.0
-#build_param 12.0 13.0 0.0 16.0 6.0 22.0
-#build_param 20.0 13. 16.0 8.0 6.0 8.0
-#build_param 40.0 13.0 0.0 20.0 6.0 12.0
-#build_param 54.0 13.0 0.0 16.0 6.0 14.0
-#build_param 78.0 13.0 0.0 10.0 6.0 18.0
-#build_param 78.0 13.0 10.0 10.0 6.0 6.0
-#build_param 90.0 13.0 10.0 10.0 6.0 6.0
-#build_param 12.0 74.0 0.0 10.0 12.0 24.0
-#build_param 40.0 74.0 0.0 16.0 12.0 12.0
-#build_param 12.0 85.0 0.0 8.0 6.0 12.0
-#build_param 28.0 85.0 0.0 8.0 6.0 24.0
-#build_param 56.0 78.0 0.0 10.0 20.0 12.0
-#build_param 78.0 74.0 0.0 6.0 12.0 18.0
-#build_param 78.0 74.0 6.0 10.0 12.0 10.0
-#build_param 78.0 85.0 0.0 10.0 6.0 18.0
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
