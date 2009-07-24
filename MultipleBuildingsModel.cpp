@@ -80,7 +80,10 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   oneTime = 0;
 
   mbaTimer = new Timer(true);
+
   std::string str1=util->quicFilesPath+"QU_deposition.dat";
+  // std::cout << "Attempting to open deposition file for writing: \"" << str1 << "\"." << std::endl;
+
   //outputFile.open(str1.c_str(),std::ios::out);
   fp=fopen(str1.c_str(),"wb");
 }

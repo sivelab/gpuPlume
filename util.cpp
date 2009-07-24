@@ -34,6 +34,16 @@ Util::Util(){
   reuse_particles = false;
 }
 
+bool Util::isPathAbsolute(const std::string &filename)
+{
+  // An absolute path would have a / that begins the string.
+  // Likewise, on Windows, it would have a C:\ style beginning.
+  if (filename[0] == '/')
+    return true;
+  
+  return false;
+}
+
 bool Util::isQUICProjFile(std::ifstream& inputStream)
 {
   // Simply check to see if this looks like a QUIC proj file.  If it
@@ -95,6 +105,10 @@ bool Util::isQUICProjFile(std::ifstream& inputStream)
 
 bool Util::readInput(std::string file){
 
+  // Is the path relative or absolute.
+  hasAbsolutePath = isPathAbsolute(file);
+  std::cout << "Absolute Path = " << hasAbsolutePath << std::endl;
+
   std::ifstream in;
   in.open(file.c_str(),std::ios::in);
 
@@ -140,15 +154,26 @@ bool Util::readInput(std::string file){
       std::string filePrefix, pathPrefix;
       pathPrefix = file.substr(0, lastSlashPos);
       filePrefix = file.substr(lastSlashPos+1, prefixLength);
-      std::cout << "Path Prefix: " << pathPrefix << std::endl;
-      std::cout << "File Prefix: " << filePrefix << std::endl;
+      // std::cout << "Path Prefix: " << pathPrefix << std::endl;
+      // std::cout << "File Prefix: " << filePrefix << std::endl;
 
       // attempt to get the path to the QU_* and QP_* files
+      std::string localQuicFilePath = "";
+      if (hasAbsolutePath == false)
+	localQuicFilePath = cwdStr;
+
+      std::string slash;
 #ifdef WIN32
-      std::string localQuicFilePath = cwdStr + "\\" + filePrefix + "_inner\\";
+      slash = "\\";
+      localQuicFilePath += slash + filePrefix + "_inner" + slash;
 #else
-      std::string localQuicFilePath = cwdStr + "/" + pathPrefix + "/" + filePrefix + "_inner/";
+      slash = "/";
+      if (hasAbsolutePath)
+	localQuicFilePath += pathPrefix + slash + filePrefix + "_inner" + slash;
+      else
+	localQuicFilePath += slash + pathPrefix + slash + filePrefix + "_inner" + slash;
 #endif
+
       std::cout << "QUIC Files Path: " << localQuicFilePath << std::endl;
 
       readQUICBaseFiles( localQuicFilePath );

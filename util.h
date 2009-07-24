@@ -105,6 +105,7 @@ class Util{
   int numBuild;
   float max_vel;
 
+  bool hasAbsolutePath;
   std::string quicFilesPath;
 
   //holds the quicPlume Data for the wind field
@@ -131,6 +132,7 @@ class Util{
   bool readComment(const char*);
   bool read1String(const char*, const char*,std::string*);
 
+  bool isPathAbsolute(const std::string &filename);
   bool isQUICProjFile(std::ifstream& inputStream);
   bool readQUICBaseFiles( std::string& QUICFilesPath );
 
