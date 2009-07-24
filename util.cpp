@@ -164,12 +164,22 @@ bool Util::readInput(std::string file){
       bool foundSettingsFile = false;
 
       std::ifstream gpuPlumeSettings_in;
-      std::string gpuPlumeSettings_filename = localQuicFilePath + "../" + "gpuPlumeSettings.txt";
+      std::string gpuPlumeSettings_filename;
+#ifdef WIN32
+      gpuPlumeSettings_filename = localQuicFilePath + "..\\" + "gpuPlumeSettings.txt";
+#else
+      gpuPlumeSettings_filename = localQuicFilePath + "../" + "gpuPlumeSettings.txt";
+#endif
+     
       gpuPlumeSettings_in.open(gpuPlumeSettings_filename.c_str(),std::ios::in);
       if (gpuPlumeSettings_in == NULL) 
 	{
 	  // bad input filename
+#ifdef WIN32
+	  gpuPlumeSettings_filename = "Settings\input.txt";
+#else
 	  gpuPlumeSettings_filename = "Settings/input.txt";
+#endif
 	  gpuPlumeSettings_in.open(gpuPlumeSettings_filename.c_str(),std::ios::in);
 	  if (gpuPlumeSettings_in)
 	    {
