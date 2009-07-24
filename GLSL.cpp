@@ -120,7 +120,7 @@ void GLSLObject::addShader( const std::string& filename, ShaderType shader_type 
   GLint result;
   glGetObjectParameterivARB( shader, GL_OBJECT_COMPILE_STATUS_ARB, &result );
   if (result) {
-    std::cout << "Shader compilation successful: " << filename << std::endl;
+    // std::cout << "Shader compilation successful: " << filename << std::endl;
     
     // Add the shader to the appropriate list
     if (shader_type == VERTEX_SHADER) 

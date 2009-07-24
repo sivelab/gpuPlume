@@ -58,21 +58,22 @@ int main(int argc, char** argv)
 #ifdef WIN32
   if (argc == 1)
   {	
-		// only do this if we have not been supplied a command line argument ... in other words, if we are likely running from Visual Studio!
-	TCHAR buffer[MAX_PATH];
-	DWORD dwRet;
+    // Fix! -Pete
+    // only do this if we have not been supplied a command line argument ... in other words, if we are likely running from Visual Studio!
+    TCHAR buffer[MAX_PATH];
+    DWORD dwRet;
 
-	// dwRet = GetCurrentDirectory(MAX_PATH, buffer);
-
-	// Set the current working directory back a level so shader access is uniform across platforms
-	if (!SetCurrentDirectory(_T("..")))
-	{
-		std::cerr << "SetCurrentDirectory failed (" << GetLastError() << ")" << std::endl;
-	}
-	else 
-	{
-		dwRet = GetCurrentDirectory(MAX_PATH, buffer);
-	}
+    // dwRet = GetCurrentDirectory(MAX_PATH, buffer);
+    
+    // Set the current working directory back a level so shader access is uniform across platforms
+    if (!SetCurrentDirectory(_T("..")))
+      {
+	std::cerr << "SetCurrentDirectory failed (" << GetLastError() << ")" << std::endl;
+      }
+    else 
+      {
+	dwRet = GetCurrentDirectory(MAX_PATH, buffer);
+      }
   }
 #endif
  
@@ -91,6 +92,10 @@ int main(int argc, char** argv)
 
   util = new Util();
 
+  // have util parse command line arguments
+  
+
+  // Must supply an argument containing the .prof file to be read.
   if (argc == 2)
     {
       std::cout << "Reading input from file: \"" << argv[1] << "\"" << std::endl;
@@ -102,11 +107,8 @@ int main(int argc, char** argv)
     }
   else 
     {
-      if (util->readInput("Settings/input.txt") == false)
-	{
-	  std::cerr << "Could not open or parse input file: \"" << argv[1] << "\"\nExiting." << std::endl;
-	  exit(EXIT_FAILURE);
-	}
+      std::cerr << "Need to provide QUIC .proj file for opening. Exiting." << std::endl;
+      exit(EXIT_FAILURE);
     }
 
   //plume = new PlumeControl(util);

@@ -118,18 +118,19 @@ bool Util::readInput(std::string file){
     {
       // extract the path to the file name
       // find the current working directory
-		std::string cwdStr;
+      std::string cwdStr;
      
 #ifdef WIN32
-		  const size_t bufferSz = MAX_PATH;
-		  TCHAR buffer[bufferSz];
-		  GetCurrentDirectory(bufferSz, buffer);
-		  cwdStr = std::string(buffer);
+      const size_t bufferSz = MAX_PATH;
+      TCHAR buffer[bufferSz];
+      GetCurrentDirectory(bufferSz, buffer);
+      cwdStr = std::string(buffer);
 #else
-		char *cwd = new char[PATH_MAX];
-		getcwd(cwd, PATH_MAX);
-		cwdStr = cwd;
+      char *cwd = new char[PATH_MAX];
+      getcwd(cwd, PATH_MAX);
+      cwdStr = cwd;
 #endif
+
       // next, extract base name from the file name, and attempt open the files we need...
       size_t lastSlashPos = file.find_last_of( "/" );
       size_t lastDotPos = file.find_last_of( "." );
@@ -144,7 +145,7 @@ bool Util::readInput(std::string file){
 
       // attempt to get the path to the QU_* and QP_* files
 #ifdef WIN32
-	  std::string localQuicFilePath = cwdStr + "\\" + filePrefix + "_inner\\";
+      std::string localQuicFilePath = cwdStr + "\\" + filePrefix + "_inner\\";
 #else
       std::string localQuicFilePath = cwdStr + "/" + pathPrefix + "/" + filePrefix + "_inner/";
 #endif
@@ -152,13 +153,76 @@ bool Util::readInput(std::string file){
 
       readQUICBaseFiles( localQuicFilePath );
 
+      // Now, load the base settings file which contains parameters
+      // such as number of particles, and related, gpuPlume specific
+      // items.  The settings file also contains some information that
+      // will eventually get picked up by reading various other QUIC
+      // QU_* and QP_* files.
+
+      // Attempt to find the settings file in the
+      // localQuicFilePath... if not, read the default file.
+      bool foundSettingsFile = false;
+
+      std::ifstream gpuPlumeSettings_in;
+      std::string gpuPlumeSettings_filename = localQuicFilePath + "../" + "gpuPlumeSettings.txt";
+      gpuPlumeSettings_in.open(gpuPlumeSettings_filename.c_str(),std::ios::in);
+      if (gpuPlumeSettings_in == NULL) 
+	{
+	  // bad input filename
+	  gpuPlumeSettings_filename = "Settings/input.txt";
+	  gpuPlumeSettings_in.open(gpuPlumeSettings_filename.c_str(),std::ios::in);
+	  if (gpuPlumeSettings_in)
+	    {
+	      std::cout << "Opening \"" << gpuPlumeSettings_filename << "\" for parsing of additional gpuPlume settings." << std::endl;
+	      foundSettingsFile = true;
+	    }
+	}
+      else
+	{
+	  std::cout << "Opening \"" << gpuPlumeSettings_filename << "\" for parsing of additional gpuPlume settings." << std::endl;
+	  foundSettingsFile = true;
+	}
+
+      // if there is a settings file, we'll attempt to override any
+      // values set by default.  Otherwise, the default values
+      // assigned when the QUIC files were parsed will be used.
+      if (foundSettingsFile)
+	{
+	  // re-open the file for parsing
+	  char line[1024];
+	  while(  !gpuPlumeSettings_in.eof() )
+	    {
+	      gpuPlumeSettings_in.getline(line, 1024);
+	      if( line[ strlen(line)] == '\n' ){
+		line[ strlen(line)] = '\0';
+	      }
+	  
+	      parseLine(line);
+	    }
+	  gpuPlumeSettings_in.close();
+	}
+
       // We've successfully loaded the QUIC files, so we can move on and return true
       return true;
     }
   else
     {
-      std::cout << "Input file is NOT a QUIC project file.  Attempting to use original settings file parser." << std::endl;
+      std::cout << "***************************************" << std::endl;
+      std::cout << "Base input file is NOT a QUIC project file.  The code\n";
+      std::cout << "has changed significantly and loading from our original\n";
+      std::cout << "setup input is not encouraged since the building reflection\n";
+      std::cout << "has changed significantly and is now based solely on the celltype\n";
+      std::cout << "structure." << std::endl;
+      std::cout << "***************************************" << std::endl;
+      return false;
     }
+
+#if 0
+  // ++++++++++++++++++++++++++++++++++++++++++++
+  // This was the original code for parsing our base input file... gpuPlume now loads off the 
+  // QUIC files directly and only uses the input.txt settings file to pull in parameters specific
+  // to gpuPlume.
+  // ++++++++++++++++++++++++++++++++++++++++++++
 
   // re-open the file for parsing
   in.open(file.c_str(),std::ios::in);
@@ -174,7 +238,7 @@ bool Util::readInput(std::string file){
   }
 
   in.close();
-  return true;
+#endif
 }
 void Util::parseLine(char* line){
 
@@ -421,8 +485,8 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   std::string s1;
 
   // set some defaults for now...
-  twidth = 1024;
-  theight = 1024;
+  twidth = 256;
+  theight = 256;
 
   reuse_particles = true;
 
@@ -1160,3 +1224,4 @@ void Util::volumeBox(){
 
 	volume= xBoxlen*yBoxlen*zBoxlen;
 }
+

@@ -2917,54 +2917,122 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
 void ParticleControl::QUICWindField(){
   std::ifstream QUICWindField;//,QUICCellType;
 	
+  // for now, only read the ascii files... binary isn't yet done.
+  bool asciiFile = true;
+
   std::string path;
   if(quicFilesPath.c_str() != NULL){
-    path = quicFilesPath + "QU_velocity.dat";
+    if (asciiFile)
+      path = quicFilesPath + "QU_velocity.dat";
+    else 
+      path = quicFilesPath + "QU_velocity.bin";
   }
   else
     path = "Settings/QU_velocity.dat";
 
-  //QUICWindField.open("Settings/QU_velocity.dat"); //opening the wind file  to read
-  QUICWindField.open(path.c_str()); //opening the wind file  to read
+  if (asciiFile)
+    QUICWindField.open(path.c_str()); //opening the wind file  to read
+  else
+    QUICWindField.open(path.c_str(), std::ifstream::in | std::ifstream::binary); //opening the wind file  to read
+
   if(!QUICWindField){
     std::cerr<<"Unable to open QUIC Windfield file : QU_velocity.dat ";
     exit(1);
   }
 
-  std::string header;  //I am just using a very crude method to read the header of the wind file
-  QUICWindField>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header;
-  QUICWindField>>header>>header>>header>>header>>header;
-    
-  double groundVal; // ignoring the ground values, so that k=0 have the first cell having non-zero velocity 
-  //Balli had ++k?
+  if (asciiFile)
+    {
+      std::string header;  //I am just using a very crude method to read the header of the wind file
+      QUICWindField>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header;
+      QUICWindField>>header>>header>>header>>header>>header;
 
-  for(int k=0;k<(6*nxdx*nydy);++k){ // there are 6 columns in the wind file 
-    QUICWindField>>groundVal;
-  }
+      double groundVal; // ignoring the ground values, so that k=0 have the first cell having non-zero velocity 
+      //Balli had ++k?
 
-  double quicIndex;
+      for(int k=0;k<(6*nxdx*nydy);++k){ // there are 6 columns in the wind file 
+	QUICWindField>>groundVal;
+      }
 
-  for(int k = 0; k < nzdz; k++){   
-    for(int i = 0; i < nydy; i++){
-      for(int j = 0; j < nxdx; j++){
-	int p2idx = k*nxdx*nydy + i*nxdx + j;
-	QUICWindField>>quicIndex; // ignoring the X,Y and Z values
-	QUICWindField>>quicIndex;
-	QUICWindField>>quicIndex;
+      double quicIndex;
 
-	QUICWindField>>wind_vel[p2idx].u ;//storing the velocity values in the wind structure
-	QUICWindField>>wind_vel[p2idx].v ;
-	QUICWindField>>wind_vel[p2idx].w ;
-	/*QUICCellType>>quicIndex;// ignoring the X,Y and Z values
-	QUICCellType>>quicIndex;
-	QUICCellType>>quicIndex;
+      for(int k = 0; k < nzdz; k++){   
+	for(int i = 0; i < nydy; i++){
+	  for(int j = 0; j < nxdx; j++){
+	    int p2idx = k*nxdx*nydy + i*nxdx + j;
+	    QUICWindField>>quicIndex; // ignoring the X,Y and Z values
+	    QUICWindField>>quicIndex;
+	    QUICWindField>>quicIndex;
+	    QUICWindField>>wind_vel[p2idx].u ;//storing the velocity values in the wind structure
+	    QUICWindField>>wind_vel[p2idx].v ;
+	    QUICWindField>>wind_vel[p2idx].w ;
+	    
+	    // std::cout << "v = (" << wind_vel[p2idx].u << ", " << wind_vel[p2idx].v << ", " << wind_vel[p2idx].w << ")" << std::endl;
+	    /*QUICCellType>>quicIndex;// ignoring the X,Y and Z values
+	      QUICCellType>>quicIndex;
+	      QUICCellType>>quicIndex;
 
-	QUICCellType>>cellQuic[p2idx].c ;//storing the Celltype values in the Cell structure*/
+	      QUICCellType>>cellQuic[p2idx].c ;//storing the Celltype values in the Cell structure*/
 		
+	  }
+	}
       }
     }
-  }
-  
+  else 
+    {
+      // Binary read!  In the binary file, comments are NOT written.
+      // read nxXnyXnz floats All u, All v, All w is the format.
+
+      QUICWindField.seekg(0, std::ios::end);
+      int numBytes = QUICWindField.tellg();
+      QUICWindField.seekg(0, std::ios::beg);
+
+      int numDoubles = 0;
+
+      // allocate memory for whole file and read everything in at once
+      char *fileBuffer = new char[numBytes];
+      QUICWindField.read(fileBuffer, numBytes);
+      QUICWindField.close();
+
+      int cd = 0;
+
+      // skip over 4 or 8 bytes since that's how fortran dumps binary writes (depends on 32-bit versus 64-bit)
+      long int *lival = reinterpret_cast<long int*>(&fileBuffer[cd]);
+      std::cout << "numBytes = " << numBytes << ", lival = " << *lival << ", numDoubles = " << *lival / 3 << std::endl;
+      cd += sizeof(long int);
+
+      // all U, all V, all W
+
+      for(int k = 0; k < nzdz; k++)
+	for(int i = 0; i < nydy; i++)
+	  for(int j = 0; j < nxdx; j++)
+	    {
+	    int p2idx = k*nxdx*nydy + i*nxdx + j;
+
+	      double *dval = reinterpret_cast<double*>(&fileBuffer[cd]);
+	      cd += sizeof(double);
+	      wind_vel[p2idx].u = *dval;
+	      numDoubles++;
+
+	      dval = reinterpret_cast<double*>(&fileBuffer[cd]);
+	      cd += sizeof(double);
+	      wind_vel[p2idx].v = *dval;
+	      numDoubles++;
+
+	      dval = reinterpret_cast<double*>(&fileBuffer[cd]);
+	      cd += sizeof(double);
+	      wind_vel[p2idx].w = *dval;
+	      numDoubles++;
+	      std::cout << "v = (" << wind_vel[p2idx].u << ", " << wind_vel[p2idx].v << ", " << wind_vel[p2idx].w << ")" << std::endl;
+
+	      p2idx++;
+	    }
+
+	      // skip over 4 bytes since that's how fortran dumps binary writes
+	      cd += 8;
+      
+      delete [] fileBuffer;
+    }
+
   float vel=0.0,mx,my,mz,avg_vel,sd,sum_of_squares=0.0;
   long double tot_vel=0.0;
   for(int k = 0; k < nzdz; k++){   
@@ -2992,7 +3060,7 @@ void ParticleControl::QUICWindField(){
   sd=sqrt(sum_of_squares/(nxdx*nydy*nzdz));
   max_vel=avg_vel+3*sd;
   //util->max_vel = max_vel;
-  printf("\n max velocity is: %f %f %f\n",max_vel,avg_vel,sd);
+  std::cout << "Calculated maximum wind velocity=" << max_vel << "\n\taverage wind velocity=" << avg_vel << "\n\tstandard deviation=" << sd << std::endl;
   QUICWindField.close();
 }
 
@@ -3004,6 +3072,9 @@ float ParticleControl::calculateMaxVel()
 void ParticleControl::initCellType(){
   std::ifstream QUICCellType;
   std::string path;
+
+  // NOTE!  celltypes are smallish integers!  Might be able to save
+  // memory by using basic byte, not 32-bit floating textures
 
   if(quicFilesPath.c_str() != NULL){
     path = quicFilesPath + "QU_celltype.dat";
@@ -3184,11 +3255,13 @@ void ParticleControl::find_tauLocalMax(){
     }
   }
 
+#if 0
+  // this appears to do NOTHING! Commenting out for now... -Pete
   std::cout << "Local Max t11 values" << std::endl;
   for(int i=0; i < nzdz; i++){
     //std::cout << tauLocalMax[(i*4)+3] << std::endl;
     
   }
-
+#endif
 }
 

@@ -776,7 +776,7 @@ void MultipleBuildingsModel::initFBO(void){
   fbo->Bind();
       
   glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, (GLint*)&maxColorAttachments);
-  std::cout << "Max color attachments: " << maxColorAttachments << std::endl;
+  // std::cout << "Max color attachments: " << maxColorAttachments << std::endl;
   //rb = new Renderbuffer();
   //rb->Set(GL_DEPTH_COMPONENT24, twidth, theight);
   //fbo->AttachRenderBuffer(GL_DEPTH_ATTACHMENT_EXT, rb->GetId() );
@@ -968,7 +968,7 @@ void MultipleBuildingsModel::setupTextures(){
 
   }
   std::cout << "Prime Textures Random Values: Mean = " << mean << ", Standard Deviation = " << stddev << ", Variance = " << variance << std::endl;
-  std::cout << "Number of iterations to get random values: " << iterations << std::endl;
+  // std::cout << "Number of iterations to get random values: " << iterations << std::endl;
 
   pc->createTexture(prime0, int_format, twidth, theight, data);
   pc->createTexture(prime1, int_format, twidth, theight, data);
@@ -1058,8 +1058,8 @@ void MultipleBuildingsModel::setupTextures(){
 
   }
 
-  std::cout << "texid[4] Random Values: Mean = " << mean << ", Standard Deviation = " << stddev << ", Variance = " << variance << std::endl;
-  std::cout << "Number of iterations to get random values: " << iterations << std::endl;
+  std::cout << "Creating Random Values Texture: Mean = " << mean << ", Standard Deviation = " << stddev << ", Variance = " << variance << std::endl;
+  // std::cout << "Number of iterations to get random values: " << iterations << std::endl;
 
   pc->createTexture(texid[4], int_format, twidth, theight, data);
   CheckErrorsGL("\tcreated texid[4], the random number texture...");
