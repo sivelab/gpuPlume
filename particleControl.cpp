@@ -10,7 +10,6 @@
 #include "glErrorUtil.h"
 
 
-float max_vel=0.0;
 ParticleControl::ParticleControl()
 {
 }
@@ -47,7 +46,9 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   cell_dy = c_dy;
   cell_dz = c_dz;
 
-
+  // the wind "speed" or magnitude cannot be negative so initialize to negative and then later
+  // find the max
+  max_vel = -1.0;
 }
 void ParticleControl::setBuildingParameters(int nB,int* ns,float* x,float* y,float* z,
 					   float* h,float* w,float* l,float* g){
@@ -3033,34 +3034,48 @@ void ParticleControl::QUICWindField(){
       delete [] fileBuffer;
     }
 
-  float vel=0.0,mx,my,mz,avg_vel,sd,sum_of_squares=0.0;
   long double tot_vel=0.0;
+  double vel=0.0,mx=0.0,my=0.0,mz=0.0,avg_vel=0.0,sd=0.0,sum_of_squares=0.0;
+
   for(int k = 0; k < nzdz; k++){   
     for(int i = 0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
-                int p2idx = k*nxdx*nydy + i*nxdx + j;
-                vel=sqrt(pow(wind_vel[p2idx].u,2)+pow(wind_vel[p2idx].v,2)+pow(wind_vel[p2idx].w,2));
-                if(vel>max_vel) {max_vel=vel;  mx=wind_vel[p2idx].u;   my=wind_vel[p2idx].v;   mz=wind_vel[p2idx].w;}
-                tot_vel+=vel;
-            }
-         }
+	int p2idx = k*nxdx*nydy + i*nxdx + j;
+	vel = sqrt(wind_vel[p2idx].u * wind_vel[p2idx].u + 
+		   wind_vel[p2idx].v * wind_vel[p2idx].v + 
+		   wind_vel[p2idx].w * wind_vel[p2idx].w);
+	if (vel > max_vel) 
+	  {
+	    max_vel = vel;
+	    mx = wind_vel[p2idx].u;
+	    my = wind_vel[p2idx].v; 
+	    mz = wind_vel[p2idx].w;
+	  }
+	tot_vel += vel;
       }
-  avg_vel=tot_vel/(nxdx*nydy*nzdz);
+    }
+  }
+
+  avg_vel = tot_vel/(double)(nxdx*nydy*nzdz);
   for(int k = 0; k < nzdz; k++){   
     for(int i = 0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
-                 
-              int p2idx = k*nxdx*nydy + i*nxdx + j;
-              vel=sqrt(pow(wind_vel[p2idx].u,2)+pow(wind_vel[p2idx].v,2)+pow(wind_vel[p2idx].w,2));
-              sum_of_squares+=pow((vel-avg_vel),2);                   
+	int p2idx = k*nxdx*nydy + i*nxdx + j;
+	vel = sqrt(wind_vel[p2idx].u * wind_vel[p2idx].u + 
+		   wind_vel[p2idx].v * wind_vel[p2idx].v + 
+		   wind_vel[p2idx].w * wind_vel[p2idx].w);
+	sum_of_squares += ((vel-avg_vel) * (vel-avg_vel));
      }
     }
    }
 
-  sd=sqrt(sum_of_squares/(nxdx*nydy*nzdz));
-  max_vel=avg_vel+3*sd;
+  sd=sqrt(sum_of_squares/(double)(nxdx*nydy*nzdz));
+  max_vel = avg_vel + 3.0*sd;
+
   //util->max_vel = max_vel;
+
   std::cout << "Calculated maximum wind velocity=" << max_vel << "\n\taverage wind velocity=" << avg_vel << "\n\tstandard deviation=" << sd << std::endl;
+
   QUICWindField.close();
 }
 
