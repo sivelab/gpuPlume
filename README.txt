@@ -76,6 +76,9 @@ system to do the computation and will eventually go away so you can
 simply enter the total number of particles.
 
 
+Notes For Windows Users
+-----------------------
+
 For Windows users, you will need to build the code with Visual Studio
 and run it from the command prompt.  A Visual Studio solution file is
 located in the directory gpuQUICPLUME.  Once the solution is built,
@@ -83,6 +86,10 @@ copy the executable to the main gpuPlume directory so that it can
 execute as described above.  For instance,
 
   copy gpuQUICPLUME/Debug/gpuQUICPLUME.exe .
+
+Then, to run it, you can type the following:
+
+  gpuQUICPLUME WindDomains/TestCase4/TestCase4.proj
 
 Once that is done, you can execute gpuplume as described above.
 
