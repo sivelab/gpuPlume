@@ -85,7 +85,7 @@ located in the directory gpuQUICPLUME.  Once the solution is built,
 copy the executable to the main gpuPlume directory so that it can
 execute as described above.  For instance,
 
-  copy gpuQUICPLUME/Debug/gpuQUICPLUME.exe .
+  copy gpuQUICPLUME\Debug\gpuQUICPLUME.exe .
 
 Then, to run it, you can type the following:
 
