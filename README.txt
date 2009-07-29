@@ -89,7 +89,7 @@ execute as described above.  For instance,
 
 Then, to run it, you can type the following:
 
-  gpuQUICPLUME WindDomains/TestCase4/TestCase4.proj
+  gpuQUICPLUME WindDomains\TestCase4\TestCase4.proj
 
 Once that is done, you can execute gpuplume as described above.
 
