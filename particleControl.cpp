@@ -3108,15 +3108,15 @@ void ParticleControl::QUICWindField(){
   sd=sqrt(sum_of_squares/(double)(nxdx*nydy*nzdz));
 
   std::cout << "Calculated maximum wind velocity=" << max_vel << "\n\taverage wind velocity=" << avg_vel << "\n\tstandard deviation (SD)=" << sd << std::endl;
-  // if (avg_vel + 3.0*sd < max_vel)
-  // {
-  // m_util_ptr->calculatedMaxVel = avg_vel + 3.0*sd;
-  // std::cout << "\tsetting maximum wind velocity to 3*SD from mean = " << m_util_ptr->calculatedMaxVel << std::endl;
-  // }
-  // else 
-  // {
+  if (avg_vel + 3.0*sd < max_vel)
+    {
+      m_util_ptr->calculatedMaxVel = avg_vel + 3.0*sd;
+      std::cout << "\tsetting maximum wind velocity to 3*SD from mean = " << m_util_ptr->calculatedMaxVel << std::endl;
+    }
+  else 
+    {
       m_util_ptr->calculatedMaxVel = max_vel;
-      // }
+    }
 
   QUICWindField.close();
 }
