@@ -94,7 +94,7 @@ void MultipleBuildingsModel::init(bool OSG){
   
   pathLines = new PathLine(util->pwidth,util->pheight,texType);
 
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz, util);
   pc->setUstarAndSigmas(util->ustar);
   pc->setBuildingParameters(util->numBuild,util->numSides,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti,util->gamma);
   pc->setQuicFilesPath(util->quicFilesPath);
@@ -701,7 +701,7 @@ int MultipleBuildingsModel::display(){
 	  else
 	    planeVisual->drawAxisAlignedPlane();
 	else
-	  dc->drawLayers(windField,numInRow);
+	  dc->drawLayers(windField,numInRow, util->calculatedMaxVel);
       }
       
 #if 0
