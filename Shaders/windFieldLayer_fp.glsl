@@ -1,147 +1,60 @@
-//uniform sampler2D pointsprite_texunit;
-//uniform sampler2D pointspritenormal_texunit;
-//uniform int point_visuals;
 uniform sampler2DRect Wind;
 uniform float max_vel;
-
-varying vec4 pcolor;
 
 void main(void)
 {
   vec2 texCoord = gl_TexCoord[0].xy;
   vec4 wind_dir = vec4(texture2DRect(Wind, texCoord)); 
   
-  float vel=sqrt(wind_dir.x*wind_dir.x+wind_dir.y*wind_dir.y+wind_dir.z*wind_dir.z);
-  // mat3 opponent2rgb = mat3(1.0,  0.1140,  0.7436, 
-  // 1.0,  0.1140, -0.4111, 
-  // 1.0, -0.8860, 0.1663);
-  /*mat3 opponent2rgb = mat3(0.299,  0.587,  0.114, 
-			   0.500,  0.500, -1.000, 
-			   0.866, -0.886,  0.000);
-  /*mat3 opponent2rgb = mat3(1.0,  0.0,  0.0, 
-			   0.0,  0.0, 0.0, 
-			   0.0, 0.0,  0.0);*/
-   vec3 color; 
- mat3 opponent2rgb = mat3(1,1,1, 
-			   1,  1, 1, 
-			   1, 1, 1);
-  //vec3 opponent_color = normalize(wind_dir).zxy;
+  float vel = sqrt(wind_dir.x*wind_dir.x + wind_dir.y*wind_dir.y + wind_dir.z*wind_dir.z);
+  float normVel = vel / max_vel;
 
- vec3 nor_col;
- if((vel/max_vel)<0.25) 
- { nor_col=vec3(vel,0,0);
-   mat3 opponent2rgb = mat3(0,0,1, 
-			   0, 0, 1, 
-			   0, 0, 1);
-    color = opponent2rgb * nor_col;
-}
-else if((vel/max_vel)<0.50) 
- { nor_col=vec3(vel,0,0);
-   mat3 opponent2rgb = mat3(0,1,1, 
-			   0, 1, 1, 
-			   0, 1, 1);
-    color = opponent2rgb * nor_col;
-}
- else if((vel/max_vel)<0.75)
-{ nor_col=vec3(vel,vel,0.0);
-  mat3 opponent2rgb = mat3(1,1,0, 
-			   1,  1, 0, 
-			   1, 1, 0);
-   color = opponent2rgb * nor_col;
-}
- else
-{ nor_col=vec3(0.0,0.0,vel);
-  mat3 opponent2rgb = mat3(1,0,0, 
-			   1,0, 0, 
-			   1, 0, 0);
-   color = opponent2rgb * nor_col;
-}
-  // opponent_color = normalize(wind);
+  vec3 layerColor; 
 
-  /*opponent_color.x = (1.0 + opponent_color.x)/2.0;
-  opponent_color.y = opponent_color.y * sqrt(2.0);
-  opponent_color.z = opponent_color.z * sqrt(2.0);*/
+  vec3 MAXVEL = vec3(0.5, 0.0, 0.0);
+  vec3 RED = vec3(1.0, 0.0, 0.0);
+  vec3 YELLOW = vec3(1.0, 1.0, 0.0);
+  vec3 CYAN = vec3(0.0, 1.0, 1.0);
+  vec3 BLUE = vec3(0.0, 0.0, 1.0);
+  vec3 ZEROVEL = vec3(0.0, 0.0, 0.5);
 
-  //color = opponent2rgb * nor_col;
-  //if((vel/max_vel)<0.02) color=vec3(0.0,0.0,1.0);
-  if(vel>max_vel) color=vec3(0.5,0.0,0.0);
-
-   /*   float pi = 3.141592654;
-      float pi_3 = 1.047197551;
-      float theta_0 = 0.0;
-
-      vec2 oRGB_new, oRGB;
-      float theta = atan(color.z, color.y);
-      if (theta >= 0.0)
-      	{
-	  // value of theta will/should be in [0 to pi] range
-	  if (theta < pi_3)
-	    theta_0 = 1.5 * theta;
-	  else if (theta <= pi && theta >= pi_3)
-	    theta_0 = pi/4.0 + 0.75*theta;
-	  //	theta_0 = pi/2.0 + 0.75*(theta - pi/3.0);
-	  
-	  oRGB = vec2(color.y, color.z);
-	  mat2 rot = mat2(cos(theta_0 - theta), -sin(theta_0 - theta), sin(theta_0 - theta), cos(theta_0 - theta));
-	  oRGB_new = rot * oRGB;
-	}
-      else 
-	{
-	  // value of theta will/should be in [0 to -pi] range
-	  theta = -1.0 * theta;
-	  if (theta < pi_3)
-	    theta_0 = 1.5 * theta;
-	  else if (theta <= pi && theta >= pi_3)
-	    theta_0 = pi/4.0 + 0.75*theta;
-	  //	theta_0 = pi/2.0 + 0.75*(theta - pi/3.0);
-	  
-	  oRGB = vec2(color.y, color.z);
-	  theta_0 = -1.0 * theta_0;
-	  theta = -1.0 * theta;
-	  mat2 rot = mat2(cos(theta_0 - theta), -sin(theta_0 - theta), sin(theta_0 - theta), cos(theta_0 - theta));
-	  oRGB_new = rot * oRGB;
-	}
-
-      color.y = oRGB_new.x;  
-      color.z = oRGB_new.y;*/
-
-  gl_FragColor = vec4(color,1.0);
-
-  
-  /*if (point_visuals == 1)
+  // Mapping the following
+  //  Dark Blue <--> Blue <--> Cyan <--> Yellow <--> Red <--> Dark Red
+  //      0          0.20      0.40       0.60      0.80          1 
+  float t = 0.0;
+  if (normVel <= 0.20)
     {
-    //vec4 d = vec4(texture2D(pointspritenormal_texunit, gl_TexCoord[0].st));
-    vec4 normal = vec4(texture2D(pointspritenormal_texunit, gl_TexCoord[0].st));
-    if (normal.w == 0.0){
-    discard;
-    }	
-    //else if (normal.x == 0.0 && normal.y == 0.0 && normal.z == 1.0)
-    //{
-    // vec4 color = vec4(0.0, 0.0, 1.0, 1.0);
-    //gl_FragColor = color;
-    //}
-    else
-    {
-    vec4 l = normalize(vec4(1.0, -1.0, 1.0, 0.0));
-    vec4 n = (normal * 2.0) - vec4(1.0);
-    n.w = 0.0;
-    vec4 h = normalize(l + vec4(0.0,0.0,1.0,0.0));
-
-    float p = 64.0;
-    float cp = 1.0;
-    vec4 cr = pcolor;
-    vec4 cl = vec4(1.0,1.0,1.0,1.0);
-    vec4 ca = vec4(0.4,0.4,0.4,1.0);
-
-    vec4 color = cr * (ca + cl * max(0.0,dot(n,l))) + cp * cl * pow(max(0.0,dot(h,n)), p);  
-    gl_FragColor = color;
+      t = normVel * 5.0;  // scale to 0-1
+      layerColor = mix(ZEROVEL, BLUE, t);
+    }    
+  else if (normVel <= 0.40) 
+    { 
+      t = (normVel - 0.20) * 5.0;
+      layerColor = mix(BLUE, CYAN, t);
     }
+  else if (normVel <= 0.60) 
+    { 
+      t = (normVel - 0.40) * 5.0; 
+      layerColor = mix(CYAN, YELLOW, t);
     }
-    else 
-    {
-    // 
-    // If using simple point based particles, this is all that needs to be done
-    // 
-    gl_FragColor = pcolor;
-    }*/
+  else if (normVel <= 0.80)
+    { 
+      t = (normVel - 0.60) * 5.0;
+      layerColor = mix(YELLOW, RED, t);
+    }
+  else
+    { 
+      // If the velocity is greater than our computed maximum
+      // velocity, then give it a brick red color.  The reason that a
+      // vel may be larger than the max is because we computing the
+      // max_vel to be the average + (3 or 4) standard deviations
+      // away.  This lets us visualize abnormally large mean wind
+      // velocities.
+      // layerColor = EXCESSIVEVEL;
+      
+      t = (normVel - 0.80) * 5.0;
+      layerColor = mix(RED, MAXVEL, t);
+    }
+
+  gl_FragColor = vec4(layerColor, 1.0);
 }
