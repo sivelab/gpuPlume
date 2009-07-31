@@ -28,7 +28,6 @@
 Util::Util(){
   num = 0;
   numb = 0;
-  max_vel=0;
   bounds = new float[6];
   output_id = "";
   reuse_particles = false;

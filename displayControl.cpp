@@ -110,6 +110,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
   windField_shader.createProgram();
   
   uniform_windTex = windField_shader.createUniform("Wind");
+  uniform_max_velocity = windField_shader.createUniform("max_vel");
  
   // For the Sphere Particle Shader, we need the following data:
   // uniform variables for the texture units that hold the point
@@ -659,18 +660,10 @@ void DisplayControl::drawAxes(){
 
 }
 
-void DisplayControl::drawLayers(GLuint texId, int numInRow){
+void DisplayControl::drawLayers(GLuint texId, int numInRow, float maxVel){
 
   if (visual_layer >= 0 && visual_layer < nz)
     {
-
-     ParticleControl* pc;
-     pc=new ParticleControl();
-     float max_vel1=pc->calculateMaxVel();
- 
-  //printf("max vel in dc is: %f\n",max_vel);
-      
-      
       glPushMatrix();
       //glEnable(GL_LIGHTING);
       //glEnable(GL_LIGHT0);
@@ -725,8 +718,7 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow){
 
       windField_shader.activate();
 
-      GLfloat uniform_max_velocity = windField_shader.createUniform("max_vel");
-      glUniform1fARB(uniform_max_velocity, max_vel1);
+      glUniform1fARB(uniform_max_velocity, maxVel);
       //glUniform1iARB(uniform_controlWind, visual_field);
       //glUniform1fARB(uniform_sliderWind, slider);
 

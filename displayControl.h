@@ -28,7 +28,7 @@ class DisplayControl{
   void drawGrid();
   void drawGround();
   void drawSky();
-  void drawLayers(GLuint, int);
+  void drawLayers(GLuint, int, float);
   void drawFeatures(void);
   void drawFrameRate(int, int);
   void OpenGLText(int, int, char*);
@@ -138,6 +138,7 @@ class DisplayControl{
   //GLint uniform_min_x,uniform_min_y,uniform_min_z,uniform_min_c;
   //GLint uniform_controlWind, uniform_sliderWind, uniform_windTex;
   GLint uniform_windTex;
+  GLint uniform_max_velocity;
 
   //
   // Point Sprite visual data

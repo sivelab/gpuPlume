@@ -65,7 +65,7 @@ GaussianModel::~GaussianModel(){}
 void GaussianModel::init(bool OSG){
   osgPlume = OSG;
 
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz, util);
   pc->setUstarAndSigmas(util->ustar);
 
   dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
@@ -321,7 +321,7 @@ int GaussianModel::display(){
 
       dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight, 0, 0);
       stream->draw();
-      dc->drawLayers(windField, numInRow);
+      dc->drawLayers(windField, numInRow, 1.0);
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){

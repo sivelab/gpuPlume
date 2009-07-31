@@ -7,10 +7,12 @@
 // It also loads the Quic PLume Fortran References.
 //////////////////////////////////////////////////
 
+#include <string>
 #include <GL/glew.h>
+
 #include "framebufferObject.h"
 #include "GLSL.h"
-#include <string>
+#include "util.h"
 
 typedef struct{
   float t11;
@@ -32,7 +34,7 @@ class ParticleControl{
  
   ParticleControl(); 
  
-  ParticleControl(GLenum,int,int,int,int,int,float,float,float);
+  ParticleControl(GLenum,int,int,int,int,int,float,float,float, Util*);
 
   void setupAdvectShader(float);
 
@@ -132,8 +134,6 @@ class ParticleControl{
 
   bool osgPlume;
    
-  float calculateMaxVel();
- 
   typedef struct{
     int u;
     int v;
@@ -186,7 +186,7 @@ class ParticleControl{
 
  private:
   float min,max; 
-  float max_vel;
+  Util* m_util_ptr;
 
   void test1();
   void randomWindField();

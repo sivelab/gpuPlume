@@ -61,7 +61,7 @@ void GeomTest::init(bool OSG){
   //glFrontFace(GL_CW);
  
   
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz, util);
   pc->setUstarAndSigmas(util->ustar);
   pc->setBuildingParameters(util->numBuild,util->numSides,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti,util->gamma);
   pc->setQuicFilesPath(util->quicFilesPath);

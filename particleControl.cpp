@@ -8,6 +8,7 @@
 #include "particleControl.h"
 #include "Random.h"
 #include "glErrorUtil.h"
+#include "util.h"
 
 
 ParticleControl::ParticleControl()
@@ -15,7 +16,9 @@ ParticleControl::ParticleControl()
 }
 ParticleControl::ParticleControl(GLenum type,int width,int height,
 				 int x, int y, int z,
-				 float c_dx, float c_dy, float c_dz){
+				 float c_dx, float c_dy, float c_dz, Util* util_ptr){
+
+  m_util_ptr = util_ptr;
 
   texType = type;
   twidth = width;
@@ -45,10 +48,6 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
   cell_dx = c_dx;
   cell_dy = c_dy;
   cell_dz = c_dz;
-
-  // the wind "speed" or magnitude cannot be negative so initialize to negative and then later
-  // find the max
-  max_vel = -1.0;
 }
 void ParticleControl::setBuildingParameters(int nB,int* ns,float* x,float* y,float* z,
 					   float* h,float* w,float* l,float* g){
@@ -2996,13 +2995,48 @@ void ParticleControl::QUICWindField(){
 
       int cd = 0;
 
-      // skip over 4 or 8 bytes since that's how fortran dumps binary writes (depends on 32-bit versus 64-bit)
+      // skip over 4 or 8 bytes since that's how fortran dumps binary
+      // writes (depends on 32-bit versus 64-bit, respectively and I'm
+      // not sure how to determine that yet)
       long int *lival = reinterpret_cast<long int*>(&fileBuffer[cd]);
       std::cout << "numBytes = " << numBytes << ", lival = " << *lival << ", numDoubles = " << *lival / 3 << std::endl;
       cd += sizeof(long int);
 
       // all U, all V, all W
+      double *dval;
+      int p2idx = 0;
+      for (int i=0; i<(nxdx * nydy * nzdz); i++)
+	{
+	  dval = reinterpret_cast<double*>(&fileBuffer[cd]);
+	  cd += sizeof(double);
+	  
+	  // this is a U value
+	  wind_vel[p2idx].u = *dval;
+	  p2idx++;
+	}
 
+      p2idx = 0;
+      for (int i=0; i<(nxdx * nydy * nzdz); i++)
+	{
+	  dval = reinterpret_cast<double*>(&fileBuffer[cd]);
+	  cd += sizeof(double);
+	  
+	  // this is a V value
+	  wind_vel[p2idx].v = *dval;
+	  p2idx++;
+	}
+
+      p2idx = 0;
+      for (int i=0; i<(nxdx * nydy * nzdz); i++)
+	{
+	  dval = reinterpret_cast<double*>(&fileBuffer[cd]);
+	  cd += sizeof(double);
+	  
+	  // this is a W value
+	  wind_vel[p2idx].w = *dval;
+	  p2idx++;
+	}
+#if 0
       for(int k = 0; k < nzdz; k++)
 	for(int i = 0; i < nydy; i++)
 	  for(int j = 0; j < nxdx; j++)
@@ -3027,15 +3061,17 @@ void ParticleControl::QUICWindField(){
 
 	      p2idx++;
 	    }
+#endif
 
-	      // skip over 4 bytes since that's how fortran dumps binary writes
-	      cd += 8;
+      // skip over 4 bytes since that's how fortran dumps binary writes
+      cd += 8;
       
       delete [] fileBuffer;
     }
 
   long double tot_vel=0.0;
   double vel=0.0,mx=0.0,my=0.0,mz=0.0,avg_vel=0.0,sd=0.0,sum_of_squares=0.0;
+  double max_vel = -1.0;
 
   for(int k = 0; k < nzdz; k++){   
     for(int i = 0; i < nydy; i++){
@@ -3070,18 +3106,19 @@ void ParticleControl::QUICWindField(){
    }
 
   sd=sqrt(sum_of_squares/(double)(nxdx*nydy*nzdz));
-  max_vel = avg_vel + 3.0*sd;
 
-  //util->max_vel = max_vel;
-
-  std::cout << "Calculated maximum wind velocity=" << max_vel << "\n\taverage wind velocity=" << avg_vel << "\n\tstandard deviation=" << sd << std::endl;
+  std::cout << "Calculated maximum wind velocity=" << max_vel << "\n\taverage wind velocity=" << avg_vel << "\n\tstandard deviation (SD)=" << sd << std::endl;
+  // if (avg_vel + 3.0*sd < max_vel)
+  // {
+  // m_util_ptr->calculatedMaxVel = avg_vel + 3.0*sd;
+  // std::cout << "\tsetting maximum wind velocity to 3*SD from mean = " << m_util_ptr->calculatedMaxVel << std::endl;
+  // }
+  // else 
+  // {
+      m_util_ptr->calculatedMaxVel = max_vel;
+      // }
 
   QUICWindField.close();
-}
-
-float ParticleControl::calculateMaxVel()
-{
-  return max_vel;
 }
 
 void ParticleControl::initCellType(){

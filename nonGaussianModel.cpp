@@ -66,7 +66,7 @@ NonGaussianModel::~NonGaussianModel(){}
 void NonGaussianModel::init(bool OSG){
   osgPlume = OSG;
 
-  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz);
+  pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz, util);
   pc->setUstarAndSigmas(util->ustar);
 
   dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
@@ -333,7 +333,7 @@ int NonGaussianModel::display(){
       stream->draw();
 
       if(dc->tau_visual == draw_layers)
-	dc->drawLayers(windField, numInRow);
+	dc->drawLayers(windField, numInRow, 1.0);
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){

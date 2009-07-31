@@ -103,7 +103,7 @@ class Util{
   float* lti;
   float* gamma;
   int numBuild;
-  float max_vel;
+  float calculatedMaxVel;
 
   bool hasAbsolutePath;
   std::string quicFilesPath;
