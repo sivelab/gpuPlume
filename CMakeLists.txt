@@ -1,0 +1,53 @@
+# The name of our project is "GPUPLUME". CMakeLists files in this project can 
+# refer to the root source directory of the project as ${GPUPLUME_SOURCE_DIR} and 
+# to the root binary directory of the project as ${GPUPLUME_BINARY_DIR}. 
+cmake_minimum_required (VERSION 2.6) 
+project (GPUPLUME) 
+
+set(GPUPLUME_MAJOR_VERSION 0)
+set(GPUPLUME_MINOR_VERSION 9)
+set(GPUPLUME_PATCH_VERSION 0)
+set(GPUPLUME_SOVERSION 55)
+
+set(GPUPLUME_VERSION ${GPUPLUME_MAJOR_VERSION}.${GPUPLUME_MINOR_VERSION}.${GPUPLUME_PATCH_VERSION})
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
+# Find OpenGL
+find_package(OpenGL REQUIRED)
+find_package(GLUT REQUIRED)
+find_package(GLEW REQUIRED)
+
+include_directories(${OPENGL_INCLUDE_DIR})
+include_directories(${GLUT_INCLUDE_DIRS})
+include_directories(${GLEW_INCLUDE_PATH})
+
+set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
+set(LIBS ${LIBS} ${GLUT_LIBRARIES})
+set(LIBS ${LIBS} ${GLEW_LIBRARY})
+
+if(APPLE)
+    find_library(CARBON_LIBRARY Carbon)
+    find_library(COCOA_LIBRARY Cocoa)
+endif(APPLE)
+
+# Recurse into the "fileParser" subdirectory to build the fileParser
+# library. This does not actually cause another cmake executable to
+# run. The same process will walk through the project's entire
+# directory structure.  
+add_subdirectory (fileParser)
+
+# Make sure the compiler can find include files from our Hello library. 
+include_directories (${GPUPLUME_SOURCE_DIR}/fileParser/standard) 
+
+# Make sure the linker can find the Hello library once it is built. 
+link_directories (${GPUPLUME_BINARY_DIR}/fileParser) 
+
+# Add executable called "gpuPlume" that is built from the source files 
+# The source files are placed in the list after the executable name. 
+add_executable (gpuPlume gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp  GeomTest.cpp PathLine.cpp Contour.cpp VisualPlane.cpp lineEmitter.cpp planeEmitter.cpp IsoSurface.cpp) 
+
+# Link the executable to the file parser library. 
+target_link_libraries (gpuPlume StandardFileParser) 
+target_link_libraries (gpuPlume ${LIBS})
+
