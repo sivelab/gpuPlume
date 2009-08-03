@@ -20,32 +20,27 @@ void main(void)
 
   // Mapping the following
   //  Dark Blue <--> Blue <--> Cyan <--> Yellow <--> Red <--> Dark Red
-  //      0          0.20      0.40       0.60       0.8         1.0 
+  //      0          0.25      0.50       0.75       1.0        > 1.0 
   float t = 0.0;
-  if (normVel <= 0.20)
+  if (normVel <= 0.25)
     {
-      t = normVel * 5.0;  // scale to 0-1
+      t = normVel * 4.0;  // scale to 0-1
       layerColor = mix(ZEROVEL, BLUE, t);
     }    
-  else if (normVel <= 0.40) 
+  else if (normVel <= 0.50) 
     { 
-      t = (normVel - 0.20) * 5.0;
+      t = 4.0*normVel + -1.0;
       layerColor = mix(BLUE, CYAN, t);
     }
-  else if (normVel <= 0.60) 
+  else if (normVel <= 0.80) 
     { 
-      t = (normVel - 0.40) * 5.0; 
+      t = 4.0*normVel + -2.0;
       layerColor = mix(CYAN, YELLOW, t);
-    }
-  else if (normVel <= 0.80)
-    { 
-      t = (normVel - 0.60) * 5.0;
-      layerColor = mix(YELLOW, RED, t);
     }
   else if (normVel <= 1.0)
     { 
-      t = (normVel - 0.80) * 5.0;
-      layerColor = mix(RED, MAXVEL, t);
+      t = 4.0*normVel + -3.0;
+      layerColor = mix(YELLOW, RED, t);
     }
   else
     {
@@ -55,7 +50,8 @@ void main(void)
       // max_vel to be the average + (3 or 4) standard deviations
       // away.  This lets us visualize abnormally large mean wind
       // velocities.
-      layerColor = MAXVEL;
+      t = 4.0*normVel + -4.0;
+      layerColor = mix(RED, MAXVEL, t);
     }
 
 

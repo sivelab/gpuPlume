@@ -673,20 +673,9 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow, float maxVel){
 
       glEnable(texType);
       glBindTexture(texType, texId);
-      //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       
-      //Since the alpha value is the epsilon value, we need
-      //to make sure alpha value of displayed layer is 1.0;
-      /*static GLfloat col[4] = {0.0,0.0,0.0,1.0};
-      glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, col);
-
-      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);  
-      glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_ADD);
-      glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE);*/
-      
-      //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-
       // The s and t parameters reference pixels on the UVW texture
       // map.  Because we are using texture rectangles, the s and t
       // parameters do not need to be in normalized device coordinates
@@ -738,8 +727,10 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow, float maxVel){
 
       windField_shader.deactivate();
 
-      //glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      //glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      // set back to nearest
+      glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
       //glBindTexture(texType, 0);
       glDisable(texType);
       glDisable(GL_BLEND);
