@@ -20,7 +20,7 @@ void main(void)
 
   // Mapping the following
   //  Dark Blue <--> Blue <--> Cyan <--> Yellow <--> Red <--> Dark Red
-  //      0          0.20      0.40       0.60      0.80          1 
+  //      0          0.20      0.40       0.60       0.8         1.0 
   float t = 0.0;
   if (normVel <= 0.20)
     {
@@ -42,19 +42,22 @@ void main(void)
       t = (normVel - 0.60) * 5.0;
       layerColor = mix(YELLOW, RED, t);
     }
-  else
+  else if (normVel <= 1.0)
     { 
+      t = (normVel - 0.80) * 5.0;
+      layerColor = mix(RED, MAXVEL, t);
+    }
+  else
+    {
       // If the velocity is greater than our computed maximum
-      // velocity, then give it a brick red color.  The reason that a
+      // velocity, then give it a color that stands out... white for now.  The reason that a
       // vel may be larger than the max is because we computing the
       // max_vel to be the average + (3 or 4) standard deviations
       // away.  This lets us visualize abnormally large mean wind
       // velocities.
-      // layerColor = EXCESSIVEVEL;
-      
-      t = (normVel - 0.80) * 5.0;
-      layerColor = mix(RED, MAXVEL, t);
+      layerColor = MAXVEL;
     }
+
 
   gl_FragColor = vec4(layerColor, 1.0);
 }
