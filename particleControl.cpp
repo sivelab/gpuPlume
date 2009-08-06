@@ -127,17 +127,21 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   multipleBuildings_shader.deactivate();
 }
 void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint positions0, 
-			     GLuint positions1, GLuint prime0, GLuint prime1, 
-			     GLuint randomValues,GLuint lambda, GLuint tau_dz, 
-			     GLuint duvw_dz, float time_step, GLuint buildings,
+					      GLuint positions1, GLuint prime0, GLuint prime1, 
+					      GLuint randomValues,GLuint lambda, GLuint tau_dz, 
+					      GLuint duvw_dz, float time_step, GLuint buildings,
 					      GLuint cellType, GLuint advect_terms)
 {
+  CheckErrorsGL("PC: multipleBuildingsAdvect() - entered");
+
   //Prints out the previous prime values
   if(outputPrime)
     printPrime(odd, true);
 
 
-  //If coloring particles using advect_terms, advect_terms will not be NULL here.
+  //If coloring particles using advect_terms, advect_terms will not be
+  //NULL here.
+
   //Will need to render to a third texture.
   if(advect_terms != 0){
 
@@ -170,6 +174,8 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
   
   glEnable(texType);
   multipleBuildings_shader.activate();
+
+  CheckErrorsGL("PC: multipleBuildingsAdvect() - activated advection shader");
 
   if(advect_terms != 0){
     glUniform1iARB(uniform_colorAdvectTerms, 1);
@@ -268,8 +274,10 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
     glTexCoord2f(0, float(theight));			glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
-  
+
   multipleBuildings_shader.deactivate();
+
+  CheckErrorsGL("PC: multipleBuildingsAdvect() - shader advection completion");
  
   glBindTexture(texType, 0);
   

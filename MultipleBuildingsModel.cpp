@@ -192,8 +192,12 @@ void MultipleBuildingsModel::init(bool OSG){
   
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertex_buffer);
   glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, color_buffer);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
+
+  if (util->updateParticleColors)
+    {
+      glBindBufferARB(GL_ARRAY_BUFFER_ARB, color_buffer);
+      glBufferDataARB(GL_ARRAY_BUFFER_ARB, twidth*theight*4*sizeof(GLfloat), 0, GL_STREAM_COPY);
+    }
   
   glBindBuffer(GL_ARRAY_BUFFER, 0);
  
@@ -291,6 +295,7 @@ int MultipleBuildingsModel::display(){
     if(reuseParticles)
       {
 	particleReuse();
+	CheckErrorsGL("MBA: display() - reuse particles");
       } 
     
     ////////////////////////////////////////////////////////////
@@ -300,6 +305,9 @@ int MultipleBuildingsModel::display(){
       if(pe[i]->emit){    
 	totalNumPar += (double)pe[i]->EmitParticle(odd,positions0,positions1,time_step,
 						   prime0,prime1);
+
+	CheckErrorsGL("MBA: display() - emit particle");
+
 	if(pe[i]->releaseType == onePerKeyPress){
 	  //stream->addNewStream(pe[i]);
 	  pathLines->addNewPath(pe[i]);
@@ -334,41 +342,42 @@ int MultipleBuildingsModel::display(){
     ////////////////////////////////////////////////////////////
    
     /*else{*/
-      pc->multipleBuildingsAdvect(odd,windField,positions0,positions1,prime0,prime1,
+    pc->multipleBuildingsAdvect(odd,windField,positions0,positions1,prime0,prime1,
 				randomValues,lambda,tau_dz,duvw_dz,time_step,buildings, 
-				  cellType, advect_terms);
+				cellType, color_by_advect_terms);
     //}
+
+      CheckErrorsGL("MBA: display() - advection");
      
-     if(color_by_advect_terms){
-     int_buffer = new GLfloat[ twidth * theight * 4 ];
-     glReadBuffer(GL_COLOR_ATTACHMENT7_EXT);
-     glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, int_buffer); 
-     for(int i = 3; i <= (theight*twidth*4); i+=4){
-       //If particle has been reflected
-      if(int_buffer[i] == 2.0){
+      if(color_by_advect_terms){
+	int_buffer = new GLfloat[ twidth * theight * 4 ];
+	glReadBuffer(GL_COLOR_ATTACHMENT7_EXT);
+	glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, int_buffer); 
+	for(int i = 3; i <= (theight*twidth*4); i+=4){
+	  //If particle has been reflected
+	  if(int_buffer[i] == 2.0){
 	
-	 //Get the x,y,z position of the particle
-	 float x = int_buffer[i-3];
-	 float y = int_buffer[i-2];
-	 float z = int_buffer[i-1];
-         //fwrite(x,sizeof(x),1,fp);
-         fprintf(fp,"%f %f %f\n",x,y,z);
-         //outputFile<<float(x)<<"\t"<<float(y)<<"\t"<<float(z)<<"\n";
+	    //Get the x,y,z position of the particle
+	    float x = int_buffer[i-3];
+	    float y = int_buffer[i-2];
+	    float z = int_buffer[i-1];
+	    //fwrite(x,sizeof(x),1,fp);
+	    fprintf(fp,"%f %f %f\n",x,y,z);
+	    //outputFile<<float(x)<<"\t"<<float(y)<<"\t"<<float(z)<<"\n";
 
-         /*char* ch=new char[10];
-         char* ch1=new char[10];
-         char* ch2=new char[10];
-         gcvt(x,4,ch);
-         gcvt(y,4,ch1);
-         gcvt(z,4,ch2);
-         outputFile.write(ch,sizeof(ch));
-         outputFile.write(ch,sizeof(ch)); 
-         outputFile.write(ch,sizeof(ch));*/
-      }
-     }    
+	    /*char* ch=new char[10];
+	      char* ch1=new char[10];
+	      char* ch2=new char[10];
+	      gcvt(x,4,ch);
+	      gcvt(y,4,ch1);
+	      gcvt(z,4,ch2);
+	      outputFile.write(ch,sizeof(ch));
+	      outputFile.write(ch,sizeof(ch)); 
+	      outputFile.write(ch,sizeof(ch));*/
+	  }
+	}    
 	delete [] int_buffer;
-
-    }
+      }
  
     ////////////////////////////////////////////////////////////
     // Get Position for Streams
@@ -387,6 +396,8 @@ int MultipleBuildingsModel::display(){
       }
       pc->findMeanVel(odd,prime0,prime1,meanVel0,meanVel1,positions0,positions1,windField);
 
+      CheckErrorsGL("MBA: display() - calc mean vel");
+
       if(maxColorAttachments <= 4){
 	FramebufferObject::Disable();
 	fbo->Bind();
@@ -403,6 +414,8 @@ int MultipleBuildingsModel::display(){
 	  fbo2->Bind();
 	}
 	pc->updateParticleColors(odd,prime0,prime1,windField,positions0,positions1);
+
+	CheckErrorsGL("MBA: display() - update particle colors");
 
 	if(maxColorAttachments <= 4){
 	  FramebufferObject::Disable();
@@ -579,7 +592,8 @@ int MultipleBuildingsModel::display(){
     paused = true;
   }
 
-  CheckErrorsGL("END : after 1st pass");
+  CheckErrorsGL("MBA: display() - completed all advection, prior to display");
+
   // We only need to do PASS 2 (copy to VBO) and PASS 3 (visualize) if
    // we actually want to render to the screen.  Rendering to the
   // screen will make the simulation run more slowly. This feature is
@@ -684,8 +698,17 @@ int MultipleBuildingsModel::display(){
       // Last good one...
       // dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
       dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight, texid[0], prime0);
+
+      CheckErrorsGL("MBA : called drawVisuals");
+
+#if 0
       //stream->draw();
-      pathLines->draw();
+      if (pathLines)
+	{
+	  pathLines->draw();
+	  CheckErrorsGL("MBA : after drawing pathlines");
+	}
+#endif
 
       glDisable(texType);
       if(dc->tau_visual == draw_contours){
@@ -702,6 +725,8 @@ int MultipleBuildingsModel::display(){
 	    planeVisual->drawAxisAlignedPlane();
 	else
 	  dc->drawLayers(windField,numInRow, util->calculatedMaxVel);
+
+	CheckErrorsGL("MBA : after drawing layers");
       }
       
 #if 0
@@ -723,13 +748,14 @@ int MultipleBuildingsModel::display(){
       glBindBuffer(GL_ARRAY_BUFFER, 0);
 #endif
 
-
       //      planeVisual->drawScale();
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){
-	  pe[i]->Draw();
+	  pe[i]->Draw();      
+	  CheckErrorsGL("MBA : after drawing particle emitters");
 	}
+
 	if(util->show_collectionBox_visuals){
 	  cBoxes[0]->sort(dc->eye_pos[0],dc->eye_pos[1],dc->eye_pos[2]);
 	  cBoxes[0]->draw(sim->curr_timeStep);
