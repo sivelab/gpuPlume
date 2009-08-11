@@ -3078,16 +3078,25 @@ void ParticleControl::QUICWindField(){
     }
 
   long double tot_vel=0.0;
-  double vel=0.0,mx=0.0,my=0.0,mz=0.0,avg_vel=0.0,sd=0.0,sum_of_squares=0.0;
+  double vel=0.0;
+  double mx=0.0;
+  double my=0.0;
+  double mz=0.0;
+  double avg_vel=0.0;
+  double sd=0.0;
+  double sum_of_squares=0.0;
   double max_vel = -1.0;
 
   for(int k = 0; k < nzdz; k++){   
     for(int i = 0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
 	int p2idx = k*nxdx*nydy + i*nxdx + j;
-	vel = sqrt(wind_vel[p2idx].u * wind_vel[p2idx].u + 
-		   wind_vel[p2idx].v * wind_vel[p2idx].v + 
-		   wind_vel[p2idx].w * wind_vel[p2idx].w);
+
+	double usq = (double)wind_vel[p2idx].u * (double)wind_vel[p2idx].u;
+	double vsq = (double)wind_vel[p2idx].v * (double)wind_vel[p2idx].v;
+	double wsq = (double)wind_vel[p2idx].w * (double)wind_vel[p2idx].w;
+
+	vel = sqrt(usq + vsq + wsq);
 	if (vel > max_vel) 
 	  {
 	    max_vel = vel;
