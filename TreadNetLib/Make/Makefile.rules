@@ -1,0 +1,150 @@
+include $(ROOT)/Make/MakeDefs
+
+###########################################################################
+#### default to making all compile targets and fixing file permissions
+
+default: $(LIBRARY) $(PROGRAM) permissions
+	@echo "   Compilation Finished"
+
+######################################################################
+#### For creating and compiling object files
+
+OFILES = $(CFILES:%.cpp=$(OBJDIR)/$(ARCH)/%.o)
+
+$(OFILES) : $(OBJDIR)/$(ARCH)/%.o: %.cpp
+	$(CC) $(INCDIRS) -c -o $@ $<
+	-@chmod -R $(FILE_PERMISSIONS) $(OBJDIR)/$(ARCH)/*
+
+######################################################################
+#### For compiling libraries and programs
+
+$(LIBRARY): $(OBJDIR)/$(ARCH) $(OFILES)
+	ar -crus $(LIBRARY) $(OFILES)
+	-@chmod $(FILE_PERMISSIONS) $(LIBRARY)
+
+ALL_LIBS = $(foreach lib, $(LOCAL_LIBS), $(ROOT)/libs/$(ARCH)/$(lib)) $(ARCH_LIBS)
+
+#the null is to force it to relink
+$(PROGRAM): $(OBJDIR)/$(ARCH) $(OFILES) null
+	@echo "   Linking $@."
+	$(CC) $(OFILES) $(ALL_LIBS) -o $(PROGRAM)
+	-@chmod $(FILE_PERMISSIONS) $@
+
+######################################################################
+#### For cleaning objects
+CLEAN_FILES = $(OFILES) $(LIBRARY) $(PROGRAM) $(DEPENDFILE) core
+clean :
+	/bin/rm -f $(CLEAN_FILES)
+
+######################################################################
+#### Very clean rules - deletes object directories
+veryclean : clean
+	/bin/rm -fR $(OBJDIR)
+
+######################################################################
+#### For installing header files, libraries, and programs
+ifdef LIBRARY
+install : installh default installlib
+	@echo "  Installation done"
+endif
+
+ifdef PROGRAM
+install : installh default installprog
+	@echo "  Installation done"
+endif
+
+INST_HEADERS = $(foreach hdr, $(HDRS), $(ROOT)/include/$(hdr))
+
+installh : incdir $(INST_HEADERS)
+
+installlib : $(ROOT)/libs/$(ARCH)/$(LIBRARY)
+
+installprog : $(ROOT)/bin/$(ARCH)/$(PROGRAM)
+
+#####################################################################
+#### Rules for installing the specific header, library, program file
+
+$(ROOT)/libs/$(ARCH)/$(LIBRARY): $(LIBRARY) libdir
+	@echo "  Installing $(LIBRARY) into $@"
+	cp $(LIBRARY) $(ROOT)/libs/$(ARCH)
+	-@chmod $(FILE_PERMISSIONS) $(ROOT)/libs/$(ARCH)/$(LIBRARY)
+
+$(ROOT)/bin/$(ARCH)/$(PROGRAM): $(PROGRAM) bindir
+	@echo "  Installing $(PROGRAM) into $@"
+	cp $(PROGRAM) $(ROOT)/bin/$(ARCH)
+	-@chmod $(FILE_PERMISSIONS)x $(ROOT)/bin/$(ARCH)/$(PROGRAM)
+
+#Using pattern matching rule to find the correct dependency
+#I.e. ../include/Packet.h depends on Packet.h
+$(INST_HEADERS): $(ROOT)/include/%.h : %.h
+	@echo "  Installing $< as $@."
+	cp $< $@
+	-@chmod $(FILE_PERMISSIONS) $@
+
+######################################################################
+#### For installing distribution header files, libraries, and programs
+####  Also sincs tag name with cvs
+install_dist : install distdirs
+	cvs tag -c $(DIST_TAG)
+ifdef PROGRAM
+	@echo "  Installing $(PROGRAM) into $(FULL_DIST_DIR)/bin"
+	cp $(PROGRAM) $(FULL_DIST_DIR)/bin/$(ARCH)
+	-@chmod g+rx $(FULL_DIST_DIR)/bin/$(ARCH)/$(PROGRAM)
+else
+	@echo "  Installing $(LIBRARY) into $(FULL_DIST_DIR)/libs"
+	cp $(LIBRARY) $(FULL_DIST_DIR)/libs/$(ARCH)
+	-@chmod g+r $(FULL_DIST_DIR)/libs/$(ARCH)/$(LIBRARY)
+	@echo "  Installing $(INST_HEADERS) into $(FULL_DIST_DIR)/include"
+	cp $(INST_HEADERS) $(FULL_DIST_DIR)/include/
+	-@chmod g+r $(FULL_DIST_DIR)/include/$(INST_HEADERS)
+endif
+
+######################################################################
+#### For creating dependency file (just one per library/program)
+#### Depend file updated because it's dependent on all .cpp and .h files
+DEPARG = -MM
+
+$(DEPENDFILE): $(CFILES)
+	@$(CC) $(DEPARG) $(INCDIRS) $(CFILES)  | \
+	sed "s|^[^: ]*\.o|$(OBJDIR)/$(ARCH)/& $@|g" > $@
+	-@chmod $(FILE_PERMISSIONS) $@
+
+-include $(DEPENDFILE)
+
+######################################################################
+#### For creating directories where files are installed and fixing
+####  permissions
+
+$(OBJDIR)/$(ARCH):
+	-@mkdir -p  $(OBJDIR)/$(ARCH)
+	-@chmod  $(DIR_PERMISSIONS) $(OBJDIR)
+	-@chmod  $(DIR_PERMISSIONS) $(OBJDIR)/$(ARCH)
+
+libdir :
+	-@mkdir -p $(ROOT)/libs/$(ARCH)
+	-@chmod $(DIR_PERMISSIONS) $(ROOT)/libs/$(ARCH)
+
+bindir :
+	-@mkdir -p $(ROOT)/bin/$(ARCH)
+	-@chmod $(DIR_PERMISSIONS) $(ROOT)/bin/$(ARCH)
+
+incdir :
+	-@mkdir -p $(ROOT)/include/
+	-@chmod $(DIR_PERMISSIONS) $(ROOT)/include
+
+distdirs : 
+	-@mkdir -p $(FULL_DIST_DIR)
+	-@mkdir -p $(FULL_DIST_DIR)/include
+	-@mkdir -p $(FULL_DIST_DIR)/bin/$(ARCH)
+	-@mkdir -p $(FULL_DIST_DIR)/libs/$(ARCH)
+	-@chmod -R $(DIST_PERMISSIONS) $(FULL_DIST_DIR)
+	-@chmod -R $(DIST_PERMISSIONS) $(FULL_DIST_DIR)/include
+	-@chmod -R $(DIST_PERMISSIONS) $(FULL_DIST_DIR)/bin/$(ARCH)
+	-@chmod -R $(DIST_PERMISSIONS) $(FULL_DIST_DIR)/libs/$(ARCH)
+
+permissions : 
+	-@chmod $(FILE_PERMISSIONS) . $(CFILES) $(HDRS)
+
+null:
+
+

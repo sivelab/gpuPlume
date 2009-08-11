@@ -1,0 +1,9 @@
+################################################################
+#### For moving down subdirectories, just recurse all targets
+###############################################################
+
+RECURSIVE_TARGETS = default install clean veryclean install_dist
+
+$(RECURSIVE_TARGETS) : $(SUBDIRS)
+	@for f in $(SUBDIRS); do echo "Entering directory $$f"; cd $$f; $(MAKE) $@ || exit 1; cd ..; done
+

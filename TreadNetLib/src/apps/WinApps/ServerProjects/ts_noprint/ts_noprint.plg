@@ -1,0 +1,35 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: ts_noprint - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\willemsn\LOCALS~1\Temp\RSP175.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GR /GX /ZI /Od /I "../../../../../include/" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/ts_noprint.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"T:\vissim\software\TreadNetLib\src\apps\TestServers\Server_Common.cpp"
+"T:\vissim\software\TreadNetLib\src\apps\TestServers\ts_noprint.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\willemsn\LOCALS~1\Temp\RSP175.tmp" 
+Creating temporary file "C:\DOCUME~1\willemsn\LOCALS~1\Temp\RSP176.tmp" with contents
+[
+TRNetServerLibrary.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib TRNetPacketLibrary.lib WinSyncLib.lib Winmm.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/ts_noprint.pdb" /debug /machine:I386 /out:"Debug/ts_noprint.exe" /pdbtype:sept /libpath:"../../../../../libs/intel_win/" 
+.\Debug\Server_Common.obj
+.\Debug\ts_noprint.obj
+]
+Creating command line "link.exe @C:\DOCUME~1\willemsn\LOCALS~1\Temp\RSP176.tmp"
+<h3>Output Window</h3>
+Compiling...
+Server_Common.cpp
+ts_noprint.cpp
+Linking...
+
+
+
+<h3>Results</h3>
+ts_noprint.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

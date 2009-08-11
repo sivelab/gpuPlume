@@ -1,0 +1,20 @@
+#Specify root directory
+ROOT = ../../../
+
+#List all c++ files to compile
+CFILES = tc.cpp
+
+#List all header files to install
+HDRS =
+
+#List any extra libraries needed
+LOCAL_LIBS = libClientController.a libPacket.a rtcSync.a
+
+#Set Library name (if one)
+#LIBRARY =
+
+#Set Program name - get from CFILES
+MAINCFILE = $(firstword $(CFILES))
+PROGRAM = $(MAINCFILE:%.cpp=%.out)
+
+include $(ROOT)/Make/Makefile.rules

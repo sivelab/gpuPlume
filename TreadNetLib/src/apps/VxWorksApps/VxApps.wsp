@@ -1,0 +1,22 @@
+Document file - DO NOT EDIT
+
+<BEGIN> CORE_INFO_TYPE
+Workspace
+<END>
+
+<BEGIN> CORE_INFO_VERSION
+2.2
+<END>
+
+<BEGIN> projectList
+$(PRJ_DIR)/ClientProjects/tc/tc.wpj \
+	$(PRJ_DIR)/ClientProjects/tc_single_slope/tc_single_slope.wpj \
+	$(PRJ_DIR)/ClientProjects/sc/sc.wpj \
+	$(PRJ_DIR)/ServerProjects/ts/ts.wpj \
+	$(PRJ_DIR)/ServerProjects/ts_noprint/ts_noprint.wpj \
+	$(PRJ_DIR)/ServerProjects/two_servers/two_servers.wpj \
+	$(PRJ_DIR)/ServerProjects/two_servers_np/two_servers_np.wpj \
+	$(PRJ_DIR)/ClientProjects/full_packet_tc/full_packet_tc.wpj \
+	$(PRJ_DIR)/ServerProjects/full_packet_ts/full_packet_ts.wpj
+<END>
+

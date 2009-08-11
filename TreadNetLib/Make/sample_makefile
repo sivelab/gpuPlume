@@ -1,0 +1,21 @@
+#Specify root directory
+ROOT = ..
+
+#List all c++ files to compile, need to be cpp files
+CFILES = test.cpp
+
+#List all header files to install
+HDRS = test.h
+
+#List any extra libraries needed to link with
+LOCAL_LIBS =
+
+#Set Library name (if one)
+LIBRARY = 
+
+#Set Program name (if one)
+PROGRAM = 
+
+include $(ROOT)/Make/Makefile.rules
+ 
+

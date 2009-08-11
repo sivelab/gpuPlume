@@ -1,0 +1,653 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>OO TRNetworking - Packet Doc</title>
+      
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+</head>
+  <body>
+ 
+<h2>New Object Oriented Treadport Networking - Packet Documentation</h2>
+ <br>
+ &nbsp;&nbsp;&nbsp; All packet classes are descended from the base class
+<a href="#Packet">Packet</a>, which contains a pointer to the base class
+<a href="#Packet_Data">Packet_Data</a>. &nbsp;The Packet class handles filling 
+the message buffer with Packet_Data's data, and pulling the data out of the 
+message buffer. &nbsp;Its subclasses also provide get and set routines for 
+the individual packet's data. &nbsp;The Packet_Data class holds the data being
+sent between the server and client.<br>
+ &nbsp;&nbsp;&nbsp; The rest of the page gives the interface and description 
+for each of the packet classes and base class. &nbsp;<br>
+ <br>
+ Notes: <br>
+ 
+<ol>
+   <li>All subclasses will contain the public functions and data of the base 
+class, thus they are not listed again with each subclass.</li>
+   <li>If the function returns an integer and is not otherwise described, 
+assume it returns 1 if successful and 0 if fails.</li>
+  <li>For all TRPoint and TRVector variables the elements are X - Easting,
+Y - Northing, Z - Elevation/Vertical/Unused<br>
+  </li>
+ 
+</ol>
+ 
+<h4>Symbols / Acronyms</h4>
+ &nbsp;&nbsp;&nbsp;<i> {P}</i> - Pure virtual function or class<br>
+ &nbsp;&nbsp;&nbsp; NBO - Network Byte Order<br>
+ &nbsp;&nbsp;&nbsp; HBO - Host Byte Order<br>
+&nbsp;&nbsp;&nbsp; VW - Virtual World<br>
+ <br>
+ 
+<h4>Table of Contents :</h4>
+ 
+<ul>
+   <li><a href="#Packet">Packet</a></li>
+   <li><a href="#Packet_Data">Packet_Data </a></li>
+   <li><a href="#UserState_Packet">UserState_Packet </a></li>
+   <li><a href="#UserState_Data">UserState_Data</a> </li>
+   <li><a href="#GetUserState_Packet">GetUserState_Packet </a></li>
+   <li><a href="#GetUserState_Data">GetUserState_Data </a></li>
+   <li><a href="#VirtualState_Packet">VirtualState_Packet </a></li>
+   <li><a href="#VirtualState_Data">VirtualState_Data </a></li>
+   <li><a href="#Command_Packet">Command_Packet </a></li>
+   <li><a href="#Command_Data">Command_Data </a></li>
+   <li><a href="#NewPos_Packet">NewPos_Packet </a></li>
+   <li><a href="#NewPos_Data">NewPos_Data</a> </li>
+   <li><a href="#NewPosResponse_Packet">NewPosResponse_Packet </a></li>
+   <li><a href="#NewPosResponse_Data">NewPosResponse_Data </a></li>
+   <li><a href="#Collision_Packet">Collision_Packet </a></li>
+   <li><a href="#Collision_Data">Collision_Data </a></li>
+   <li><a href="#Stairs_Packet">Stairs_Packet </a></li>
+   <li><a href="#Stairs_Data">Stairs_Data </a></li>
+   <li><a href="#Registration_Packet">Registration_Packet </a></li>
+   <li><a href="#Registration_Data">Registration_Data</a></li>
+ 
+</ul>
+ 
+<hr width="100%" size="2">
+<h4><a name="Packet"></a>Packet&nbsp;<i>{P}</i></h4>
+ <i>Description : </i>Base class for all Packet classes<br>
+ <br>
+ <i>Interface :</i> <br>
+&nbsp;&nbsp;&nbsp; friend class Net_Controller;<br>
+ <b>&nbsp;&nbsp;&nbsp; Public :<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;</b><i>{P}</i> const char * ClassName() 
+- Returns class name<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ushort &nbsp; &nbsp; &nbsp; &nbsp; 
+&nbsp; GetSize() &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - Returns packet's 
+size (# bytes it fills in message)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; BOOL &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;IsRegistered() 
+&nbsp; &nbsp; - Returns whether packet has been registered with controller<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; uint &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+&nbsp; &nbsp; GetType() &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;- Returns 
+packet type<br>
+ <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // Next functions return 1 - success, 
+0 - fail<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <i>{P}</i> int GetCopyOfData(Packet_Data 
+*) - Returns a copy of the packet data through ptr<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <i>{P}</i> int SetData(Packet_Data 
+*) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Sets internal packet 
+data from ptr<b><br>
+ &nbsp;&nbsp;&nbsp; Protected :<br>
+ </b>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void &nbsp; &nbsp; &nbsp;SetType(uint) 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Set packet type<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void &nbsp; &nbsp; &nbsp;SetRegistered() 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - Set that the packet has been succesfully 
+registered<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; BOOL WaitingForResponse() - Return 
+whether the packet expects a response<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<i>{P}</i>&nbsp; int &nbsp;Fill(char 
+*) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; - Fill
+the message buffer (input ptr) with the packet's data in NBO<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; <i>{P}</i>&nbsp; int &nbsp;ReadPacket(char 
+*) &nbsp; &nbsp; - Fill packet data from message buffer (input ptr)<br>
+ <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // The following functions all fill 
+the message buffer (input ptr) with <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // &nbsp; the other input value in 
+NBO and returns the # of bytes filled<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int&nbsp; FillShort(char *, short)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int&nbsp; FillInt(char *, int) <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int&nbsp; FillFloat(char *, float) 
+<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int&nbsp; FillString(char *, const 
+char *) <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int&nbsp; FillChar(char*, char) <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int&nbsp; FillTRVector(char *, const 
+TRVector&amp;) <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int&nbsp; FillTRPoint(char *, const 
+TRPoint&amp;)<br>
+ <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;// The following functions all read 
+a value from the message buffer (input ptr)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;// &nbsp;Simple reads return the value, 
+while class reads return through a reference<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; short &nbsp; &nbsp;GrabShort(char
+*)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int &nbsp; &nbsp; &nbsp; &nbsp;GrabInt(char 
+*)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double GrabDouble(char *)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; float &nbsp; &nbsp; GrabFloat(char 
+*)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void &nbsp; &nbsp; GrabTRVector(char 
+*, TRVector &amp;)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void &nbsp; &nbsp; GrabTRPoint(char 
+*, TRPoint &amp;)<br>
+ <b><br>
+ &nbsp;&nbsp;&nbsp; Private :<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b>double htond(const double&amp;) 
+- Return double converted from HBO to NBO<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; float htonf(const float&amp;) &nbsp; 
+&nbsp; &nbsp; &nbsp; &nbsp;- Return float converted from HBO to NBO<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double ntohd(const double&amp;) -
+Return double converted from NBO to HBO<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; float ntohf(const float&amp;) &nbsp; 
+&nbsp; &nbsp; &nbsp; &nbsp;- Return float converted from NBO to HBO<br>
+ <i><br>
+ Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Protected :<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b>Packet_Data * m_data &nbsp; &nbsp; 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - Pointer to packet_data class<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; uint &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+&nbsp; &nbsp; &nbsp; &nbsp;m_type &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+&nbsp; &nbsp; &nbsp;- Packet type (&gt; 0 for non-reg packets)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; BOOL &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+&nbsp; m_wait_response &nbsp;- Holds whether packet expects a response after 
+sent<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; BOOL &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+&nbsp; m_registered &nbsp; &nbsp; &nbsp; &nbsp; - Holds whether packet has 
+been registered<br>
+ <b>&nbsp;&nbsp;&nbsp; </b><br>
+ <i>Notes :</i><br>
+ 
+<ol>
+   <li>You might notice there is not a GrabChar or GrabString. &nbsp;These
+however are not really necessary, as GrabChar is simply *message_buffer, and
+GrabString is strdup(message_buffer) because FillString places the null character
+at the end of the string.</li>
+  <li>All subclasses start out with m_registered = false, and only a controller
+instance should modify this when the packet is registered (thus a public
+set registration function does not exist).</li>
+  <li>Similarly all subclasses start with m_type = 0, and the correct type
+must be set by a controller upon registration.<br>
+  </li>
+ 
+</ol>
+ 
+<hr width="100%" size="2">
+<h4><i></i><a name="Packet_Data"></a>Packet_Data<i> {P}</i></h4>
+ <i>Description : </i>Base class for all packet data classes<br>
+<i> <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b>ushort GetSize() - Returns size
+of data class (in bytes sent in a message)<br>
+<br>
+ <i>Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Protected :<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b>ushort m_size - Holds data class
+size (in bytes)<br>
+<br>
+ <i>Notes :<br>
+</i>
+<ol>
+  <li><i>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </i>The size does not necessarily
+equal the total bytes of each item in the data class. &nbsp;If the class
+wishes to not send all of its data (or convert to smaller format) in a message
+then the size will be smaller (though this must be coordinated with its packet
+class fill and grab routines).<i>&nbsp;</i><br>
+  </li>
+</ol>
+ 
+<hr width="100%" size="2">
+<h4><a name="UserState_Packet"></a>UserState_Packet</h4>
+ <i>Description : </i>Packet class for holding/sending the user state information
+(received from server - position, facing, etc.)<br>
+<i> <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b>UserState_Packet() &nbsp; &nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Default constructor<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; UserState_Packet(const UserState_Packet&amp;)
+- Copy constructor<br>
+<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // Data Access Functions - both whole
+and element, see <a href="#UserState_Data">UserState_Data</a> for data description<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRPoint &nbsp; &nbsp; GetPos()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRPoint &nbsp; &nbsp; GetUserOffset()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRVector &nbsp;GetEyeOffset()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRVector &nbsp;GetFacing()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRVector &nbsp;GetVelocity()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRStatus &nbsp; GetStatus()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; char &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+PosValid()<b><br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;</b>&nbsp; <br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;double &nbsp;GetPosEasting() &nbsp;&nbsp;
+&nbsp; <br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetPosNorthing()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetUserEasting()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetUserNorthing()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetUserElevation()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetEyeEasting()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetEyeNorthing()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetEyeElevation()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetFacingEasting()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetFacingNorthing()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetVelEasting()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetVelNorthing()<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetVelVertical()<br>
+<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // Data Set Functions - both whole
+and element, see <a
+ href="file:///C:/VETOLab/Ryan/TRNetPackets.html#UserState_Data">UserState_Data</a>
+for data description<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetPos(TRPoint)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetUserOffset(TRPoint)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetEyeOffset(TRPoint)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetFacing(TRVector)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetStatus(TRStatus)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetValidFlag()<br>
+<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetPosEasting(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetPosNorthing(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetUserEasting(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetUserNorthing(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetUserElevation(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetEyeEasting(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetEyeNorthing(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetEyeElevation(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetFacingEasting(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetFacingNorthing(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetVelEasting(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetVelNorthing(double)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetVelVertical(double)<br>
+<br>
+<b>&nbsp;&nbsp;&nbsp; Protected :<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b>void SetPosFlag(char) - Set valid
+position flag<br>
+<i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Protected :<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b>static char* m_class_name - Class
+name, same for all instances of this class<br>
+<b>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b><i><br>
+  </i><i> Notes :</i><br>
+<ol>
+  <li>To simplify code USERSTATE_DATA has been defined to be the dynamic
+cast of m_data to a UserState_Data class.<br>
+  </li>
+</ol>
+ 
+<hr width="100%" size="2">
+<h4><a name="UserState_Data"></a>UserState_Data</h4>
+ <i>Description : </i>Data class for UserState (info from server - position,
+facing, etc.)<br>
+<i> <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b>UserState_Data() &nbsp; &nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - Default constructor<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; UserState_Data(const UserState_Data&amp;)
+- Copy constructor<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void operator = (const UserState_Data&amp;)
+- Assigment operator<br>
+<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // Data Access Functions - both whole
+and element, see data section for description<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRPoint &nbsp; &nbsp; GetPos()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRPoint &nbsp; &nbsp; GetUserOffset()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRVector &nbsp;GetEyeOffset()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRVector &nbsp;GetFacing()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRVector &nbsp;GetVelocity()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRStatus &nbsp; GetStatus()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; char &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+PosValid() - Can treat as BOOL (1 is valid, 0 is invalid)<b><br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;</b>&nbsp; <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;double &nbsp;GetPosEasting() &nbsp;&nbsp;
+&nbsp; <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetPosNorthing()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetUserEasting()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetUserNorthing()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetUserElevation()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetEyeEasting()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetEyeNorthing()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetEyeElevation()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetFacingEasting()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetFacingNorthing()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetVelEasting()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetVelNorthing()<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; double &nbsp;GetVelVertical()<br>
+ <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // Data Set Functions - both whole
+and element, see data section for description<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetPos(TRPoint)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetUserOffset(TRPoint)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetEyeOffset(TRPoint)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetFacing(TRVector)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetStatus(TRStatus)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetValidFlag()<br>
+ <br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetPosEasting(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetPosNorthing(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetUserEasting(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetUserNorthing(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetUserElevation(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetEyeEasting(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetEyeNorthing(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetEyeElevation(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetFacingEasting(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetFacingNorthing(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetVelEasting(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetVelNorthing(double)<br>
+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; void SetVelVertical(double)<br>
+<br>
+<b>  &nbsp;&nbsp;&nbsp; Protected :<br>
+</b><b>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b>void SetPosFlag(char) -
+Set valid position flag<br>
+ <i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Private :<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </b>TRPoint &nbsp; &nbsp; m_pos &nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; - &nbsp;Treadport center position in virtual
+world (E / N)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRPoint &nbsp; &nbsp; m_user_offset
+- &nbsp;User offset from treadport center in VW coordinates (E / N / Vertical)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRPoint &nbsp; &nbsp; m_eye_offset&nbsp;
+- &nbsp;Eye offset from treadport center in VW coordinates (E / N / Vertical)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRVector &nbsp;m_facing &nbsp; &nbsp;
+&nbsp; &nbsp; - &nbsp;Facing of treadport in virtual world (E / N)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRVector&nbsp; m_velocity &nbsp; &nbsp;&nbsp;
+- &nbsp;Velocity of treadport in virtual world (E / N / Vertical)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; TRStatus &nbsp; m_status &nbsp; &nbsp;
+&nbsp; &nbsp;&nbsp; - &nbsp;Treadport status (active, enabled, ... see <a
+ href="TRNetTypes.html">Treadport_Types.h</a>)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; char &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+m_valid &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;- &nbsp;Flag for determining
+if position is valid - is invalid until server receives a new position<br>
+<i><br>
+  </i><i> Notes :</i><br>
+<ol>
+  <li>Size of data class is slightly less than expected because m_pos.Z and
+m_facing.Z are not passed in message (since are not meaningful values to
+server)<br>
+  </li>
+</ol>
+ 
+<hr width="100%" size="2">
+<h4><a name="GetUserState_Packet"></a>GetUserState_Packet</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="GetUserState_Data"></a>GetUserState_Data</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+<br>
+<hr width="100%" size="2">
+<h4><a name="VirtualState_Packet"></a>VirtualState_Packet</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="VirtualState_Data"></a>VirtualState_Data</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="Command_Packet"></a>Command_Packet</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="Command_Data"></a>Command_Data</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="NewPos_Packet"></a>NewPos_Packet</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="NewPos_Data"></a>NewPos_Data</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="NewPosResponse_Packet"></a>NewPosResponse_Packet</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="NewPosResponse_Data"></a>NewPosResponse_Data</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="Collision_Packet"></a>Collision_Packet</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="Collision_Data"></a>Collision_Data</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="Stairs_Packet"></a>Stairs_Packet</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="Stairs_Data"></a>Stairs_Data</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="Registration_Packet"></a>Registration_Packet</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ 
+<hr width="100%" size="2">
+<h4><a name="Registration_Data"></a>Registration_Data</h4>
+ <i>Description :<br>
+ <br>
+ Interface :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Data :<br>
+ </i><b>&nbsp;&nbsp;&nbsp; Public :<br>
+  &nbsp;&nbsp;&nbsp; Protected :<br>
+  &nbsp;&nbsp;&nbsp; Private :<br>
+  </b><i><br>
+  </i><i> Notes :</i><br>
+ <br>
+ <br>
+</body>
+</html>

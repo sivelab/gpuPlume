@@ -1,0 +1,113 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: PacketProject - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\willemsn\LOCALS~1\Temp\RSP15B.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GR /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"Debug/PacketProject.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"T:\vissim\software\TreadNetLib\src\lib\Packets\ByteArray_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\ByteArray_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Collision_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Collision_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Command_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Command_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\FSRSignals_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\FSRSignals_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\GetUserState_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\NewPos_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\NewPos_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\NewPosResponse_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Registration_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Registration_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\ServerRequest_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\ServerRequest_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Stairs_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Stairs_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Tracker_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Tracker_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\Treadport_Types.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\TRQuaternion.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\TRVector.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\UserState_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\UserState_Packet.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\VirtualState_Data.cpp"
+"T:\vissim\software\TreadNetLib\src\lib\Packets\VirtualState_Packet.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\willemsn\LOCALS~1\Temp\RSP15B.tmp" 
+Creating temporary file "C:\DOCUME~1\willemsn\LOCALS~1\Temp\RSP15C.tmp" with contents
+[
+/nologo /out:"Debug\TRNetPacketLibrary.lib" 
+.\Debug\ByteArray_Data.obj
+.\Debug\ByteArray_Packet.obj
+.\Debug\Collision_Data.obj
+.\Debug\Collision_Packet.obj
+.\Debug\Command_Data.obj
+.\Debug\Command_Packet.obj
+.\Debug\FSRSignals_Data.obj
+.\Debug\FSRSignals_Packet.obj
+.\Debug\GetUserState_Packet.obj
+.\Debug\NewPos_Data.obj
+.\Debug\NewPos_Packet.obj
+.\Debug\NewPosResponse_Packet.obj
+.\Debug\Packet.obj
+.\Debug\Registration_Data.obj
+.\Debug\Registration_Packet.obj
+.\Debug\ServerRequest_Data.obj
+.\Debug\ServerRequest_Packet.obj
+.\Debug\Stairs_Data.obj
+.\Debug\Stairs_Packet.obj
+.\Debug\Tracker_Data.obj
+.\Debug\Tracker_Packet.obj
+.\Debug\Treadport_Types.obj
+.\Debug\TRQuaternion.obj
+.\Debug\TRVector.obj
+.\Debug\UserState_Data.obj
+.\Debug\UserState_Packet.obj
+.\Debug\VirtualState_Data.obj
+.\Debug\VirtualState_Packet.obj
+]
+Creating command line "link.exe -lib @C:\DOCUME~1\willemsn\LOCALS~1\Temp\RSP15C.tmp"
+<h3>Output Window</h3>
+Compiling...
+ByteArray_Data.cpp
+ByteArray_Packet.cpp
+Collision_Data.cpp
+Collision_Packet.cpp
+Command_Data.cpp
+Command_Packet.cpp
+FSRSignals_Data.cpp
+FSRSignals_Packet.cpp
+GetUserState_Packet.cpp
+NewPos_Data.cpp
+NewPos_Packet.cpp
+NewPosResponse_Packet.cpp
+Packet.cpp
+Registration_Data.cpp
+Registration_Packet.cpp
+ServerRequest_Data.cpp
+ServerRequest_Packet.cpp
+Stairs_Data.cpp
+Stairs_Packet.cpp
+Tracker_Data.cpp
+Tracker_Packet.cpp
+Treadport_Types.cpp
+TRQuaternion.cpp
+TRVector.cpp
+UserState_Data.cpp
+UserState_Packet.cpp
+VirtualState_Data.cpp
+VirtualState_Packet.cpp
+Creating library...
+
+
+
+<h3>Results</h3>
+TRNetPacketLibrary.lib - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
