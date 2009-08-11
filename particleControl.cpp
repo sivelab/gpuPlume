@@ -1,3 +1,4 @@
+#include <cassert>
 #include <stdio.h>
 #include <cstring>
 #include <cstdlib>
@@ -5,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <math.h>
+#include <float.h>
 #include "particleControl.h"
 #include "Random.h"
 #include "glErrorUtil.h"
@@ -3078,61 +3080,72 @@ void ParticleControl::QUICWindField(){
     }
 
   long double tot_vel=0.0;
-  double vel=0.0;
-  double mx=0.0;
-  double my=0.0;
-  double mz=0.0;
-  double avg_vel=0.0;
-  double sd=0.0;
-  double sum_of_squares=0.0;
-  double max_vel = -1.0;
+  long double vel=0.0;
+  long double mx=0.0;
+  long double my=0.0;
+  long double mz=0.0;
+  long double avg_vel=0.0;
+  long double sd=0.0;
+  long double sum_of_squares=0.0;
+  long double local_max_vel = -1.0;
 
-  for(int k = 0; k < nzdz; k++){   
+  // BIG QUESTION from Pete: why do I need to have nzdz - 1 here to get numbers that are correct for the wind field.   I didn't need this on
+  // Linux so there must be some bug in how we're interpreting the nzdz K layer... someone needs to look into this... note that this is only
+  // affecting the visualization at the moment, but I'd like to understand what's happening!!!
+
+  for(int k = 0; k < nzdz-1; k++){   
     for(int i = 0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
 	int p2idx = k*nxdx*nydy + i*nxdx + j;
+
+	assert(p2idx < (nxdx * nydy * nzdz));
+	assert(p2idx >= 0);
 
 	double usq = (double)wind_vel[p2idx].u * (double)wind_vel[p2idx].u;
 	double vsq = (double)wind_vel[p2idx].v * (double)wind_vel[p2idx].v;
 	double wsq = (double)wind_vel[p2idx].w * (double)wind_vel[p2idx].w;
 
 	vel = sqrt(usq + vsq + wsq);
-	if (vel > max_vel) 
+
+	if (vel > local_max_vel) 
 	  {
-	    max_vel = vel;
+		  std::cout << "nxdx = " << nxdx << ", nydy = " << nydy << ", msize = " << nxdx*nydy*nzdz << ", p2idx = " << p2idx << ", usq=" << usq << ", vsq=" << vsq << ", wsq=" << wsq << ", vel = " << vel << ", max vel = " << local_max_vel << std::endl;
+	    local_max_vel = vel;
 	    mx = wind_vel[p2idx].u;
 	    my = wind_vel[p2idx].v; 
 	    mz = wind_vel[p2idx].w;
 	  }
 	tot_vel += vel;
+
       }
     }
   }
 
   avg_vel = tot_vel/(double)(nxdx*nydy*nzdz);
-  for(int k = 0; k < nzdz; k++){   
+  for(int k = 0; k < nzdz-1; k++){   
     for(int i = 0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
 	int p2idx = k*nxdx*nydy + i*nxdx + j;
+	
 	vel = sqrt(wind_vel[p2idx].u * wind_vel[p2idx].u + 
 		   wind_vel[p2idx].v * wind_vel[p2idx].v + 
 		   wind_vel[p2idx].w * wind_vel[p2idx].w);
 	sum_of_squares += ((vel-avg_vel) * (vel-avg_vel));
-     }
+	}
     }
    }
 
   sd=sqrt(sum_of_squares/(double)(nxdx*nydy*nzdz));
 
-  std::cout << "Calculated maximum wind velocity=" << max_vel << "\n\taverage wind velocity=" << avg_vel << "\n\tstandard deviation (SD)=" << sd << std::endl;
-  if (avg_vel + 3.0*sd < max_vel)
+  std::cout << "Calculated maximum wind velocity=" << local_max_vel << "\n\taverage wind velocity=" << avg_vel << "\n\tstandard deviation (SD)=" << sd << std::endl;
+  if (avg_vel + 3.0*sd < local_max_vel)
     {
       m_util_ptr->calculatedMaxVel = avg_vel + 3.0*sd;
       std::cout << "\tsetting maximum wind velocity to 3*SD from mean = " << m_util_ptr->calculatedMaxVel << std::endl;
     }
   else 
     {
-      m_util_ptr->calculatedMaxVel = max_vel;
+      m_util_ptr->calculatedMaxVel = local_max_vel;
     }
 
   QUICWindField.close();
