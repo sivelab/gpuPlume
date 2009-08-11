@@ -2,7 +2,7 @@
 // 1.20 of the GLSL spec, this is the version we currently support.
 // By not supplying a version, the compiler assumes version 1.10.
 
-#version 120
+// #version 120
 
 uniform sampler2DRect pos_texunit;
 uniform sampler2DRect primePrev;
