@@ -3109,7 +3109,7 @@ void ParticleControl::QUICWindField(){
 
 	if (vel > local_max_vel) 
 	  {
-		  std::cout << "nxdx = " << nxdx << ", nydy = " << nydy << ", msize = " << nxdx*nydy*nzdz << ", p2idx = " << p2idx << ", usq=" << usq << ", vsq=" << vsq << ", wsq=" << wsq << ", vel = " << vel << ", max vel = " << local_max_vel << std::endl;
+	    // std::cout << "nxdx = " << nxdx << ", nydy = " << nydy << ", msize = " << nxdx*nydy*nzdz << ", p2idx = " << p2idx << ", usq=" << usq << ", vsq=" << vsq << ", wsq=" << wsq << ", vel = " << vel << ", max vel = " << local_max_vel << std::endl;
 	    local_max_vel = vel;
 	    mx = wind_vel[p2idx].u;
 	    my = wind_vel[p2idx].v; 
