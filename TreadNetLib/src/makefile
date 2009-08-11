@@ -1,5 +1,5 @@
 ROOT = ../
 SUBDIRS = lib Clocks apps
-MAKE = gmake
+MAKE = make
 
 include $(ROOT)/Make/MakeDir.rules

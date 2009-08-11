@@ -1,5 +1,5 @@
 ROOT = ../../
 SUBDIRS = Packets Controllers VxWorksLib WinLib
-MAKE = gmake
+MAKE = make
 
 include $(ROOT)/Make/MakeDir.rules

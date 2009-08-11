@@ -1,5 +1,5 @@
 ROOT = ../../
 SUBDIRS = TestClients TestServers VxWorksApps WinApps
-MAKE = gmake
+MAKE = make
 
 include $(ROOT)/Make/MakeDir.rules
