@@ -153,6 +153,11 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx, float
   estimated_rate = 0.0;
 
   perform_cpu_sort = false;
+  
+  // Set the default sun angle's.
+  sun_azimuth = 162.0;
+  sun_altitude = 63.0;
+
 }
 
 void DisplayControl::setEmitter(ParticleEmitter* p)

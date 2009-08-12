@@ -86,6 +86,10 @@ class DisplayControl{
   float sun_azimuth;
   float sun_altitude;
 
+  // This is simply a static constant as to how far away
+  // the sun is. At some point this value should either be
+  // correctly set or dynamically calculated based on the size
+  // of the scene.
   static const float SUN_DISTANCE = 1000;
 
  private:
