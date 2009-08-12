@@ -44,19 +44,19 @@ include_directories (${GPUPLUME_SOURCE_DIR}/fileParser/standard)
 link_directories (${GPUPLUME_BINARY_DIR}/fileParser) 
 
 # Make sure the compiler can find the include files for the TreadNetLib
-include_directories (${GPUPLUME_BINARY_DIR}/TreadNetLib/include)
+#include_directories (${GPUPLUME_BINARY_DIR}/TreadNetLib/include)
 
 # Make sure the linker can find the TreadNetLib.
-link_directories (${GPUPLUME_BINARY_DIR}/TreadNetLib/libs/intel_linux)
+#link_directories (${GPUPLUME_BINARY_DIR}/TreadNetLib/libs/intel_linux)
 
 # Add executable called "gpuPlume" that is built from the source files 
 # The source files are placed in the list after the executable name. 
-add_executable (gpuPlume gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp  GeomTest.cpp PathLine.cpp Contour.cpp VisualPlane.cpp lineEmitter.cpp planeEmitter.cpp IsoSurface.cpp NetworkManager.cpp broadcaster.cpp receiver.cpp InetAddress.cpp TreadportManager.cpp graphicsUtil.cpp rgb.cpp) 
+add_executable (gpuPlume gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp  GeomTest.cpp PathLine.cpp Contour.cpp VisualPlane.cpp lineEmitter.cpp planeEmitter.cpp IsoSurface.cpp) # NetworkManager.cpp broadcaster.cpp receiver.cpp InetAddress.cpp TreadportManager.cpp graphicsUtil.cpp rgb.cpp) 
 
 # Link the executable to the TreadNetLib library. 
-target_link_libraries (gpuPlume ClientController)
-target_link_libraries (gpuPlume Packet)
-target_link_libraries (gpuPlume ServerController)
+#target_link_libraries (gpuPlume ClientController)
+#target_link_libraries (gpuPlume Packet)
+#target_link_libraries (gpuPlume ServerController)
 
 # Link the executable to the file parser library. 
 target_link_libraries (gpuPlume StandardFileParser) 
