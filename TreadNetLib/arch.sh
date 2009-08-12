@@ -1,6 +1,7 @@
-#! /bin/sh
+#!/bin/sh
 
 system=`uname -s``uname -r`
+
 case $system in
         SunOS4*)
                 system=sunOS
