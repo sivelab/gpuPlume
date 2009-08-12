@@ -1,16 +1,16 @@
 objdir/intel_linux/Net_Controller.o .depend_libClientController.a: Net_Controller.cpp Net_Controller.h \
-  ../../../src/lib/Packets/Registration_Packet.h \
-  ../../../src/lib/Packets/Packet.h \
-  ../../../src/lib/Packets/Packet_Data.h \
-  ../../../src/lib/Packets/TRVector.h \
-  ../../../src/lib/Packets/Treadport_Types.h \
-  ../../../src/lib/Packets/TRQuaternion.h \
-  ../../../src/lib/Packets/Registration_Data.h
+  ../../..//src/lib/Packets/Registration_Packet.h \
+  ../../..//src/lib/Packets/Packet.h \
+  ../../..//src/lib/Packets/Packet_Data.h \
+  ../../..//src/lib/Packets/TRVector.h \
+  ../../..//src/lib/Packets/Treadport_Types.h \
+  ../../..//src/lib/Packets/TRQuaternion.h \
+  ../../..//src/lib/Packets/Registration_Data.h
 objdir/intel_linux/Client_Controller.o .depend_libClientController.a: Client_Controller.cpp Client_Controller.h \
-  Net_Controller.h ../../../src/lib/Packets/Registration_Packet.h \
-  ../../../src/lib/Packets/Packet.h \
-  ../../../src/lib/Packets/Packet_Data.h \
-  ../../../src/lib/Packets/TRVector.h \
-  ../../../src/lib/Packets/Treadport_Types.h \
-  ../../../src/lib/Packets/TRQuaternion.h \
-  ../../../src/lib/Packets/Registration_Data.h
+  Net_Controller.h ../../..//src/lib/Packets/Registration_Packet.h \
+  ../../..//src/lib/Packets/Packet.h \
+  ../../..//src/lib/Packets/Packet_Data.h \
+  ../../..//src/lib/Packets/TRVector.h \
+  ../../..//src/lib/Packets/Treadport_Types.h \
+  ../../..//src/lib/Packets/TRQuaternion.h \
+  ../../..//src/lib/Packets/Registration_Data.h

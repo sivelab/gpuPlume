@@ -46,6 +46,16 @@ class DisplayControl{
   void setEmitter(ParticleEmitter*);
   void setVisualPlane(VisualPlane*);
 
+  // Generate shadow map will generate a shadow map
+  // based on the position of the sun.
+  // 
+  // Currently, this function will only take snapshot
+  // of what drawFeatures will draw. If additional 
+  // geometry is added to the scene and not pushed
+  // into that function, then this function must be
+  // updated.
+  void generateShadowMap();
+
   bool rotate_around, change_height, change_look;
   bool frame_rate;
 
@@ -71,8 +81,15 @@ class DisplayControl{
   // sorting preference
   bool perform_cpu_sort;
 
+  // The following is the angles at which the sun is
+  // located.
+  float sun_azimuth;
+  float sun_altitude;
+
+  static const float SUN_DISTANCE = 1000;
+
  private:
-  
+
   void createImageTex(GLuint, char*);
   GLubyte* readPPM(char*, int*, int*);
 

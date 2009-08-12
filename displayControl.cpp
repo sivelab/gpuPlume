@@ -38,7 +38,7 @@ static int cmpVertices(const void *p1, const void *p2)
 }
 
 
-DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float dy,float dz)
+DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx, float dy, float dz)
 {
   dTimer = new Timer(true);
 
@@ -154,28 +154,35 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx,float 
 
   perform_cpu_sort = false;
 }
-void DisplayControl::setEmitter(ParticleEmitter* p){
+
+void DisplayControl::setEmitter(ParticleEmitter* p)
+{
   pe = p;
 }
-void DisplayControl::setVisualPlane(VisualPlane* vp){
+
+void DisplayControl::setVisualPlane(VisualPlane* vp)
+{
   plane = vp;
 }
-void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint color_buffer, 
+
+void DisplayControl::drawVisuals(GLuint vertex_buffer, GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight, GLuint PositionTexId, GLuint VelTexId)
 {
   // Timer_t displayStart = dTimer->tic();    
 
-  if(!osgPlume){
+  if(!osgPlume)
+  {
     gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
 	       eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], 
 	       eye_gaze[2]+eye_pos[2], 0, 0, 1 );
-
+    
     // allow rotation of this object
-    //glRotatef(elevation, 0,1,0);
-    //glRotatef(azimuth, 0,0,1);  
+    // glRotatef(elevation, 0,1,0);
+    // glRotatef(azimuth, 0,0,1);  
   }
-
-  DrawSkyBox(eye_pos[0], eye_pos[1], eye_pos[2], 50.0, 50.0, 50.0);      
+  
+  DrawSkyBox(eye_pos[0], eye_pos[1], eye_pos[2], 50.0, 50.0, 50.0);
+  
   drawAxes();
   
   if(draw_buildings) {
@@ -183,14 +190,15 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   }
   
   drawGround();
-
+  
   // render the vertices in the VBO (the particle positions) as points in the domain
   
-  if(color_buffer != 0){
+  if(color_buffer != 0) {
     glEnableClientState(GL_COLOR_ARRAY); 
     glBindBufferARB(GL_ARRAY_BUFFER, color_buffer);
     glColorPointer(4, GL_FLOAT, 0, 0);
   }
+  
   glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
   glVertexPointer(4, GL_FLOAT, 0, 0);
   
@@ -198,19 +206,22 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   
   // see what the cost is for sorting the vertex buffer elements based on distance from the eye
   if (perform_cpu_sort)
-    {
-      glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
-      GLfloat* vertex_data = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
-      if (vertex_data != (GLfloat*)NULL)
-	{
-	  memcpy(&sort_eye, &eye_pos, sizeof(float)*3);
-	  qsort(vertex_data, twidth*theight, sizeof(GLfloat)*4, cmpVertices);
-	}
-      glUnmapBuffer(GL_ARRAY_BUFFER);
+  {
 
-      // shut it back off
-      // perform_cpu_sort = false;
+    glBindBufferARB(GL_ARRAY_BUFFER, vertex_buffer);
+    GLfloat* vertex_data = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
+
+    if (vertex_data != (GLfloat*)NULL)
+    {
+      memcpy(&sort_eye, &eye_pos, sizeof(float)*3);
+      qsort(vertex_data, twidth*theight, sizeof(GLfloat)*4, cmpVertices);
     }
+
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+    
+    // shut it back off
+    // perform_cpu_sort = false;
+  }
 
   sphereParticle_shader.activate();  
 
@@ -252,8 +263,6 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   glDisable(GL_TEXTURE_2D);
 
   sphereParticle_shader.deactivate();
-
-
 
 #if 0
   // Sample code to draw the particle positions...
@@ -324,16 +333,22 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer,GLuint texid3, GLuint colo
   // std::cout << "DC Display Time: " << dTimer->deltau(displayStart, displayEnd) << " us." << std::endl;  
   
 }
-void DisplayControl::increaseVisualLayer(){
+
+void DisplayControl::increaseVisualLayer()
+{
   visual_layer++;
   if(visual_layer > nz) visual_layer = nz;
 
 }
-void DisplayControl::decreaseVisualLayer(){
+
+void DisplayControl::decreaseVisualLayer()
+{
   visual_layer--;
   if(visual_layer < -1) visual_layer = -1;
 }
-void DisplayControl::moveForwardorBack(float change){
+
+void DisplayControl::moveForwardorBack(float change)
+{
   //eye_pos[0] = eye_pos[0] + change;
   //eye_gaze[0] = eye_pos[0] - 5.0;
   if(change < 0.0){
@@ -347,7 +362,9 @@ void DisplayControl::moveForwardorBack(float change){
     eye_pos[2] += eye_gaze[2];
   }
 }
-void DisplayControl::slideLeftorRight(float direction){
+
+void DisplayControl::slideLeftorRight(float direction)
+{
 
   if(direction < 0.0){
     eye_pos[0] -= xslide;
@@ -359,7 +376,9 @@ void DisplayControl::slideLeftorRight(float direction){
   }
 
 }
-void DisplayControl::lookUporDown(float change){
+
+void DisplayControl::lookUporDown(float change)
+{
 
   if(change < 0.0){
     pitch -= M_PI_2/90.0;
@@ -399,15 +418,21 @@ void DisplayControl::lookUporDown(float change){
   //eye_gaze[0] = cos(angle);
 
 }
-void DisplayControl::setAzimuth(float change, float rate){
+
+void DisplayControl::setAzimuth(float change, float rate)
+{
   azimuth = azimuth + change*rate;
 }
-void DisplayControl::setElevation(float change, float rate){
+
+void DisplayControl::setElevation(float change, float rate)
+{
   //elevation = elevation + change*rate;
   eye_pos[2] = eye_pos[2] + change*rate;
   //eye_gaze[2] = eye_gaze[2] + change*rate;
 }
-void DisplayControl::setRotateAround(float change){
+
+void DisplayControl::setRotateAround(float change)
+{
 
   if(change < 0){
     yaw -= M_PI/90.0;
@@ -444,7 +469,9 @@ void DisplayControl::setRotateAround(float change){
   
 
 }
-void DisplayControl::calculateNormal(){
+
+void DisplayControl::calculateNormal()
+{
 
   float a11;//,a12,a13;
   float a21;//,a22,a23;
@@ -505,7 +532,9 @@ void DisplayControl::calculateNormal(){
   yslide = yslide/length;
   
 }
-void DisplayControl::drawSky(){
+
+void DisplayControl::drawSky()
+{
   // double skyr = 0.4, skyg = 0.5, skyb = 0.8;
   double skyr = 0.5, skyg = 0.5, skyb = 0.6;
   glDisable(texType);
@@ -543,7 +572,9 @@ void DisplayControl::drawSky(){
   glEnable(texType);
 
 }
-void DisplayControl::drawGround(){
+
+void DisplayControl::drawGround()
+{
 
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
@@ -570,7 +601,9 @@ void DisplayControl::drawGround(){
   glEnable(texType);
 
 }
-void DisplayControl::drawGrid(){
+
+void DisplayControl::drawGrid()
+{
   GLint lwidth;
 
   glGetIntegerv(GL_LINE_WIDTH, &lwidth);
@@ -599,7 +632,8 @@ void DisplayControl::drawGrid(){
   glEnable(texType);
 }
 
-void DisplayControl::drawAxes(){
+void DisplayControl::drawAxes()
+{
   // query the current line width so we can set it back at the end of
   // the function
   //int numLines = ny + 10;
@@ -660,8 +694,8 @@ void DisplayControl::drawAxes(){
 
 }
 
-void DisplayControl::drawLayers(GLuint texId, int numInRow, float maxVel){
-
+void DisplayControl::drawLayers(GLuint texId, int numInRow, float maxVel)
+{
   if (visual_layer >= 0 && visual_layer < nz)
     {
       glPushMatrix();
@@ -746,6 +780,7 @@ void DisplayControl::drawLayers(GLuint texId, int numInRow, float maxVel){
 void instanceCube()
 {
 }
+
 void DisplayControl::initVars(int nb,int* ns,float* x, float* y, float* z,
 				    float* h, float* w, float* l,float* g)
 {
@@ -762,40 +797,40 @@ void DisplayControl::initVars(int nb,int* ns,float* x, float* y, float* z,
   glEnable(GL_TEXTURE_2D);
   glGenTextures(3,displayTex);
   
-  createImageTex(displayTex[0], "concrete.ppm");
-  createImageTex(displayTex[1], "building.ppm");
-  createImageTex(displayTex[2], "buildingRoof.ppm");
+  createImageTex(displayTex[0], (char *)"concrete.ppm");
+  createImageTex(displayTex[1], (char *)"building.ppm");
+  createImageTex(displayTex[2], (char *)"buildingRoof.ppm");
 
   glGenTextures(6,skyBoxTex);
-/*  createImageTex(skyBoxTex[0], "SkyBox/front.ppm");
-  createImageTex(skyBoxTex[1], "SkyBox/left.ppm");
-  createImageTex(skyBoxTex[2], "SkyBox/back.ppm");
-  createImageTex(skyBoxTex[3], "SkyBox/right.ppm");
-  createImageTex(skyBoxTex[4], "SkyBox/up.ppm");
-  createImageTex(skyBoxTex[5], "SkyBox/down.ppm"); */
+/*  createImageTex(skyBoxTex[0], (char *)"SkyBox/front.ppm");
+  createImageTex(skyBoxTex[1], (char *)"SkyBox/left.ppm");
+  createImageTex(skyBoxTex[2], (char *)"SkyBox/back.ppm");
+  createImageTex(skyBoxTex[3], (char *)"SkyBox/right.ppm");
+  createImageTex(skyBoxTex[4], (char *)"SkyBox/up.ppm");
+  createImageTex(skyBoxTex[5], (char *)"SkyBox/down.ppm"); */
 	/*
 		for the mystic skybox. 
-	createImageTex(skyBoxTex[0], "SkyBox/mystic/mystic_east.ppm"); //front
-  createImageTex(skyBoxTex[1], "SkyBox/mystic/mystic_north.ppm"); //left
-  createImageTex(skyBoxTex[2], "SkyBox/mystic/mystic_west.ppm"); //back
-  createImageTex(skyBoxTex[3], "SkyBox/mystic/mystic_south.ppm");//right
-  createImageTex(skyBoxTex[4], "SkyBox/mystic/mystic_up.ppm");
-  createImageTex(skyBoxTex[5], "SkyBox/mystic/mystic_down.ppm");
+	createImageTex(skyBoxTex[0], (char *)"SkyBox/mystic/mystic_east.ppm"); //front
+  createImageTex(skyBoxTex[1], (char *)"SkyBox/mystic/mystic_north.ppm"); //left
+  createImageTex(skyBoxTex[2], (char *)"SkyBox/mystic/mystic_west.ppm"); //back
+  createImageTex(skyBoxTex[3], (char *)"SkyBox/mystic/mystic_south.ppm");//right
+  createImageTex(skyBoxTex[4], (char *)"SkyBox/mystic/mystic_up.ppm");
+  createImageTex(skyBoxTex[5], (char *)"SkyBox/mystic/mystic_down.ppm");
   */
 	/* for skybox with the cloudy reef
-	createImageTex(skyBoxTex[0], "SkyBox/clouds/reef_east.ppm"); //front
-  createImageTex(skyBoxTex[1], "SkyBox/clouds/reef_north.ppm"); //left
-  createImageTex(skyBoxTex[2], "SkyBox/clouds/reef_west.ppm"); //back
-  createImageTex(skyBoxTex[3], "SkyBox/clouds/reef_south.ppm");//right
-  createImageTex(skyBoxTex[4], "SkyBox/clouds/reef_up.ppm");
-  createImageTex(skyBoxTex[5], "SkyBox/clouds/reef_down.ppm"); */
+	createImageTex(skyBoxTex[0], (char *)"SkyBox/clouds/reef_east.ppm"); //front
+  createImageTex(skyBoxTex[1], (char *)"SkyBox/clouds/reef_north.ppm"); //left
+  createImageTex(skyBoxTex[2], (char *)"SkyBox/clouds/reef_west.ppm"); //back
+  createImageTex(skyBoxTex[3], (char *)"SkyBox/clouds/reef_south.ppm");//right
+  createImageTex(skyBoxTex[4], (char *)"SkyBox/clouds/reef_up.ppm");
+  createImageTex(skyBoxTex[5], (char *)"SkyBox/clouds/reef_down.ppm"); */
 
-	createImageTex(skyBoxTex[0], "SkyBox/rays/rays_east.ppm"); //front
-  createImageTex(skyBoxTex[1], "SkyBox/rays/rays_north.ppm"); //left
-  createImageTex(skyBoxTex[2], "SkyBox/rays/rays_west.ppm"); //back
-  createImageTex(skyBoxTex[3], "SkyBox/rays/rays_south.ppm");//right
-  createImageTex(skyBoxTex[4], "SkyBox/rays/rays_up.ppm");
-  createImageTex(skyBoxTex[5], "SkyBox/rays/rays_down.ppm");
+  createImageTex(skyBoxTex[0], (char *)"SkyBox/rays/rays_east.ppm"); //front
+  createImageTex(skyBoxTex[1], (char *)"SkyBox/rays/rays_north.ppm"); //left
+  createImageTex(skyBoxTex[2], (char *)"SkyBox/rays/rays_west.ppm"); //back
+  createImageTex(skyBoxTex[3], (char *)"SkyBox/rays/rays_south.ppm");//right
+  createImageTex(skyBoxTex[4], (char *)"SkyBox/rays/rays_up.ppm");
+  createImageTex(skyBoxTex[5], (char *)"SkyBox/rays/rays_down.ppm");
 
  
   glDisable(GL_TEXTURE_2D);
@@ -803,76 +838,80 @@ void DisplayControl::initVars(int nb,int* ns,float* x, float* y, float* z,
 
 }
 
-void DisplayControl::DrawSkyBox(float x, float y, float z,  float width, float height, float length){
-	glDisable(GL_DEPTH_TEST);
+void DisplayControl::DrawSkyBox(float x, float y, float z,  float width, float height, float length)
+{
+  glDisable(GL_DEPTH_TEST);
   glDisable(texType);
-	 glEnable(GL_TEXTURE_2D);
-	//center the box around the postion paramaters
-	x = x - width  / 2;
-	y = y - height / 2;
-	z = z - length / 2;
+  glEnable(GL_TEXTURE_2D);
+  
+  // center the box around the postion paramaters
+  x = x - width  / 2;
+  y = y - height / 2;
+  z = z - length / 2;
+  
+  glColor4f(1.0,1.0,1.0,1.0f); // set color to white
+  
+  // Draw the Front (in front of you)
+  glBindTexture(GL_TEXTURE_2D, skyBoxTex[0]);
+  glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y, z); //bottom left
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y, z+height);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y+width, z+height);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y+width, z);
+  glEnd();
+
+  // Draw Right side
+  glBindTexture(GL_TEXTURE_2D, skyBoxTex[3]);
+  glBegin(GL_QUADS);		
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y+width, z+height);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y+width, z+height);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y+width, z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y+width, z);
+  glEnd();
+
+  // Draw Back (behind you)
+  glBindTexture(GL_TEXTURE_2D, skyBoxTex[2]);
+  glBegin(GL_QUADS);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y, z+height);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x+length, y+width, z+height);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x+length, y+width, z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y, z); //from behind you (facing away)- bottom left.
+  glEnd();
+  
+  // Draw the left side
+  glBindTexture(GL_TEXTURE_2D, skyBoxTex[1]);
+  glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x+length, y, z+height);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y, z+height);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y, z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x+length, y, z);
+  glEnd();
+
+  // Draw the top
+  glBindTexture(GL_TEXTURE_2D, skyBoxTex[4]);
+  glBegin(GL_QUADS);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y+width, z+height); //back right
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y, z+height); //back left
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y, z+height);  //front left
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y+width, z+height); ///front right
+  glEnd();
+
+  //draw the bottom
+  glBindTexture(GL_TEXTURE_2D, skyBoxTex[5]);
+  glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y+width, z); //front right
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y+width, z); //back rigth
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y, z); //back left
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y, z);// front left
+  glEnd();
 	
-	glColor4f(1.0,1.0,1.0,1.0f); //set color to white
+  glDisable(GL_TEXTURE_2D);
+  glEnable(texType);
+  glEnable(GL_DEPTH_TEST);
+} // end DrawSkyBox
 
-	//Draw the Front (in front of you)
-	glBindTexture(GL_TEXTURE_2D, skyBoxTex[0]);
-	glBegin(GL_QUADS);
-	  glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y, z); //bottom left
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y, z+height);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y+width, z+height);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y+width, z);
-	glEnd();
-
-		// Draw Right side
-	glBindTexture(GL_TEXTURE_2D, skyBoxTex[3]);
-	glBegin(GL_QUADS);		
-	  glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y+width, z+height);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y+width, z+height);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y+width, z);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y+width, z);
-	glEnd();
-
-	//Draw Back (behind you)
-	glBindTexture(GL_TEXTURE_2D, skyBoxTex[2]);
-	glBegin(GL_QUADS);
-	  glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y, z+height);
-  	glTexCoord2f(0.0f, 0.0f); glVertex3f(x+length, y+width, z+height);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(x+length, y+width, z);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y, z); //from behind you (facing away)- bottom left.
-	glEnd();
-	//draw the left side
-	glBindTexture(GL_TEXTURE_2D, skyBoxTex[1]);
-	glBegin(GL_QUADS);
-	  glTexCoord2f(0.0f, 0.0f); glVertex3f(x+length, y, z+height);
-	  glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y, z+height);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y, z);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(x+length, y, z);
-	glEnd();
-
-	//draw the top
-	glBindTexture(GL_TEXTURE_2D, skyBoxTex[4]);
-	glBegin(GL_QUADS);
-	  glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y+width, z+height); //back right
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y, z+height); //back left
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y, z+height);  //front left
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y+width, z+height); ///front right
-	glEnd();
-
-	//draw the bottom
-	glBindTexture(GL_TEXTURE_2D, skyBoxTex[5]);
-	glBegin(GL_QUADS);
-	  glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y+width, z); //front right
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(x+length, y+width, z); //back rigth
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(x+length, y, z); //back left
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y, z);// front left
-	glEnd();
-	
-	glDisable(GL_TEXTURE_2D);
-	glEnable(texType);
-	glEnable(GL_DEPTH_TEST);
-}//end DrawSkyBox
-
-void DisplayControl::createImageTex(GLuint texture, char* filename){
+void DisplayControl::createImageTex(GLuint texture, char* filename)
+{
   GLubyte* testImage;
   int w, h;
 
@@ -1429,4 +1468,9 @@ void DisplayControl::createPointSpriteTextures()
   glDisable(GL_TEXTURE_2D);
 
   delete [] data;
+}
+
+void DisplayControl::generateShadowMap()
+{
+  
 }
