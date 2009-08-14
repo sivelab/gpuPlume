@@ -153,11 +153,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx, float
   estimated_rate = 0.0;
 
   perform_cpu_sort = false;
-  
-  // Set the default sun angle's.
-  sun_azimuth = 162.0;
-  sun_altitude = 63.0;
-
+    
 }
 
 void DisplayControl::setEmitter(ParticleEmitter* p)
@@ -173,6 +169,7 @@ void DisplayControl::setVisualPlane(VisualPlane* vp)
 void DisplayControl::drawVisuals(GLuint vertex_buffer, GLuint texid3, GLuint color_buffer, 
 				 int numInRow, int twidth, int theight, GLuint PositionTexId, GLuint VelTexId)
 {
+
   // Timer_t displayStart = dTimer->tic();    
 
   if(!osgPlume)
@@ -336,7 +333,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer, GLuint texid3, GLuint col
 
   // Timer_t displayEnd = dTimer->tic();      
   // std::cout << "DC Display Time: " << dTimer->deltau(displayStart, displayEnd) << " us." << std::endl;  
-  
+
 }
 
 void DisplayControl::increaseVisualLayer()
@@ -1473,9 +1470,4 @@ void DisplayControl::createPointSpriteTextures()
   glDisable(GL_TEXTURE_2D);
 
   delete [] data;
-}
-
-void DisplayControl::generateShadowMap()
-{
-  
 }

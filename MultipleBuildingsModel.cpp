@@ -19,6 +19,7 @@ GLfloat* int_buffer;
 FILE * fp; 
 std::ofstream outputFile;
 std::vector<float> str;
+
 MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   util = u;
   //pwidth = util->pwidth;
@@ -86,8 +87,24 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
 
   //outputFile.open(str1.c_str(),std::ios::out);
   fp=fopen(str1.c_str(),"wb");
+
+  // Set the default sun angle's
+  // I picked an angle that is valid for Summer in SLC in mid August around noon.
+  sun_azimuth = 162.0;
+  sun_altitude = 63.0;
+  
 }
-MultipleBuildingsModel::~MultipleBuildingsModel(){fclose(fp);}//outputFile.close();}
+
+MultipleBuildingsModel::~MultipleBuildingsModel()
+{
+  fclose(fp);
+  //outputFile.close();
+  
+  // Preform cleanup for the shadow map.
+  shadowFBO->Unattach(GL_DEPTH_ATTACHMENT_EXT);
+  glDeleteTextures(1, &shadowMap);
+  delete shadowFBO;
+}
 
 void MultipleBuildingsModel::init(bool OSG){
   osgPlume = OSG;
@@ -233,6 +250,10 @@ void MultipleBuildingsModel::init(bool OSG){
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (GLint*)&maxtextures);
   std::cout << "Max Textures: " << maxtextures << std::endl;
 #endif
+  
+  // Setup the shadowMap including the shadow map texutre and FBO.
+  shadowMapSetup();
+
 }
 
 int MultipleBuildingsModel::display(){
@@ -669,6 +690,11 @@ int MultipleBuildingsModel::display(){
       // PASS 3 - draw the vertices; This represents the visualization
       // of the PLUME particle field.
       // //////////////////////////////////////////////////////////////
+      
+      // Grab the shadow map. Note, this should really only be done
+      // every time the light source moves and does not need to be 
+      // done every frame (large waste).
+      // generateShadowMap();
 
       // clear the color and depth buffer before drawing the scene, and
       // set the viewport to the window dimensions
@@ -698,6 +724,9 @@ int MultipleBuildingsModel::display(){
       // Last good one...
       // dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
       dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight, texid[0], prime0);
+
+      // Calculate if each grid cell is in shadow.
+      // genGridShadow();
 
       CheckErrorsGL("MBA : called drawVisuals");
 
@@ -1164,3 +1193,128 @@ void MultipleBuildingsModel::setupTextures(){
  
 }
 
+void MultipleBuildingsModel::shadowMapSetup()
+{
+
+  //
+  // Initialize the shadow map texture.
+  //
+  glGenTextures(1, &shadowMap);
+  glBindTexture(GL_TEXTURE_2D, shadowMap);
+  
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  
+  // This is to allow the use of the shadow2DProj function in the shader.
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+  glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 2048, 2048, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+  
+  //
+  // Initialize the framebuffer and assign the shadow map texture to it.
+  //
+  shadowFBO = new FramebufferObject();
+  shadowFBO->AttachTexture(GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, shadowMap);
+
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
+
+  shadowFBO->IsValid();
+
+  FramebufferObject::Disable();
+}
+
+void MultipleBuildingsModel::generateShadowMap()
+{
+  //
+  // Draw the scene from the light's (Sun's) perspective.
+  //
+  
+  shadowFBO->Bind();
+
+  // Calculate the scene's bounding radius.
+  float sceneBoundingRadius = 100.0;
+  
+  // Calculate the distance between the sceen and the light
+  float lightToSceneDistance = sqrt(150 * 150 + 150 * 150 + 150 * 150);
+
+  // Calculate the near plane for the light
+  float lightNearPlane = lightToSceneDistance - sceneBoundingRadius;
+  
+  float lightFieldOfView = 180 * M_PI * ( 2.0f * atan(sceneBoundingRadius / lightToSceneDistance ));
+  
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glViewport(0, 0, 2048, 2048);
+  gluPerspective(lightFieldOfView, 1.0f, lightNearPlane, lightNearPlane + (2.0f * sceneBoundingRadius));
+  
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  gluLookAt(
+	    150, 150, 150,
+	    0,   0,   0,
+	    0,   0,   1
+	   );
+  
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClearDepth(1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  dc->drawFeatures();
+
+  FramebufferObject::Disable();
+  
+}
+
+void MultipleBuildingsModel::genGridShadow() {
+  /* The following is not nessiary.
+  int numberOfPositions = (util->nx * util->ny * util->nz);
+  
+  GLfloat positions[util->nx][util->ny][util->nz][4];
+
+  for(int x = 0; x < util->nx; x++) {
+    for(int y = 0; y < util->ny; y++) {
+      for(int z = 0; z < util->nz; z++) {
+	positions[x][y][z][0] = x + 0.5f;
+	positions[x][y][z][1] = y + 0.5f;
+	positions[x][y][z][2] = z + 0.5f;
+	positions[x][y][z][3] = 1.0f;
+      }
+    }
+  }
+  */
+
+  // Bind and setup FBO here.
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluOrtho2D(-1, 1, -1, 1);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, util->nx, util->ny);
+
+  // Enable shader here.
+
+  glColor3f(0.5, 0.5, 0.5);
+  glBegin(GL_QUADS);
+  {
+    glVertex3f(-1, -1, -0.5f);
+    glVertex3f( 1, -1, -0.5f);
+    glVertex3f( 1,  1, -0.5f);
+    glVertex3f(-1,  1, -0.5f);
+  }
+  glEnd();
+
+  // Disable shader here.
+  
+  // Copy results from shader here.
+  
+}

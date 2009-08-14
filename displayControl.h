@@ -14,6 +14,7 @@
 #include "Timer.h"
 #include "particleEmitter.h"
 #include "VisualPlane.h"
+#include "framebufferObject.h"
 
 enum tau_visual_type{draw_contours,draw_layers};
 
@@ -46,16 +47,6 @@ class DisplayControl{
   void setEmitter(ParticleEmitter*);
   void setVisualPlane(VisualPlane*);
 
-  // Generate shadow map will generate a shadow map
-  // based on the position of the sun.
-  // 
-  // Currently, this function will only take snapshot
-  // of what drawFeatures will draw. If additional 
-  // geometry is added to the scene and not pushed
-  // into that function, then this function must be
-  // updated.
-  void generateShadowMap();
-
   bool rotate_around, change_height, change_look;
   bool frame_rate;
 
@@ -80,17 +71,6 @@ class DisplayControl{
 
   // sorting preference
   bool perform_cpu_sort;
-
-  // The following is the angles at which the sun is
-  // located.
-  float sun_azimuth;
-  float sun_altitude;
-
-  // This is simply a static constant as to how far away
-  // the sun is. At some point this value should either be
-  // correctly set or dynamically calculated based on the size
-  // of the scene.
-  static const float SUN_DISTANCE = 1000;
 
  private:
 
