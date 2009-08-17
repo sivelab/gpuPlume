@@ -30,9 +30,9 @@ void main(void){
      float j;
      float k;
 
-     for(i = 0; i < 1; i += 0.1) {
-       for(j = 0; j < 1; j += 0.1) {
-         for(k = 0; k < 1; k += 0.1) {
+     for(i = 0.05; i < 1; i += 0.1) {
+       for(j = 0.05; j < 1; j += 0.1) {
+         for(k = 0.05; k < 1; k += 0.1) {
 	   vec4 pos = vec4(gl_FragCoord.x + i , gl_FragCoord.y + j, zPos + k, 1.0);
 	   vec4 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
 	   average += shadow2DProj(shadowMap, index).x;

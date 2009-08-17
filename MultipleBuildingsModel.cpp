@@ -692,7 +692,7 @@ int MultipleBuildingsModel::display(){
       // of the PLUME particle field.
       // //////////////////////////////////////////////////////////////
       
-      /*
+      
       // Grab the shadow map. Note, this should really only be done
       // every time the light source moves and does not need to be 
       // done every frame (large waste).
@@ -703,7 +703,7 @@ int MultipleBuildingsModel::display(){
 	}
       reCalcShadows = false;
       }
-      */
+      
 
       // clear the color and depth buffer before drawing the scene, and
       // set the viewport to the window dimensions

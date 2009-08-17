@@ -72,10 +72,12 @@ class DisplayControl{
   // sorting preference
   bool perform_cpu_sort;
 
-  // TODO: DELETE ME, THIS IS FOR TESTING
+  // The following is for displaying the
+  // cell shadow data.
   GLfloat inShadowData[30][30][30][4];
   void drawInShadowData();
   float sun_pos[3];
+  bool drawISD;
   
  private:
 

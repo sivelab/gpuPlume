@@ -153,7 +153,9 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx, float
   estimated_rate = 0.0;
 
   perform_cpu_sort = false;
-    
+
+  drawISD = false;
+  
 }
 
 void DisplayControl::setEmitter(ParticleEmitter* p)
@@ -192,7 +194,11 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer, GLuint texid3, GLuint col
   }
   
   drawGround();
-  
+
+  if(drawISD) {
+    drawInShadowData();
+  }
+
   // render the vertices in the VBO (the particle positions) as points in the domain
   
   if(color_buffer != 0) {
