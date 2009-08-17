@@ -104,6 +104,7 @@ MultipleBuildingsModel::~MultipleBuildingsModel()
   shadowFBO->Unattach(GL_DEPTH_ATTACHMENT_EXT);
   glDeleteTextures(1, &shadowMap);
   delete shadowFBO;
+  delete cellInShadowShader;
 }
 
 void MultipleBuildingsModel::init(bool OSG){
@@ -691,10 +692,18 @@ int MultipleBuildingsModel::display(){
       // of the PLUME particle field.
       // //////////////////////////////////////////////////////////////
       
+      /*
       // Grab the shadow map. Note, this should really only be done
       // every time the light source moves and does not need to be 
       // done every frame (large waste).
-      // generateShadowMap();
+      if(reCalcShadows) {
+	generateShadowMap();
+	for(int i = 0; i < 30; i++) {
+	  genGridShadow(i);
+	}
+      reCalcShadows = false;
+      }
+      */
 
       // clear the color and depth buffer before drawing the scene, and
       // set the viewport to the window dimensions
@@ -724,9 +733,6 @@ int MultipleBuildingsModel::display(){
       // Last good one...
       // dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
       dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight, texid[0], prime0);
-
-      // Calculate if each grid cell is in shadow.
-      // genGridShadow();
 
       CheckErrorsGL("MBA : called drawVisuals");
 
@@ -1195,6 +1201,12 @@ void MultipleBuildingsModel::setupTextures(){
 
 void MultipleBuildingsModel::shadowMapSetup()
 {
+  
+  reCalcShadows = true;
+  
+  // Initialize the sun matricies
+  sunModelviewMatrix = new GLfloat[16];
+  sunProjectionMatrix = new GLfloat[16];
 
   //
   // Initialize the shadow map texture.
@@ -1227,10 +1239,40 @@ void MultipleBuildingsModel::shadowMapSetup()
   shadowFBO->IsValid();
 
   FramebufferObject::Disable();
+
+  // Create the shader and load the programs.
+  cellInShadowShader = new GLSLObject();
+  cellInShadowShader->addShader("Shaders/cellInShadow_vp.glsl", GLSLObject::VERTEX_SHADER);
+  cellInShadowShader->addShader("Shaders/cellInShadow_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  cellInShadowShader->createProgram();
+  
 }
 
 void MultipleBuildingsModel::generateShadowMap()
 {
+  // Set the sun position, so it can be drawn in the world.
+  dc->sun_pos[0] = 150;
+  dc->sun_pos[1] = 150;
+  dc->sun_pos[2] = 150;
+  
+  // Prep the scale and bias matrix.
+  sunScaleAndBiasMatrix[0] = 0.5;
+  sunScaleAndBiasMatrix[1] = 0.0;
+  sunScaleAndBiasMatrix[2] = 0.0;
+  sunScaleAndBiasMatrix[3] = 0.0;
+  sunScaleAndBiasMatrix[4] = 0.0;
+  sunScaleAndBiasMatrix[5] = 0.5;
+  sunScaleAndBiasMatrix[6] = 0.0;
+  sunScaleAndBiasMatrix[7] = 0.0;
+  sunScaleAndBiasMatrix[8] = 0.0;
+  sunScaleAndBiasMatrix[9] = 0.0;
+  sunScaleAndBiasMatrix[10] = 0.5;
+  sunScaleAndBiasMatrix[11] = 0.0;
+  sunScaleAndBiasMatrix[12] = 0.5;
+  sunScaleAndBiasMatrix[13] = 0.5;
+  sunScaleAndBiasMatrix[14] = 0.5;
+  sunScaleAndBiasMatrix[15] = 1.0;
+  
   //
   // Draw the scene from the light's (Sun's) perspective.
   //
@@ -1252,7 +1294,8 @@ void MultipleBuildingsModel::generateShadowMap()
   glLoadIdentity();
   glViewport(0, 0, 2048, 2048);
   gluPerspective(lightFieldOfView, 1.0f, lightNearPlane, lightNearPlane + (2.0f * sceneBoundingRadius));
-  
+  glGetFloatv(GL_PROJECTION_MATRIX, sunProjectionMatrix);
+
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(
@@ -1260,6 +1303,7 @@ void MultipleBuildingsModel::generateShadowMap()
 	    0,   0,   0,
 	    0,   0,   1
 	   );
+  glGetFloatv(GL_MODELVIEW_MATRIX, sunModelviewMatrix);
   
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClearDepth(1.0);
@@ -1269,28 +1313,63 @@ void MultipleBuildingsModel::generateShadowMap()
 
   FramebufferObject::Disable();
   
+  // Now that we are done capturing the image, we can unattach the texture
+  // from the frame buffer.
+  shadowFBO->Bind();
+  shadowFBO->Unattach(GL_DEPTH_ATTACHMENT_EXT);
+  FramebufferObject::Disable();
+
 }
 
-void MultipleBuildingsModel::genGridShadow() {
-  /* The following is not nessiary.
-  int numberOfPositions = (util->nx * util->ny * util->nz);
+void MultipleBuildingsModel::genGridShadow(int i) {
   
-  GLfloat positions[util->nx][util->ny][util->nz][4];
-
+  GLfloat positions[util->nx][util->ny][4];
+  
   for(int x = 0; x < util->nx; x++) {
     for(int y = 0; y < util->ny; y++) {
-      for(int z = 0; z < util->nz; z++) {
-	positions[x][y][z][0] = x + 0.5f;
-	positions[x][y][z][1] = y + 0.5f;
-	positions[x][y][z][2] = z + 0.5f;
-	positions[x][y][z][3] = 1.0f;
-      }
+	positions[x][y][0] = x + 0.5f;
+	positions[x][y][1] = y + 0.5f;
+	positions[x][y][2] = 0.5f;
+	positions[x][y][3] = 1.0f;
     }
   }
-  */
 
-  // Bind and setup FBO here.
+  GLuint posTex;
+  glGenTextures(1, &posTex);
+  glBindTexture(GL_TEXTURE_RECTANGLE_ARB, posTex);
 
+  glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA32F_ARB, util->nx, util->ny, 0, GL_RGBA, GL_FLOAT, &positions);
+
+  // Set up the output texture
+  GLuint cellsInShadow;
+  glGenTextures(1, &cellsInShadow);
+  glBindTexture(GL_TEXTURE_2D, cellsInShadow);
+  
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  
+  // NOTE NEED LOGIC TO USE THE LARGER OF NX NY!!! IF WE DON'T HAVE SQUARE DOMAIN.
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F_ARB, util->nx, util->ny, 0, GL_RGBA, GL_FLOAT, NULL);
+  
+  // Bind the output texture to the fbo.
+  shadowFBO->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, cellsInShadow);
+  
+  shadowFBO->IsValid();
+  
+  // Bind the FBO.
+  FramebufferObject::Disable();
+  // shadowFBO->Bind();
+  
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluOrtho2D(-1, 1, -1, 1);
@@ -1300,21 +1379,99 @@ void MultipleBuildingsModel::genGridShadow() {
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, util->nx, util->ny);
+  
+  // Pass the shadowMap texture to the shader along with
+  // the other matricies and parameters.
+  cellInShadowShader->activate();
+  
+  // This is just a temp variable which we can reuse.
+  GLint tmpID;
 
-  // Enable shader here.
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, shadowMap);
+  
+  tmpID = cellInShadowShader->createUniform("shadowMap");
+  glUniform1i(tmpID, 1);
 
-  glColor3f(0.5, 0.5, 0.5);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_RECTANGLE_ARB, posTex);
+
+  tmpID = cellInShadowShader->createUniform("posTex");
+  glUniform1i(tmpID, 0);
+
+  tmpID = cellInShadowShader->createUniform("zPos");
+  glUniform1f(tmpID, (float)i);
+  
+  tmpID = cellInShadowShader->createUniform("sunModelviewMatrix");
+  glUniformMatrix4fv(tmpID, 1, GL_FALSE, sunModelviewMatrix);
+  
+  tmpID = cellInShadowShader->createUniform("sunProjectionMatrix");
+  glUniformMatrix4fv(tmpID, 1, GL_FALSE, sunProjectionMatrix);
+  
+  tmpID = cellInShadowShader->createUniform("sunScaleAndBiasMatrix");
+  glUniformMatrix4fv(tmpID, 1, GL_FALSE, (GLfloat*)&sunScaleAndBiasMatrix);
+    
   glBegin(GL_QUADS);
   {
-    glVertex3f(-1, -1, -0.5f);
-    glVertex3f( 1, -1, -0.5f);
-    glVertex3f( 1,  1, -0.5f);
-    glVertex3f(-1,  1, -0.5f);
+    glTexCoord2f(0, 0);			        glVertex3f(-1, -1, -0.5f);
+    glTexCoord2f(util->nx, 0);			glVertex3f( 1, -1, -0.5f);
+    glTexCoord2f(util->nx, util->ny);	        glVertex3f( 1,  1, -0.5f);
+    glTexCoord2f(0, util->ny);			glVertex3f(-1,  1, -0.5f);
   }
   glEnd();
-
+  
   // Disable shader here.
+  cellInShadowShader->deactivate();
   
-  // Copy results from shader here.
+  // Copy results from the fbo texture via a pixel copy.
+  // int size = util->nx * util->ny * sizeof(float) * 4;
+  // float * data = (float*)malloc(size);
+  // for(int i = 0; i < size; i++) {
+  //   data[i] = 5.0f;
+  // }
   
+  GLfloat data[util->nx][util->ny][4];
+
+  /*
+  for(int x = 0; x < util->nx; x++) {
+    for(int y = 0; y < util->ny; y++) {
+      data[x][y][0] = 2.0f;
+      data[x][y][1] = 2.0f;
+      data[x][y][2] = 2.0f;
+      data[x][y][3] = 2.0f;
+    }
+  }
+  */
+
+  // To use frame buffer specificy read buffer as color attachment 0.
+  glReadPixels(0, 0, util->nx, util->ny, GL_RGBA, GL_FLOAT, &(dc->inShadowData[i]));
+
+  /*
+  for(int x = 0; x < util->nx; x++) {
+    for(int y = 0; y < util->ny; y++) {
+      std::cout << data[x][y][0] << " "
+		<< data[x][y][1] << " "
+		<< data[x][y][2] << " "
+		<< data[x][y][3] << " |  ";
+    }
+  }
+
+  int x;
+  std::cin >> x;
+  */
+  
+
+  // Now that we are done, stop using the frame buffer.
+  // FramebufferObject::Disable();
+  
+  // Now for testing draw the rgb = xyz as a gl point with
+  // either blue or red depending on the alpha value (to test).
+  // for(int i = 0; i < util->nx * util->ny; i += sizeof(float) * 4) {
+  //   std::cout << *(data + i) << " ";
+  // }
+
+  // If the test is successful, write the data to a text file.
+  
+  // Cleanup
+  glDeleteTextures(1, &cellsInShadow);
 }

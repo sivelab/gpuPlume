@@ -1471,3 +1471,30 @@ void DisplayControl::createPointSpriteTextures()
 
   delete [] data;
 }
+
+void DisplayControl::drawInShadowData() {
+  for(int i = 0; i < 30; i++) {
+    for(int j = 0; j < 30; j++) {
+      for(int k = 0; k < 30; k++) {
+	if(inShadowData[i][j][k][0] < 1) {
+	  glPushMatrix();
+	  glTranslatef(k + 0.5, j + 0.5, i + 0.5);
+	  glColor4f(inShadowData[i][j][k][0], inShadowData[i][j][k][1], inShadowData[i][j][k][2], inShadowData[i][j][k][3]);
+	  // std::cout << inShadowData[i][j][0] << " " << inShadowData[i][j][1] << " " << inShadowData[i][j][2] << "  ";
+	  glutSolidCube(0.1);
+	  glPopMatrix();
+	}
+      }
+    }
+    // std::cout << std::endl;
+  }
+  
+  glPushMatrix();
+  glTranslatef(sun_pos[0], sun_pos[1], sun_pos[2]);
+  glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+  glutSolidCube(10);
+  glPopMatrix();
+  
+  // int x;
+  // std::cin >> x;
+}

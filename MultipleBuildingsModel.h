@@ -32,7 +32,12 @@ class MultipleBuildingsModel : public PlumeControl{
   // not in shadow). For this method to work, the shadow
   // map from the Sun's perspective must have been 
   // generated.
-  void genGridShadow();
+  void genGridShadow(int i);
+
+  // Since we only need to generate the shadow map once, this flag
+  // allows us recalculate the shadow map once initially and when
+  // ever the sun's position is changed.
+  bool reCalcShadows;
   
   // The following are angles used to calculate the Sun's position.
   // TODO: At some point these should be pushed into the Util class
@@ -61,7 +66,22 @@ class MultipleBuildingsModel : public PlumeControl{
   // shadowFBO is the frame buffer used to capture the shadow
   // map.
   FramebufferObject * shadowFBO;
+  
+  // This is a pointer to the model view matrix that was used
+  // when taking a depth map from the sun's perspective.
+  GLfloat * sunModelviewMatrix;
 
+  // This is a pointer to the projection matrix that was used
+  // when taking a depth map from the sun's perspective.
+  GLfloat * sunProjectionMatrix;
+
+  // This is a scale and bias matrixd used for indexing into
+  // the depth/shadow map taken from the sun's perspective.
+  GLfloat sunScaleAndBiasMatrix[16]; 
+
+  // cellInShadow is a shader that calculates the percentage
+  // visible by the light source per nz slice.
+  GLSLObject * cellInShadowShader;
 };
 
 #endif 
