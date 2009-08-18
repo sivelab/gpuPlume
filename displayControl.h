@@ -23,6 +23,7 @@ class DisplayControl{
  public:
   
   DisplayControl(int, int, int, GLenum,float,float,float);
+  ~DisplayControl();
 
   void drawVisuals(GLuint, GLuint, GLuint, int, int, int, GLuint postexid, GLuint veltexid);
   void drawAxes();
@@ -74,7 +75,8 @@ class DisplayControl{
 
   // The following is for displaying the
   // cell shadow data.
-  GLfloat inShadowData[30][30][30][4];
+  // GLfloat inShadowData[30][30][30][4];
+  GLfloat * inShadowData;
   void drawInShadowData();
   float sun_pos[3];
   bool drawISD;

@@ -698,7 +698,7 @@ int MultipleBuildingsModel::display(){
       // done every frame (large waste).
       if(reCalcShadows) {
 	generateShadowMap();
-	for(int i = 0; i < 30; i++) {
+	for(int i = 0; i < util->nz; i++) {
 	  genGridShadow(i);
 	}
       reCalcShadows = false;
@@ -1430,7 +1430,7 @@ void MultipleBuildingsModel::genGridShadow(int i) {
   //   data[i] = 5.0f;
   // }
   
-  GLfloat data[util->nx][util->ny][4];
+  // GLfloat data[util->nx][util->ny][4];
 
   /*
   for(int x = 0; x < util->nx; x++) {
@@ -1444,7 +1444,7 @@ void MultipleBuildingsModel::genGridShadow(int i) {
   */
 
   // To use frame buffer specificy read buffer as color attachment 0.
-  glReadPixels(0, 0, util->nx, util->ny, GL_RGBA, GL_FLOAT, &(dc->inShadowData[i]));
+  glReadPixels(0, 0, util->nx, util->ny, GL_RGBA, GL_FLOAT, &(dc->inShadowData[i*util->ny*util->nx*4]));
 
   /*
   for(int x = 0; x < util->nx; x++) {
