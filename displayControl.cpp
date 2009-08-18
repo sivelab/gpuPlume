@@ -3,6 +3,7 @@
 #include <cstring>
 #include <math.h>
 #include <assert.h>
+#include <new>
 #include "displayControl.h"
 #include "glErrorUtil.h"
 
@@ -153,9 +154,12 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx, float
   estimated_rate = 0.0;
 
   perform_cpu_sort = false;
-
-  drawISD = false;
   
+  // Set up for calculating and visualizing the percentage
+  // of shadow for each cell.
+  drawISD = false;
+  // inShadowData = new (std::nothrow) GLfloat [nz * nx *ny * 4];
+  inShadowData = (GLfloat *)malloc(sizeof(GLfloat)*nx*ny*nz*4);
   inShadowData = new GLfloat[nz * nx * ny * 4];
 }
 
@@ -205,7 +209,7 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer, GLuint texid3, GLuint col
   if(drawISD) {
     drawInShadowData();
   }
-
+  
   // render the vertices in the VBO (the particle positions) as points in the domain
   
   if(color_buffer != 0) {
@@ -347,6 +351,10 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer, GLuint texid3, GLuint col
   // Timer_t displayEnd = dTimer->tic();      
   // std::cout << "DC Display Time: " << dTimer->deltau(displayStart, displayEnd) << " us." << std::endl;  
 
+  // Display wind data for testing  
+  // sprintf(text_buffer, "Wind: %f %f %f", windDir[0], windDir[1], windDir[2]);
+  // OpenGLText(5, 5, text_buffer);
+  
 }
 
 void DisplayControl::increaseVisualLayer()
@@ -1486,6 +1494,7 @@ void DisplayControl::createPointSpriteTextures()
 }
 
 void DisplayControl::drawInShadowData() {
+
   for(int i = 0; i < nz; i++) {
     for(int j = 0; j < nx; j++) {
       for(int k = 0; k < ny; k++) {

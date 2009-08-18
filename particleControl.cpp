@@ -128,6 +128,7 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
 
   multipleBuildings_shader.deactivate();
 }
+
 void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint positions0, 
 					      GLuint positions1, GLuint prime0, GLuint prime1, 
 					      GLuint randomValues,GLuint lambda, GLuint tau_dz, 
@@ -254,7 +255,7 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
   else
     glBindTexture(texType, prime1);
 
-
+  
   // wind field can be stored here
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(texType, windField);
@@ -287,6 +288,69 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
   if(outputPrime)
     printPrime(odd,false);
 
+}
+
+void ParticleControl::setupWindFieldLookupShader() {
+  windFieldLookup_shader.addShader("Shaders/windFieldLookup_vp.glsl", GLSLObject::VERTEX_SHADER);
+  windFieldLookup_shader.addShader("Shaders/windFieldLookup_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  windFieldLookup_shader.createProgram();
+  
+  // Get location of sampler uniforms
+  uniform_wfl_wind = windFieldLookup_shader.createUniform("wind_texunit");
+  uniform_wfl_pos = windFieldLookup_shader.createUniform("pos");
+  
+  GLint unxdx = windFieldLookup_shader.createUniform("nxdx");
+  GLint unydy = windFieldLookup_shader.createUniform("nydy");
+  GLint uNumInRow = windFieldLookup_shader.createUniform("numInRow");
+  
+  windFieldLookup_shader.activate();
+  
+  glUniform1iARB(unxdx, nxdx);
+  glUniform1iARB(unydy, nydy);
+  glUniform1iARB(uNumInRow, numInRow);
+  
+  windFieldLookup_shader.deactivate();
+  
+}
+
+void ParticleControl::lookupWindField(GLfloat pos[3], GLuint windField, GLfloat &wx, GLfloat &wy, GLfloat &wz) {
+  
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, 1, 1);
+  
+  glEnable(texType);
+  windFieldLookup_shader.activate();
+  
+  CheckErrorsGL("PC: lookupWindField() - activated lookup shader");
+  
+  // pass the position into the shader
+  glUniform3fARB(uniform_wfl_pos, pos[0], pos[1], pos[2]);
+  
+  // wind field can be stored here
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(texType, windField);
+  glUniform1iARB(uniform_wfl_wind, 0);
+
+  glBegin(GL_QUADS);
+  {
+    glVertex3f(-1, -1, -0.5f);
+    glVertex3f( 1, -1, -0.5f);
+    glVertex3f( 1,  1, -0.5f);
+    glVertex3f(-1,  1, -0.5f);
+  }
+  glEnd();
+  
+
+  windFieldLookup_shader.deactivate();
+
+  CheckErrorsGL("PC: lookupWindField() - shader advection completion");
+  
+  GLfloat tmp[4];
+  glReadPixels(0, 0, 1, 1, GL_RGBA, GL_FLOAT, &tmp);
+  
+  wx = tmp[0];
+  wy = tmp[1];
+  wz = tmp[2];
 }
 
 void ParticleControl::setupReflectionShader(float life_time){

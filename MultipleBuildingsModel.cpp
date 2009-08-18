@@ -255,6 +255,9 @@ void MultipleBuildingsModel::init(bool OSG){
   // Setup the shadowMap including the shadow map texutre and FBO.
   shadowMapSetup();
 
+  // Set up the wind field lookup shader.
+  pc->setupWindFieldLookupShader();
+
 }
 
 int MultipleBuildingsModel::display(){
@@ -704,6 +707,18 @@ int MultipleBuildingsModel::display(){
       reCalcShadows = false;
       }
       
+      // GLfloat windDir[3];
+      GLfloat pos[3];
+      
+      pos[0] = dc->eye_pos[0];
+      pos[1] = dc->eye_pos[1];
+      pos[2] = dc->eye_pos[2];
+            
+      // pc->lookupWindField(pos, windField, dc->windDir[0], dc->windDir[1], dc->windDir[2]);
+
+      // std::cout << windDir[0] << " " << windDir[1] << " " << windDir[2] << std::endl;
+      // int x;
+      // std::cin >> x;
 
       // clear the color and depth buffer before drawing the scene, and
       // set the viewport to the window dimensions

@@ -75,11 +75,13 @@ class DisplayControl{
 
   // The following is for displaying the
   // cell shadow data.
-  // GLfloat inShadowData[30][30][30][4];
   GLfloat * inShadowData;
   void drawInShadowData();
   float sun_pos[3];
   bool drawISD;
+
+  // The following is for visualizing the wind direction.
+  GLfloat windDir[3];
   
  private:
 

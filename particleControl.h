@@ -36,6 +36,10 @@ class ParticleControl{
  
   ParticleControl(GLenum,int,int,int,int,int,float,float,float, Util*);
 
+  void setupWindFieldLookupShader();
+
+  void lookupWindField(GLfloat pos[3], GLuint windField, GLfloat &wx, GLfloat &wy, GLfloat &wz);
+
   void setupAdvectShader(float);
 
   void setupPrimeShader(); //Included argument -- Balli(04/12/07)
@@ -230,7 +234,12 @@ class ParticleControl{
   GLSLObject init_shader, pass1_shader, prime_shader, mrt_shader;
   GLSLObject nonGaussian_shader, reflection_shader, meanVel_shader;
   GLSLObject currDir_shader, multipleBuildings_shader;
+  GLSLObject windFieldLookup_shader;
 
+  // Variables for wind field lookup shader
+  GLint uniform_wfl_wind;
+  GLint uniform_wfl_pos;
+  
   //Variables for prime shader
   GLint uniform_prime, uniform_windTex, uniform_random,uniform_pos;
   GLint uniform_dt,uniform_lambda;
