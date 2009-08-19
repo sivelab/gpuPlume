@@ -16,4 +16,4 @@ LIBRARY = libClientController.a
 #Set Program name (if one)
 PROGRAM =
 
-include $(ROOT)Make/Makefile.rules
+include $(ROOT)/Make/Makefile.rules
