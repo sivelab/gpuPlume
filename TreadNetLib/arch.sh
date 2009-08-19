@@ -51,7 +51,7 @@ case $machine in
         9000/*)
                 machine=hp
                 ;;
-        i[3456]86 | i86pc)
+        i[3456]86 | i86pc | x86_64)
                 machine=intel
                 ;;
         alpha)
