@@ -66,7 +66,7 @@ void GeomTest::init(bool OSG){
   pc->setBuildingParameters(util->numBuild,util->numSides,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti,util->gamma);
   pc->setQuicFilesPath(util->quicFilesPath);
 
-  dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
+  dc = new DisplayControl(nx,ny,nz, texType, inPauseMode, util);
   dc->initVars(util->numBuild,util->numSides,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti,util->gamma);
 
   if(util->numBuild == 0){

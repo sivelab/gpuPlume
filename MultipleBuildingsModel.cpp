@@ -89,7 +89,7 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   fp=fopen(str1.c_str(),"wb");
 
   // Set the default sun angle's
-  // I picked an angle that is valid for Summer in SLC in mid August around noon.
+  // I picked an angle that is for summer in SLC in mid August around noon.
   sun_azimuth = 162.0;
   sun_altitude = 63.0;
   
@@ -117,9 +117,10 @@ void MultipleBuildingsModel::init(bool OSG){
   pc->setBuildingParameters(util->numBuild,util->numSides,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti,util->gamma);
   pc->setQuicFilesPath(util->quicFilesPath);
 
-  dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
+  inPauseMode = util->pauseMode;
+  dc = new DisplayControl(nx, ny, nz, texType, inPauseMode, util);
   dc->initVars(util->numBuild,util->numSides,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti,util->gamma);
-
+  
   //??Don't remember why I wanted to do this
   //Send copy of particle emitter to displayControl
   //dc->setEmitter(pe[0]);
@@ -261,7 +262,7 @@ void MultipleBuildingsModel::init(bool OSG){
 }
 
 int MultipleBuildingsModel::display(){
-
+  
   // Timer_t displayStart = mbaTimer->tic();    
 
   if(osgPlume){
@@ -733,15 +734,21 @@ int MultipleBuildingsModel::display(){
 	glLoadIdentity();		
 	glMultMatrixf(mvm);
       }
-      else{
-	glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();	
-	glClearColor(util->bcolor[0],util->bcolor[1],util->bcolor[2],1.0);	
-      }		
+      
+      // Synchronized the data with the treadport system, if we are not
+      // running in treadport mode, then this function does nothing.
+      dc->syncTreadportData();
+      
+      // Synchronize the data over the network, if we don't have 
+      // networking enabled, this does nothing.
+      dc->syncDataOverNetwork();
+      
+      // Now that the values have been swapped over the network, we can
+      // set them here.
+      inPauseMode = dc->getInPauseMode();
+
+      // Initialize the view frustum.
+      dc->initializeView();
       
       // dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
 
@@ -1489,4 +1496,13 @@ void MultipleBuildingsModel::genGridShadow(int i) {
   
   // Cleanup
   glDeleteTextures(1, &cellsInShadow);
+}
+
+
+void MultipleBuildingsModel::swapPauseMode() {
+  // We set this in DisplayControl and not here so
+  // that the value is synchronized first before it
+  // is actually set here. This way we won't be out
+  // of sync with the other screens.
+  dc->setInPauseMode(!inPauseMode);
 }

@@ -44,6 +44,7 @@ class PlumeControl{
   virtual int display();
   virtual void setupTextures();
   virtual void setupEmitters();
+  virtual void swapPauseMode();
   virtual ~PlumeControl();
      
   float time_step; //time step used for the movement of particles

@@ -165,3 +165,8 @@ void PlumeControl::particleReuse()
 
 
 }
+
+
+void PlumeControl::swapPauseMode() {
+  inPauseMode = !inPauseMode;
+}

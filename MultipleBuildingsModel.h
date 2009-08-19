@@ -10,6 +10,7 @@ class MultipleBuildingsModel : public PlumeControl{
   MultipleBuildingsModel(Util*);
   virtual void init(bool);
   virtual int display();
+  virtual void swapPauseMode();
   virtual void setupTextures();
   //virtual void setupEmitters();
   

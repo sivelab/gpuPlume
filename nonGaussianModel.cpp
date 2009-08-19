@@ -69,7 +69,7 @@ void NonGaussianModel::init(bool OSG){
   pc = new ParticleControl(texType, twidth,theight,nx,ny,nz,util->dx,util->dy,util->dz, util);
   pc->setUstarAndSigmas(util->ustar);
 
-  dc = new DisplayControl(nx,ny,nz, texType, util->dx,util->dy,util->dz);  
+  dc = new DisplayControl(nx,ny,nz, texType, inPauseMode, util);
   dc->initVars(util->numBuild,util->numSides,util->xfo,util->yfo,util->zfo,util->ht,util->wti,util->lti,util->gamma);
   dc->draw_buildings = false;
 

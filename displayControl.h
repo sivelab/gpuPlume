@@ -15,6 +15,23 @@
 #include "particleEmitter.h"
 #include "VisualPlane.h"
 #include "framebufferObject.h"
+#include "NetworkManager.h"
+#include "TreadportManager.h"
+#include "util.h"
+
+// BEGIN FOR TREADPORT
+#include "graphicsUtil.h"
+#include <vector>
+
+struct screen_t {
+  float asp_ratio;
+  std::vector<float> lr, ll, ul, ur; // lowerRight, lowerLeft, upperLeft, upperRight == screen edges.
+  std::vector<float> normal, center;
+  std::vector<float> far1, far2, far3, far4;
+  std::vector<float> proj;
+  float phi;
+};
+// END FOR TREADPORT
 
 enum tau_visual_type{draw_contours,draw_layers};
 
@@ -22,9 +39,10 @@ class DisplayControl{
 
  public:
   
-  DisplayControl(int, int, int, GLenum,float,float,float);
+  DisplayControl(int, int, int, GLenum, bool, Util *);
   ~DisplayControl();
 
+  void initTreadport();
   void drawVisuals(GLuint, GLuint, GLuint, int, int, int, GLuint postexid, GLuint veltexid);
   void drawAxes();
   void drawGrid();
@@ -67,12 +85,78 @@ class DisplayControl{
   int visual_layer;
   float eye_pos[3];
   float eye_gaze[3];
-  
+  float eye_offset[3];
+
   tau_visual_type tau_visual;
 
   // sorting preference
   bool perform_cpu_sort;
+  
+  /**
+   * ViewingMode is the enum which describes the viewing state that Display
+   * Control runs in. Note that some extra behavior is turned on when
+   * different modes are enabled. For example, when TREADPORT is enabled
+   * then information is communicated with the treadport system, otherwise
+   * no communication occurs.
+   */
+  enum ViewingMode {
+    STANDARD = 0,
+    VR = 1,
+    TREADPORT = 2
+  };
 
+  /**
+   * initializeView creates the correct view based on the viewing mode that has
+   * been specified (by viewingMode, and thus the in the config file). Note that
+   * if we are using OpenSceneGraph this method does nothing.
+   */
+  void initializeView();
+
+  /**
+   * This method unitializes the view, which is needed because their a two
+   * "views" for the treadport.
+   */
+  void deinitializeView();
+
+  /**
+   * syncTreadportData will syncs the data with the treadport system. Note that
+   * this function will preform it's action only when the application is the
+   * set to broadcast and the treadport view mode is enabled. IMPORTANT: This
+   * sync should be done BEFORE the call to syncDataOverNetwork so that the
+   * latest data reaches all of the computers.
+   */
+  void syncTreadportData();
+
+  /**
+   * syncDataOverNetwork will use the NetworkManager to sync the data contained
+   * in the NetworkSyncData struct over the network (see the details of the
+   * function as to what data is synced).
+   */
+  void syncDataOverNetwork();
+
+  /**
+   * getInPauseMode will retrieve the inPauseMode that has been stored within
+   * DisplayControl. The value is stored here so that it can be syncronized
+   * over the network to the other screens/eyes. Note that this value should
+   * always be syncrhonized with the inPauseMode within which ever of
+   * PlumeControl's sublcasses is being used (i.e. MultipleBuildingsModel).
+   */
+  bool getInPauseMode();
+  
+  /**
+   * setInPauseMode will set the inPauseMode that has been stored within
+   * DisplayControl. The value is set here so that it can be syncrhonized
+   * over the network to the other screens/eyes. Note that this value should
+   * always be syncrhonized with the inPauseMode within which ever of
+   * PlumeControl's sublcasses is being used (i.e. MultipleBuildingsModel).
+   *
+   * @param newInPauseMode is a bool representing the a new inInPauseMode
+   * variable to set set in DisplayControl and synchronized to the other
+   * computers (if the correct network mode has been set).
+   *
+   */
+  void setInPauseMode(bool newInPauseMode);
+  
   // The following is for displaying the
   // cell shadow data.
   GLfloat * inShadowData;
@@ -84,7 +168,35 @@ class DisplayControl{
   GLfloat windDir[3];
   
  private:
+  
+  /**
+   * network is the NetworkManager object that is used to synchronize data over
+   * the local network to the other screens (or rather the other computers that
+   * generate the image for the other screens).
+   */
+  NetworkManager network;
 
+  /**
+   * treadport is the TreadportManager object that is responsible for communicating
+   * with the treadport system.
+   */
+  TreadportManager * treadport;
+
+  /**
+   * static_treadport_frustum is a flag that determines of a static or dynamic view
+   * frustum should be used when we are in TREADPORT mode. This value should be set
+   * within the Settings/input.txt file (or config file that has been passed in to
+   * gpuPlume).
+   */
+  bool static_treadport_frustum;
+
+  /**
+   * inPauseMode is a duplicate of the inPauseMode flag which is set within
+   * PlumeControl. This is done so that the value can be synchronized over 
+   * the network when we are running more than one screen.
+   */
+  bool inPauseMode;
+  
   void createImageTex(GLuint, char*);
   GLubyte* readPPM(char*, int*, int*);
 
@@ -166,7 +278,45 @@ class DisplayControl{
 
   // * function to create point sprite textures
   void createPointSpriteTextures();
-
-	void DrawSkyBox(float x, float y, float z,  float width, float height, float length);
-
+  
+  void DrawSkyBox(float x, float y, float z,  float width, float height, float length);  
+  
+  /**
+   * util is stored so that DisplayControl can access settings that are
+   * retrieved from the config file that is read-in upon program start.
+   */
+  Util * util;
+  
+  /**
+   * viewingMode is an enum which describes which viewing mode Display Control
+   * will run in. Note that the default should be STANDARD or what has been
+   * set within the input.txt config file.
+   */
+  ViewingMode viewingMode;
+  
+  /**
+   * This is the mode in which the local communication will operate. The choices
+   * are set in the config file (Settings/input.txt or passed in config file).
+   */
+  NetworkManager::Mode network_mode;
+    
+  // For treadport configuration.
+  screen_t screen;
+  std::vector<float> eye;
+  
+  /**
+   * calcTreadportFrustum calculates and sets the frustum and opengl lookat in
+   * order to set the view correctly for the treadport configuation.
+   *
+   * @param view is a charecter representing which screen the view should be
+   * calculated for (either, l = left, c = center, or r = right).
+   */
+  void calcTreadportFrustum(char view);
+  
+  /**
+   * blankSlides will black out the correct portion of the screen
+   * when the treadport is in use.
+   */
+  void blankSides();
+  
 };

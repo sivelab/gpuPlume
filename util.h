@@ -121,6 +121,19 @@ class Util{
   void volumeBox(); //calc Volume of the collecting boxes Balli
   float volume; //volume of the box
 
+  // The mode for the NetworkManager
+  int network_mode;
+
+  // The viewing mode for DisplayControl
+  int viewing_mode;
+
+  // The view that hsould be used when viewing_mode is set to TREADPORT
+  char treadport_view;
+
+  // Value representing wether to use a static or dynamic frustum with the
+  // treadport.
+  int static_treadport_frustum;
+
  private:
 
   void parseLine(char*);

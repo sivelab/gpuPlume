@@ -31,6 +31,14 @@ Util::Util(){
   bounds = new float[6];
   output_id = "";
   reuse_particles = false;
+  
+  // Set some default values so that if they don't 
+  // appear in the configuation file the correct
+  // defaults are used.
+  network_mode = -1;
+  viewing_mode = 0;
+  treadport_view = 'c';
+  static_treadport_frustum = 1;
 }
 
 bool Util::isPathAbsolute(const std::string &filename)
@@ -506,6 +514,18 @@ void Util::parseLine(char* line){
   }
   if(read1Float(line, "contour_regions", &f1)){
     num_contour_regions = (int)f1;
+  }
+  if(read1Float(line, "network_mode", &f1)) {
+    network_mode = int(f1);
+  }
+  if(read1Float(line, "viewing_mode", &f1)) {
+    viewing_mode = (int)f1;
+  }
+  if(read1String(line, "treadport_view", &s1)) {
+    treadport_view = s1.c_str()[0];
+  }
+  if(read1Float(line, "static_treadport_frustum", &f1)) {
+    static_treadport_frustum = (int)f1;
   }
 }
 

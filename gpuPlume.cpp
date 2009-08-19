@@ -486,7 +486,7 @@ void keyboard_cb(unsigned char key, int x, int y)
     }
   else if(key == 'z')
     {
-      plume->inPauseMode = !plume->inPauseMode;
+      plume->swapPauseMode();
     }
   else if(key == 'w')
     {

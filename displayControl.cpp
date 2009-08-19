@@ -39,8 +39,34 @@ static int cmpVertices(const void *p1, const void *p2)
 }
 
 
-DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx, float dy, float dz)
+DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPauseMode, Util * newUtil)
 {
+  
+  inPauseMode = initialPauseMode;
+  
+  util = newUtil;
+
+  float dx = util->dx;
+  float dy = util->dy;
+  float dz = util->dz;
+  
+  network_mode = (NetworkManager::Mode)util->network_mode;
+  viewingMode = (ViewingMode)util->viewing_mode;
+  
+  if(util->static_treadport_frustum == 1) {
+    static_treadport_frustum = true;
+  } else {
+    static_treadport_frustum = false;
+  }
+  
+  if(viewingMode == STANDARD) {
+    std::cout << "Using STANDARD view (" << viewingMode << ")." << std::endl;
+  } else if(viewingMode == VR) {
+    std::cout << "Using VR view (" << viewingMode << ")." << std::endl;
+  } else if(viewingMode == TREADPORT) {
+    std::cout << "Using TREADPORT view (" << viewingMode << ")." << std::endl;
+  }
+  
   dTimer = new Timer(true);
 
   nx = x;
@@ -53,9 +79,18 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx, float
 
   texType = type;
 
-  eye_pos[0] = nx+50;
-  eye_pos[1] = 0;
-  eye_pos[2] = 5;
+  // Adjust the default height, if we are using a system (such as TPAWT)
+  // that adds in an actual measured height, then the default value
+  // should be 0.
+  if(viewingMode == TREADPORT) {
+    eye_pos[0] = 10;
+    eye_pos[1] = 0;
+    eye_pos[2] = 0;
+  } else {
+    eye_pos[0] = nx+50;  
+    eye_pos[1] = 0;
+    eye_pos[2] = 5;
+  }
   
   eye_gaze[0] = -1.0;
   eye_gaze[1] = 0;
@@ -71,6 +106,12 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx, float
   eye_gaze[1] = 1.0;
   eye_gaze[2] = 0.0;
 #endif
+
+  // Set up the default eye (for the treadport system)
+  eye.resize(3);
+  eye[0] = 0;
+  eye[1] = 0;
+  eye[2] = 1.2;
 
   //New calculations for moving and looking around
   yaw = 0.0;
@@ -155,18 +196,64 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, float dx, float
 
   perform_cpu_sort = false;
   
+  // Set and initialize the NetworkManager.
+  network.setMode((NetworkManager::Mode)network_mode);
+  network.init();
+  
   // Set up for calculating and visualizing the percentage
   // of shadow for each cell.
   drawISD = false;
-  // inShadowData = new (std::nothrow) GLfloat [nz * nx *ny * 4];
-  inShadowData = (GLfloat *)malloc(sizeof(GLfloat)*nx*ny*nz*4);
   inShadowData = new GLfloat[nz * nx * ny * 4];
 }
 
-DisplayControl::~DisplayControl() {
+void DisplayControl::initTreadport() {
 
+  // Check to make sure that we are in the right modes, currently
+  // only the computer that is set to broadcast will communicate
+  // with the treadport system.
+  if(viewingMode == TREADPORT & network_mode == network.BROADCAST) {
+
+    // Create the treadport object, this is done dynamically because
+    // we attempt to connect to the treadport within the constructor
+    // of TreadportManager.
+    treadport = new TreadportManager();
+
+    //
+    // Set the initial values.
+    //
+    // Note that currently, their is no conversion nessisary to go
+    // from the gpuPlume coordinate system to the treadport coordinate
+    // system. However, if that were needed to be done it could be done
+    // either here (and when we get the values back) OR it could be done
+    // within the TreadportManager it self.
+    
+    std::vector<float> init_pos;
+    init_pos.resize(3);
+    init_pos[0] = eye_pos[0];
+    init_pos[1] = eye_pos[1];
+    init_pos[2] = eye_pos[2];
+    
+    std::vector<float> init_gaze;
+    init_gaze.resize(3);
+    init_gaze[0] = eye_gaze[0];
+    init_gaze[1] = eye_gaze[1];
+    init_gaze[2] = eye_gaze[2];
+
+    std::vector<float> init_up;
+    init_up.resize(3);
+    init_up[0] = 0.0;
+    init_up[1] = 0.0;
+    init_up[2] = 1.0;
+
+    // Call the initialization function within TreadportManager
+    // to set up the initial values with the treadport system.
+    treadport->init(init_pos, init_gaze, init_up);
+  }
+}
+
+DisplayControl::~DisplayControl() {
   delete [] inShadowData;
-  
+  delete treadport;
 }
 
 void DisplayControl::setEmitter(ParticleEmitter* p)
@@ -184,17 +271,6 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer, GLuint texid3, GLuint col
 {
 
   // Timer_t displayStart = dTimer->tic();    
-
-  if(!osgPlume)
-  {
-    gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
-	       eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], 
-	       eye_gaze[2]+eye_pos[2], 0, 0, 1 );
-    
-    // allow rotation of this object
-    // glRotatef(elevation, 0,1,0);
-    // glRotatef(azimuth, 0,0,1);  
-  }
   
   DrawSkyBox(eye_pos[0], eye_pos[1], eye_pos[2], 50.0, 50.0, 50.0);
   
@@ -1491,6 +1567,653 @@ void DisplayControl::createPointSpriteTextures()
   glDisable(GL_TEXTURE_2D);
 
   delete [] data;
+}
+
+
+void DisplayControl::syncTreadportData() {
+
+  // Note, we need to sync the treadport information before
+  // we can sync it to the other computers.
+
+  // We should only sync if we are in the treadport viewing mode
+  // and this is the broadcasting computer.
+
+  if(viewingMode == TREADPORT & network_mode == network.BROADCAST) {
+    
+    // Sync data.
+    treadport->sync();
+    
+    // Set the retrieved values. Note, if a conversion matrix is
+    // needed to switch coordinate systems from the treadport
+    // coordinate system to the application coordinate system
+    // this is where that could be done (or within the 
+    // TreadportManager it self).
+
+    std::vector<float> new_eye_pos = treadport->getEyePosition();
+    std::vector<float> new_eye_gaze = treadport->getEyeGaze();
+    std::vector<float> new_eye = treadport->getEyeOffset();
+
+    eye_pos[0] = new_eye_pos[0];
+    eye_pos[1] = new_eye_pos[1];
+    eye_pos[2] = new_eye_pos[2];
+
+    eye_gaze[0] = new_eye_gaze[0];
+    eye_gaze[1] = new_eye_gaze[1];
+    eye_gaze[2] = new_eye_gaze[2];
+
+    eye[0] = new_eye[0];
+    eye[1] = new_eye[1];
+    eye[2] = new_eye[2];
+
+  }
+
+}
+
+void DisplayControl::syncDataOverNetwork() {
+
+   NetworkManager::NetworkSyncData data;
+
+   memcpy(data.eye_pos, eye_pos, sizeof(float) * 3);
+   memcpy(data.eye_gaze, eye_gaze, sizeof(float) * 3);
+
+   float tmp[3];
+   tmp[0] = eye[0];
+   tmp[1] = eye[1];
+   tmp[2] = eye[2];
+
+   memcpy(data.eye_offset, tmp, sizeof(float) * 3);
+
+   memcpy(&data.inPauseMode, &inPauseMode, sizeof(bool));
+
+   // The following data has not yet been implemented in this version of gpuPlume
+   // and thus will not be synced.
+
+   // memcpy(data.eye_up, eye_up, sizeof(float) * 3);
+   // memcpy(&data.wim_scale, &wim_scale_factor, sizeof(float));
+   // memcpy(&data.gesture_id, &gesture_id, sizeof(int));
+   // memcpy(data.hand_pos, current_hand_pos, sizeof(float) * 3);
+   // memcpy(data.hand_up, current_hand_up, sizeof(float) * 3);
+
+   network.sync(data);
+
+   memcpy(eye_pos, data.eye_pos, sizeof(float) * 3);
+   memcpy(eye_gaze, data.eye_gaze, sizeof(float) * 3);
+   memcpy(tmp, data.eye_offset, sizeof(float) * 3);
+   memcpy(&inPauseMode, &data.inPauseMode, sizeof(bool));
+
+   eye[0] = tmp[0];
+   eye[1] = tmp[1];
+   eye[2] = tmp[2];
+
+   // The following data has not yet been implemented in this version of gpuPlume
+   // and thus will not be synced.
+
+   // memcpy(eye_up, data.eye_up, sizeof(float) * 3);
+   // memcpy(&wim_scale_factor, &data.wim_scale, sizeof(float));
+   // memcpy(&gesture_id, &data.gesture_id, sizeof(int));
+   // memcpy(current_hand_pos, data.hand_pos, sizeof(float) * 3);
+   // memcpy(current_hand_up, data.hand_up, sizeof(float) * 3);
+   // memcpy(data.hand_matrix, hand_matrix, sizeof(float) * 16);
+}
+
+void DisplayControl::initializeView() {
+
+  if(osgPlume) {
+    // Don't do anything.
+    return;
+  }
+
+  // Set up the viewing frustum according to what view mode is set.
+  if(viewingMode == STANDARD) {
+
+    // Modify the view frustum. Note that the legacy code for OpenScene Graph is
+    // in which ever model you are running (i.e. MultipleBuildingsModel).
+    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
+      gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
+                 eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], eye_gaze[2]+eye_pos[2],
+                 0, 0, 1 );
+  } else if(viewingMode == VR) {
+    // TODO: Handle the left and right eye; at the moment we are just doing
+    // the same as standard.
+
+    // Modify the view frustum. Note that the legacy code for OpenScene Graph is
+    // in which ever model you are running (i.e. MultipleBuildingsModel).
+    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
+      gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
+                 eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], eye_gaze[2]+eye_pos[2],
+                 0, 0, 1 );
+  } else if(viewingMode == TREADPORT) {
+
+    // Initialize 1st treadport view
+    calcTreadportFrustum(util->treadport_view);
+
+    // Now push so we can initialize the gpuPlume view
+    glPushMatrix();
+    // glLoadIdentity();
+    // glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+    // glRotatef(180.0f, 0.0f, 0.0f, 0.0f);
+  }
+
+}
+
+void DisplayControl::deinitializeView() {
+  if(viewingMode == TREADPORT) {
+    glPopMatrix();
+  }
+}
+
+void DisplayControl::calcTreadportFrustum(char view) {
+
+  // TODO: Change to use frustum call parameters from frustumCalc app w/ 't'
+  //       option.
+
+  // Parameters for use with original treadport setup.
+  float W = 3.048; // 10ft wide "effective" screens
+  float H = W/2.0;  // half of effective screen width
+  float trueH = (W - 0.6096) / 2.0;  // get back to half of an 8 foot screen - the true width
+  float f = 0.0; // no f in this equation
+  float theta = 30.0 * M_PI/180.0;  // convert 30.0 degrees to radians
+  float overscan = (1.0 - 2.4384/W) / 2.0;
+  float screen_height = 2.4384; // 8.0ft
+  float offset_from_bottom = 0.0 * 0.0254; // inches converted to meters
+  float zbot = offset_from_bottom;
+  float ztop = offset_from_bottom + screen_height; // relative height of screen top (to feet) not including frame
+  float D;
+  float a, b, c;
+  a = trueH * cos(theta);
+  c = trueH * sin(theta);
+  b = (trueH + c) * tan(theta);
+  D = a + b;
+
+  Vector4 coord, transformed( 1.0, 1.0, 1.0, 1.0 );
+
+  Matrix4x4 rotation;
+  rotation.set2Identity();
+
+  float lrll[3], lrur[3], lrll_mag, lrur_mag;
+
+  screen.lr.resize(3);
+  screen.ll.resize(3);
+  screen.ul.resize(3);
+  screen.ur.resize(3);
+
+  // Set the initial position of the eye if we are using a static frusstum.
+  // This is currently disabled because it is set when we sync
+  // the data from the treadport.
+  if(static_treadport_frustum) {
+    eye[0] = 0.0;
+    eye[1] = 0.0;
+    eye[2] = screen_height / 2.0;
+  }
+  
+  if(view == 'l') { // left screen.
+
+    //
+    // Left Screen
+    //
+
+    rotation.setRotationAboutZ( 60.0 * M_PI / 180.0 ); // 60.0 degrees in radians
+
+    // transform ll
+
+    coord.set( -H + f, D, zbot, 1.0 );
+    transformed =  rotation * coord;
+    screen.ll[0] = transformed[0];       screen.ll[1] = transformed[1];     screen.ll[2] = transformed[2];
+
+    coord.set( -H + f, D, ztop, 1.0 );
+    transformed =  rotation * coord;
+    screen.ul[0] = transformed[0];       screen.ul[1] = transformed[1];     screen.ul[2] = transformed[2];
+
+    coord.set( H - f, D, zbot, 1.0 );
+    transformed =  rotation * coord;
+    screen.lr[0] = transformed[0];       screen.lr[1] = transformed[1];     screen.lr[2] = transformed[2];
+
+    coord.set( H - f, D, ztop, 1.0 );
+    transformed =  rotation * coord;
+    screen.ur[0] = transformed[0];       screen.ur[1] = transformed[1];     screen.ur[2] = transformed[2];
+
+    screen.phi = theta - (90.0 * M_PI/180.0);
+
+    screen.far1.resize(3);
+    screen.far2.resize(3);
+    screen.far3.resize(3);
+    screen.far4.resize(3);
+    screen.proj.resize(3);
+    screen.normal.resize(3);
+
+    lrll[0] = screen.ll[0] - screen.lr[0];
+    lrll[1] = screen.ll[1] - screen.lr[1];
+    lrll[2] = screen.ll[2] - screen.lr[2];
+    lrll_mag = sqrt( lrll[0]*lrll[0] + lrll[1]*lrll[1] + lrll[2]*lrll[2] );
+    lrll[0] /= lrll_mag;
+    lrll[1] /= lrll_mag;
+    lrll[2] /= lrll_mag;
+
+    lrur[0] = screen.ur[0] - screen.lr[0];
+    lrur[1] = screen.ur[1] - screen.lr[1];
+    lrur[2] = screen.ur[2] - screen.lr[2];
+    lrur_mag = sqrt( lrur[0]*lrur[0] + lrur[1]*lrur[1] + lrur[2]*lrur[2] );
+    lrur[0] /= lrur_mag;
+    lrur[1] /= lrur_mag;
+    lrur[2] /= lrur_mag;
+
+    screen.asp_ratio = lrur_mag / lrll_mag;
+
+    screen.normal[0] = lrur[1] * lrll[2] - lrur[2] * lrll[1];
+    screen.normal[1] = lrur[2] * lrll[0] - lrur[0] * lrll[2];
+    screen.normal[2] = lrur[0] * lrll[1] - lrur[1] * lrll[0];
+
+    screen.center.resize(3);
+    screen.center[0] = (screen.lr[0] + screen.ll[0] + screen.ul[0] + screen.ur[0]) / 4.0;
+    screen.center[1] = (screen.lr[1] + screen.ll[1] + screen.ul[1] + screen.ur[1]) / 4.0;
+    screen.center[2] = (screen.lr[2] + screen.ll[2] + screen.ul[2] + screen.ur[2]) / 4.0;
+
+    /*
+    cout << "Left Screen Config:" << endl;
+    cout << "\tll=[" << screen.ll[0] << ", " << screen.ll[1] << ", " << screen.ll[2] << "]" << endl;
+    cout << "\tul=[" << screen.ul[0] << ", " << screen.ul[1] << ", " << screen.ul[2] << "]" << endl;
+    cout << "\tlr=[" << screen.lr[0] << ", " << screen.lr[1] << ", " << screen.lr[2] << "]" << endl;
+    cout << "\tur=[" << screen.ur[0] << ", " << screen.ur[1] << ", " << screen.ur[2] << "]" << endl;
+    cout << "\tnormal=" << screen.normal[0] << ", " << screen.normal[1] << ", " << screen.normal[2] << endl;
+    */
+
+  } else if(view == 'c') { // center screen.
+
+    //
+    // Center Screen
+    //
+    screen.ll[0] = -H + f;       screen.ll[1] = D;     screen.ll[2] = zbot;
+    screen.ul[0] = -H + f;       screen.ul[1] = D;     screen.ul[2] = ztop;
+    screen.lr[0] = H - f;        screen.lr[1] = D;     screen.lr[2] = zbot;
+    screen.ur[0] = H - f;        screen.ur[1] = D;     screen.ur[2] = ztop;
+
+    screen.phi = 0.0; // was 0.0
+
+    screen.far1.resize(3);
+    screen.far2.resize(3);
+    screen.far3.resize(3);
+    screen.far4.resize(3);
+    screen.proj.resize(3);
+    screen.normal.resize(3);
+
+    lrll[0] = screen.ll[0] - screen.lr[0];
+    lrll[1] = screen.ll[1] - screen.lr[1];
+    lrll[2] = screen.ll[2] - screen.lr[2];
+    lrll_mag = sqrt( lrll[0]*lrll[0] + lrll[1]*lrll[1] + lrll[2]*lrll[2] );
+    lrll[0] /= lrll_mag;
+    lrll[1] /= lrll_mag;
+    lrll[2] /= lrll_mag;
+
+    lrur[0] = screen.ur[0] - screen.lr[0];
+    lrur[1] = screen.ur[1] - screen.lr[1];
+    lrur[2] = screen.ur[2] - screen.lr[2];
+    lrur_mag = sqrt( lrur[0]*lrur[0] + lrur[1]*lrur[1] + lrur[2]*lrur[2] );
+    lrur[0] /= lrur_mag;
+    lrur[1] /= lrur_mag;
+    lrur[2] /= lrur_mag;
+
+    screen.asp_ratio = lrur_mag / lrll_mag;
+
+    screen.normal[0] = lrur[1] * lrll[2] - lrur[2] * lrll[1];
+    screen.normal[1] = lrur[2] * lrll[0] - lrur[0] * lrll[2];
+    screen.normal[2] = lrur[0] * lrll[1] - lrur[1] * lrll[0];
+
+    screen.center.resize(3);
+    screen.center[0] = (screen.lr[0] + screen.ll[0] + screen.ul[0] + screen.ur[0]) / 4.0;
+    screen.center[1] = (screen.lr[1] + screen.ll[1] + screen.ul[1] + screen.ur[1]) / 4.0;
+    screen.center[2] = (screen.lr[2] + screen.ll[2] + screen.ul[2] + screen.ur[2]) / 4.0;
+
+    /*
+    cout << "Center Screen Config:" << endl;
+    cout << "\tll=[" << screen.ll[0] << ", " << screen.ll[1] << ", " << screen.ll[2] << "]" << endl;
+    cout << "\tul=[" << screen.ul[0] << ", " << screen.ul[1] << ", " << screen.ul[2] << "]" << endl;
+    cout << "\tlr=[" << screen.lr[0] << ", " << screen.lr[1] << ", " << screen.lr[2] << "]" << endl;
+    cout << "\tur=[" << screen.ur[0] << ", " << screen.ur[1] << ", " << screen.ur[2] << "]" << endl;
+    cout << "\tnormal=" << screen.normal[0] << ", " << screen.normal[1] << ", " << screen.normal[2] << endl;
+    */
+
+  } else if(view == 'r') { // right screen.
+
+    //
+    // Right Screen
+    //
+    rotation.setRotationAboutZ( -60.0 * M_PI / 180.0 );
+
+    // transform ll
+
+    coord.set( -H + f, D, zbot, 1.0 );
+    transformed =  rotation * coord;
+    screen.ll[0] = transformed[0];       screen.ll[1] = transformed[1];     screen.ll[2] = transformed[2];
+
+    coord.set( -H + f, D, ztop, 1.0 );
+    transformed =  rotation * coord;
+    screen.ul[0] = transformed[0];       screen.ul[1] = transformed[1];     screen.ul[2] = transformed[2];
+
+    coord.set( H - f, D, zbot, 1.0 );
+    transformed =  rotation * coord;
+    screen.lr[0] = transformed[0];       screen.lr[1] = transformed[1];     screen.lr[2] = transformed[2];
+
+    coord.set( H - f, D, ztop, 1.0 );
+    transformed =  rotation * coord;
+    screen.ur[0] = transformed[0];       screen.ur[1] = transformed[1];     screen.ur[2] = transformed[2];
+
+    screen.phi = (90.0 * M_PI/180.0) - theta;
+
+    screen.far1.resize(3);
+    screen.far2.resize(3);
+    screen.far3.resize(3);
+    screen.far4.resize(3);
+    screen.proj.resize(3);
+    screen.normal.resize(3);
+
+    float lrll[3], lrur[3], lrll_mag, lrur_mag;
+    lrll[0] = screen.ll[0] - screen.lr[0];
+    lrll[1] = screen.ll[1] - screen.lr[1];
+    lrll[2] = screen.ll[2] - screen.lr[2];
+    lrll_mag = sqrt( lrll[0]*lrll[0] + lrll[1]*lrll[1] + lrll[2]*lrll[2] );
+    lrll[0] /= lrll_mag;
+    lrll[1] /= lrll_mag;
+    lrll[2] /= lrll_mag;
+
+    lrur[0] = screen.ur[0] - screen.lr[0];
+    lrur[1] = screen.ur[1] - screen.lr[1];
+    lrur[2] = screen.ur[2] - screen.lr[2];
+    lrur_mag = sqrt( lrur[0]*lrur[0] + lrur[1]*lrur[1] + lrur[2]*lrur[2] );
+    lrur[0] /= lrur_mag;
+    lrur[1] /= lrur_mag;
+    lrur[2] /= lrur_mag;
+
+    screen.asp_ratio = lrur_mag / lrll_mag;
+
+    screen.normal[0] = lrur[1] * lrll[2] - lrur[2] * lrll[1];
+    screen.normal[1] = lrur[2] * lrll[0] - lrur[0] * lrll[2];
+    screen.normal[2] = lrur[0] * lrll[1] - lrur[1] * lrll[0];
+
+    screen.center.resize(3);
+    screen.center[0] = (screen.lr[0] + screen.ll[0] + screen.ul[0] + screen.ur[0]) / 4.0;
+    screen.center[1] = (screen.lr[1] + screen.ll[1] + screen.ul[1] + screen.ur[1]) / 4.0;
+    screen.center[2] = (screen.lr[2] + screen.ll[2] + screen.ul[2] + screen.ur[2]) / 4.0;
+
+    /*
+    cout << "Right Screen Config:" << endl;
+    cout << "\tll=[" << screen.ll[0] << ", " << screen.ll[1] << ", " << screen.ll[2] << "]" << endl;
+    cout << "\tul=[" << screen.ul[0] << ", " << screen.ul[1] << ", " << screen.ul[2] << "]" << endl;
+    cout << "\tlr=[" << screen.lr[0] << ", " << screen.lr[1] << ", " << screen.lr[2] << "]" << endl;
+    cout << "\tur=[" << screen.ur[0] << ", " << screen.ur[1] << ", " << screen.ur[2] << "]" << endl;
+    cout << "\tnormal=" << screen.normal[0] << ", " << screen.normal[1] << ", " << screen.normal[2] << endl;
+    */
+
+  }
+
+  GLfloat left, right, bottom, top, near, far;
+  std::vector<float> eyeproj;
+
+  Matrix4x4 translation;
+  Vector4 Cs, Ct;
+  rotation.set2Identity();
+  translation.set2Identity();
+
+  rotation.setRotationAboutZ(screen.phi);
+  translation.setTranslationV( Vector3( -eye[0], -eye[1], -eye[2] ) );
+
+  // transform ll
+  Cs =  rotation * translation * Vector4( screen.ll[0], screen.ll[1], screen.ll[2], 1.0 );
+  left = Cs[0];
+  bottom = Cs[2];
+
+  // tranform ur
+  Cs = rotation * translation * Vector4( screen.ur[0], screen.ur[1], screen.ur[2], 1.0 );
+  right = Cs[0];
+  top = Cs[2];
+  near = Cs[1];
+  far = near + 250.0; // was + 20.0
+
+  glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glFrustum(left, right, bottom, top, near, far);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
+
+  float dotprod;
+  float center_eye[3], tmll[3], pt[3], mag;
+
+  //
+  // Begin transforming the screens and the eye into the world space.
+  //
+  // Note, that when calculating the frustum, the x & y coordinates were swapped
+  // but z is still up. TODO: Fix this, so everything is in the same coordinate
+  // system.
+
+  // Adjust the screen center & normals so we are facing the right direction.
+  rotation.set2Identity();
+  rotation.setRotationAboutZ(M_PI); // 180 degrees.
+
+  Vector4 adjusted_screen_center = rotation * Vector4(screen.center[0], screen.center[1], screen.center[2], 1.0);;
+  Vector4 adjusted_screen_normal = rotation * Vector4(screen.normal[0], screen.normal[1], screen.normal[2], 1.0);;
+
+  screen.center[0] = adjusted_screen_center[0];
+  screen.center[1] = adjusted_screen_center[1];
+  screen.center[2] = adjusted_screen_center[2];
+
+  screen.normal[0] = adjusted_screen_normal[0];
+  screen.normal[1] = adjusted_screen_normal[1];
+  screen.normal[2] = adjusted_screen_normal[2];
+
+
+  // Transform the eye (on the treadport, or "local" space) into the gpuPlume
+  // world (or "global" or "world" space).
+  eye[0] += eye_pos[1]; // <-- --> (side to side)
+  eye[2] += eye_pos[2]; // ^ (UP)
+  eye[1] += eye_pos[0]; // (forward and backward)
+
+  // Transform center of screen.
+  screen.center[0] += eye_pos[1];
+  screen.center[2] += eye_pos[2];
+  screen.center[1] += eye_pos[0];
+
+  //
+  // Done transforming the screens and the eye into the world space.
+  //
+
+  //
+  // Begin calculate projection of eye point onto each screen plane
+  //
+
+  // this can be done by dotting the screen normal with the center_eye
+  // vector and then subtracting this distance along the normal vector
+  // from the eye point.
+
+  center_eye[0] = eye[0] - screen.center[0];
+  center_eye[1] = eye[1] - screen.center[1];
+  center_eye[2] = eye[2] - screen.center[2];
+
+  dotprod = screen.normal[0] * center_eye[0] +
+            screen.normal[1] * center_eye[1] +
+            screen.normal[2] * center_eye[2];
+
+  screen.proj[0] = eye[0] - screen.normal[0] * dotprod;
+  screen.proj[1] = eye[1] - screen.normal[1] * dotprod;
+  screen.proj[2] = eye[2] - screen.normal[2] * dotprod;
+
+  // Calculate the rotation matrix that needs to be applied to the screen
+  // projection to rotate the projection of the eye on the screen into the
+  // opengl "world" current gaze direction.
+
+  // First create and normalize the "starting" or "default" direction vector
+  // and the current "world" or "global" gaze direction vector.
+
+  Vector3 default_gaze = Vector3(0.0, 0.0, -1.0); // TODO: Remove hard coding (this is the default "gaze").
+  Vector3 world_gaze = Vector3(eye_gaze[1], eye_gaze[2], eye_gaze[0]);
+
+  // Now normalize.
+  default_gaze.normalize();
+  world_gaze.normalize();
+
+  // Then take the cross-product of those two vectors to get the axis on which
+  // we need to rotate on (this was Josh's "duh" moment, *sigh*). Since OBVIOUSLY
+  // you want to rotate along the axis that is orthogonal to the two vectors.
+  Vector3 rotation_axis = default_gaze.cross(world_gaze);
+
+  float rotationMag = rotation_axis.norm();
+
+  // Get the angle of rotation.
+  float angle_of_rotation = acosf(default_gaze.dot(world_gaze) / (default_gaze.norm() * world_gaze.norm()));
+
+  // Normalize.
+  rotation_axis.normalize();
+
+  float cos_theta = cos(angle_of_rotation);
+  float sin_theta = sin(angle_of_rotation);
+
+  float x = rotation_axis[0];
+  float y = rotation_axis[1];
+  float z = rotation_axis[2];
+
+  Matrix4x4 rotation_matrix = Matrix4x4(
+      (double)(cos_theta + ( 1 - cos_theta) * (x * x)), (double)((1 - cos_theta) * x * y - z * sin_theta), (double)((1 - cos_theta) * x * z + y * sin_theta), 0,
+      (double)((1 - cos_theta) * x * y + z * sin_theta), (double)(cos_theta + (1 - cos_theta) * (y * y)), (double)((1 - cos_theta) * y * z - x * sin_theta), 0,
+      (double)((1 - cos_theta) * x * z - y * sin_theta), (double)((1 - cos_theta) * y * z + x * sin_theta), (double)(cos_theta + (1 - cos_theta) * (z * z)), 0,
+      0, 0, 0, 1
+  );
+
+  // We are now in TREADPORT unit space.
+  Vector4 orig_point = Vector4(screen.proj[0] - eye[0], screen.proj[1] - eye[1], screen.proj[2] - eye[2], 1.0);
+  rotation.set2Identity();
+  rotation.setRotationAboutZ(screen.phi); // Note this isn't negative because we already rotated 180 degress (so we are backwards in treadport space).
+  Vector4 rotated_look_at = rotation * orig_point;
+
+  // We are now in NORMAL unit space.
+  Vector4 aligned_look_at = rotation_matrix * Vector4(rotated_look_at[0], rotated_look_at[2], rotated_look_at[1], 1.0);
+
+  Vector3 standard_up = Vector3(0.0, 1.0, 0.0); // Again this is hard coded, TODO: Fix the hard coded "default" up axis.
+
+  Vector4 aligned_axis_temp = rotation_matrix * Vector4(standard_up[0], standard_up[1], standard_up[2], 1.0);
+  Vector3 aligned_axis = Vector3(aligned_axis_temp[0], aligned_axis_temp[1], aligned_axis_temp[2]);
+  aligned_axis.normalize();
+
+  // cout << "Aligned Axis: " << aligned_axis[0] << " " << aligned_axis[1] << " " << aligned_axis[2] << "\n" << endl;
+
+  // Rotate the screen "back"
+
+  // Note, we are reusing values, so be careful...
+
+  cos_theta = cos(-screen.phi);// Note this is negative because we already rotated 180 degress (so we are backwards in treadport space).
+  sin_theta = sin(-screen.phi);
+
+  x = aligned_axis[0];
+  y = aligned_axis[1];
+  z = aligned_axis[2];
+
+  rotation_matrix = Matrix4x4(
+      (double)(cos_theta + ( 1 - cos_theta) * (x * x)), (double)((1 - cos_theta) * x * y - z * sin_theta), (double)((1 - cos_theta) * x * z + y * sin_theta), 0,
+      (double)((1 - cos_theta) * x * y + z * sin_theta), (double)(cos_theta + (1 - cos_theta) * (y * y)), (double)((1 - cos_theta) * y * z - x * sin_theta), 0,
+      (double)((1 - cos_theta) * x * z - y * sin_theta), (double)((1 - cos_theta) * y * z + x * sin_theta), (double)(cos_theta + (1 - cos_theta) * (z * z)), 0,
+      0, 0, 0, 1
+  );
+
+  Vector4 realigned_look_at = rotation_matrix * aligned_look_at;
+
+  // Done Rotating the screen "back"
+
+  // We are in TREADPORT unit space.
+
+  //
+  // Done calculating the projection of the eye point onto the screen frame.
+  //
+
+  // cout << "-----------------------------------------\n" << endl;
+
+
+  // This one works (rotation does not work but looking up and down does).
+  gluLookAt(eye[1], eye[0], eye[2],
+      realigned_look_at[2] + eye[1], realigned_look_at[0] + eye[0], realigned_look_at[1] + eye[2],
+      aligned_axis[2], aligned_axis[0], aligned_axis[1]);
+
+
+  /* This one also works (sides do not work)
+  gluLookAt(eye[1], eye[0], eye[2],
+      realigned_look_at[2] + eye[1], realigned_look_at[0] + eye[0], realigned_look_at[1] + eye[2],
+      0, 0, 1);
+  */
+
+  /* This one works (can not look around at all)
+  gluLookAt(eye[1], eye[0], eye[2],
+            screen.proj[1], screen.proj[0], screen.proj[2],
+            0, 0, 1);
+  */
+
+}
+
+void DisplayControl::blankSides()
+{
+  
+  int lines;
+  char* p;
+  GLint* vp = new GLint[4];
+  glGetIntegerv(GL_VIEWPORT,vp);
+
+  // glDisable(GL_LIGHTING);
+  glDisable(texType);
+  glDisable(GL_DEPTH_TEST);
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glOrtho(0, vp[2],
+    0, vp[3], -1, 1);
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  // glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT)
+
+  // Blank out left 10%
+  glColor3ub(0, 0, 0);
+  glBegin(GL_POLYGON);
+    glVertex2f(0, glutGet(GLUT_WINDOW_HEIGHT));
+    glVertex2f(glutGet(GLUT_WINDOW_WIDTH) * 0.10, glutGet(GLUT_WINDOW_HEIGHT));
+    glVertex2f(glutGet(GLUT_WINDOW_WIDTH) * 0.10, 0);
+    glVertex2f(0, 0);
+  glEnd();
+
+  // Blank out right 10%
+  glColor3ub(0, 0, 0);
+  glBegin(GL_POLYGON);
+    glVertex2f(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+    glVertex2f(glutGet(GLUT_WINDOW_WIDTH) - glutGet(GLUT_WINDOW_WIDTH) * 0.10, glutGet(GLUT_WINDOW_HEIGHT));
+    glVertex2f(glutGet(GLUT_WINDOW_WIDTH) - glutGet(GLUT_WINDOW_WIDTH) * 0.10, 0);
+    glVertex2f(glutGet(GLUT_WINDOW_WIDTH), 0);
+    glEnd();
+
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glEnable(GL_DEPTH_TEST);
+  glEnable(texType);
+  // glEnable(GL_LIGHTING);
+  
+}
+
+bool DisplayControl::getInPauseMode() {
+  return inPauseMode;
+}
+
+void DisplayControl::setInPauseMode(bool newInPauseMode) {
+  inPauseMode = newInPauseMode;
 }
 
 void DisplayControl::drawInShadowData() {
