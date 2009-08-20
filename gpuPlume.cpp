@@ -26,6 +26,8 @@
 #include "Timer.h"
 #include "glErrorUtil.h"
 
+#include "CmdOptionInterpreter.h"
+
 // Variables to hold timing array and record timings
 long timing_count = 0;
 bool compute_timings = false;
@@ -96,7 +98,7 @@ int main(int argc, char** argv)
   
 
   // Must supply an argument containing the .prof file to be read.
-  if (argc == 2)
+  if (argc >= 2)
     {
       std::cout << "Reading input from file: \"" << argv[1] << "\"" << std::endl;
       if (util->readInput(argv[1]) == false)
@@ -110,7 +112,11 @@ int main(int argc, char** argv)
       std::cerr << "Need to provide QUIC .proj file for opening. Exiting." << std::endl;
       exit(EXIT_FAILURE);
     }
-
+  
+  // Parse any command line options specifed.
+  CmdOptionInterpreter cmdOI = CmdOptionInterpreter(util);
+  cmdOI.parse(argc, argv);
+  
   //plume = new PlumeControl(util);
   //Options are:
   //  nonGaussianModel();
@@ -147,7 +153,7 @@ int main(int argc, char** argv)
   glutInit(&argc, argv);
 
   // A variable to allow us (eventually) to control full screen, hopefully, SLI rendering.
-  bool use_game_mode = false;
+  bool use_game_mode = util->fullscreen;
   if (use_game_mode) 
     {
       //glutGameModeString("1280x1024");

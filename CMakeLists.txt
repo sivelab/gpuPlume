@@ -26,6 +26,8 @@ set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 set(LIBS ${LIBS} ${GLUT_LIBRARIES})
 set(LIBS ${LIBS} ${GLEW_LIBRARY})
 
+# set(CMAKE_CXX_FLAGS "-g3 -Wall")
+
 if(APPLE)
     find_library(CARBON_LIBRARY Carbon)
     find_library(COCOA_LIBRARY Cocoa)
@@ -58,7 +60,7 @@ link_directories (${GPUPLUME_BINARY_DIR}/TreadNet/Controller)
 
 # Add executable called "gpuPlume" that is built from the source files 
 # The source files are placed in the list after the executable name. 
-add_executable (gpuPlume gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp  GeomTest.cpp PathLine.cpp Contour.cpp VisualPlane.cpp lineEmitter.cpp planeEmitter.cpp IsoSurface.cpp NetworkManager.cpp broadcaster.cpp receiver.cpp InetAddress.cpp TreadportManager.cpp graphicsUtil.cpp rgb.cpp) 
+add_executable (gpuPlume gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp  GeomTest.cpp PathLine.cpp Contour.cpp VisualPlane.cpp lineEmitter.cpp planeEmitter.cpp IsoSurface.cpp NetworkManager.cpp broadcaster.cpp receiver.cpp InetAddress.cpp TreadportManager.cpp graphicsUtil.cpp rgb.cpp CmdOptionInterpreter.cpp) 
 
 # Link the executable to the TreadNet library. 
 target_link_libraries (gpuPlume NetController)

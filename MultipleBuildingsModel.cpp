@@ -259,6 +259,8 @@ void MultipleBuildingsModel::init(bool OSG){
   // Set up the wind field lookup shader.
   pc->setupWindFieldLookupShader();
 
+  // Initialize the treadport.
+  dc->initTreadport();
 }
 
 int MultipleBuildingsModel::display(){
@@ -755,6 +757,8 @@ int MultipleBuildingsModel::display(){
       // Last good one...
       // dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
       dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight, texid[0], prime0);
+
+      dc->deinitializeView();
 
       CheckErrorsGL("MBA : called drawVisuals");
 

@@ -31,7 +31,8 @@ Util::Util(){
   bounds = new float[6];
   output_id = "";
   reuse_particles = false;
-  
+  fullscreen = false;
+
   // Set some default values so that if they don't 
   // appear in the configuation file the correct
   // defaults are used.

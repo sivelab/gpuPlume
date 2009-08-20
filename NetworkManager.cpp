@@ -104,11 +104,11 @@ void NetworkManager::init() {
     // exit(1);
 
   } else if(mode == RECEIVE) {
-
+    
     //
     // Set the listing network address.
     //
-    std::cout << "Settings: Listening to network address " << broadcastAddr << std::endl;
+    std::cout << "NetworkManager: Listening to network address " << broadcastAddr << std::endl;
     rc.setHost(broadcastAddr);
     rc.setPort(portNumber);
   }

@@ -134,6 +134,10 @@ class Util{
   // treadport.
   int static_treadport_frustum;
 
+  // fullscreen is an option that specifies if we should run in fullscreen
+  // mode or not.
+  bool fullscreen;
+
  private:
 
   void parseLine(char*);
