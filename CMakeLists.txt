@@ -41,7 +41,6 @@ add_subdirectory (fileParser)
 # connect to the TPAWT.
 add_subdirectory (TreadNet/Packet)
 add_subdirectory (TreadNet/Controller)
-add_subdirectory (TreadNet/RTCSync)
 
 # Make sure the compiler can find include files from our Hello library. 
 include_directories (${GPUPLUME_SOURCE_DIR}/fileParser/standard) 
@@ -52,12 +51,10 @@ link_directories (${GPUPLUME_BINARY_DIR}/fileParser)
 # Make sure the compiler can find the include files for the TreadNet library.
 include_directories (${GPUPLUME_BINARY_DIR}/TreadNet/Packet)
 include_directories (${GPUPLUME_BINARY_DIR}/TreadNet/Controller)
-include_directories (${GPUPLUME_BINARY_DIR}/TreadNet/RTCSync)
 
 # Make sure the linker can find the TreadNetLib.
 link_directories (${GPUPLUME_BINARY_DIR}/TreadNet/Packet)
 link_directories (${GPUPLUME_BINARY_DIR}/TreadNet/Controller)
-link_directories (${GPUPLUME_BINARY_DIR}/TreadNet/RTCSync)
 
 # Add executable called "gpuPlume" that is built from the source files 
 # The source files are placed in the list after the executable name. 
