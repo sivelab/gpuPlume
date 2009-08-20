@@ -1,1 +1,0 @@
-objdir/intel_linux/rtcSync.o .depend_rtcSync.a: rtcSync.cpp rtcSync.h
