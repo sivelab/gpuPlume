@@ -427,10 +427,12 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer, GLuint texid3, GLuint col
   // Timer_t displayEnd = dTimer->tic();      
   // std::cout << "DC Display Time: " << dTimer->deltau(displayStart, displayEnd) << " us." << std::endl;  
 
+#if 0
   // Display wind data for testing  
-  // sprintf(text_buffer, "Wind: %f %f %f", windDir[0], windDir[1], windDir[2]);
-  // OpenGLText(5, 5, text_buffer);
-  
+  sprintf(text_buffer, "Wind: %f %f %f", windDir[0], windDir[1], windDir[2]);
+  OpenGLText(5, 5, text_buffer);
+#endif
+
 }
 
 void DisplayControl::increaseVisualLayer()

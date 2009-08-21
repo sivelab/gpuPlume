@@ -33,6 +33,8 @@ class ParticleControl{
  public:
  
   ParticleControl(); 
+
+  ~ParticleControl();
  
   ParticleControl(GLenum,int,int,int,int,int,float,float,float, Util*);
 
@@ -189,6 +191,10 @@ class ParticleControl{
   int windFieldVector_w, windFieldVector_h;
 
  private:
+
+  FramebufferObject * windFieldLookupFBO;
+  GLuint windFieldLookupTex;
+
   float min,max; 
   Util* m_util_ptr;
 

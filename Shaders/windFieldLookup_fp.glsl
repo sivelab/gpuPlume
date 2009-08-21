@@ -27,6 +27,6 @@ void main(void) {
    index.t = i + floor(float(k)/float(numInRow))*float(nydy);
    vec3 wind = vec3(texture2DRect(wind_texunit, index));
    
-   gl_FragColor = vec4(wind.x, wind.y, wind.z, 1.0);
-   // gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+   gl_FragData[0] = vec4(wind.x, wind.y, wind.z, 1.0);
+   
 }

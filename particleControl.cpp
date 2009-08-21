@@ -16,6 +16,10 @@
 ParticleControl::ParticleControl()
 {
 }
+ParticleControl::~ParticleControl()
+{
+  delete windFieldLookupFBO;
+}
 ParticleControl::ParticleControl(GLenum type,int width,int height,
 				 int x, int y, int z,
 				 float c_dx, float c_dy, float c_dz, Util* util_ptr){
@@ -311,9 +315,31 @@ void ParticleControl::setupWindFieldLookupShader() {
   
   windFieldLookup_shader.deactivate();
   
+  // Setup the result texture
+  glGenTextures(1, &windFieldLookupTex);
+  glBindTexture(GL_TEXTURE_2D, windFieldLookupTex);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F_ARB, 1, 1, 0, GL_RGBA, GL_FLOAT, NULL);
+
+  // Bind it to the FBO
+  windFieldLookupFBO = new FramebufferObject();
+  windFieldLookupFBO->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, windFieldLookupTex);
+  windFieldLookupFBO->IsValid();
+  FramebufferObject::Disable();
 }
 
 void ParticleControl::lookupWindField(GLfloat pos[3], GLuint windField, GLfloat &wx, GLfloat &wy, GLfloat &wz) {
+  windFieldLookupFBO->Bind();
+  
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluOrtho2D(-1, 1, -1, 1);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
   
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, 1, 1);
@@ -346,7 +372,11 @@ void ParticleControl::lookupWindField(GLfloat pos[3], GLuint windField, GLfloat 
   CheckErrorsGL("PC: lookupWindField() - shader advection completion");
   
   GLfloat tmp[4];
+  
+  glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
   glReadPixels(0, 0, 1, 1, GL_RGBA, GL_FLOAT, &tmp);
+  
+  FramebufferObject::Disable();
   
   wx = tmp[0];
   wy = tmp[1];

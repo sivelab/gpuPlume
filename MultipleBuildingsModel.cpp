@@ -717,7 +717,7 @@ int MultipleBuildingsModel::display(){
       pos[1] = dc->eye_pos[1];
       pos[2] = dc->eye_pos[2];
             
-      // pc->lookupWindField(pos, windField, dc->windDir[0], dc->windDir[1], dc->windDir[2]);
+      pc->lookupWindField(pos, windField, dc->windDir[0], dc->windDir[1], dc->windDir[2]);
 
       // std::cout << windDir[0] << " " << windDir[1] << " " << windDir[2] << std::endl;
       // int x;
