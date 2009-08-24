@@ -2,6 +2,7 @@
 #define __MBModel_H__
 
 #include "plumeControl.h"
+#include <iostream>
 
 class MultipleBuildingsModel : public PlumeControl{
 
@@ -13,6 +14,12 @@ class MultipleBuildingsModel : public PlumeControl{
   virtual void swapPauseMode();
   virtual void setupTextures();
   //virtual void setupEmitters();
+  
+  // writeShadowMapToFile will write the generated
+  // shadow map (calculated at the beginning of the
+  // run) to a file. Currently, the file is a text
+  // file and the file name is static.
+  virtual void writeShadowMapToFile();
   
   // Shadow map setup is a simply a setup function for
   // the texture and frame buffer object that is used.

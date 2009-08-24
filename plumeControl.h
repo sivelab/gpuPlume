@@ -46,7 +46,18 @@ class PlumeControl{
   virtual void setupEmitters();
   virtual void swapPauseMode();
   virtual ~PlumeControl();
-     
+  
+  // writeShadowMapToFile will write the generated
+  // shadow map (calculated at the beginning of the
+  // run) to a file. Currently, the file is a text
+  // file and the file name is static.
+
+  // Note, this method should really be in MulitpleBuildings
+  // but since we have a virtual plume controle it is here.
+  // This means that the other models should implement this
+  // method at some point.
+  virtual void writeShadowMapToFile();
+  
   float time_step; //time step used for the movement of particles
   bool useRealTime; //Set whether to use real time or not
 

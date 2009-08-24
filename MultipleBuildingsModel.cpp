@@ -703,11 +703,11 @@ int MultipleBuildingsModel::display(){
       // every time the light source moves and does not need to be 
       // done every frame (large waste).
       if(reCalcShadows) {
-	generateShadowMap();
-	for(int i = 0; i < util->nz; i++) {
-	  genGridShadow(i);
-	}
-      reCalcShadows = false;
+		  generateShadowMap();
+		  for(int i = 0; i < util->nz; i++) {
+			  genGridShadow(i);
+		  }
+		  reCalcShadows = false;
       }
       
       // GLfloat windDir[3];
@@ -716,8 +716,8 @@ int MultipleBuildingsModel::display(){
       pos[0] = dc->eye_pos[0];
       pos[1] = dc->eye_pos[1];
       pos[2] = dc->eye_pos[2];
-            
-      pc->lookupWindField(pos, windField, dc->windDir[0], dc->windDir[1], dc->windDir[2]);
+      
+      // pc->lookupWindField(pos, windField, dc->windDir[0], dc->windDir[1], dc->windDir[2]);
 
       // std::cout << windDir[0] << " " << windDir[1] << " " << windDir[2] << std::endl;
       // int x;
@@ -728,13 +728,13 @@ int MultipleBuildingsModel::display(){
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
      
       if(osgPlume){
-	glViewport(vp[0], vp[1], vp[2], vp[3]);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMultMatrixf(pm);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();		
-	glMultMatrixf(mvm);
+		  glViewport(vp[0], vp[1], vp[2], vp[3]);
+		  glMatrixMode(GL_PROJECTION);
+		  glLoadIdentity();
+		  glMultMatrixf(pm);
+		  glMatrixMode(GL_MODELVIEW);
+		  glLoadIdentity();		
+		  glMultMatrixf(mvm);
       }
       
       // Synchronized the data with the treadport system, if we are not
@@ -1509,4 +1509,24 @@ void MultipleBuildingsModel::swapPauseMode() {
   // is actually set here. This way we won't be out
   // of sync with the other screens.
   dc->setInPauseMode(!inPauseMode);
+}
+
+void MultipleBuildingsModel::writeShadowMapToFile() {
+  std::cout << "Writing shadow data to shadow.txt..." << std::flush;
+
+  std::ofstream file;
+  file.open("shadow.txt", ios_base::out);
+  
+  for(int i = 0; i < nz; i++) {
+	for(int j = 0; j < nx; j++) {
+	  for(int k = 0; k < ny; k++) {
+		int index = i*nx*ny*4 + j*ny*4 + k*4;
+		file << k + 0.5 << " " << j + 0.5 <<  " " << i + 0.5 << " " << dc->inShadowData[index] << " ";
+	  }
+	}
+  }
+  
+  file.close();
+
+  std::cout << "   done." << std::endl;
 }

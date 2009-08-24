@@ -170,3 +170,8 @@ void PlumeControl::particleReuse()
 void PlumeControl::swapPauseMode() {
   inPauseMode = !inPauseMode;
 }
+
+
+void PlumeControl::writeShadowMapToFile() {
+  // Nothing is done here.
+}
