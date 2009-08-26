@@ -13,6 +13,11 @@ set(GPUPLUME_VERSION ${GPUPLUME_MAJOR_VERSION}.${GPUPLUME_MINOR_VERSION}.${GPUPL
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+# Add defines for Windows.
+if(WIN32)
+  add_definitions(-DWIN32)
+endif(WIN32)
+
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
