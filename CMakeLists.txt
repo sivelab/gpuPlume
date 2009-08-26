@@ -16,7 +16,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-find_package(GLEW REQUIRED)
+
+# If we are in Windows, set the GLEW path manually.
+if(WIN32)
+  set(GLEW_INCLUDE_PATH "${GPUPLUME_SOURCE_DIR}/glew/include")
+  set(GLEW_LIBRARY "${GPUPLUME_SOURCE_DIR}/glew/bin")
+else(WIN32)
+  find_package(GLEW REQUIRED)
+endif(WIN32)
 
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLUT_INCLUDE_DIRS})

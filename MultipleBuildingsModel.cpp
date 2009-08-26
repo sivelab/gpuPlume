@@ -1276,6 +1276,9 @@ void MultipleBuildingsModel::shadowMapSetup()
 
 void MultipleBuildingsModel::generateShadowMap()
 {
+  
+  // Calculate sun position here.
+  
   // Set the sun position, so it can be drawn in the world.
   dc->sun_pos[0] = 150;
   dc->sun_pos[1] = 150;
