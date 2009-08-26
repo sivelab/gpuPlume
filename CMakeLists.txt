@@ -20,7 +20,7 @@ find_package(GLUT REQUIRED)
 # If we are in Windows, set the GLEW path manually.
 if(WIN32)
   set(GLEW_INCLUDE_PATH "${GPUPLUME_SOURCE_DIR}/glew/include")
-  set(GLEW_LIBRARY "${GPUPLUME_SOURCE_DIR}/glew/bin")
+  set(GLEW_LIBRARY "${GPUPLUME_SOURCE_DIR}/glew/lib")
 else(WIN32)
   find_package(GLEW REQUIRED)
 endif(WIN32)
