@@ -4,6 +4,10 @@
 #include "plumeControl.h"
 #include <iostream>
 
+#if WIN32
+static const float M_PI = 3.14159265358979323846264338327950288419716939937510;
+#endif
+
 class MultipleBuildingsModel : public PlumeControl{
 
  public:
@@ -53,12 +57,6 @@ class MultipleBuildingsModel : public PlumeControl{
   // file (or even the proj file it self).
   float sun_azimuth;
   float sun_altitude;
-
-  // This is simply a static constant as to how far away
-  // the sun is. At some point this value should either be
-  // correctly set or dynamically calculated based on the size
-  // of the scene.
-  static const float SUN_DISTANCE = 1000;
 
  protected:
  

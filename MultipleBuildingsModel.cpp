@@ -1312,7 +1312,7 @@ void MultipleBuildingsModel::generateShadowMap()
   float sceneBoundingRadius = 100.0;
   
   // Calculate the distance between the sceen and the light
-  float lightToSceneDistance = sqrt(150 * 150 + 150 * 150 + 150 * 150);
+  float lightToSceneDistance = sqrt(float(150 * 150 + 150 * 150 + 150 * 150));
 
   // Calculate the near plane for the light
   float lightNearPlane = lightToSceneDistance - sceneBoundingRadius;
@@ -1518,7 +1518,7 @@ void MultipleBuildingsModel::writeShadowMapToFile() {
   std::cout << "Writing shadow data to shadow.txt..." << std::flush;
 
   std::ofstream file;
-  file.open("shadow.txt", ios_base::out);
+  file.open("shadow.txt", std::ios_base::out);
   
   for(int i = 0; i < nz; i++) {
 	for(int j = 0; j < nx; j++) {

@@ -50,7 +50,10 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
   float dy = util->dy;
   float dz = util->dz;
   
+#if !WIN32
   network_mode = (NetworkManager::Mode)util->network_mode;
+#endif
+
   viewingMode = (ViewingMode)util->viewing_mode;
   
   if(util->static_treadport_frustum == 1) {
@@ -107,11 +110,13 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
   eye_gaze[2] = 0.0;
 #endif
 
+#if !WIN32
   // Set up the default eye (for the treadport system)
   eye.resize(3);
   eye[0] = 0;
   eye[1] = 0;
   eye[2] = 1.2;
+#endif
 
   //New calculations for moving and looking around
   yaw = 0.0;
@@ -197,8 +202,10 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
   perform_cpu_sort = false;
   
   // Set and initialize the NetworkManager.
+#if !WIN32
   network.setMode((NetworkManager::Mode)network_mode);
   network.init();
+#endif
   
   // Set up for calculating and visualizing the percentage
   // of shadow for each cell.
@@ -207,7 +214,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
 }
 
 void DisplayControl::initTreadport() {
-
+#if !WIN32
   // Check to make sure that we are in the right modes, currently
   // only the computer that is set to broadcast will communicate
   // with the treadport system.
@@ -249,11 +256,14 @@ void DisplayControl::initTreadport() {
     // to set up the initial values with the treadport system.
     treadport->init(init_pos, init_gaze, init_up);
   }
+#endif
 }
 
 DisplayControl::~DisplayControl() {
   delete [] inShadowData;
+#if !WIN32
   delete treadport;
+#endif
 }
 
 void DisplayControl::setEmitter(ParticleEmitter* p)
@@ -1573,7 +1583,7 @@ void DisplayControl::createPointSpriteTextures()
 
 
 void DisplayControl::syncTreadportData() {
-
+#if !WIN32
   // Note, we need to sync the treadport information before
   // we can sync it to the other computers.
 
@@ -1608,11 +1618,11 @@ void DisplayControl::syncTreadportData() {
     eye[2] = new_eye[2];
 
   }
-
+#endif
 }
 
 void DisplayControl::syncDataOverNetwork() {
-
+#if !WIN32
    NetworkManager::NetworkSyncData data;
 
    memcpy(data.eye_pos, eye_pos, sizeof(float) * 3);
@@ -1656,6 +1666,7 @@ void DisplayControl::syncDataOverNetwork() {
    // memcpy(current_hand_pos, data.hand_pos, sizeof(float) * 3);
    // memcpy(current_hand_up, data.hand_up, sizeof(float) * 3);
    // memcpy(data.hand_matrix, hand_matrix, sizeof(float) * 16);
+#endif
 }
 
 void DisplayControl::initializeView() {
@@ -1697,7 +1708,7 @@ void DisplayControl::initializeView() {
                  eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], eye_gaze[2]+eye_pos[2],
                  0, 0, 1 );
   } else if(viewingMode == TREADPORT) {
-
+#if !WIN32
     // Initialize 1st treadport view
     calcTreadportFrustum(util->treadport_view);
 
@@ -1706,18 +1717,20 @@ void DisplayControl::initializeView() {
     // glLoadIdentity();
     // glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
     // glRotatef(180.0f, 0.0f, 0.0f, 0.0f);
+#endif
   }
-
 }
 
 void DisplayControl::deinitializeView() {
   if(viewingMode == TREADPORT) {
+#if !WIN32
     glPopMatrix();
+#endif
   }
 }
 
 void DisplayControl::calcTreadportFrustum(char view) {
-
+#if !WIN32
   // TODO: Change to use frustum call parameters from frustumCalc app w/ 't'
   //       option.
 
@@ -2157,7 +2170,7 @@ void DisplayControl::calcTreadportFrustum(char view) {
             screen.proj[1], screen.proj[0], screen.proj[2],
             0, 0, 1);
   */
-
+#endif
 }
 
 void DisplayControl::blankSides()

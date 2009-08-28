@@ -15,11 +15,17 @@
 #include "particleEmitter.h"
 #include "VisualPlane.h"
 #include "framebufferObject.h"
-#include "NetworkManager.h"
-#include "TreadportManager.h"
 #include "util.h"
 
-// BEGIN FOR TREADPORT
+/**
+ *  The following is for synchronizing gpuPlume across
+ *  multiple computers over a network and communicating
+ *  with the TPAWT. Since, this code depends on Unix
+ *  based network libraries it is being excluded from the
+ *  Windows build.
+ */
+#if !WIN32
+#include "TreadportManager.h"
 #include "graphicsUtil.h"
 #include <vector>
 
@@ -31,7 +37,7 @@ struct screen_t {
   std::vector<float> proj;
   float phi;
 };
-// END FOR TREADPORT
+#endif
 
 enum tau_visual_type{draw_contours,draw_layers};
 
@@ -169,11 +175,13 @@ class DisplayControl{
   
  private:
   
+#if !WIN32
   /**
    * network is the NetworkManager object that is used to synchronize data over
    * the local network to the other screens (or rather the other computers that
    * generate the image for the other screens).
    */
+
   NetworkManager network;
 
   /**
@@ -181,6 +189,7 @@ class DisplayControl{
    * with the treadport system.
    */
   TreadportManager * treadport;
+#endif
 
   /**
    * static_treadport_frustum is a flag that determines of a static or dynamic view
@@ -286,23 +295,25 @@ class DisplayControl{
    * retrieved from the config file that is read-in upon program start.
    */
   Util * util;
-  
+
   /**
    * viewingMode is an enum which describes which viewing mode Display Control
    * will run in. Note that the default should be STANDARD or what has been
    * set within the input.txt config file.
    */
   ViewingMode viewingMode;
-  
+
+#if !WIN32
   /**
    * This is the mode in which the local communication will operate. The choices
    * are set in the config file (Settings/input.txt or passed in config file).
    */
   NetworkManager::Mode network_mode;
-    
+
   // For treadport configuration.
   screen_t screen;
   std::vector<float> eye;
+#endif
   
   /**
    * calcTreadportFrustum calculates and sets the frustum and opengl lookat in
