@@ -25,6 +25,7 @@
  *  Windows build.
  */
 #if !WIN32
+#include "NetworkManager.h"
 #include "TreadportManager.h"
 #include "graphicsUtil.h"
 #include <vector>
