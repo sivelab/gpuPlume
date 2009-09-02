@@ -25,6 +25,12 @@ class MultipleBuildingsModel : public PlumeControl{
   // file and the file name is static.
   virtual void writeShadowMapToFile();
   
+  // rotatePoint is utility method which rotates a
+  // point (pos) around an axis (axis) by a given 
+  // angle (angle). Note that axis must be a vector
+  // with a magnitude of 1.
+  void rotatePoint(float (&pos)[3], float axis[3], float &angle);
+  
   // Shadow map setup is a simply a setup function for
   // the texture and frame buffer object that is used.
   void shadowMapSetup();

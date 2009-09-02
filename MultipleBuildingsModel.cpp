@@ -1274,10 +1274,27 @@ void MultipleBuildingsModel::shadowMapSetup()
   
 }
 
+void MultipleBuildingsModel::rotatePoint(float (& pos)[3], float axis[3], float &angle) {
+  
+  float c = cosf(angle);
+  float s = sinf(angle);
+  float rotMat[4][4];
+  
+  // Setup the rotation matrix, this matrix is based off of the rotation matrix used in glRotatef.
+  rotMat[0][0] = axis[0] * axis[0] * (1 - c) + c;           rotMat[0][1] = axis[0] * axis[1] * (1 - c) - axis[2] * s; rotMat[0][2] = axis[0] * axis[2] * (1 - c) + axis[1] * s; rotMat[0][3] = 0;
+  rotMat[1][0] = axis[1] * axis[0] * (1 - c) + axis[2] * s; rotMat[1][1] = axis[1] * axis[1] * (1 - c) + c;           rotMat[1][2] = axis[1] * axis[2] * (1 - c) - axis[0] * s; rotMat[1][3] = 0;
+  rotMat[2][0] = axis[0] * axis[2] * (1 - c) - axis[1] * s; rotMat[2][1] = axis[1] * axis[2] * (1 - c) + axis[0] * s; rotMat[2][2] = axis[2] * axis[2] * (1 - c) + c;           rotMat[2][3] = 0;
+  rotMat[3][0] = 0;                       rotMat[3][1] = 0;                       rotMat[3][2] = 0;                       rotMat[3][3] = 1;
+  
+  // Multiply the rotation matrix with the position vector.
+  pos[0] = rotMat[0][0] * pos[0] + rotMat[0][1] * pos[1] + rotMat[0][2] * pos[2] + rotMat[0][3];
+  pos[1] = rotMat[1][0] * pos[0] + rotMat[1][1] * pos[1] + rotMat[1][2] * pos[2] + rotMat[1][3];
+  pos[2] = rotMat[2][0] * pos[0] + rotMat[2][1] * pos[1] + rotMat[2][2] * pos[2] + rotMat[2][3];
+  
+}
+
 void MultipleBuildingsModel::generateShadowMap()
 {
-  
-  // Calculate sun position here.
   
   // Set the sun position, so it can be drawn in the world.
   dc->sun_pos[0] = 150;
@@ -1516,7 +1533,7 @@ void MultipleBuildingsModel::swapPauseMode() {
 
 void MultipleBuildingsModel::writeShadowMapToFile() {
   std::cout << "Writing shadow data to shadow.txt..." << std::flush;
-
+  
   std::ofstream file;
   file.open("shadow.txt", std::ios_base::out);
   
