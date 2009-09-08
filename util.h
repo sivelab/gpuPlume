@@ -137,6 +137,10 @@ class Util{
   // fullscreen is an option that specifies if we should run in fullscreen
   // mode or not.
   bool fullscreen;
+  
+  float sun_azimuth;
+  
+  float sun_altitude;
 
  private:
 

@@ -40,6 +40,9 @@ Util::Util(){
   viewing_mode = 0;
   treadport_view = 'c';
   static_treadport_frustum = 1;
+
+  sun_azimuth = 0;
+  sun_altitude = 0;
 }
 
 bool Util::isPathAbsolute(const std::string &filename)
@@ -527,6 +530,12 @@ void Util::parseLine(char* line){
   }
   if(read1Float(line, "static_treadport_frustum", &f1)) {
     static_treadport_frustum = (int)f1;
+  }
+  if(read1Float(line, "sun_azimuth", &f1)) {
+    sun_azimuth = (float)f1;
+  }
+  if(read1Float(line, "sun_altitude", &f1)) {
+    sun_altitude = (float)f1;
   }
 }
 

@@ -1274,22 +1274,28 @@ void MultipleBuildingsModel::shadowMapSetup()
   
 }
 
-void MultipleBuildingsModel::rotatePoint(float (& pos)[3], float axis[3], float &angle) {
+void MultipleBuildingsModel::rotatePoint(float (& pos)[3], float axis[3], float angle) {
   
-  float c = cosf(angle);
-  float s = sinf(angle);
+  float c = cos(angle);
+  float s = sin(angle);
   float rotMat[4][4];
   
   // Setup the rotation matrix, this matrix is based off of the rotation matrix used in glRotatef.
-  rotMat[0][0] = axis[0] * axis[0] * (1 - c) + c;           rotMat[0][1] = axis[0] * axis[1] * (1 - c) - axis[2] * s; rotMat[0][2] = axis[0] * axis[2] * (1 - c) + axis[1] * s; rotMat[0][3] = 0;
-  rotMat[1][0] = axis[1] * axis[0] * (1 - c) + axis[2] * s; rotMat[1][1] = axis[1] * axis[1] * (1 - c) + c;           rotMat[1][2] = axis[1] * axis[2] * (1 - c) - axis[0] * s; rotMat[1][3] = 0;
-  rotMat[2][0] = axis[0] * axis[2] * (1 - c) - axis[1] * s; rotMat[2][1] = axis[1] * axis[2] * (1 - c) + axis[0] * s; rotMat[2][2] = axis[2] * axis[2] * (1 - c) + c;           rotMat[2][3] = 0;
-  rotMat[3][0] = 0;                       rotMat[3][1] = 0;                       rotMat[3][2] = 0;                       rotMat[3][3] = 1;
+  rotMat[0][0] = axis[0] * axis[0] + (1 - axis[0] * axis[0]) * c;           rotMat[0][1] = axis[0] * axis[1] * (1 - c) - axis[2] * s; rotMat[0][2] = axis[0] * axis[2] * (1 - c) + axis[1] * s; rotMat[0][3] = 0;
+  rotMat[1][0] = axis[1] * axis[0] * (1 - c) + axis[2] * s; rotMat[1][1] = axis[1] * axis[1] + (1 - axis[1] * axis[1]) * c;           rotMat[1][2] = axis[1] * axis[2] * (1 - c) - axis[0] * s; rotMat[1][3] = 0;
+  rotMat[2][0] = axis[0] * axis[2] * (1 - c) - axis[1] * s; rotMat[2][1] = axis[1] * axis[2] * (1 - c) + axis[0] * s; rotMat[2][2] = axis[2] * axis[2] + (1 - axis[2] * axis[2]) * c;           rotMat[2][3] = 0;
+  rotMat[3][0] = 0;                                         rotMat[3][1] = 0;                                         rotMat[3][2] = 0;                                         rotMat[3][3] = 1;
   
+  float x, y, z;
+
   // Multiply the rotation matrix with the position vector.
-  pos[0] = rotMat[0][0] * pos[0] + rotMat[0][1] * pos[1] + rotMat[0][2] * pos[2] + rotMat[0][3];
-  pos[1] = rotMat[1][0] * pos[0] + rotMat[1][1] * pos[1] + rotMat[1][2] * pos[2] + rotMat[1][3];
-  pos[2] = rotMat[2][0] * pos[0] + rotMat[2][1] * pos[1] + rotMat[2][2] * pos[2] + rotMat[2][3];
+  x = rotMat[0][0] * pos[0] + rotMat[0][1] * pos[1] + rotMat[0][2] * pos[2] + rotMat[0][3];
+  y = rotMat[1][0] * pos[0] + rotMat[1][1] * pos[1] + rotMat[1][2] * pos[2] + rotMat[1][3];
+  z = rotMat[2][0] * pos[0] + rotMat[2][1] * pos[1] + rotMat[2][2] * pos[2] + rotMat[2][3];
+  
+  pos[0] = x;
+  pos[1] = y;
+  pos[2] = z;
   
 }
 
@@ -1297,9 +1303,22 @@ void MultipleBuildingsModel::generateShadowMap()
 {
   
   // Set the sun position, so it can be drawn in the world.
-  dc->sun_pos[0] = 150;
-  dc->sun_pos[1] = 150;
+  dc->sun_pos[0] = 0;
+  dc->sun_pos[1] = 0;
   dc->sun_pos[2] = 150;
+  
+  float axis[3];
+  axis[0] = 0.0;
+  axis[1] = 1.0;
+  axis[2] = 0.0;
+  rotatePoint(dc->sun_pos, axis, -(90 - sun_altitude) * M_PI / 180);
+  
+  axis[0] = 0.0;
+  axis[1] = 0.0;
+  axis[2] = 1.0;
+  rotatePoint(dc->sun_pos, axis, -sun_azimuth * M_PI / 180);
+  
+  std::cout << "Altitude: " << sun_altitude << " Azimuth: " << sun_azimuth << std::endl;
   
   // Prep the scale and bias matrix.
   sunScaleAndBiasMatrix[0] = 0.5;
@@ -1329,7 +1348,7 @@ void MultipleBuildingsModel::generateShadowMap()
   float sceneBoundingRadius = 100.0;
   
   // Calculate the distance between the sceen and the light
-  float lightToSceneDistance = sqrt(float(150 * 150 + 150 * 150 + 150 * 150));
+  float lightToSceneDistance = sqrt(float(dc->sun_pos[0] * dc->sun_pos[0] + dc->sun_pos[1] * dc->sun_pos[1] + dc->sun_pos[2] * dc->sun_pos[2]));
 
   // Calculate the near plane for the light
   float lightNearPlane = lightToSceneDistance - sceneBoundingRadius;
@@ -1341,11 +1360,11 @@ void MultipleBuildingsModel::generateShadowMap()
   glViewport(0, 0, 2048, 2048);
   gluPerspective(lightFieldOfView, 1.0f, lightNearPlane, lightNearPlane + (2.0f * sceneBoundingRadius));
   glGetFloatv(GL_PROJECTION_MATRIX, sunProjectionMatrix);
-
+	
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(
-	    150, 150, 150,
+	    dc->sun_pos[0], dc->sun_pos[1], dc->sun_pos[2],
 	    0,   0,   0,
 	    0,   0,   1
 	   );
