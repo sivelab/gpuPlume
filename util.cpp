@@ -43,6 +43,8 @@ Util::Util(){
 
   sun_azimuth = 0;
   sun_altitude = 0;
+
+  onlyCalcShadows = false;
 }
 
 bool Util::isPathAbsolute(const std::string &filename)

@@ -3,6 +3,7 @@
 
 #include "plumeControl.h"
 #include <iostream>
+#include <sstream>
 
 #if WIN32
 static const float M_PI = 3.14159265358979323846264338327950288419716939937510;

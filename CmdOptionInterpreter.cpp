@@ -47,6 +47,14 @@ void CmdOptionInterpreter::parse(int argc, char ** argv) {
       data->treadport_view = variable.c_str()[0];
     } else if (option.compare("--dynamicTreadportFrustum") == 0) {
       data->static_treadport_frustum = 0;
+    } else if (option.compare("--sunAzimuth") == 0) {
+      std::string variable = std::string(argv[i+1]);
+      data->sun_azimuth = atoi(variable.c_str());
+    } else if (option.compare("--sunAltitude") == 0) {
+      std::string variable = std::string(argv[i+1]);
+      data->sun_altitude = atoi(variable.c_str());
+    } else if (option.compare("--onlyCalcShadows") == 0) {
+      data->onlyCalcShadows = true;
     }
   }
   

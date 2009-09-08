@@ -90,8 +90,8 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
 
   // Set the default sun angle's
   // I picked an angle that is for summer in SLC in mid August around noon.
-  sun_azimuth = 162.0;
-  sun_altitude = 63.0;
+  sun_azimuth = util->sun_azimuth;
+  sun_altitude = util->sun_altitude;
   
 }
 
@@ -698,16 +698,20 @@ int MultipleBuildingsModel::display(){
       // of the PLUME particle field.
       // //////////////////////////////////////////////////////////////
       
-      
       // Grab the shadow map. Note, this should really only be done
       // every time the light source moves and does not need to be 
       // done every frame (large waste).
       if(reCalcShadows) {
-		  generateShadowMap();
-		  for(int i = 0; i < util->nz; i++) {
-			  genGridShadow(i);
-		  }
-		  reCalcShadows = false;
+	generateShadowMap();
+	for(int i = 0; i < util->nz; i++) {
+	  genGridShadow(i);
+	}
+	reCalcShadows = false;
+      }
+
+      if(util->onlyCalcShadows) {
+	writeShadowMapToFile();
+	exit(0);
       }
       
       // GLfloat windDir[3];
@@ -1551,10 +1555,15 @@ void MultipleBuildingsModel::swapPauseMode() {
 }
 
 void MultipleBuildingsModel::writeShadowMapToFile() {
+  
+  std::ostringstream fileNameBuffer;
+  fileNameBuffer << "shadow-" << util->sun_altitude << "-" << util->sun_azimuth << ".txt";
+  std::string fileName = fileNameBuffer.str();
+
   std::cout << "Writing shadow data to shadow.txt..." << std::flush;
   
   std::ofstream file;
-  file.open("shadow.txt", std::ios_base::out);
+  file.open(fileName.c_str(), std::ios_base::out);
   
   for(int i = 0; i < nz; i++) {
 	for(int j = 0; j < nx; j++) {

@@ -141,7 +141,9 @@ class Util{
   float sun_azimuth;
   
   float sun_altitude;
-
+  
+  bool onlyCalcShadows;
+  
  private:
 
   void parseLine(char*);
