@@ -2234,17 +2234,17 @@ void DisplayControl::setInPauseMode(bool newInPauseMode) {
 void DisplayControl::drawInShadowData() {
 
   for(int i = 0; i < nz; i++) {
-    for(int j = 0; j < nx; j++) {
-      for(int k = 0; k < ny; k++) {
-	int index = i*nx*ny*4 + j*ny*4 + k*4;
-	if(inShadowData[index] < 1) {
-	  glPushMatrix();
-	  glTranslatef(k + 0.5, j + 0.5, i + 0.5);
-	  glColor4f(inShadowData[index], inShadowData[index + 1], inShadowData[index + 2], inShadowData[index + 3]);
-	  // std::cout << inShadowData[i][j][0] << " " << inShadowData[i][j][1] << " " << inShadowData[i][j][2] << "  ";
-	  glutSolidCube(0.1);
-	  glPopMatrix();
-	}
+    for(int j = 0; j < ny; j++) {
+      for(int k = 0; k < nx; k++) {
+				int index = i*ny*nx*4 + j*nx*4 + k*4;
+				if(inShadowData[index] < 1) {
+					glPushMatrix();
+					glTranslatef(k + 0.5, j + 0.5, i + 0.5);
+					glColor4f(inShadowData[index], inShadowData[index + 1], inShadowData[index + 2], inShadowData[index + 3]);
+					// std::cout << inShadowData[i][j][0] << " " << inShadowData[i][j][1] << " " << inShadowData[i][j][2] << "  ";
+					glutSolidCube(0.1);
+					glPopMatrix();
+				}
       }
     }
     // std::cout << std::endl;
