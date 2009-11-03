@@ -5,7 +5,13 @@
 ** RGB Image Structure
 */
 
-#include "GL/gl.h"
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <stdlib.h>
+#include <GL/glut.h>
+// #include <GL/gl.h>
+#endif
 
 typedef struct _RGBImageRec {
     GLint sizeX, sizeY;

@@ -60,19 +60,26 @@ add_subdirectory (TreadNet/Controller)
 include_directories (${GPUPLUME_SOURCE_DIR}/fileParser/standard) 
 
 # Make sure the linker can find the Hello library once it is built. 
-link_directories (${GPUPLUME_BINARY_DIR}/fileParser)
+link_directories (${GPUPLUME_SOURCE_DIR}/fileParser)
 
 # Make sure the compiler can find the include files for the TreadNet library.
-include_directories (${GPUPLUME_BINARY_DIR}/TreadNet/Packet)
-include_directories (${GPUPLUME_BINARY_DIR}/TreadNet/Controller)
+include_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Packet)
+include_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Controller)
 
 # Make sure the linker can find the TreadNetLib.
-link_directories (${GPUPLUME_BINARY_DIR}/TreadNet/Packet)
-link_directories (${GPUPLUME_BINARY_DIR}/TreadNet/Controller)
+link_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Packet)
+link_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Controller)
 
 # Add executable called "gpuPlume" that is built from the source files 
 # The source files are placed in the list after the executable name. 
-add_executable (gpuPlume gpuPlume.cpp framebufferObject.cpp renderbuffer.cpp GLSL.cpp glErrorUtil.cpp particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp  GeomTest.cpp PathLine.cpp Contour.cpp VisualPlane.cpp lineEmitter.cpp planeEmitter.cpp IsoSurface.cpp NetworkManager.cpp broadcaster.cpp receiver.cpp InetAddress.cpp TreadportManager.cpp graphicsUtil.cpp rgb.cpp CmdOptionInterpreter.cpp) 
+add_executable (gpuPlume 
+	       gpuPlume.cpp 
+	       ArgumentParsing.h ArgumentParsing.cpp
+	       framebufferObject.cpp 
+	       renderbuffer.cpp 
+	       GLSL.cpp 
+	       glErrorUtil.cpp 
+	       particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp  GeomTest.cpp PathLine.cpp Contour.cpp VisualPlane.cpp lineEmitter.cpp planeEmitter.cpp IsoSurface.cpp NetworkManager.cpp broadcaster.cpp receiver.cpp InetAddress.cpp TreadportManager.cpp graphicsUtil.cpp rgb.cpp CmdOptionInterpreter.cpp) 
 
 # Link the executable to the TreadNet library. 
 target_link_libraries (gpuPlume NetController)

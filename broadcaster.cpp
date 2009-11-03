@@ -16,6 +16,7 @@
 
 #include <string.h>
 
+#if 0
 #if defined(__linux)
     #include <unistd.h>
     #include <linux/sockios.h>
@@ -27,7 +28,7 @@
     #include <net/soioctl.h>
 #elif defined(__CYGWIN__) 
     // nothing needed
-#elif defined (__DARWIN_OSX__)
+#elif defined (__APPLE__)
     #include <unistd.h>
     #include <sys/sockio.h>
 #elif defined (WIN32)
@@ -35,8 +36,9 @@
     #include <stdio.h>
 #elif defined (__hpux__)
     #include <unistd.h>
-#else
+#else 
     #error Teach me how to build on this system
+#endif
 #endif
 
 #include "broadcaster.h"

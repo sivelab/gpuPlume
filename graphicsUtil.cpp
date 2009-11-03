@@ -1,10 +1,8 @@
 // #include <iostream>
 
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "graphicsUtil.h"
 #include "rgb.h"
 
-#include "graphicsUtil.h"
 
 void glErrorCheck( const char* msg )
 {

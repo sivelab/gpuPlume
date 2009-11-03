@@ -11,7 +11,13 @@
 #include "ansiCPP.H"
 #include "approxMath.H"
 
-#include <GL/gl.h>
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <stdlib.h>
+#include <GL/glut.h>
+// #include <GL/gl.h>
+#endif
 
 // class QuatR4;			// Defined in quatR4.H
 
