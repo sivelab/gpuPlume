@@ -7,10 +7,12 @@
  *  program starts.
  */
 
-#include "util.h"
-
+#include <cassert>
 #include <string>
 #include <cstdlib>
+
+#include "ArgumentParsing.h"
+#include "util.h"
 
 class CmdOptionInterpreter {
 
@@ -25,7 +27,7 @@ class CmdOptionInterpreter {
    *  Constructor that takes in a reference 
    *  to a Util object.
    */
-  CmdOptionInterpreter(Util * util);
+  CmdOptionInterpreter(ArgumentParsing *argParser, Util * util);
   
   /**
    *  Destructor.
@@ -41,11 +43,12 @@ class CmdOptionInterpreter {
    * has been processed. This way these settings will override
    * any Input.txt file.
    */
-  void parse(int argc, char ** argv);
+  void parse();
   
  private:
 
-  Util * data;
+  Util *m_utilPtr;
+  ArgumentParsing *m_argParser;
 
 };
 

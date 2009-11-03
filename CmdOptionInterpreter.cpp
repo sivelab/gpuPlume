@@ -7,56 +7,51 @@
 
 #include "CmdOptionInterpreter.h"
 
-CmdOptionInterpreter::CmdOptionInterpreter() {
-  data = NULL;
+CmdOptionInterpreter::CmdOptionInterpreter() 
+{
+  m_utilPtr = NULL;
+  m_argParser = NULL;
 }
 
-CmdOptionInterpreter::CmdOptionInterpreter(Util * util) {
-  data = util;
+CmdOptionInterpreter::CmdOptionInterpreter(ArgumentParsing *argParser, Util *util) 
+{
+  m_utilPtr = util;
+  m_argParser = argParser;
 }
 
-CmdOptionInterpreter::~CmdOptionInterpreter() {
-  
+CmdOptionInterpreter::~CmdOptionInterpreter() 
+{
 }
 
-void CmdOptionInterpreter::parse(int argc, char ** argv) {
-  
+void CmdOptionInterpreter::parse() 
+{
   // Check to make sure that the correct constructor was
-  // used and that data is set.
-  if(data == NULL) {
-    return;
-  }
+  // used and that m_utilPtr is set.
+  assert(m_utilPtr && m_argParser);
   
-  // Loop through the remaining options that were passed.
-  // Note that we assume that the first option is a .proj
-  // file and that it has already been read.
-  for(int i = 2; i < argc; i++) {
-    std::string option = std::string(argv[i]);
-    
-    if(option.compare("--fullscreen") == 0) {
-      data->fullscreen = true;
-    } else if (option.compare("--networkmode") == 0) {
-      std::string variable = std::string(argv[i+1]);
-      data->network_mode = atoi(variable.c_str());
-    } else if (option.compare("--viewingmode") == 0) {
-      std::string variable = std::string(argv[i+1]);
-      data->viewing_mode = atoi(variable.c_str());
-      i++;
-    } else if (option.compare("--treadportview") == 0) {
-      std::string variable = std::string(argv[i+1]);
-      data->treadport_view = variable.c_str()[0];
-    } else if (option.compare("--dynamicTreadportFrustum") == 0) {
-      data->static_treadport_frustum = 0;
-    } else if (option.compare("--sunAzimuth") == 0) {
-      std::string variable = std::string(argv[i+1]);
-      data->sun_azimuth = atoi(variable.c_str());
-    } else if (option.compare("--sunAltitude") == 0) {
-      std::string variable = std::string(argv[i+1]);
-      data->sun_altitude = atoi(variable.c_str());
-    } else if (option.compare("--onlyCalcShadows") == 0) {
-      data->onlyCalcShadows = true;
-    }
-  }
-  
-  return;
+  std::string argVal = "";
+
+  if (m_argParser->isSet("fullscreen"))
+    m_utilPtr->fullscreen = true;
+
+  if (m_argParser->isSet("networkmode", argVal))
+    m_utilPtr->network_mode = atoi(argVal.c_str());
+
+  if (m_argParser->isSet("viewingmode", argVal)) 
+    m_utilPtr->viewing_mode = atoi(argVal.c_str());
+
+  if (m_argParser->isSet("treadportview", argVal))
+    m_utilPtr->treadport_view = argVal.c_str()[0];
+
+  if (m_argParser->isSet("dynamicTreadportFrustum"))
+    m_utilPtr->static_treadport_frustum = 0;
+
+  if (m_argParser->isSet("sunAzimuth", argVal))
+    m_utilPtr->sun_azimuth = atoi(argVal.c_str());
+
+  if (m_argParser->isSet("sunAltitude", argVal))
+    m_utilPtr->sun_altitude = atoi(argVal.c_str());
+
+  if (m_argParser->isSet("onlyCalcShadows"))
+    m_utilPtr->onlyCalcShadows = true;
 }
