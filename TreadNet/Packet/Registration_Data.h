@@ -9,6 +9,10 @@ enum TRRegTag {
   VALID_REG
 };
 
+#ifdef __APPLE__
+typedef unsigned int uint;
+#endif
+
 // This class is for registering packet types
 //  with the controller (whether server or client)
 

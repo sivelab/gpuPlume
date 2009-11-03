@@ -8,6 +8,10 @@
 #include "TRVector.h"
 #include "TRQuaternion.h"
 
+#ifdef __APPLE__
+typedef unsigned short ushort;
+#endif
+
 class Packet_Data {
  public:
   // classes which derive from packet data should
