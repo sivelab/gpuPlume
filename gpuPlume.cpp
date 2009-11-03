@@ -15,6 +15,8 @@
 #include <tchar.h>
 #endif
 
+#include "ArgumentParsing.h"
+
 #include "plumeControl.h"
 #include "nonGaussianModel.h"
 #include "GaussianModel.h"
@@ -79,6 +81,19 @@ int main(int argc, char** argv)
   }
 #endif
  
+  // 
+  // Setup command line argument parsing
+  // 
+  ArgumentParsing argParser;
+  argParser.reg("fullscreen", 'f', no_argument);      //  data->fullscreen
+  argParser.reg("networkmode", 'n', required_argument);     //  std::string variable = std::string(argv[i+1]); data->network_mode = atoi(variable.c_str());
+  argParser.reg("viewingmode", 'm', required_argument);     //  std::string variable = std::string(argv[i+1]); data->viewing_mode = atoi(variable.c_str());
+  argParser.reg("treadportview", 't', required_argument);   //  std::string variable = std::string(argv[i+1]); data->treadport_view = variable.c_str()[0];
+  argParser.reg("dynamicTreadportFrustum", 'd', no_argument); // data->static_treadport_frustum = 0;
+  argParser.reg("sunAzimuth", 'a', required_argument);  // std::string variable = std::string(argv[i+1]); data->sun_azimuth = atoi(variable.c_str());
+  argParser.reg("sunAltitude", 'e', required_argument); // std::string variable = std::string(argv[i+1]); data->sun_altitude = atoi(variable.c_str());
+  argParser.reg("onlyCalcShadows", 'o', no_argument);  // data->onlyCalcShadows = true;
+
   // allocate memory for the timing values
   // keep 1000 values
   timing_N = 1000;
@@ -93,9 +108,6 @@ int main(int argc, char** argv)
   plume_timer[0] = plume_clock->tic();
 
   util = new Util();
-
-  // have util parse command line arguments
-  
 
   // Must supply an argument containing the .prof file to be read.
   if (argc >= 2)
@@ -114,13 +126,13 @@ int main(int argc, char** argv)
     }
   
   // Parse any command line options specifed.
-  CmdOptionInterpreter cmdOI = CmdOptionInterpreter(util);
-  cmdOI.parse(argc, argv);
+  argParser.processCommandLineArgs(argc, argv);  
+  std::cout << "fullscreen set = " << argParser.isSet("fullscreen") << std::endl;
+  std::cout << "sunAzimuth set = " << argParser.isSet("sunAzimuth") << std::endl;
+
+  CmdOptionInterpreter cmdOI(&argParser, util);
+  cmdOI.parse();
   
-  //plume = new PlumeControl(util);
-  //Options are:
-  //  nonGaussianModel();
-  //  GaussianModel();
   switch(util->advectChoice){
   case 0:
     //util->windFieldData = 4;
