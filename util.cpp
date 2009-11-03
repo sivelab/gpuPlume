@@ -828,7 +828,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   // if the duration is close to zero... don't capture concentrations...
   duration = qpParamData.duration;
   if (duration >= -0.00001 && duration <= 0.00001)
-    nreleaseType = 1;
+    releaseType = 1;
   else 
     releaseType = 0;
   startCBoxTime = qpParamData.concStartTime;
