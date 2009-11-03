@@ -848,6 +848,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   numBox_z = qpParamData.nbz;
   volumeBox();
 
+#if 0
   std::cout << "QP_Params file: " << std::endl;
   std::cout << "qpParamData.sourceFlag = " << qpParamData.sourceFlag << std::endl;
   std::cout << "qpParamData.isiteflag = " << qpParamData.isiteflag << std::endl;
@@ -882,6 +883,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   std::cout << "qpParamData.ybu = " << qpParamData.ybu << std::endl;
   std::cout << "qpParamData.zbl = " << qpParamData.zbl << std::endl;
   std::cout << "qpParamData.zbu = " << qpParamData.zbu << std::endl;
+#endif
 
   std::cout << "\tParsing: " << "QU_buildings.inp" << std::endl;
 
