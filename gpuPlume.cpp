@@ -85,14 +85,15 @@ int main(int argc, char** argv)
   // Setup command line argument parsing
   // 
   ArgumentParsing argParser;
-  argParser.reg("fullscreen", 'f', no_argument);     
-  argParser.reg("networkmode", 'n', required_argument);
-  argParser.reg("viewingmode", 'm', required_argument);
-  argParser.reg("treadportview", 't', required_argument);
-  argParser.reg("dynamicTreadportFrustum", 'd', no_argument);
-  argParser.reg("sunAzimuth", 'a', required_argument);
-  argParser.reg("sunAltitude", 'e', required_argument);
-  argParser.reg("onlyCalcShadows", 'o', no_argument);
+  argParser.reg("numParticles", 'p', required_argument);
+  argParser.reg("fullscreen", 'f', no_argument);      //  data->fullscreen
+  argParser.reg("networkmode", 'n', required_argument);     //  std::string variable = std::string(argv[i+1]); data->network_mode = atoi(variable.c_str());
+  argParser.reg("viewingmode", 'm', required_argument);     //  std::string variable = std::string(argv[i+1]); data->viewing_mode = atoi(variable.c_str());
+  argParser.reg("treadportview", 't', required_argument);   //  std::string variable = std::string(argv[i+1]); data->treadport_view = variable.c_str()[0];
+  argParser.reg("dynamicTreadportFrustum", 'd', no_argument); // data->static_treadport_frustum = 0;
+  argParser.reg("sunAzimuth", 'a', required_argument);  // std::string variable = std::string(argv[i+1]); data->sun_azimuth = atoi(variable.c_str());
+  argParser.reg("sunAltitude", 'e', required_argument); // std::string variable = std::string(argv[i+1]); data->sun_altitude = atoi(variable.c_str());
+  argParser.reg("onlyCalcShadows", 'o', no_argument);  // data->onlyCalcShadows = true;
 
   // allocate memory for the timing values
   // keep 1000 values
@@ -109,7 +110,7 @@ int main(int argc, char** argv)
 
   util = new Util();
 
-  // Must supply an argument containing the .proj file to be read.
+  // Must supply an argument containing the .prof file to be read.
   if (argc >= 2)
     {
       std::cout << "Reading input from file: \"" << argv[1] << "\"" << std::endl;
@@ -127,7 +128,6 @@ int main(int argc, char** argv)
   
   // Parse any command line options specifed.
   argParser.processCommandLineArgs(argc, argv);  
-
   CmdOptionInterpreter cmdOI(&argParser, util);
   cmdOI.parse();
   
