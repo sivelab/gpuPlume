@@ -54,4 +54,12 @@ void CmdOptionInterpreter::parse()
 
   if (m_argParser->isSet("onlyCalcShadows"))
     m_utilPtr->onlyCalcShadows = true;
+
+  if (m_argParser->isSet("numParticles", argVal))
+    {
+      m_utilPtr->qpParamData.numParticles = atoi(argVal.c_str());
+      m_utilPtr->twidth = (int)sqrt(m_utilPtr->qpParamData.numParticles);
+      m_utilPtr->theight = (int)sqrt(m_utilPtr->qpParamData.numParticles);
+      std::cout << "COMMAND LINE OVERRIDE: using num particles=" << m_utilPtr->qpParamData.numParticles << ". Actually using " << m_utilPtr->twidth * m_utilPtr->theight << " particles!" << std::endl;
+    }
 }

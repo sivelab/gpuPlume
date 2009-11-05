@@ -95,12 +95,12 @@ int ArgumentParsing::process(int argc, char *argv[])
 	{
 	  if (c == m_ArgVector[argIdx].optParams.val)
 	    {
-	      std::cout << "found option: " << m_ArgVector[argIdx].optParams.name << std::endl;
+	      // std::cout << "found option: " << m_ArgVector[argIdx].optParams.name << std::endl;
 	      m_ArgVector[argIdx].isSet = true;
 	      if (m_ArgVector[argIdx].optParams.has_arg != no_argument)
 		{
 		  m_ArgVector[argIdx].optionalArgument = optarg;	      
-		  std::cout << "\t optarg = " << optarg << std::endl;
+		  // std::cout << "\t optarg = " << optarg << std::endl;
 		}
 	      
 	      found = true;

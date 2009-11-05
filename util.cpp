@@ -1,3 +1,10 @@
+//
+
+//
+// Read QP_params and all QU_simparams
+// and all variable in QP_buildout, and 
+//
+
 /* util.cpp
    
    Last Author: $Author$
@@ -265,30 +272,8 @@ bool Util::readInput(std::string file){
       std::cout << "***************************************" << std::endl;
       return false;
     }
-
-#if 0
-  // ++++++++++++++++++++++++++++++++++++++++++++
-  // This was the original code for parsing our base input file... gpuPlume now loads off the 
-  // QUIC files directly and only uses the input.txt settings file to pull in parameters specific
-  // to gpuPlume.
-  // ++++++++++++++++++++++++++++++++++++++++++++
-
-  // re-open the file for parsing
-  in.open(file.c_str(),std::ios::in);
-  char line[1024];
-  while(  !in.eof() )
-  {
-    in.getline(line, 1024);
-    if( line[ strlen(line)] == '\n' ){
-      line[ strlen(line)] = '\0';
-    }
-    
-    parseLine(line);
-  }
-
-  in.close();
-#endif
 }
+
 void Util::parseLine(char* line){
 
   float f1;
@@ -818,9 +803,9 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   // for now, something basic...
   twidth = (int)sqrt(qpParamData.numParticles);
   theight = (int)sqrt(qpParamData.numParticles);
-  std::cout << "Requested " << qpParamData.numParticles << " particles.  Actually using " << twidth * theight << " particles!" << std::endl;
+  std::cout << "\t\tRequested " << qpParamData.numParticles << " particles.  Actually using " << twidth * theight << " particles!" << std::endl;
 
-  reuse_particles = true; // qpParamData.particleRecyclingFlag;
+  reuse_particles = qpParamData.particleRecyclingFlag;
 
   useRealTime = false;
   time_step = qpParamData.timeStep;

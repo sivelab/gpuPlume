@@ -10,6 +10,7 @@
 #include <cassert>
 #include <string>
 #include <cstdlib>
+#include <cmath>
 
 #include "ArgumentParsing.h"
 #include "util.h"

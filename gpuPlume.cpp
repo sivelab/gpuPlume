@@ -86,14 +86,14 @@ int main(int argc, char** argv)
   // 
   ArgumentParsing argParser;
   argParser.reg("numParticles", 'p', required_argument);
-  argParser.reg("fullscreen", 'f', no_argument);      //  data->fullscreen
-  argParser.reg("networkmode", 'n', required_argument);     //  std::string variable = std::string(argv[i+1]); data->network_mode = atoi(variable.c_str());
-  argParser.reg("viewingmode", 'm', required_argument);     //  std::string variable = std::string(argv[i+1]); data->viewing_mode = atoi(variable.c_str());
-  argParser.reg("treadportview", 't', required_argument);   //  std::string variable = std::string(argv[i+1]); data->treadport_view = variable.c_str()[0];
-  argParser.reg("dynamicTreadportFrustum", 'd', no_argument); // data->static_treadport_frustum = 0;
-  argParser.reg("sunAzimuth", 'a', required_argument);  // std::string variable = std::string(argv[i+1]); data->sun_azimuth = atoi(variable.c_str());
-  argParser.reg("sunAltitude", 'e', required_argument); // std::string variable = std::string(argv[i+1]); data->sun_altitude = atoi(variable.c_str());
-  argParser.reg("onlyCalcShadows", 'o', no_argument);  // data->onlyCalcShadows = true;
+  argParser.reg("fullscreen", 'f', no_argument);
+  argParser.reg("networkmode", 'n', required_argument);
+  argParser.reg("viewingmode", 'm', required_argument);
+  argParser.reg("treadportview", 't', required_argument);
+  argParser.reg("dynamicTreadportFrustum", 'd', no_argument);
+  argParser.reg("sunAzimuth", 'a', required_argument);
+  argParser.reg("sunAltitude", 'e', required_argument);
+  argParser.reg("onlyCalcShadows", 'o', no_argument);
 
   // allocate memory for the timing values
   // keep 1000 values
