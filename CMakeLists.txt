@@ -51,6 +51,10 @@ endif(APPLE)
 # directory structure.  
 add_subdirectory (fileParser)
 
+# build a library for handling all of the QUIC files for reading and
+# writing.
+add_subdirectory (quicLoader)
+
 # Recuse into the TreadNet subdirectory to build the libraries to
 # connect to the TPAWT.
 add_subdirectory (TreadNet/Packet)
@@ -74,12 +78,45 @@ link_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Controller)
 # The source files are placed in the list after the executable name. 
 add_executable (gpuPlume 
 	       gpuPlume.cpp 
-	       ArgumentParsing.h ArgumentParsing.cpp
+	       ArgumentParsing.h 
+	       ArgumentParsing.cpp
 	       framebufferObject.cpp 
 	       renderbuffer.cpp 
 	       GLSL.cpp 
 	       glErrorUtil.cpp 
-	       particleControl.cpp pointEmitter.cpp sphereEmitter.cpp particleEmitter.cpp displayControl.cpp plumeControl.cpp Timer.cpp collectionBox.cpp util.cpp simulation.cpp streamLine.cpp Random.cpp nonGaussianModel.cpp GaussianModel.cpp Gaussian_2shaders_Model.cpp ReflectionModel.cpp MultipleBuildingsModel.cpp  GeomTest.cpp PathLine.cpp Contour.cpp VisualPlane.cpp lineEmitter.cpp planeEmitter.cpp IsoSurface.cpp NetworkManager.cpp broadcaster.cpp receiver.cpp InetAddress.cpp TreadportManager.cpp graphicsUtil.cpp rgb.cpp CmdOptionInterpreter.cpp) 
+	       particleControl.cpp 
+	       pointEmitter.cpp 
+	       sphereEmitter.cpp 
+	       particleEmitter.cpp 
+	       displayControl.cpp 
+	       plumeControl.cpp 
+	       Timer.cpp 
+	       collectionBox.cpp 
+	       util.cpp 
+	       simulation.cpp 
+	       streamLine.cpp 
+	       Random.cpp 
+	       nonGaussianModel.cpp 
+	       GaussianModel.cpp 
+	       Gaussian_2shaders_Model.cpp 
+	       ReflectionModel.cpp 
+	       MultipleBuildingsModel.cpp 
+	       GeomTest.cpp 
+	       PathLine.cpp 
+	       Contour.cpp 
+	       VisualPlane.cpp 
+	       lineEmitter.cpp 
+	       planeEmitter.cpp 
+	       IsoSurface.cpp 
+	       NetworkManager.cpp 
+	       broadcaster.cpp 
+	       receiver.cpp 
+	       InetAddress.cpp 
+	       TreadportManager.cpp 
+	       graphicsUtil.cpp 
+	       rgb.cpp 
+	       CmdOptionInterpreter.cpp
+) 
 
 # Link the executable to the TreadNet library. 
 target_link_libraries (gpuPlume NetController)
