@@ -101,6 +101,7 @@ bool quSimParams::writeQUICFile(const std::string &filename)
 {
   std::ofstream qufile;
   qufile.open(filename.c_str());
+  qufile << "!QUIC 5.51" << std::endl;
 
   if (qufile.is_open())
     {

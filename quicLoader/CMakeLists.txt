@@ -4,6 +4,8 @@ include_directories (${GPUPLUME_SOURCE_DIR}/fileParser/standard)
 
 add_library (quicLoader
 	    QUICDataFile.h
+	    QUBuildings.h
+	    QUBuildings.cpp
 	    QUSimparams.h
 	    QUSimparams.cpp
 	    QPParams.h
