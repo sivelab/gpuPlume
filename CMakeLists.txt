@@ -66,6 +66,9 @@ include_directories (${GPUPLUME_SOURCE_DIR}/fileParser/standard)
 # Make sure the linker can find the Hello library once it is built. 
 link_directories (${GPUPLUME_SOURCE_DIR}/fileParser)
 
+include_directories (${GPUPLUME_SOURCE_DIR}/quicLoader) 
+link_directories (${GPUPLUME_SOURCE_DIR}/quicLoader)
+
 # Make sure the compiler can find the include files for the TreadNet library.
 include_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Packet)
 include_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Controller)
@@ -126,5 +129,6 @@ target_link_libraries (gpuPlume ServerController)
 
 # Link the executable to the file parser library. 
 target_link_libraries (gpuPlume StandardFileParser) 
+target_link_libraries (gpuPlume quicLoader) 
 target_link_libraries (gpuPlume ${LIBS})
 

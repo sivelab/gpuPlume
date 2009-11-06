@@ -571,229 +571,33 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   output_file = "/tmp/junkGPUPlume.txt";
   output_id = 42;
 
-  // create the legacy file parser to parse the QU_simparams.inp file.
-  legacyFileParser* lfp = new legacyFileParser();  
+  // ///////////////////////////////////////////////////////////
+  // 
+  // Parse and Read QU_simparams.inp file.
+  // ///////////////////////////////////////////////////////////
+  quSimParamData.readQUICFile(quicFilesPath + "QU_simparams.inp");
 
-  intElement ie_nx = intElement("nx - Domain Length(X) Grid Cells");
-  intElement ie_ny = intElement("ny - Domain Width(Y) Grid Cells");
-  intElement ie_nz = intElement("nz - Domain Height(Z) Grid Cells");
-  lfp->commit(ie_nx);
-  lfp->commit(ie_ny);
-  lfp->commit(ie_nz);
-
-  floatElement fe_dx = floatElement("dx (meters)");
-  floatElement fe_dy = floatElement("dy (meters)");
-  floatElement fe_dz = floatElement("dz (meters)");
-  lfp->commit(fe_dx);
-  lfp->commit(fe_dy);
-  lfp->commit(fe_dz);
-		
-  floatElement fe_start_time   = floatElement("decimal start time (hr)");
-  floatElement fe_time_incr    = floatElement("time increment (hr)");
-  intElement ie_num_time_steps = intElement("total time increments");
-  lfp->commit(fe_start_time);
-  lfp->commit(fe_time_incr);
-  lfp->commit(ie_num_time_steps);
-		
-  intElement ie_roof_type   = intElement("rooftop flag (0-none, 1-log profile, 2-vortex)");
-  intElement ie_upwind_type = intElement("upwind cavity flag (0-none, 1-Rockle, 2-MVP, 3-HMVP)");
-  intElement ie_canyon_type = intElement("street canyon flag (0-none, 1-Roeckle, 2-CPB, 3-exp. param. PKK, 4-Roeckle w/ Fackrel)");
-  boolElement be_intersection_flag = boolElement("street intersection flag (0-off, 1-on)");
-  lfp->commit(ie_roof_type);
-  lfp->commit(ie_upwind_type);
-  lfp->commit(ie_canyon_type);
-  lfp->commit(be_intersection_flag);
-		
-  intElement ie_max_iterations     = intElement("Maximum number of iterations");
-  intElement ie_residual_reduction = intElement("Residual Reduction (Orders of Magnitude)");
-  boolElement be_diffusion_flag    = boolElement("Use Diffusion Algorithm (1 = on)");
-  intElement ie_diffusion_step     = intElement("Number of Diffusion iterations");
-  lfp->commit(ie_max_iterations);
-  lfp->commit(ie_residual_reduction);
-  lfp->commit(be_diffusion_flag);
-  lfp->commit(ie_diffusion_step);
-		
-  floatElement fe_domain_rotation = floatElement("Domain rotation relative to true north (cw = +)");
-  intElement ie_utmx              = intElement("UTMX of domain origin (m)");
-  intElement ie_utmy              = intElement("UTMY of domain origin (m)");
-  lfp->commit(fe_domain_rotation);
-  lfp->commit(ie_utmx);
-  lfp->commit(ie_utmy);
-		
-  intElement ie_utm_zone      = intElement("UTM zone");
-  intElement be_quic_cfd_type = intElement("QUIC-CFD Flag");
-  intElement ie_wake_type     = intElement("wake flag (0-none, 1-Rockle, 2-Modified Rockle)");
-  lfp->commit(ie_utm_zone);
-  lfp->commit(be_quic_cfd_type);
-  lfp->commit(ie_wake_type);
-		
-  std::cout << "\tParsing: " << "QU_simparams.inp" << std::endl;
-
-  lfp->study(quicFilesPath + "QU_simparams.inp");
+  // just testing the writing abilities...
+  quSimParamData.writeQUICFile("/tmp/QU_simparams.inp");
 
   // Check for discovery and default if necessary.		
-  nx = (lfp->recall(ie_nx)) ? ie_nx.value : 0 ;
-  ny = (lfp->recall(ie_ny)) ? ie_ny.value : 0 ;
-  nz = (lfp->recall(ie_nz)) ? ie_nz.value : 0 ; nz++;
+  nx = quSimParamData.nx;
+  ny = quSimParamData.ny;
+  nz = quSimParamData.nz;
 
-  if(nx == 0 || ny == 0) {std::cerr << "Error::urbSetup::one or more dimensions is zero." << std::endl; exit(EXIT_FAILURE);}
-
-  dx = (lfp->recall(fe_dx)) ? fe_dx.value : 1. ;
-  dy = (lfp->recall(fe_dy)) ? fe_dy.value : 1. ;
-  dz = (lfp->recall(fe_dz)) ? fe_dz.value : 1. ;
+  dx = quSimParamData.dx;
+  dy = quSimParamData.dy;
+  dz = quSimParamData.dz;
 		
-  float start_time = (lfp->recall(fe_start_time))     ? fe_start_time.value     : 0. ;
-  float QU_time_step = (lfp->recall(fe_time_incr))      ? fe_time_incr.value      : 0. ;
-  int num_time_steps = (lfp->recall(ie_num_time_steps)) ? ie_num_time_steps.value : 1 ;
-		
-  int roof_type   = (lfp->recall(ie_roof_type))   ? ie_roof_type.value   : 0 ;
-  int upwind_type = (lfp->recall(ie_upwind_type)) ? ie_upwind_type.value : 0 ;
-  int canyon_type = (lfp->recall(ie_canyon_type)) ? ie_canyon_type.value : 0 ;
-  int intersection_flag = (lfp->recall(be_intersection_flag)) ? be_intersection_flag.value : false ;
-		
-  int max_iterations     = (lfp->recall(ie_max_iterations))     ? ie_max_iterations.value     : 10000 ;
-  int residual_reduction = (lfp->recall(ie_residual_reduction)) ? ie_residual_reduction.value :     3 ;
-  int diffusion_flag     = (lfp->recall(be_diffusion_flag))     ? be_diffusion_flag.value     : false ;
-  int diffusion_step     = (lfp->recall(ie_diffusion_step))     ? ie_diffusion_step.value     :     1 ;
-		
-  int domain_rotation = (lfp->recall(fe_domain_rotation)) ? fe_domain_rotation.value : 0. ;
-  float utmx = (lfp->recall(ie_utmx)) ? ie_utmx.value : 0 ;
-  float utmy = (lfp->recall(ie_utmy)) ? ie_utmy.value : 0 ;
-		
-  int utm_zone      = (lfp->recall(ie_utm_zone))      ? ie_utm_zone.value      :     0 ;
-  int quic_cfd_type = (lfp->recall(be_quic_cfd_type)) ? be_quic_cfd_type.value : false ;
-  int wake_type     = (lfp->recall(ie_wake_type))     ? ie_wake_type.value     :     0 ;
-		
-  delete lfp;
-
-
 
   // ///////////////////////////////////////////////////////////
   // 
-  // create the legacy file parser to parse the QP_params.inp file.
-  // 
-  lfp = new legacyFileParser();  
+  // Parse and Read QP_params.inp file.
+  // ///////////////////////////////////////////////////////////
+  qpParamData.readQUICFile(quicFilesPath + "QP_params.inp");
 
-  intElement ie_sourceTypeFlag = intElement("Source type flag (1 = Basic, 2 = Dense Gas, 3 = Distributed Particle Size, 4 = Explosive, 5 = ERAD source, 6 = Bio Slurry, 7 = 2-phase, 8 = Exfiltration)");
-  boolElement ie_isiteflag = boolElement("normal QUIC (isitefl=0) or sensor siting (=1) mode");
-  boolElement ie_iindoorflag = boolElement("indoor calculations turned off (=0) or turned on (=1)");
-  intElement ie_inextgridflag = intElement("1 - inner grid, 2 - outer grid");
-  floatElement ie_westernEdge = floatElement("Location of western edge of inner grid relative to outer grid (m)");
-  floatElement ie_southernEdge = floatElement("Location of southern edge of inner relative to outer grid (m)");
-  floatElement ie_z0 = floatElement("Wall Surface Roughness Length (m)");
-  floatElement ie_rcl = floatElement("Reciprocal Monin-Obukhov length(1/m)");
-  floatElement ie_boundaryLayerHeight = floatElement("Boundary Layer height (m)");
-  boolElement ie_nonLocalMixing = boolElement("use 1 to enable non-local mixing");
-  intElement ie_numParticles = intElement("number of particles released over entire simulation");
-  intElement ie_particleDistFlag = intElement("Number of particle distribution flag (1 = by mass, 2 = by source)");
-  boolElement ie_particleSplitFlag = boolElement("Particle splitting flag");
-  boolElement ie_particleRecyclingFlag = boolElement("Particle recycling flag");
-  intElement ie_partNumIncreaseFactor = intElement("Total particle number increase factor");
-  intElement ie_numParticleSplit = intElement("Number of particles a particle is split into");
-  floatElement ie_partSplittingDosage = floatElement("Particle splitting target dose (gs/m^3)");
-  floatElement ie_taylorMicroscaleMin = floatElement("Enable Taylor microscale lower limit to sub-time steps");
-  intElement ie_randomNumberSeed = intElement("Random number seed");
-  floatElement ie_timeStep = floatElement("time step (s)");
-  floatElement ie_duration = floatElement("duration (s)");
-  floatElement ie_concAvgTime = floatElement("concentration averaging time (s)");
-  floatElement ie_concStartTime = floatElement("starting time for concentration averaging (s)");
-  floatElement ie_partOutputPeriod = floatElement("particle output period (s)");
-  floatElement ie_nbx = floatElement("in x direction, # of collecting boxes (concentration grid cells) ");
-  floatElement ie_nby = floatElement("in y direction, # of collecting boxes (concentration grid cells) ");
-  floatElement ie_nbz = floatElement("in z direction, # of collecting boxes (concentration grid cells) ");
-  floatElement ie_xbl = floatElement("lower limits for collecting boxes in x in meters");
-  floatElement ie_xbu = floatElement("upper limits for collecting boxes in x direction in meters");
-  floatElement ie_ybl = floatElement("lower limits for collecting boxes in y in meters");
-  floatElement ie_ybu = floatElement("upper limits for collecting boxes in y direction in meters");
-  floatElement ie_zbl = floatElement("lower limits for collecting boxes in z in meters");
-  floatElement ie_zbu = floatElement("upper limits for collecting boxes in z direction in meters");
-
-  lfp->commit(ie_sourceTypeFlag);
-  lfp->commit(ie_isiteflag);
-  lfp->commit(ie_iindoorflag);
-  lfp->commit(ie_inextgridflag);
-  lfp->commit(ie_westernEdge);
-  lfp->commit(ie_southernEdge);
-  lfp->commit(ie_z0);
-  lfp->commit(ie_rcl);
-  lfp->commit(ie_boundaryLayerHeight);
-  lfp->commit(ie_nonLocalMixing);
-  lfp->commit(ie_numParticles);
-  lfp->commit(ie_particleDistFlag);
-  lfp->commit(ie_particleSplitFlag);
-  lfp->commit(ie_particleRecyclingFlag);
-  lfp->commit(ie_partNumIncreaseFactor);
-  lfp->commit(ie_numParticleSplit);
-  lfp->commit(ie_partSplittingDosage);
-  lfp->commit(ie_taylorMicroscaleMin);
-  lfp->commit(ie_randomNumberSeed);
-  lfp->commit(ie_timeStep);
-  lfp->commit(ie_duration);
-  lfp->commit(ie_concAvgTime);
-  lfp->commit(ie_concStartTime);
-  lfp->commit(ie_partOutputPeriod);
-  lfp->commit(ie_nbx);
-  lfp->commit(ie_nby);
-  lfp->commit(ie_nbz);
-  lfp->commit(ie_xbl);
-  lfp->commit(ie_xbu);
-  lfp->commit(ie_ybl);
-  lfp->commit(ie_ybu);
-  lfp->commit(ie_zbl);
-  lfp->commit(ie_zbu);
-
-  std::cout << "\tParsing: " << "QP_params.inp" << std::endl;
-  lfp->study(quicFilesPath + "QP_params.inp");
-
-  // Check for discovery and default if necessary.		
-  if (lfp->recall(ie_sourceTypeFlag))
-    {
-      if (ie_sourceTypeFlag.value == 1) qpParamData.sourceFlag = qpParams::BASIC;
-      else if (ie_sourceTypeFlag.value == 2) qpParamData.sourceFlag = qpParams::DENSEGAS;
-      else if (ie_sourceTypeFlag.value == 3) qpParamData.sourceFlag = qpParams::DISTPARTSIZE;
-      else if (ie_sourceTypeFlag.value == 4) qpParamData.sourceFlag = qpParams::EXPLOSIVE;
-      else if (ie_sourceTypeFlag.value == 5) qpParamData.sourceFlag = qpParams::ERADSOURCE;
-      else if (ie_sourceTypeFlag.value == 6) qpParamData.sourceFlag = qpParams::BIOSLURRY;
-      else if (ie_sourceTypeFlag.value == 7) qpParamData.sourceFlag = qpParams::TWOPHASE;
-      else if (ie_sourceTypeFlag.value == 8) qpParamData.sourceFlag = qpParams::EXFILTRATION;
-      else 
-	qpParamData.sourceFlag = qpParams::BASIC;
-    }
-
-  qpParamData.isiteflag = (lfp->recall(ie_isiteflag)) ? ie_isiteflag.value : 0;
-  qpParamData.iindoorflag = (lfp->recall(ie_iindoorflag)) ? ie_iindoorflag.value : false;
-  qpParamData.inextgridflag = (lfp->recall(ie_inextgridflag)) ? ie_inextgridflag.value : 1;
-  qpParamData.westernEdge = (lfp->recall(ie_westernEdge)) ? ie_westernEdge.value : 0;
-  qpParamData.southernEdge = (lfp->recall(ie_southernEdge)) ? ie_southernEdge.value : 0;
-  qpParamData.z0 = (lfp->recall(ie_z0)) ? ie_z0.value : 0;
-  qpParamData.rcl = (lfp->recall(ie_rcl)) ? ie_rcl.value : 0;
-  qpParamData.boundaryLayerHeight = (lfp->recall(ie_boundaryLayerHeight)) ? ie_boundaryLayerHeight.value : 0;
-  qpParamData.nonLocalMixing = (lfp->recall(ie_nonLocalMixing)) ? ie_nonLocalMixing.value : 0;
-  qpParamData.numParticles = (lfp->recall(ie_numParticles)) ? ie_numParticles.value : 0;
-  qpParamData.particleDistFlag = (lfp->recall(ie_particleDistFlag)) ? ie_particleDistFlag.value : 0;
-  qpParamData.particleSplitFlag = (lfp->recall(ie_particleSplitFlag)) ? ie_particleSplitFlag.value : 0;
-  qpParamData.particleRecyclingFlag = (lfp->recall(ie_particleRecyclingFlag)) ? ie_particleRecyclingFlag.value : 0;
-  qpParamData.partNumIncreaseFactor = (lfp->recall(ie_partNumIncreaseFactor)) ? ie_partNumIncreaseFactor.value : 0;
-  qpParamData.numParticleSplit = (lfp->recall(ie_numParticleSplit)) ? ie_numParticleSplit.value : 0;
-  qpParamData.partSplittingDosage = (lfp->recall(ie_partSplittingDosage)) ? ie_partSplittingDosage.value : 0;
-  qpParamData.taylorMicroscaleMin = (lfp->recall(ie_taylorMicroscaleMin)) ? ie_taylorMicroscaleMin.value : 0;
-  qpParamData.randomNumberSeed = (lfp->recall(ie_randomNumberSeed)) ? ie_randomNumberSeed.value : 0;
-  qpParamData.timeStep = (lfp->recall(ie_timeStep)) ? ie_timeStep.value : 0;
-  qpParamData.duration = (lfp->recall(ie_duration)) ? ie_duration.value : 0;
-  qpParamData.concAvgTime = (lfp->recall(ie_concAvgTime)) ? ie_concAvgTime.value : 0;
-  qpParamData.concStartTime = (lfp->recall(ie_concStartTime)) ? ie_concStartTime.value : 0;
-  qpParamData.partOutputPeriod = (lfp->recall(ie_partOutputPeriod)) ? ie_partOutputPeriod.value : 0;
-  qpParamData.nbx = (lfp->recall(ie_nbx)) ? ie_nbx.value : 0;
-  qpParamData.nby = (lfp->recall(ie_nby)) ? ie_nby.value : 0;
-  qpParamData.nbz = (lfp->recall(ie_nbz)) ? ie_nbz.value : 0;
-  qpParamData.xbl = (lfp->recall(ie_xbl)) ? ie_xbl.value : 0;
-  qpParamData.xbu = (lfp->recall(ie_xbu)) ? ie_xbu.value : 0;
-  qpParamData.ybl = (lfp->recall(ie_ybl)) ? ie_ybl.value : 0;
-  qpParamData.ybu = (lfp->recall(ie_ybu)) ? ie_ybu.value : 0;
-  qpParamData.zbl = (lfp->recall(ie_zbl)) ? ie_zbl.value : 0;
-  qpParamData.zbu = (lfp->recall(ie_zbu)) ? ie_zbu.value : 0;
-
-  delete lfp;
+  // just testing the writing abilities...
+  qpParamData.writeQUICFile("/tmp/QP_params.inp");
 
   // set the various components used by the previous incantations of
   // the software.  In particular, use the particle number here unless
@@ -833,95 +637,20 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   numBox_z = qpParamData.nbz;
   volumeBox();
 
-#if 0
-  std::cout << "QP_Params file: " << std::endl;
-  std::cout << "qpParamData.sourceFlag = " << qpParamData.sourceFlag << std::endl;
-  std::cout << "qpParamData.isiteflag = " << qpParamData.isiteflag << std::endl;
-  std::cout << "qpParamData.iindoorflag = " << qpParamData.iindoorflag << std::endl;
-  std::cout << "qpParamData.inextgridflag = " << qpParamData.inextgridflag << std::endl;
-  std::cout << "qpParamData.westernEdge = " << qpParamData.westernEdge << std::endl;
-  std::cout << "qpParamData.southernEdge = " << qpParamData.southernEdge << std::endl;
-  std::cout << "qpParamData.z0 = " << qpParamData.z0 << std::endl;
-  std::cout << "qpParamData.rcl = " << qpParamData.rcl << std::endl;
-  std::cout << "qpParamData.boundaryLayerHeight = " << qpParamData.boundaryLayerHeight << std::endl;
-  std::cout << "qpParamData.nonLocalMixing = " << qpParamData.nonLocalMixing << std::endl;
-  std::cout << "qpParamData.numParticles = " << qpParamData.numParticles << std::endl;
-  std::cout << "qpParamData.particleDistFlag = " << qpParamData.particleDistFlag << std::endl;
-  std::cout << "qpParamData.particleSplitFlag = " << qpParamData.particleSplitFlag << std::endl;
-  std::cout << "qpParamData.particleRecyclingFlag = " << qpParamData.particleRecyclingFlag << std::endl;
-  std::cout << "qpParamData.partNumIncreaseFactor = " << qpParamData.partNumIncreaseFactor << std::endl;
-  std::cout << "qpParamData.numParticleSplit = " << qpParamData.numParticleSplit << std::endl;
-  std::cout << "qpParamData.partSplittingDosage = " << qpParamData.partSplittingDosage << std::endl;
-  std::cout << "qpParamData.taylorMicroscaleMin = " << qpParamData.taylorMicroscaleMin << std::endl;
-  std::cout << "qpParamData.randomNumberSeed = " << qpParamData.randomNumberSeed << std::endl;
-  std::cout << "qpParamData.timeStep = " << qpParamData.timeStep << std::endl;
-  std::cout << "qpParamData.duration = " << qpParamData.duration << std::endl;
-  std::cout << "qpParamData.concAvgTime = " << qpParamData.concAvgTime << std::endl;
-  std::cout << "qpParamData.concStartTime = " << qpParamData.concStartTime << std::endl;
-  std::cout << "qpParamData.partOutputPeriod = " << qpParamData.partOutputPeriod << std::endl;
-  std::cout << "qpParamData.nbx = " << qpParamData.nbx << std::endl;
-  std::cout << "qpParamData.nby = " << qpParamData.nby << std::endl;
-  std::cout << "qpParamData.nbz = " << qpParamData.nbz << std::endl;
-  std::cout << "qpParamData.xbl = " << qpParamData.xbl << std::endl;
-  std::cout << "qpParamData.xbu = " << qpParamData.xbu << std::endl;
-  std::cout << "qpParamData.ybl = " << qpParamData.ybl << std::endl;
-  std::cout << "qpParamData.ybu = " << qpParamData.ybu << std::endl;
-  std::cout << "qpParamData.zbl = " << qpParamData.zbl << std::endl;
-  std::cout << "qpParamData.zbu = " << qpParamData.zbu << std::endl;
-#endif
 
-  std::cout << "\tParsing: " << "QU_buildings.inp" << std::endl;
 
-  // It's special...a common format is needed.
-  std::string bld_filepath = quicFilesPath + "QU_buildings.inp";
-  std::ifstream bldFile(bld_filepath.c_str(), std::ifstream::in);
-  if(!bldFile.is_open())
-    {
-      std::cerr << "urbSetup could not open :: " << bld_filepath << "." << std::endl;
-      exit(EXIT_FAILURE);
-    }
-		
-  std::string line;
-  std::stringstream ss(line, std::stringstream::in | std::stringstream::out);
+  // ///////////////////////////////////////////////////////////
+  // 
+  // Parse and Read QU_buildings.inp file.
+  // ///////////////////////////////////////////////////////////
+  quBuildingData.readQUICFile(quicFilesPath + "QU_buildings.inp");
 
-  // first thing in these files is now a comment 
-  getline(bldFile, line);
+  // just testing the writing abilities...
+  quBuildingData.writeQUICFile("/tmp/QU_buildings.inp");
 
-  int x_subdomain_start, y_subdomain_start, x_subdomain_end, y_subdomain_end;
-  float zo;
+  numBuild = quBuildingData.buildings.size();
 
-  // x subdomain (southwest corner)
-  getline(bldFile, line);
-  ss.str(line);
-  ss >> x_subdomain_start;
-		
-  // y subdomain (southwest corner)
-  getline(bldFile, line);
-  ss.str(line);
-  ss >> y_subdomain_start;
-
-  // x subdomain (northeast corner)
-  getline(bldFile, line);
-  ss.str(line);
-  ss >> x_subdomain_end;
-		
-  // y subdomain (northeast corner)
-  getline(bldFile, line);
-  ss.str(line);
-  ss >> y_subdomain_end;
-		
-  // wall roughness
-  getline(bldFile, line);
-  ss.str(line);
-  ss >> zo;
-		
-  // number of buildings
-  getline(bldFile, line);
-  ss.str(line);
-  int numbuilds = 0;
-  ss >> numbuilds;
-
-  numBuild = numbuilds;
+  // keep the old structures... for now... and fill in with these values...
   xfo = new float[numBuild];
   yfo = new float[numBuild];
   zfo = new float[numBuild];
@@ -931,60 +660,39 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   numSides = new int[numBuild];
   gamma = new float[numBuild];
 		
-  // building description !Bld #	Group	Type	Height	Width	Length	Xfo	Yfo	Zfo	Gamma	Attenuation	Values in grid cell units
-  //						!1	1	1	10	48	49	37	63	0	0	0
-  getline(bldFile, line);
-		
-  // buildings
-  int num = 0;
-  int group = 0;
-  int type = 0;
-		
-  float gamma_degrees=0.0,attenuation = 0.0;
-	    
-  float h,w,l;
-  float x,y,z;
-
-  for(int i = 0; i < numbuilds; i++)
+  for (int i=0; i<numBuild; i++)
     {
-      getline(bldFile, line);
-      ss.str(line);
-      ss >> num	>> group >> type;
-      ss >> h >> w >> l >> x >> y >> z >> gamma_degrees >> attenuation;
-      ss.clear();
-      xfo[i] = x;
-      yfo[i] = y;
-      zfo[i] = z;      
-      ht[i] = h;
-      wti[i] = w;
-      lti[i] = l;
-      gamma[i] = gamma_degrees;			
-      
-      switch(type)
-      {
+      xfo[i] = quBuildingData.buildings[i].xfo;
+      yfo[i] = quBuildingData.buildings[i].yfo;
+      zfo[i] = quBuildingData.buildings[i].zfo;
+      ht[i] = quBuildingData.buildings[i].height;
+      wti[i] = quBuildingData.buildings[i].width;
+      lti[i] = quBuildingData.buildings[i].length;
+      gamma[i] = quBuildingData.buildings[i].gamma;
+
+      switch(quBuildingData.buildings[i].type)
+	{
 	  case 1:
             numSides[i]=4;
 	    break;
 	    
-	case 2:    // building::CYLINDICAL
-            
+	  case 2:    // building::CYLINDICAL
             numSides[i]=1;
 	    break;
 	    
-	case 3:         // building::PENTAGON:
-           
+	  case 3:         // building::PENTAGON:
             numSides[i]=5;
 	    break;
-
+	    
 	    //case building::VEGETATION:	b = new vegetation(); break;
-
+	    
 	  default:
-	    std::cerr << "I don't know what kind of building " << type << " is." << std::endl;
+	    std::cerr << "I don't know what kind of building " << quBuildingData.buildings[i].type << " is." << std::endl;
 	    break;
 	}
     }
-		
-  bldFile.close();
+
+
 
   //
   // Read the QP_source file
@@ -999,6 +707,9 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
       exit(EXIT_FAILURE);
     }
 		
+  std::string line;
+  std::stringstream ss(line, std::stringstream::in | std::stringstream::out);
+
   // first thing in these files is now a comment 
   getline(sourceFile, line);
 
