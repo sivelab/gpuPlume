@@ -3,7 +3,7 @@
 
     implicit none
 
-    real*4, allocatable :: u(:,:,:),v(:,:,:),w(:,:,:)
+    real*8, allocatable :: u(:,:,:),v(:,:,:),w(:,:,:)
     integer i, j, k
     integer nx, ny, nz
 

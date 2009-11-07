@@ -128,7 +128,7 @@ target_link_libraries (gpuPlume Packet)
 target_link_libraries (gpuPlume ServerController)
 
 # Link the executable to the file parser library. 
-target_link_libraries (gpuPlume StandardFileParser) 
 target_link_libraries (gpuPlume quicLoader) 
+target_link_libraries (gpuPlume StandardFileParser) 
 target_link_libraries (gpuPlume ${LIBS})
 

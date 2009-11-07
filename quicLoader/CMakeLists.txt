@@ -6,8 +6,12 @@ add_library (quicLoader
 	    QUICDataFile.h
 	    QUBuildings.h
 	    QUBuildings.cpp
+	    QUMetParams.h
+	    QUMetParams.cpp
 	    QUSimparams.h
 	    QUSimparams.cpp
 	    QPParams.h
 	    QPParams.cpp
+	    QPSource.h
+	    QPSource.cpp
 )

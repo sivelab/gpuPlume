@@ -25,26 +25,26 @@ int main(int argc, char *argv[])
   int nx, ny, nz;
   nx = ny = nz = 2;
 
-  float *u = new float[nx * ny * nz];
-  float *v = new float[nx * ny * nz];
-  float *w = new float[nx * ny * nz];
+  double *u = new double[nx * ny * nz];
+  double *v = new double[nx * ny * nz];
+  double *w = new double[nx * ny * nz];
 
-  float *dval;
+  double *dval;
   int dataN = nx*ny*nz;
-  int dataSz = dataN * sizeof(float);
+  int dataSz = dataN * sizeof(double);
 
   for (int i=0; i<(dataN); i++)
     {
-      dval = reinterpret_cast<float*>(&fileBuffer[cd]);
+      dval = reinterpret_cast<double*>(&fileBuffer[cd]);
       u[i] = *dval;
 
-      dval = reinterpret_cast<float*>(&fileBuffer[cd + dataSz]);
+      dval = reinterpret_cast<double*>(&fileBuffer[cd + dataSz]);
       v[i] = *dval;
 
-      dval = reinterpret_cast<float*>(&fileBuffer[cd + dataSz*2]);
+      dval = reinterpret_cast<double*>(&fileBuffer[cd + dataSz*2]);
       w[i] = *dval;
 
-      cd += sizeof(float);
+      cd += sizeof(double);
     }
 
   for (int i=0; i<(nx * ny * nz); i++)

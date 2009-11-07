@@ -573,6 +573,16 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
 
   // ///////////////////////////////////////////////////////////
   // 
+  // Parse and Read QU_metparams.inp file.
+  // ///////////////////////////////////////////////////////////
+  quMetParamData.readQUICFile(quicFilesPath + "QU_metparams.inp");
+
+  // just testing the writing abilities...
+  quMetParamData.writeQUICFile("/tmp/QU_metparams.inp");
+
+
+  // ///////////////////////////////////////////////////////////
+  // 
   // Parse and Read QU_simparams.inp file.
   // ///////////////////////////////////////////////////////////
   quSimParamData.readQUICFile(quicFilesPath + "QU_simparams.inp");
@@ -693,44 +703,21 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
     }
 
 
+  // ///////////////////////////////////////////////////////////
+  // 
+  // Parse and Read QP_params.inp file.
+  // ///////////////////////////////////////////////////////////
+  qpSourceData.readQUICFile(quicFilesPath + "QP_source.inp");
 
-  //
-  // Read the QP_source file
-  //
-  std::cout << "\tParsing: QP_source.inp" << std::endl;;
+  // just testing the writing abilities...
+  qpSourceData.writeQUICFile("/tmp/QP_source.inp");
 
-  std::string source_filepath = quicFilesPath + "QP_source.inp";
-  std::ifstream sourceFile(source_filepath.c_str(), std::ifstream::in);
-  if(!sourceFile.is_open())
-    {
-      std::cerr << "gpuPlume could not open :: " << source_filepath << "." << std::endl;
-      exit(EXIT_FAILURE);
-    }
-		
-  std::string line;
-  std::stringstream ss(line, std::stringstream::in | std::stringstream::out);
-
-  // first thing in these files is now a comment 
-  getline(sourceFile, line);
-
-  int numberOfSources, numberOfSourceNodes;
-
-  // Number of sources
-  getline(sourceFile, line);
-  ss.str(line);
-  ss >> numberOfSources;
-  ss.clear();
-		
-  // Number of source nodes
-  getline(sourceFile, line);
-  ss.str(line);
-  ss >> numberOfSourceNodes;
-  ss.clear();
-
+  // make it work with the other stuff...
   //
   // Allocate space for the sources
   //
-  numOfPE = numberOfSources;;
+  numOfPE = qpSourceData.sources.size();
+
   petype = new int[numOfPE];
   xpos = new float[numOfPE];
   ypos = new float[numOfPE];
@@ -741,262 +728,61 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   radius = new float[numOfPE];
   rate = new float[numOfPE];
 
-  // read over the remainder of the source file and pull out the respective parts
-  for(int i = 0; i < numOfPE; i++)
+#if 0
+  if (rType == 1) // IR
+    releaseType = 1;
+  else if (rType == 2)
+    releaseType = 1;
+  else if (rType == 3)
+    releaseType = 0;
+#endif
+
+  releaseType = 1;
+
+  for (int sourceId = 0; sourceId < qpSourceData.sources.size(); sourceId++)
     {
-      // First line in the source info is a comment like this: !Start of source number 1
-      getline(sourceFile, line);
-
-      // next is source name, which we don't use yet...
-      getline(sourceFile, line);
-
-      // source strength units
-      int strengthUnits = -1;
-      getline(sourceFile, line);
-      ss.str(line);
-      ss >> strengthUnits;
-      ss.clear();
-
-      // source strength 
-      int sourceStr;
-      getline(sourceFile, line);
-      ss.str(line);
-      ss >> sourceStr;
-      ss.clear();
-
-      // source density
-      int sourceDensity;
-      getline(sourceFile, line);
-      ss.str(line);
-      ss >> sourceDensity;
-      ss.clear();
-
-      // release type
-      int rType;
-      getline(sourceFile, line);
-      ss.str(line);
-      ss >> rType;
-      ss.clear();
-
-      // Release Type: 1 for instantaneous
-      //               2 for continuous
-      //               3 for discrete continous
-      // 
-      // Need to relate these values to our values, which are, of
-      // course, different.  Ugh.  Needs to be reworked.
-      //
-      if (rType == 1) // IR
-	releaseType = 1;
-      else if (rType == 2)
-	releaseType = 1;
-      else if (rType == 3)
-	releaseType = 0;
-
-      releaseType = 1;
-
-      // source start time
-      int sourceStart;
-      getline(sourceFile, line);
-      ss.str(line);
-      ss >> sourceStart;
-      ss.clear();
-
-      // source duration
-      int sourceDuration;
-      getline(sourceFile, line);
-      ss.str(line);
-      ss >> sourceDuration;
-      ss.clear();
-
-      // source geometry
-      int geomType;
-      getline(sourceFile, line);
-      ss.str(line);
-      ss >> geomType;
-      ss.clear();
-
-      // Source geometry (1 = spherical shell, 2 = line, 3 = cylinder,
-      // 4 = Explosive,5 = Area, 6 = Moving Point, 7 = spherical
-      // volume, 8 = Submunitions)
-      switch(geomType)
+      switch(qpSourceData.sources[sourceId].geometry)
 	{
-	  case 1:  // spherical shell
-	  case 7:  // spherical volume
-	    // spherical shell
-	    petype[i] = 3;
+	  // these are all treated as a sphere...
+	  case qpSource::SPHERICAL_SHELL:
+	  case qpSource::CYLINDER:
+	  case qpSource::EXPLOSIVE:
+	  case qpSource::AREA:
+	    petype[sourceId] = 3;
 	    
-	    // x coord of sphere
-	    getline(sourceFile, line);  
-	    ss.str(line);
-	    ss >> xpos[i];
-	    ss.clear();
-
-	    // y coord of sphere
-	    getline(sourceFile, line);  
-	    ss.str(line);
-	    ss >> ypos[i];
-	    ss.clear();
-
-	    // z coord of sphere
-	    getline(sourceFile, line);  
-	    ss.str(line);
-	    ss >> zpos[i];
-	    ss.clear();
-
-	    // radius
-	    getline(sourceFile, line);  
-	    ss.str(line);
-	    ss >> radius[i];
-	    ss.clear();
-
-	    rate[i] = 800.0;
-
-	    // Adding sphere source
-	    std::cout << "\t\tSphere Source: " << xpos[i] << ',' << ypos[i] << ',' << zpos[i] << std::endl;
-	    break;
+	    xpos[sourceId] = qpSourceData.sources[sourceId].points[0].x;
+	    ypos[sourceId] = qpSourceData.sources[sourceId].points[0].y;
+	    zpos[sourceId] = qpSourceData.sources[sourceId].points[0].z;
+	    radius[sourceId] = qpSourceData.sources[sourceId].radius;
 	    
-	  case 2: // line
-	    petype[i] = 2;
-	    
-	    // !Numnber of data points
-	    int numPts;
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> numPts;
-	    ss.clear();
-
-	    // !x (m)   y (m)   z (m)
-	    getline(sourceFile, line);
-
-	    // for (nPts = 0; nPts < numPts; nPts++)
-	    // {
-	    getline(sourceFile, line);  
-	    ss.str(line);
-	    ss >> xpos[i] >> ypos[i] >> zpos[i];
-	    ss.clear();
-
-	    getline(sourceFile, line);  
-	    ss.str(line);
-	    ss >> xpos_e[i] >> ypos_e[i] >> zpos_e[i];
-	    ss.clear();
-
-	    radius[i] = 0.0;
-	    rate[i] = 800.0;
-
-	    // Adding line source
-	    std::cout << "\t\tLine Source: " << xpos[i] << ',' << ypos[i] << ',' << zpos[i] << " <---> " << xpos_e[i] << ',' << ypos_e[i] << ',' << zpos_e[i] << std::endl;
+	    rate[sourceId] = 800.0;
 	    break;
 
-	  case 3: // cylinder
-	    // don't suppot cylinder yet, so stick a sphere there...
-	    petype[i] = 3;
-
-	    // !x coord of center of cylinder base (m)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> xpos[i];
-	    ss.clear();
-
-	    // !y coord of center of cylinder base (m)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> ypos[i];
-	    ss.clear();
-
-	    // !z coord of cylinder base (m)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> zpos[i];
-	    ss.clear();
-
-	    // !radius of cylinder (m)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> radius[i];
-	    ss.clear();
-
-	    // !height of cylinder (m)
-	    getline(sourceFile, line);
-
-	    rate[i] = 800.0;
-
-	    std::cout << "\t\tCylinder Source: not added as cylinder... but as sphere." << std::endl;
-	    break;
-
-	  case 5: // area
-	    float a_xfo, a_yfo, a_zfo, a_w, a_h, a_l, a_rot;
-
-	    // !Area source xfo (m)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> a_xfo;
-	    ss.clear();
-
-	    // !Area source yfo (m)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> a_yfo;
-	    ss.clear();
-
-	    // !Area source zfo (m)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> a_zfo;
-	    ss.clear();
-
-	    // !Area source length (m)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> a_l;
-	    ss.clear();
-
-	    // !Area source width (m)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> a_w;
-	    ss.clear();
-
-	    // !Area source height (m)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> a_h;
-	    ss.clear();
-
-	    // !Area source rotation angle (o)
-	    getline(sourceFile, line);
-	    ss.str(line);
-	    ss >> a_rot;
-	    ss.clear();
-
-	    //
-	    // don't suppot area yet, so stick a sphere there at a reasonable location...
-	    //
-	    petype[i] = 3;
+	  case qpSource::LINE:
+	    petype[sourceId] = 2;
 	    
-	    xpos[i] = a_xfo;
-	    ypos[i] = a_yfo;
-	    zpos[i] = a_zfo;
-	    radius[i] = a_h;
+	    xpos[sourceId] = qpSourceData.sources[sourceId].points[0].x;
+	    ypos[sourceId] = qpSourceData.sources[sourceId].points[0].y;
+	    zpos[sourceId] = qpSourceData.sources[sourceId].points[0].z;
 
-	    rate[i] = 800.0;
+	    xpos_e[sourceId] = qpSourceData.sources[sourceId].points[1].x;
+	    ypos_e[sourceId] = qpSourceData.sources[sourceId].points[1].y;
+	    zpos_e[sourceId] = qpSourceData.sources[sourceId].points[1].z;
 
-	    std::cout << "\t\tArea Source: not added directly, but represented as sphere." << std::endl;
+	    radius[sourceId] = 0.0;
+	    rate[sourceId] = 800.0;
 	    break;
 
+	  default:
 	    // case 4: // explosive
 	    // case 6: // moving point
 	    // case 8: // submunitions
-	  default:
-	    std::cout << "\t\tEmitter Type " << geomType << " not yet supported." << std::endl;
+	    std::cout << "\t\tEmitter Type " << qpSourceData.sources[sourceId].geometry << " not yet supported." << std::endl;
 	    exit(EXIT_FAILURE);
 	    break;
 	}
-
-      // After this, we again have a comment
-      getline(sourceFile, line);        
     }
-  sourceFile.close();
-
+  
   return true;
 }
 

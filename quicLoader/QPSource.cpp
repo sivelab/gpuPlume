@@ -4,11 +4,10 @@ bool qpSource::readQUICFile(const std::string &filename)
 {
   std::cout << "\tParsing: QP_source.inp" << std::endl;;
 
-  std::string source_filepath = quicFilesPath + "QP_source.inp";
-  std::ifstream sourceFile(source_filepath.c_str(), std::ifstream::in);
+  std::ifstream sourceFile(filename.c_str(), std::ifstream::in);
   if(!sourceFile.is_open())
     {
-      std::cerr << "gpuPlume could not open :: " << source_filepath << "." << std::endl;
+      std::cerr << "gpuPlume could not open :: " << filename << "." << std::endl;
       exit(EXIT_FAILURE);
     }
 		
@@ -17,8 +16,6 @@ bool qpSource::readQUICFile(const std::string &filename)
 
   // first thing in these files is now a comment 
   getline(sourceFile, line);
-
-  int numberOfSources, numberOfSourceNodes;
 
   // Number of sources
   getline(sourceFile, line);
@@ -35,45 +32,48 @@ bool qpSource::readQUICFile(const std::string &filename)
   //
   // Allocate space for the sources
   //
-  numOfPE = numberOfSources;;
-  petype = new int[numOfPE];
-  xpos = new float[numOfPE];
-  ypos = new float[numOfPE];
-  zpos = new float[numOfPE];
-  xpos_e = new float[numOfPE];
-  ypos_e = new float[numOfPE];
-  zpos_e = new float[numOfPE];
-  radius = new float[numOfPE];
-  rate = new float[numOfPE];
+  sources.resize(numberOfSources);
 
   // read over the remainder of the source file and pull out the respective parts
-  for(int i = 0; i < numOfPE; i++)
+  for(int i=0; i<sources.size(); i++)
     {
-      // First line in the source info is a comment like this: !Start of source number 1
+     // First line in the source info is a comment like this: !Start of source number 1
       getline(sourceFile, line);
 
       // next is source name, which we don't use yet...
       getline(sourceFile, line);
 
       // source strength units
-      int strengthUnits = -1;
+      int sunit = -1;
       getline(sourceFile, line);
       ss.str(line);
-      ss >> strengthUnits;
+      ss >> sunit;
       ss.clear();
 
+      if (sunit == 1)
+	sources[i].strengthUnits = qpSource::G;
+      else if (sunit == 2)
+	sources[i].strengthUnits = qpSource::G_PER_S;
+      else if (sunit == 3)
+	sources[i].strengthUnits = qpSource::L;
+      else if (sunit == 4)
+	sources[i].strengthUnits = qpSource::L_PER_S;
+      else 
+	{
+	  std::cerr << "quicLoader: unknown strength unit type in source!" << std::endl;
+	  exit(EXIT_FAILURE);
+	}
+
       // source strength 
-      int sourceStr;
       getline(sourceFile, line);
       ss.str(line);
-      ss >> sourceStr;
+      ss >> sources[i].strength;
       ss.clear();
 
       // source density
-      int sourceDensity;
       getline(sourceFile, line);
       ss.str(line);
-      ss >> sourceDensity;
+      ss >> sources[i].density;
       ss.clear();
 
       // release type
@@ -83,34 +83,28 @@ bool qpSource::readQUICFile(const std::string &filename)
       ss >> rType;
       ss.clear();
 
-      // Release Type: 1 for instantaneous
-      //               2 for continuous
-      //               3 for discrete continous
-      // 
-      // Need to relate these values to our values, which are, of
-      // course, different.  Ugh.  Needs to be reworked.
-      //
-      if (rType == 1) // IR
-	releaseType = 1;
+      if (rType == 1)
+	sources[i].release = qpSource::INSTANTANEOUS;
       else if (rType == 2)
-	releaseType = 1;
+	sources[i].release = qpSource::CONTINUOUS;
       else if (rType == 3)
-	releaseType = 0;
-
-      releaseType = 1;
+	sources[i].release = qpSource::DISCRETE_CONTINUOUS;
+      else
+	{
+	  std::cerr << "quicLoader: unknown release type for source!" << std::endl;
+	  exit(EXIT_FAILURE);
+	}
 
       // source start time
-      int sourceStart;
       getline(sourceFile, line);
       ss.str(line);
-      ss >> sourceStart;
+      ss >> sources[i].startTime;
       ss.clear();
 
       // source duration
-      int sourceDuration;
       getline(sourceFile, line);
       ss.str(line);
-      ss >> sourceDuration;
+      ss >> sources[i].duration;
       ss.clear();
 
       // source geometry
@@ -127,41 +121,43 @@ bool qpSource::readQUICFile(const std::string &filename)
 	{
 	  case 1:  // spherical shell
 	  case 7:  // spherical volume
-	    // spherical shell
-	    petype[i] = 3;
-	    
+
+	    sources[i].geometry = qpSource::SPHERICAL_SHELL;
+	    sources[i].points.resize(1);
+
 	    // x coord of sphere
 	    getline(sourceFile, line);  
 	    ss.str(line);
-	    ss >> xpos[i];
+	    ss >> sources[i].points[0].x;
 	    ss.clear();
 
 	    // y coord of sphere
 	    getline(sourceFile, line);  
 	    ss.str(line);
-	    ss >> ypos[i];
+	    ss >> sources[i].points[0].y;
 	    ss.clear();
 
 	    // z coord of sphere
 	    getline(sourceFile, line);  
 	    ss.str(line);
-	    ss >> zpos[i];
+	    ss >> sources[i].points[0].z;
 	    ss.clear();
 
 	    // radius
 	    getline(sourceFile, line);  
 	    ss.str(line);
-	    ss >> radius[i];
+	    ss >> sources[i].radius;
 	    ss.clear();
 
-	    rate[i] = 800.0;
-
 	    // Adding sphere source
-	    std::cout << "\t\tSphere Source: " << xpos[i] << ',' << ypos[i] << ',' << zpos[i] << std::endl;
+	    std::cout << "\t\tSpherical Shell Source: " 
+		      << sources[i].points[0].x << ',' 
+		      << sources[i].points[0].y << ',' 
+		      << sources[i].points[0].z << std::endl;
 	    break;
 	    
 	  case 2: // line
-	    petype[i] = 2;
+	    sources[i].geometry = qpSource::LINE;
 	    
 	    // !Numnber of data points
 	    int numPts;
@@ -170,65 +166,82 @@ bool qpSource::readQUICFile(const std::string &filename)
 	    ss >> numPts;
 	    ss.clear();
 
+	    sources[i].points.resize(numPts);
+
+	    // skip over this...
 	    // !x (m)   y (m)   z (m)
 	    getline(sourceFile, line);
+	    
+	    int nPts;
+	    for (nPts = 0; nPts < numPts; nPts++)
+	      {
+		getline(sourceFile, line);  
+		ss.str(line);
+		ss >> sources[i].points[nPts].x >> sources[i].points[nPts].y >> sources[i].points[nPts].z;
+		ss.clear();
+	      }
 
-	    // for (nPts = 0; nPts < numPts; nPts++)
-	    // {
-	    getline(sourceFile, line);  
-	    ss.str(line);
-	    ss >> xpos[i] >> ypos[i] >> zpos[i];
-	    ss.clear();
-
-	    getline(sourceFile, line);  
-	    ss.str(line);
-	    ss >> xpos_e[i] >> ypos_e[i] >> zpos_e[i];
-	    ss.clear();
-
-	    radius[i] = 0.0;
-	    rate[i] = 800.0;
+	    sources[i].radius = 0.0;  // doesn't make sense for line
 
 	    // Adding line source
-	    std::cout << "\t\tLine Source: " << xpos[i] << ',' << ypos[i] << ',' << zpos[i] << " <---> " << xpos_e[i] << ',' << ypos_e[i] << ',' << zpos_e[i] << std::endl;
+	    std::cout << "\t\tLine Source: ";
+	    for (nPts = 0; nPts < numPts; nPts++)
+	      {
+		if (nPts > 0) std::cout << " <----> ";
+		std::cout << sources[nPts].points[nPts].x << ',' 
+			  << sources[nPts].points[nPts].y << ',' 
+			  << sources[nPts].points[nPts].z;
+	      }
+	    std::cout << std::endl;
+	    
 	    break;
 
 	  case 3: // cylinder
-	    // don't suppot cylinder yet, so stick a sphere there...
-	    petype[i] = 3;
+	    // 
+	    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	    // don't support cylinder yet, so stick a sphere there...
+	    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	    // 
+
+	    sources[i].geometry = qpSource::SPHERICAL_SHELL;
+
+	    sources[i].points.resize(1);
 
 	    // !x coord of center of cylinder base (m)
 	    getline(sourceFile, line);
 	    ss.str(line);
-	    ss >> xpos[i];
+	    ss >> sources[i].points[0].x;
 	    ss.clear();
 
 	    // !y coord of center of cylinder base (m)
 	    getline(sourceFile, line);
 	    ss.str(line);
-	    ss >> ypos[i];
+	    ss >> sources[i].points[0].y;
 	    ss.clear();
 
 	    // !z coord of cylinder base (m)
 	    getline(sourceFile, line);
 	    ss.str(line);
-	    ss >> zpos[i];
+	    ss >> sources[i].points[0].z;
 	    ss.clear();
 
 	    // !radius of cylinder (m)
 	    getline(sourceFile, line);
 	    ss.str(line);
-	    ss >> radius[i];
+	    ss >> sources[i].radius;
 	    ss.clear();
 
 	    // !height of cylinder (m)
 	    getline(sourceFile, line);
 
-	    rate[i] = 800.0;
-
 	    std::cout << "\t\tCylinder Source: not added as cylinder... but as sphere." << std::endl;
 	    break;
 
 	  case 5: // area
+	    //
+	    // don't suppot area yet, so stick a sphere there at a reasonable location...
+	    //
+
 	    float a_xfo, a_yfo, a_zfo, a_w, a_h, a_l, a_rot;
 
 	    // !Area source xfo (m)
@@ -276,14 +289,13 @@ bool qpSource::readQUICFile(const std::string &filename)
 	    //
 	    // don't suppot area yet, so stick a sphere there at a reasonable location...
 	    //
-	    petype[i] = 3;
+	    sources[i].geometry = qpSource::SPHERICAL_SHELL;
 	    
-	    xpos[i] = a_xfo;
-	    ypos[i] = a_yfo;
-	    zpos[i] = a_zfo;
-	    radius[i] = a_h;
-
-	    rate[i] = 800.0;
+	    sources[i].points.resize(1);
+	    sources[i].points[0].x = a_xfo;
+	    sources[i].points[0].y = a_yfo;
+	    sources[i].points[0].z = a_zfo;
+	    sources[i].radius = a_h;
 
 	    std::cout << "\t\tArea Source: not added directly, but represented as sphere." << std::endl;
 	    break;
@@ -306,69 +318,6 @@ bool qpSource::readQUICFile(const std::string &filename)
 }
 
 
-bool Util::readSourceInfo(char *line, std::string settingName, int &source_type, float *f)
-{
-	std::istringstream ist(line);
-
-	std::string w, source_typename;
-
-	ist >> w;  // in other words, "source_info"
-	if(w == settingName){
-
-	  // check the source type, which will determine the remaining arguments
-	  ist >> source_typename;
-	  if (source_typename == "point")
-	    {
-	      source_type = 1;
-	      ist >> f[0];
-	      ist >> f[1];
-	      ist >> f[2];
-	      ist >> f[3];
-	    }
-	  else if (source_typename == "line")
-	    {
-	      source_type = 2;
-	      ist >> f[0];
-	      ist >> f[1];
-	      ist >> f[2];
-	      ist >> f[3];
-	      ist >> f[4];
-	      ist >> f[5];
-	      ist >> f[6];
-	    }
-	  else if (source_typename == "sphere")
-	    {
-	      source_type = 3;
-	      ist >> f[0];
-	      ist >> f[1];
-	      ist >> f[2];
-	      ist >> f[3];
-	      ist >> f[4];
-	    }
-	  else if (source_typename == "plane")
-	    {
-	      source_type = 4;
-	      ist >> f[0];
-	      ist >> f[1];
-	      ist >> f[2];
-	      ist >> f[3];
-	      ist >> f[4];
-	      ist >> f[5];
-	    }
-	  else
-	    {
-	      std::cerr << "\n*********************\nUnknown source type in settings file!\n*********************" << std::endl;
-	      return false;
-	    }
-
-	  return true;
-	}
-
-
-
-  return true;
-}
-
 bool qpSource::writeQUICFile(const std::string &filename)
 {
   std::ofstream qpfile;
@@ -377,8 +326,6 @@ bool qpSource::writeQUICFile(const std::string &filename)
   if (qpfile.is_open())
     {
       qpfile << "!QUIC 5.51" << std::endl;
-
-      
 
       return true;
     }

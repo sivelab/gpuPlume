@@ -5,11 +5,14 @@
 #include <fstream>
 #include <sstream>
 
-#include "quicLoader/QPParams.h"
 #include "quicLoader/QUBuildings.h"
-#include "quicLoader/QUSimParams.h"
+#include "quicLoader/QUMetParams.h"
+#include "quicLoader/QUSimparams.h"
 
-class Util{
+#include "quicLoader/QPParams.h"
+#include "quicLoader/QPSource.h"
+
+class Util {
 
  public:
 
@@ -148,14 +151,14 @@ class Util{
   
   bool onlyCalcShadows;
   
-  // A structure of parameters from the QP_params.inp file.
-  qpParams qpParamData;
-
-  // Structure to contain the QU_simparams.inp file.
+  // Structures to contain the QU_simparams.inp, QU_buildings.inp, QU_metparams.inp files.
   quSimParams quSimParamData;
-
-  // Structure to contain the QU_simparams.inp file.
   quBuildings quBuildingData;
+  quMetParams quMetParamData;
+
+  // A structure to contain the QP_params.inp, QP_source.inp files.
+  qpParams qpParamData;
+  qpSource qpSourceData;
 
  private:
 
