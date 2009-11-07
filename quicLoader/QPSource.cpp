@@ -2,7 +2,7 @@
 
 bool qpSource::readQUICFile(const std::string &filename)
 {
-  std::cout << "\tParsing: QP_source.inp" << std::endl;;
+  std::cout << "\tParsing: QP_source.inp: " << filename << std::endl;;
 
   std::ifstream sourceFile(filename.c_str(), std::ifstream::in);
   if(!sourceFile.is_open())
@@ -35,13 +35,15 @@ bool qpSource::readQUICFile(const std::string &filename)
   sources.resize(numberOfSources);
 
   // read over the remainder of the source file and pull out the respective parts
-  for(int i=0; i<sources.size(); i++)
+  for(unsigned int i=0; i<sources.size(); i++)
     {
      // First line in the source info is a comment like this: !Start of source number 1
       getline(sourceFile, line);
 
-      // next is source name, which we don't use yet...
       getline(sourceFile, line);
+      ss.str(line);
+      ss >> sources[i].name;
+      ss.clear();
 
       // source strength units
       int sunit = -1;
@@ -188,9 +190,9 @@ bool qpSource::readQUICFile(const std::string &filename)
 	    for (nPts = 0; nPts < numPts; nPts++)
 	      {
 		if (nPts > 0) std::cout << " <----> ";
-		std::cout << sources[nPts].points[nPts].x << ',' 
-			  << sources[nPts].points[nPts].y << ',' 
-			  << sources[nPts].points[nPts].z;
+		std::cout << sources[i].points[nPts].x << ',' 
+			  << sources[i].points[nPts].y << ',' 
+			  << sources[i].points[nPts].z;
 	      }
 	    std::cout << std::endl;
 	    
@@ -312,8 +314,8 @@ bool qpSource::readQUICFile(const std::string &filename)
       // After this, we again have a comment
       getline(sourceFile, line);        
     }
-  sourceFile.close();
 
+  sourceFile.close();
   return true;
 }
 
@@ -326,6 +328,29 @@ bool qpSource::writeQUICFile(const std::string &filename)
   if (qpfile.is_open())
     {
       qpfile << "!QUIC 5.51" << std::endl;
+
+      qpfile << numberOfSources << "\t\t\t!Number of sources" << std::endl;
+      qpfile << numberOfSourceNodes << "\t\t\t!Number of source nodes" << std::endl;
+
+      for (unsigned int i=0; i<sources.size(); i++)
+	{
+	  qpfile << "!Start of source number " << i << std::endl;
+	  qpfile << sources[i].name << "\t\t\t!source name" << std::endl;
+	  qpfile << sources[i].strengthUnits << "\t\t\t!Source strength units (1 = g, 2 = g/s, 3 = L,4 = L/s)" << std::endl;
+	  qpfile << sources[i].strength << "\t\t\t!Source Strength" << std::endl;
+	  qpfile << sources[i].density << "\t\t\t!Source Density (kg/m^3) [Only used for Volume based source strengths]" << std::endl;
+	  qpfile << sources[i].release << "\t\t\t!Release Type: =1 for instantaneous;=2 for continuous; =3 for discrete continous" << std::endl;
+	  qpfile << sources[i].startTime << "\t\t\t!Source start time (s)" << std::endl;
+	  qpfile << sources[i].duration << "\t\t\t!Source duration (s)" << std::endl;
+	  qpfile << sources[i].geometry << "\t\t\t!Source geometry (1 = spherical shell, 2 = line, 3 = cylinder, 4 = Explosive,5 = Area, 6 = Moving Point, 7 = spherical volume, 8 = Submunitions)" << std::endl;
+	  qpfile << sources[i].points.size() << "\t\t\t!Number of data points" << std::endl;
+	  qpfile << "!x (m)   y (m)   z (m)" << std::endl;
+	  for (unsigned int nPts=0; nPts<sources[i].points.size(); nPts++)
+	    {
+	      qpfile << sources[i].points[nPts].x << ' ' << sources[i].points[nPts].y << ' ' << sources[i].points[nPts].z << std::endl;
+	    }
+	  qpfile << "!End of source number " << i << std::endl;
+	}
 
       return true;
     }

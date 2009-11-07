@@ -132,3 +132,5 @@ target_link_libraries (gpuPlume quicLoader)
 target_link_libraries (gpuPlume StandardFileParser) 
 target_link_libraries (gpuPlume ${LIBS})
 
+add_subdirectory (populationSampleOpt)
+

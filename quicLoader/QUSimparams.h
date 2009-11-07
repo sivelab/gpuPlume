@@ -29,10 +29,15 @@ public:
   float dy;
   float dz;
 		
+  int vstretch;
+
   float start_time;
   float time_incr;
   int num_time_steps;
+  int day_of_year;
 		
+  int utc_conversion;
+
   int roof_type;
   int upwind_type;
   int canyon_type;

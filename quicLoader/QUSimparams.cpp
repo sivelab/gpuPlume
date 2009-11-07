@@ -19,13 +19,21 @@ bool quSimParams::readQUICFile(const std::string &filename)
   lfp->commit(fe_dy);
   lfp->commit(fe_dz);
 		
+  intElement ie_vstretch = intElement("Vertical stretching flag(0=uniform,1=custom,2=parabolic Z,3=parabolic DZ,4=exponential)");
+  lfp->commit(ie_vstretch);
+
   floatElement fe_start_time   = floatElement("decimal start time (hr)");
   floatElement fe_time_incr    = floatElement("time increment (hr)");
   intElement ie_num_time_steps = intElement("total time increments");
+  intElement ie_day_of_year = intElement("day of the year");
   lfp->commit(fe_start_time);
   lfp->commit(fe_time_incr);
   lfp->commit(ie_num_time_steps);
+  lfp->commit(ie_day_of_year);
 		
+  intElement ie_utc_conversion = intElement("UTC conversion");
+  lfp->commit(ie_utc_conversion);
+
   intElement ie_roof_type   = intElement("rooftop flag (0-none, 1-log profile, 2-vortex)");
   intElement ie_upwind_type = intElement("upwind cavity flag (0-none, 1-Rockle, 2-MVP, 3-HMVP)");
   intElement ie_canyon_type = intElement("street canyon flag (0-none, 1-Roeckle, 2-CPB, 3-exp. param. PKK, 4-Roeckle w/ Fackrel)");
@@ -72,9 +80,13 @@ bool quSimParams::readQUICFile(const std::string &filename)
   dy = (lfp->recall(fe_dy)) ? fe_dy.value : 1. ;
   dz = (lfp->recall(fe_dz)) ? fe_dz.value : 1. ;
 		
+  vstretch = (lfp->recall(ie_vstretch))     ? ie_vstretch.value     : 0 ;
   start_time = (lfp->recall(fe_start_time))     ? fe_start_time.value     : 0. ;
   time_incr = (lfp->recall(fe_time_incr))      ? fe_time_incr.value      : 0. ;
   num_time_steps = (lfp->recall(ie_num_time_steps)) ? ie_num_time_steps.value : 1 ;
+
+  day_of_year = (lfp->recall(ie_day_of_year)) ? ie_day_of_year.value : 0;
+  utc_conversion = (lfp->recall(ie_utc_conversion)) ? ie_utc_conversion.value : 0;
 		
   roof_type   = (lfp->recall(ie_roof_type))   ? ie_roof_type.value   : 0 ;
   upwind_type = (lfp->recall(ie_upwind_type)) ? ie_upwind_type.value : 0 ;
@@ -110,14 +122,22 @@ bool quSimParams::writeQUICFile(const std::string &filename)
       qufile << nz << "\t\t\t!nz - Domain Height(Z) Grid Cells" << std::endl;
       qufile << dx << "\t\t\t!dx (meters)" << std::endl;
       qufile << dy << "\t\t\t!dy (meters)" << std::endl;
+      qufile << vstretch << "\t\t\t!Vertical stretching flag(0=uniform,1=custom,2=parabolic Z,3=parabolic DZ,4=exponential)" << std::endl;
       qufile << dz << "\t\t\t!dz (meters)" << std::endl;
-      qufile << start_time << "\t\t\t!decimal start time (hr)" << std::endl;
-      qufile << time_incr << "\t\t\t!time increment (hr)" << std::endl;
       qufile << num_time_steps << "\t\t\t!total time increments" << std::endl;
+      qufile << day_of_year << "\t\t\t!day of the year" << std::endl;
+      qufile << utc_conversion << "\t\t\t!UTC conversion" << std::endl;
+      qufile << "!Time(s) of simulations in decimal hours" << std::endl;
+      qufile << "0" << std::endl;
+
+      // ??? qufile << start_time << "\t\t\t!decimal start time (hr)" << std::endl;
+      // qufile << time_incr << "\t\t\t!time increment (hr)" << std::endl;
+
       qufile << roof_type << "\t\t\t!rooftop flag (0-none, 1-log profile, 2-vortex)" << std::endl;
       qufile << upwind_type << "\t\t\t!upwind cavity flag (0-none, 1-Rockle, 2-MVP, 3-HMVP)" << std::endl;
       qufile << canyon_type << "\t\t\t!street canyon flag (0-none, 1-Roeckle, 2-CPB, 3-exp. param. PKK, 4-Roeckle w/ Fackrel)" << std::endl;
       qufile << intersection_flag << "\t\t\t!street intersection flag (0-off, 1-on)" << std::endl;
+      qufile << wake_type << "\t\t\t!wake flag (0-none, 1-Rockle, 2-Modified Rockle)" << std::endl;
       qufile << max_iterations << "\t\t\t!Maximum number of iterations" << std::endl;
       qufile << residual_reduction << "\t\t\t!Residual Reduction (Orders of Magnitude)" << std::endl;
       qufile << diffusion_flag << "\t\t\t!Use Diffusion Algorithm (1 = on)" << std::endl;
@@ -127,7 +147,6 @@ bool quSimParams::writeQUICFile(const std::string &filename)
       qufile << utmy << "\t\t\t!UTMY of domain origin (m)" << std::endl;
       qufile << utm_zone << "\t\t\t!UTM zone" << std::endl;
       qufile << quic_cfd_type << "\t\t\t!QUIC-CFD Flag" << std::endl;
-      qufile << wake_type << "\t\t\t!wake flag (0-none, 1-Rockle, 2-Modified Rockle)" << std::endl;
 
       return true;
     }

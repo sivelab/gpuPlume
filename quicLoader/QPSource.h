@@ -18,8 +18,6 @@ public:
   bool readQUICFile(const std::string &filename);
   bool writeQUICFile(const std::string &filename);
 
-  int numberOfSources, numberOfSourceNodes;
-  
   enum StrengthUnitType
     {
       G = 1,
@@ -54,6 +52,7 @@ public:
 
   struct SourceInfo
   {
+    std::string name;
     StrengthUnitType strengthUnits;  // Source strength units (1 = g, 2 = g/s, 3 = L,4 = L/s)
     float strength;     // Source Strength
     float density; // Source Density (kg/m^3) [Only used for Volume based source strengths]
@@ -67,6 +66,8 @@ public:
 
     float radius;
   };
+
+  int numberOfSources, numberOfSourceNodes;
 
   std::vector<SourceInfo> sources;
 
