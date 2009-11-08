@@ -539,7 +539,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   pwidth = 10;
   pheight = 10;
 
-  show_particle_visuals = true;
+  show_particle_visuals = false;
   show_collectionBox_visuals = false;
 
   // background color
@@ -557,7 +557,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   sigV = 2.0f*ustar;
   sigW = 1.3f*ustar;
 
-  pauseMode = true;
+  pauseMode = false;
   calculateMeanVel = false;
   updateParticleColors = true;
 
