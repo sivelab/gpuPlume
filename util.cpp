@@ -539,7 +539,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   pwidth = 10;
   pheight = 10;
 
-  show_particle_visuals = false;
+  show_particle_visuals = true;
   show_collectionBox_visuals = false;
 
   // background color
