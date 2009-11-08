@@ -59,7 +59,7 @@ bool quMetParams::readQUICFile(const std::string &filename)
   getline(quicFile, line);
   ss.str(line);
   ss >> fileName;
-  
+
   quicFile.close();
   return true;
 }

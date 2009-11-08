@@ -10,6 +10,8 @@ add_library (quicLoader
 	    QUBuildings.cpp
 	    QUMetParams.h
 	    QUMetParams.cpp
+	    QUSensor.h
+	    QUSensor.cpp
 	    QUSimparams.h
 	    QUSimparams.cpp
 	    QPParams.h
