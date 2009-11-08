@@ -62,4 +62,16 @@ void CmdOptionInterpreter::parse()
       m_utilPtr->theight = (int)sqrt(m_utilPtr->qpParamData.numParticles);
       std::cout << "COMMAND LINE OVERRIDE: using num particles=" << m_utilPtr->qpParamData.numParticles << ". Actually using " << m_utilPtr->twidth * m_utilPtr->theight << " particles!" << std::endl;
     }
+
+  if (m_argParser->isSet("concFile", argVal))
+    {
+      m_utilPtr->output_file = argVal;
+      std::cout << "COMMAND LINE OVERRIDE: using concentration output file: " << m_utilPtr->output_file << std::endl;
+    }
+
+  if (m_argParser->isSet("concId", argVal))
+    {
+      m_utilPtr->output_id = argVal;
+      std::cout << "COMMAND LINE OVERRIDE: using concentration id = " << m_utilPtr->output_id << std::endl;
+    }
 }

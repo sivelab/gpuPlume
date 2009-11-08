@@ -557,7 +557,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   sigV = 2.0f*ustar;
   sigW = 1.3f*ustar;
 
-  pauseMode = true;
+  pauseMode = false;
   calculateMeanVel = false;
   updateParticleColors = true;
 

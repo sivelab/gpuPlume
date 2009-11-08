@@ -86,6 +86,9 @@ int main(int argc, char** argv)
   // 
   ArgumentParsing argParser;
   argParser.reg("numParticles", 'p', required_argument);
+  argParser.reg("concFile", 'c', required_argument);
+  argParser.reg("concId", 'i', required_argument);
+
   argParser.reg("fullscreen", 'f', no_argument);
   argParser.reg("networkmode", 'n', required_argument);
   argParser.reg("viewingmode", 'm', required_argument);
