@@ -3037,7 +3037,7 @@ void ParticleControl::QUICWindField(){
   if (asciiFile)
     QUICWindField.open(path.c_str()); //opening the wind file  to read
   else
-    QUICWindField.open(path.c_str(), std::ifstream::in | std::ifstream::binary); //opening the wind file  to read
+    QUICWindField.open(path.c_str(), std::ios::binary); //opening the wind file  to read
 
   if(!QUICWindField){
     std::cerr<<"Unable to open QUIC Windfield file : QU_velocity.dat ";
@@ -3090,85 +3090,52 @@ void ParticleControl::QUICWindField(){
       int numBytes = QUICWindField.tellg();
       QUICWindField.seekg(0, std::ios::beg);
 
-      int numDoubles = 0;
-
       // allocate memory for whole file and read everything in at once
       char *fileBuffer = new char[numBytes];
       QUICWindField.read(fileBuffer, numBytes);
       QUICWindField.close();
 
-      int cd = 0;
-
       // skip over 4 or 8 bytes since that's how fortran dumps binary
-      // writes (depends on 32-bit versus 64-bit, respectively and I'm
-      // not sure how to determine that yet)
-      long int *lival = reinterpret_cast<long int*>(&fileBuffer[cd]);
-      std::cout << "numBytes = " << numBytes << ", lival = " << *lival << ", numDoubles = " << *lival / 3 << std::endl;
-      cd += sizeof(long int);
+      // writes (depends on 32-bit versus 64-bit, respectively and I'm not
+      // sure how to determine that yet)  ???
+      int cd = 0;
+      cd += sizeof(int);
 
-      // all U, all V, all W
+      int dataN = nxdx * nydy * nzdz;
+      int dataSz = dataN * sizeof(double);
+
       double *dval;
       int p2idx = 0;
-      for (int i=0; i<(nxdx * nydy * nzdz); i++)
-	{
-	  dval = reinterpret_cast<double*>(&fileBuffer[cd]);
-	  cd += sizeof(double);
-	  
-	  // this is a U value
-	  wind_vel[p2idx].u = *dval;
-	  p2idx++;
-	}
 
-      p2idx = 0;
-      for (int i=0; i<(nxdx * nydy * nzdz); i++)
-	{
-	  dval = reinterpret_cast<double*>(&fileBuffer[cd]);
-	  cd += sizeof(double);
-	  
-	  // this is a V value
-	  wind_vel[p2idx].v = *dval;
-	  p2idx++;
-	}
-
-      p2idx = 0;
-      for (int i=0; i<(nxdx * nydy * nzdz); i++)
-	{
-	  dval = reinterpret_cast<double*>(&fileBuffer[cd]);
-	  cd += sizeof(double);
-	  
-	  // this is a W value
-	  wind_vel[p2idx].w = *dval;
-	  p2idx++;
-	}
 #if 0
       for(int k = 0; k < nzdz; k++)
 	for(int i = 0; i < nydy; i++)
 	  for(int j = 0; j < nxdx; j++)
-	    {
-	    int p2idx = k*nxdx*nydy + i*nxdx + j;
-
-	      double *dval = reinterpret_cast<double*>(&fileBuffer[cd]);
-	      cd += sizeof(double);
-	      wind_vel[p2idx].u = *dval;
-	      numDoubles++;
-
-	      dval = reinterpret_cast<double*>(&fileBuffer[cd]);
-	      cd += sizeof(double);
-	      wind_vel[p2idx].v = *dval;
-	      numDoubles++;
-
-	      dval = reinterpret_cast<double*>(&fileBuffer[cd]);
-	      cd += sizeof(double);
-	      wind_vel[p2idx].w = *dval;
-	      numDoubles++;
-	      std::cout << "v = (" << wind_vel[p2idx].u << ", " << wind_vel[p2idx].v << ", " << wind_vel[p2idx].w << ")" << std::endl;
-
-	      p2idx++;
-	    }
 #endif
+	    for(int p2idx = 0; p2idx<dataN; p2idx++)
+	    {
+	      // p2idx = k*nxdx*nydy + i*nxdx + j;
+	      //for (int i=0; i<(dataN); i++)
+	      //	{
+	      dval = reinterpret_cast<double*>(&fileBuffer[cd]);
+	      // u[i] = *dval;
+	      wind_vel[p2idx].u = *dval;
+	  
+	      dval = reinterpret_cast<double*>(&fileBuffer[cd + dataSz]);
+	      // v[i] = *dval;
+	      wind_vel[p2idx].v = *dval;
+	  
+	      dval = reinterpret_cast<double*>(&fileBuffer[cd + dataSz*2]);
+	      // w[i] = *dval;
+	      wind_vel[p2idx].w = *dval;
+	  
+	      // std::cout << "v = (" << wind_vel[p2idx].u << ", " << wind_vel[p2idx].v << ", " << wind_vel[p2idx].w << ")" << std::endl;
 
-      // skip over 4 bytes since that's how fortran dumps binary writes
-      cd += 8;
+	      cd += sizeof(double);
+	}
+
+      // skip over 4 bytes since that's how fortran dumps binary writes 
+      // cd += 8;
       
       delete [] fileBuffer;
     }
