@@ -562,7 +562,7 @@ int MultipleBuildingsModel::display(){
 	  		le = dynamic_cast<LineEmitter*>(pe[peIdx]);
 				
 				if(le == NULL) {
-					std::cerr << "FETAL ERROR Line 559 (peIdx " << peIdx << "): dynamic_cast<LineEmitter*>(pe[peIdx]) failed.\n";
+					std::cerr << "FATAL ERROR Line 559 (peIdx " << peIdx << "): dynamic_cast<LineEmitter*>(pe[peIdx]) failed.\n";
 					exit(1);
 				}
 				
@@ -710,16 +710,18 @@ int MultipleBuildingsModel::display(){
       // every time the light source moves and does not need to be 
       // done every frame (large waste).
       if(reCalcShadows) {
-	generateShadowMap();
-	for(int i = 0; i < util->nz; i++) {
-	  genGridShadow(i);
-	}
-	reCalcShadows = false;
+				generateShadowMap();
+				
+				for(int i = 0; i < util->nz; i++) {
+	  			genGridShadow(i);
+				}
+				
+				reCalcShadows = false;
       }
 
       if(util->onlyCalcShadows) {
-	writeShadowMapToFile();
-	exit(0);
+				writeShadowMapToFile();
+				exit(0);
       }
       
       // GLfloat windDir[3];
@@ -763,13 +765,11 @@ int MultipleBuildingsModel::display(){
 
       // Initialize the view frustum.
       dc->initializeView();
-      
-      // dc->drawVisuals(vertex_buffer, windField, color_buffer, numInRow, twidth, theight);
-
-      // Last good one...
-      // dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight);
+			
+			// Draw the visuals (done in DisplayControl).
       dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight, texid[0], prime0);
-
+			
+			// Uninitialize view (this is done because of treadport compatibility).
       dc->deinitializeView();
 
       CheckErrorsGL("MBA : called drawVisuals");
@@ -785,27 +785,26 @@ int MultipleBuildingsModel::display(){
 
       glDisable(texType);
       if(dc->tau_visual == draw_contours){
-	//contours->draw();
-	contours->displayContourLayer(pc,tau,numInRow);
+				//contours->draw();
+				contours->displayContourLayer(pc,tau,numInRow);
       }
       glEnable(texType);
 
       if(dc->tau_visual == draw_layers){
-	if(planeVisual->visual_field > 0)
-	  if(planeVisual->rotationPlane)
-	    planeVisual->drawRotationalPlane();
-	  else
-	    planeVisual->drawAxisAlignedPlane();
-	else
-	  dc->drawLayers(windField,numInRow, util->calculatedMaxVel);
-
-	CheckErrorsGL("MBA : after drawing layers");
+				if(planeVisual->visual_field > 0)
+	  			if(planeVisual->rotationPlane)
+	    			planeVisual->drawRotationalPlane();
+	  			else
+	    			planeVisual->drawAxisAlignedPlane();
+				else
+	  				dc->drawLayers(windField,numInRow, util->calculatedMaxVel);
+				CheckErrorsGL("MBA : after drawing layers");
       }
       
 #if 0
       //Draw isosurface
       if(drawIsoSurface){
-	isoSurface->draw();
+			isoSurface->draw();
       }
 #endif
 
@@ -1400,53 +1399,46 @@ void MultipleBuildingsModel::generateShadowMap()
 
 void MultipleBuildingsModel::genGridShadow(int i) {
   
+  // Create and initialize the array of cell positions (the position being the
+  // center of each cell).
   GLfloat positions[util->nx][util->ny][4];
-  
   for(int x = 0; x < util->nx; x++) {
     for(int y = 0; y < util->ny; y++) {
-	positions[x][y][0] = x + 0.5f;
-	positions[x][y][1] = y + 0.5f;
-	positions[x][y][2] = 0.5f;
-	positions[x][y][3] = 1.0f;
+			positions[x][y][0] = x + 0.5f;
+			positions[x][y][1] = y + 0.5f;
+			positions[x][y][2] = 0.5f;
+			positions[x][y][3] = 1.0f;
     }
   }
 
+	// Create and initialize a texture to store the positions on the graphics
+	// card.
   GLuint posTex;
   glGenTextures(1, &posTex);
   glBindTexture(GL_TEXTURE_RECTANGLE_ARB, posTex);
-
   glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
   glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
   glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA32F_ARB, util->nx, util->ny, 0, GL_RGBA, GL_FLOAT, &positions);
 
   // Set up the output texture
+  // NOTE NEED LOGIC TO USE THE LARGER OF NX NY!!! IF WE DON'T HAVE SQUARE DOMAIN.
   GLuint cellsInShadow;
   glGenTextures(1, &cellsInShadow);
   glBindTexture(GL_TEXTURE_2D, cellsInShadow);
-  
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-  
-  // NOTE NEED LOGIC TO USE THE LARGER OF NX NY!!! IF WE DON'T HAVE SQUARE DOMAIN.
-
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F_ARB, util->nx, util->ny, 0, GL_RGBA, GL_FLOAT, NULL);
   
   // Bind the output texture to the fbo.
   shadowFBO->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, cellsInShadow);
-  
   shadowFBO->IsValid();
-  
-  // Bind the FBO.
   FramebufferObject::Disable();
-  // shadowFBO->Bind();
   
+  // Setup that allows the shader to be able to read the data from our texture.
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluOrtho2D(-1, 1, -1, 1);
@@ -1499,55 +1491,9 @@ void MultipleBuildingsModel::genGridShadow(int i) {
   
   // Disable shader here.
   cellInShadowShader->deactivate();
-  
-  // Copy results from the fbo texture via a pixel copy.
-  // int size = util->nx * util->ny * sizeof(float) * 4;
-  // float * data = (float*)malloc(size);
-  // for(int i = 0; i < size; i++) {
-  //   data[i] = 5.0f;
-  // }
-  
-  // GLfloat data[util->nx][util->ny][4];
-
-  /*
-  for(int x = 0; x < util->nx; x++) {
-    for(int y = 0; y < util->ny; y++) {
-      data[x][y][0] = 2.0f;
-      data[x][y][1] = 2.0f;
-      data[x][y][2] = 2.0f;
-      data[x][y][3] = 2.0f;
-    }
-  }
-  */
 
   // To use frame buffer specificy read buffer as color attachment 0.
   glReadPixels(0, 0, util->nx, util->ny, GL_RGBA, GL_FLOAT, &(dc->inShadowData[i*util->ny*util->nx*4]));
-
-  /*
-  for(int x = 0; x < util->nx; x++) {
-    for(int y = 0; y < util->ny; y++) {
-      std::cout << data[x][y][0] << " "
-		<< data[x][y][1] << " "
-		<< data[x][y][2] << " "
-		<< data[x][y][3] << " |  ";
-    }
-  }
-
-  int x;
-  std::cin >> x;
-  */
-  
-
-  // Now that we are done, stop using the frame buffer.
-  // FramebufferObject::Disable();
-  
-  // Now for testing draw the rgb = xyz as a gl point with
-  // either blue or red depending on the alpha value (to test).
-  // for(int i = 0; i < util->nx * util->ny; i += sizeof(float) * 4) {
-  //   std::cout << *(data + i) << " ";
-  // }
-
-  // If the test is successful, write the data to a text file.
   
   // Cleanup
   glDeleteTextures(1, &cellsInShadow);
