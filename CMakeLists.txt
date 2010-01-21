@@ -13,6 +13,8 @@ set(GPUPLUME_VERSION ${GPUPLUME_MAJOR_VERSION}.${GPUPLUME_MINOR_VERSION}.${GPUPL
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+set(CMAKE_BUILD_TYPE "Debug")
+
 # Add defines for Windows.
 if(WIN32)
   add_definitions(-DWIN32)

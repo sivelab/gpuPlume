@@ -464,29 +464,31 @@ int MultipleBuildingsModel::display(){
       //fbo->Bind();
       dump_contents = false;
     }
+    
     if(print_MeanVel)
     {
       if(maxColorAttachments <= 4){
-	FramebufferObject::Disable();
-	fbo2->Bind();
+				FramebufferObject::Disable();
+				fbo2->Bind();
       }
-      pc->printMeanVelocities(odd);
-      print_MeanVel = false;
+      	pc->printMeanVelocities(odd);
+      	print_MeanVel = false;
       
       if(maxColorAttachments <= 4){
-	FramebufferObject::Disable();
-	fbo->Bind();
+				FramebufferObject::Disable();
+				fbo->Bind();
       }
     }
+    
     if(output_CollectionBox)
     {
       for(int j = 0; j < num_cBoxes; j++){
-	// outputs concentration in grams per cubic meter
-	cBoxes[j]->outputConcStd(util->output_file, util->output_id, 
-				 util->averagingTime,
-				 util->volume,
-				 util->time_step, 
-				 (util->twidth)*(util->theight));// standard Concentration Calc. - Balli
+				// outputs concentration in grams per cubic meter
+				cBoxes[j]->outputConcStd(util->output_file, util->output_id, 
+				util->averagingTime,
+				util->volume,
+				util->time_step, 
+				(util->twidth)*(util->theight));// standard Concentration Calc. - Balli
       }
       output_CollectionBox = false;
 
@@ -523,11 +525,11 @@ int MultipleBuildingsModel::display(){
 
       mfunc_output << "bldBounds = [\n";
       for (int bldIdx = 0; bldIdx < util->numBuild; bldIdx++)
-	{
-	  mfunc_output << "\t" << util->xfo[bldIdx] << ' ' << util->xfo[bldIdx] + util->lti[bldIdx] << ' '
+			{
+	  		mfunc_output << "\t" << util->xfo[bldIdx] << ' ' << util->xfo[bldIdx] + util->lti[bldIdx] << ' '
 		       << util->yfo[bldIdx] - util->wti[bldIdx]/2.0 << ' ' << util->yfo[bldIdx] + util->wti[bldIdx]/2.0 << ' '
 		       << util->zfo[bldIdx] << ' ' << util->zfo[bldIdx] + util->ht[bldIdx] << ';' << std::endl;
-	}
+			}
       mfunc_output << "];\n";
 
       mfunc_output << util->output_id << "_bldconc = [];\n";
@@ -549,44 +551,51 @@ int MultipleBuildingsModel::display(){
       mfunc_output << "    end\n";
       mfunc_output << "  end\n";
       mfunc_output << "\n";
-
+			
       mfunc_output << "  % also see if the collection box contains the emitters... for now, only handles line emitters- Pete\n";
+      
       mfunc_output << "emitterBounds = [\n";
       for (int peIdx = 0; peIdx < util->numOfPE; peIdx++)
-	{
-	  // pe[pe_i]->emit = true;
-	  LineEmitter *le = dynamic_cast<LineEmitter*>(pe[peIdx]);
+			{
+	  		// pe[pe_i]->emit = true;
+	  		LineEmitter *le = NULL;
+	  		le = dynamic_cast<LineEmitter*>(pe[peIdx]);
+				
+				if(le == NULL) {
+					std::cerr << "FETAL ERROR Line 559 (peIdx " << peIdx << "): dynamic_cast<LineEmitter*>(pe[peIdx]) failed.\n";
+					exit(1);
+				}
+				
+	  		int xmin = -1, xmax = -1, ymin = -1, ymax = -1, zmin = -1, zmax = -1;
+	  		if (le->xpos < le->xpos_end)
+	    	{
+	      	xmin = (int)floor(le->xpos);  xmax = (int)ceil(le->xpos_end);
+	    	}
+	  		else 
+	    	{
+	      	xmin = (int)floor(le->xpos_end);  xmax = (int)ceil(le->xpos);
+	    	}
 
-	  int xmin = -1, xmax = -1, ymin = -1, ymax = -1, zmin = -1, zmax = -1;
-	  if (le->xpos < le->xpos_end)
-	    {
-	      xmin = (int)floor(le->xpos);  xmax = (int)ceil(le->xpos_end);
-	    }
-	  else 
-	    {
-	      xmin = (int)floor(le->xpos_end);  xmax = (int)ceil(le->xpos);
-	    }
+	  		if (le->ypos < le->ypos_end)
+	    	{
+	    	  ymin = (int)floor(le->ypos);  ymax = (int)ceil(le->ypos_end);
+	    	}
+	  		else 
+	    	{
+	      	ymin = (int)floor(le->ypos_end);  ymax = (int)ceil(le->ypos);
+	    	}
 
-	  if (le->ypos < le->ypos_end)
-	    {
-	      ymin = (int)floor(le->ypos);  ymax = (int)ceil(le->ypos_end);
-	    }
-	  else 
-	    {
-	      ymin = (int)floor(le->ypos_end);  ymax = (int)ceil(le->ypos);
-	    }
-
-	  if (le->zpos < le->zpos_end)
-	    {
-	      zmin = (int)floor(le->zpos);  zmax = (int)ceil(le->zpos_end);
-	    }
-	  else 
-	    {
-	      zmin = (int)floor(le->zpos_end);  zmax = (int)ceil(le->zpos);
-	    }
+	  		if (le->zpos < le->zpos_end)
+	    	{
+	      	zmin = (int)floor(le->zpos);  zmax = (int)ceil(le->zpos_end);
+	    	}
+	  		else 
+	    	{
+	      	zmin = (int)floor(le->zpos_end);  zmax = (int)ceil(le->zpos);
+	    	}
 	  
-	  mfunc_output << "\t" << xmin << ' ' << xmax << ' ' << ymin << ' ' << ymax << ' ' << zmin << ' ' << zmax << ';' << std::endl;
-	}
+	  		mfunc_output << "\t" << xmin << ' ' << xmax << ' ' << ymin << ' ' << ymax << ' ' << zmin << ' ' << zmax << ';' << std::endl;
+			}
       mfunc_output << "];\n";
 
       mfunc_output << "\n";
@@ -614,8 +623,7 @@ int MultipleBuildingsModel::display(){
       mfunc_output.close();
     }
 
-    //Switches the frame buffer and binding texture
-  
+    // Switches the frame buffer and binding texture
     odd = !odd;
     paused = true;
   }
