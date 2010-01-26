@@ -1,0 +1,43 @@
+Add in time varying flow field/temperature changes.
+    --> equilibrium/steady state
+
+Start/stop time for solar day.
+
+---
+
+Get bugs info on dx, dy, dz resolution.
+    --> check and fix for bugs
+
+---
+
+For Michele
+
+color by age of particle
+         total distance particles have traveled
+	 individual velocity components
+	 dot product of wind vector with velocity
+	 vector magnitude
+	 
+	 color by localized concentration values - particle isosurface
+
+	 visualize heat and energy equation values
+	 	   surface temperatures
+		   air temperatures
+		   correlations between air and surfaces
+
+	 VR space - magic lenses for viewing
+
+	 invisible buildings/structures
+
+---
+
+
+
+
+
+
+
+
+
+
+
