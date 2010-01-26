@@ -31,6 +31,13 @@ void CmdOptionInterpreter::parse()
   
   std::string argVal = "";
 
+  if (m_argParser->isSet("version"))
+    {
+      std::cout << "gpuPlume" << std::endl;
+      // std::cout << "Version: " << GPUPLUME_VERSION << std::endl;
+    }
+
+
   if (m_argParser->isSet("fullscreen"))
     m_utilPtr->fullscreen = true;
 

@@ -18,6 +18,9 @@
 #ifndef TIMER_H
 #define TIMER_H 1
 
+#include <cstdio>
+#include <cstdlib>
+
 #if defined(_MSC_VER)
 typedef __int64 Timer_t;
 #else

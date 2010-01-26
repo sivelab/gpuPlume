@@ -85,6 +85,8 @@ int main(int argc, char** argv)
   // Setup command line argument parsing
   // 
   ArgumentParsing argParser;
+  argParser.reg("version", 'v', no_argument);
+
   argParser.reg("numParticles", 'p', required_argument);
   argParser.reg("concFile", 'c', required_argument);
   argParser.reg("concId", 'i', required_argument);

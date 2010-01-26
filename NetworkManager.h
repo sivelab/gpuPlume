@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 
 #include "broadcaster.h"
