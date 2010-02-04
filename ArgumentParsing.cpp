@@ -68,7 +68,7 @@ int ArgumentParsing::process(int argc, char *argv[])
 
   for (unsigned int i=0; i<m_ArgVector.size(); ++i)
     {
-      getoptOptions[i].name = (const char *)malloc(strlen(m_ArgVector[i].optParams.name));
+      getoptOptions[i].name = (char *)malloc(strlen(m_ArgVector[i].optParams.name) + 1);
       strcpy((char *)getoptOptions[i].name, m_ArgVector[i].optParams.name);
       getoptOptions[i].has_arg = m_ArgVector[i].optParams.has_arg;
       getoptOptions[i].flag = m_ArgVector[i].optParams.flag;
@@ -125,11 +125,12 @@ int ArgumentParsing::process(int argc, char *argv[])
   }
 #endif
 
-  // delete the memory we created to make this happen
+  // deallocate the memory we created to make this happen
   for (unsigned int i=0; i<m_ArgVector.size(); ++i)
-    {
-      delete [] getoptOptions[i].name;
-    }
+  {
+      free((char *)(getoptOptions[i].name));
+  }
+  
   delete [] getoptOptions;
 
   return 1;
