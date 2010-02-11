@@ -8,11 +8,22 @@
 #include "GLSL.h"
 #include "particleControl.h"
 
-typedef struct{
+struct pIndex {
     int id;
     double time;
+    
+    pIndex(const pIndex &cpy) {
+      id = cpy.id;
+      time = cpy.time;
+    }
+    
+    pIndex() {
+      id = 0;
+      time = 0.0;
+    }
+};
 
-}pIndex;
+typedef struct pIndex pIndex;
 
 enum particleReleaseType{perTimeStep,perSecond,onePerKeyPress,instantaneous};
 

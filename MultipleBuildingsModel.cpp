@@ -22,6 +22,7 @@ std::vector<float> str;
 
 MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   util = u;
+
   //pwidth = util->pwidth;
   //pheight = util->pheight;
   //pathNum = 0;
@@ -562,8 +563,9 @@ int MultipleBuildingsModel::display(){
 	  		le = dynamic_cast<LineEmitter*>(pe[peIdx]);
 				
 				if(le == NULL) {
-					std::cerr << "FATAL ERROR Line 559 (peIdx " << peIdx << "): dynamic_cast<LineEmitter*>(pe[peIdx]) failed.\n";
-					exit(1);
+					// If the dynamic cast failed then we don't have a line emitter,
+					// so skip this loop iteration...
+					continue;
 				}
 				
 	  		int xmin = -1, xmax = -1, ymin = -1, ymax = -1, zmin = -1, zmax = -1;

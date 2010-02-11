@@ -119,6 +119,7 @@ int main(int argc, char** argv)
   if (argc >= 2)
     {
       std::cout << "Reading input from file: \"" << argv[1] << "\"" << std::endl;
+      
       if (util->readInput(argv[1]) == false)
 	{
 	  std::cerr << "Could not open or parse input file: \"" << argv[1] << "\"\nExiting." << std::endl;
@@ -135,7 +136,7 @@ int main(int argc, char** argv)
   argParser.processCommandLineArgs(argc, argv);  
   CmdOptionInterpreter cmdOI(&argParser, util);
   cmdOI.parse();
-  
+
   switch(util->advectChoice){
   case 0:
     //util->windFieldData = 4;

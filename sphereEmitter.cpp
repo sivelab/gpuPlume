@@ -47,8 +47,16 @@ SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
   //counter used to step through the random values
   curr = 0;
 
+  indicesInUse = new std::list<pIndex>();
 }
-SphereEmitter::~SphereEmitter(){}
+
+SphereEmitter::~SphereEmitter() {
+  while(!indicesInUse->empty()) {
+    indicesInUse->pop_back();
+  }
+  
+  delete indicesInUse;
+}
 
 void SphereEmitter::getReleasedPosition(float*x,float*y,float*z){
   *x = xpos + offsetx;
@@ -103,31 +111,33 @@ void SphereEmitter::setVertices(){
   //std::cout << "Stored " << size << " positions" << std::endl;
 
 }
-int SphereEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
-				float time_step,GLuint prime0,GLuint prime1){
-  int p_index;
-  float px,py,pz;
+
+int SphereEmitter::EmitParticle(bool odd, GLuint pos0, GLuint pos1, 
+                                float time_step, GLuint prime0, GLuint prime1) {
+
+  int p_index = 0;
+  float px, py, pz;
 
   setEmitAmount(time_step);
 
   int count = 0;
-  if(!indices->empty()){
-    //THIS Method *seems* to work now!
-    //Punch Hole method. Need to set drawbuffer and activate shader.
-    if(Punch_Hole){
-
-      /*if(odd)
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+  if(!indices->empty()) {
+    // THIS Method *seems* to work now!
+    // Punch Hole method. Need to set drawbuffer and activate shader.
+    if(Punch_Hole) {
+      /*
+      if(odd)
+	      glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
       else 
-      glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);*/
+        glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+      */
 
-      if(odd){
-	GLenum buffers[] = {GL_COLOR_ATTACHMENT0_EXT,GL_COLOR_ATTACHMENT2_EXT};
-	glDrawBuffers(2,buffers);
-      }
-      else{ 
-	GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT};
-	glDrawBuffers(2,buffers);
+      if(odd) {
+	      GLenum buffers[] = {GL_COLOR_ATTACHMENT0_EXT,GL_COLOR_ATTACHMENT2_EXT};
+        glDrawBuffers(2,buffers);
+      } else { 
+        GLenum buffers[] = {GL_COLOR_ATTACHMENT1_EXT,GL_COLOR_ATTACHMENT3_EXT};
+        glDrawBuffers(2,buffers);
       }
 
       glMatrixMode(GL_PROJECTION);
@@ -138,95 +148,94 @@ int SphereEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
 
     }
     	
-    //Do this for each particle that is being emitted.
-    for(int i = 0; i < numToEmit; i++){
-      if(!indices->empty()){
-	count++;
-	//First get available index
-	p_index = indices->back();
-	indices->pop_back();
+    // Do this for each particle that is being emitted.
+    for(int i = 0; i < numToEmit; i++) {
+      if(!indices->empty()) {
+	      count++;
+	      
+	      p_index = indices->back();
+	      indices->pop_back();
 
-	if(continuosParticles)
-	{	
-	   pIndex newIndex;
-	   newIndex.id = p_index;
-	   newIndex.time = 0;
-	   indicesInUse->push_back(newIndex);
-	}
+	      if(continuosParticles)
+	      {	
+	        pIndex newIndex;
+	        newIndex.id = p_index;
+	        newIndex.time = 0;
+	        indicesInUse->push_back(newIndex);
+	      }
 
-	if(reuse){
-	  pIndex newIndex;
-	  newIndex.id = p_index;
-	  newIndex.time = 0;
-	  indicesInUse->push_back(newIndex);	   
-	}	 
+	      if(reuse)
+	      {
+	        pIndex newIndex;
+	        newIndex.id = p_index;
+	        newIndex.time = 0;
+	        indicesInUse->push_back(newIndex);	   
+	      }	 
 
-	offsetx = Random::uniform()*2.0 - 1.0;
-	offsety = Random::uniform()*2.0 - 1.0;
-	offsetz = Random::uniform()*2.0 - 1.0;
+	      offsetx = Random::uniform()*2.0 - 1.0;
+	      offsety = Random::uniform()*2.0 - 1.0;
+	      offsetz = Random::uniform()*2.0 - 1.0;
 
-	float d = sqrt(offsetx*offsetx + offsety*offsety + offsetz*offsetz);
-	offsetx = (offsetx/d) * radius;
-	offsety = (offsety/d) * radius;
-	offsetz = (offsetz/d) * radius;
+	      float d = sqrt(offsetx*offsetx + offsety*offsety + offsetz*offsetz);
+	      offsetx = (offsetx/d) * radius;
+	      offsety = (offsety/d) * radius;
+	      offsetz = (offsetz/d) * radius;
 
 
-	//Determine the coordinates into the position texture
-	s = (p_index%twidth);
-	t = (p_index/twidth);	  
+	      //Determine the coordinates into the position texture
+	      s = (p_index%twidth);
+	      t = (p_index/twidth);	  
 
-	//Determine initial prime value
-	int p2idx = ((int)zpos)*nydy*nxdx + ((int)ypos)*nxdx + (int)xpos;
-	px = random_values->at(curr)*(sigma[p2idx].u);
-	py = random_values->at(curr+1)*(sigma[p2idx].v);
-	pz = random_values->at(curr+2)*(sigma[p2idx].w);
-	//std::cout << random_values->at(curr) << std::endl;
-	curr += 3;
-	if(curr >= random_values->size())
-	  curr = 0;
+	      //Determine initial prime value
+	      int p2idx = ((int)zpos)*nydy*nxdx + ((int)ypos)*nxdx + (int)xpos;
+	      px = random_values->at(curr)*(sigma[p2idx].u);
+	      py = random_values->at(curr+1)*(sigma[p2idx].v);
+	      pz = random_values->at(curr+2)*(sigma[p2idx].w);
+	      //std::cout << random_values->at(curr) << std::endl;
+	      curr += 3;
+	      if(curr >= random_values->size())
+	        curr = 0;
 
-	if(Punch_Hole){
-	  glPointSize(1.0);
+	      if(Punch_Hole){
+	        glPointSize(1.0);
 
-	  shader->activate();
+	        shader->activate();
 
-	  glViewport(s,t,1,1);
-	  //std::cout << "particle num= " << p_index << "  s = " << s << "  t = " << t << std::endl;
-	  glBegin(GL_POINTS);
-	  {
-	    //passes initial prime into shader
-	    glNormal3f(px,py,pz);
-	    //passes initial position into shader
-	    glColor4f(xpos+offsetx, ypos+offsety, zpos+offsetz, lifeTime);
-	    glVertex2f(0.5, 0.5);
-	    //glVertex2f(s,t);
-	  }
-	  glEnd();
-	  shader->deactivate();
+	        glViewport(s,t,1,1);
+	        //std::cout << "particle num= " << p_index << "  s = " << s << "  t = " << t << std::endl;
+	        glBegin(GL_POINTS);
+	        {
+	          //passes initial prime into shader
+	          glNormal3f(px,py,pz);
+	          //passes initial position into shader
+	          glColor4f(xpos+offsetx, ypos+offsety, zpos+offsetz, lifeTime);
+	          glVertex2f(0.5, 0.5);
+	          //glVertex2f(s,t);
+	        }
+	        glEnd();
+	        shader->deactivate();
 
-	}
-	else{
-	  // Second mechanism to release particles.  Uses a texture
-	  // copy which may likely be more expensive even though we're
-	  // doing 1x1 pixels (but many times).  This operation
-	  // appears to work consistently.
-	  GLfloat value[4];
-	  value[0] = xpos+offsetx;
-	  value[1] = ypos+offsety;
-	  value[2] = zpos+offsetz;
-	  value[3] = lifeTime;
+	      } else{
+	        // Second mechanism to release particles.  Uses a texture
+	        // copy which may likely be more expensive even though we're
+	        // doing 1x1 pixels (but many times).  This operation
+	        // appears to work consistently.
+	        GLfloat value[4];
+	        value[0] = xpos+offsetx;
+	        value[1] = ypos+offsety;
+	        value[2] = zpos+offsetz;
+	        value[3] = lifeTime;
 
-	  // write there via a glTexSubImage2D
-	  if(odd)
-	    // will read from this texture next
-	    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, pos0);
-	  else 
-	    // will read from this texture next
-	    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, pos1);
+	        // write there via a glTexSubImage2D
+	        if(odd)
+	          // will read from this texture next
+	          glBindTexture(GL_TEXTURE_RECTANGLE_ARB, pos0);
+	        else 
+	          // will read from this texture next
+	          glBindTexture(GL_TEXTURE_RECTANGLE_ARB, pos1);
 
-	  glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, s, t, 1, 1, GL_RGBA, GL_FLOAT, value);
-	}
-  
+	        glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, s, t, 1, 1, GL_RGBA, GL_FLOAT, value);
+	      }
       }
     }
 
@@ -236,28 +245,25 @@ int SphereEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
       gluOrtho2D(-1, 1, -1, 1);
       glMatrixMode(GL_MODELVIEW);
       glLoadIdentity();
-    }
-    
-  }
-  else
-  {
-    if(continuosParticles && frame_count > 100)
-    {
-	std::list<pIndex>::iterator iter;
-	pIndex reIndex;
-      
-	indices->clear();
+    }  
+  } else {
+  
+    if(continuosParticles && frame_count > 100) {
+	    std::list<pIndex>::iterator iter;
+	    pIndex reIndex;
+          
+	    indices->clear();
 
-	for(iter = indicesInUse->begin(); iter != indicesInUse->end(); ++iter)
-	{
-	  reIndex = *iter;
-	  indices->push_front(reIndex.id);
-	}
-	indicesInUse->clear();
-	frame_count = 0;
-    }
-  }
-
-  return count;
+	    for(iter = indicesInUse->begin(); iter != indicesInUse->end(); ++iter)
+	    {
+	      reIndex = *iter;
+	      indices->push_front(reIndex.id);
+	    }
+	    indicesInUse->clear();
+	    frame_count = 0;
+   }
    
+  }
+
+  return count;   
 }

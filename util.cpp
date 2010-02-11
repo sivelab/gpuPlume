@@ -239,6 +239,7 @@ bool Util::readInput(std::string file){
 	  foundSettingsFile = true;
 	}
 
+
       // if there is a settings file, we'll attempt to override any
       // values set by default.  Otherwise, the default values
       // assigned when the QUIC files were parsed will be used.
@@ -255,10 +256,13 @@ bool Util::readInput(std::string file){
 	  
 	      parseLine(line);
 	    }
+	  
 	  gpuPlumeSettings_in.close();
+	  
 	}
 
       // We've successfully loaded the QUIC files, so we can move on and return true
+
       return true;
     }
   else
