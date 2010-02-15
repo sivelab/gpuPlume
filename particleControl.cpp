@@ -43,9 +43,16 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
     windMin[i] = 10;
   }
 
+#if 0
+  // Bad 
   nzdz = (int)(nz*(1.0/c_dz));
   nydy = (int)(ny*(1.0/c_dy));
   nxdx = (int)(nx*(1.0/c_dx));
+#endif
+
+  nzdz = (int)(nz);
+  nydy = (int)(ny);
+  nxdx = (int)(nx);
 
   cell_dx = c_dx;
   cell_dy = c_dy;
