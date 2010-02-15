@@ -107,6 +107,8 @@ bool quSimParams::readQUICFile(const std::string &filename)
   wake_type     = (lfp->recall(ie_wake_type))     ? ie_wake_type.value     :     0 ;
 		
   delete lfp;
+
+  return true;
 }
 
 bool quSimParams::writeQUICFile(const std::string &filename)

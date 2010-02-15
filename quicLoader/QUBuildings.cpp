@@ -90,7 +90,7 @@ bool quBuildings::writeQUICFile(const std::string &filename)
 
       qufile << buildings.size() << "\t\t\t!Number of Structures" << std::endl;
       qufile << "!Bld #	Group	Type	Height(m)	Width(m)	Length(m)	Xfo(m)	Yfo(m)	Zfo(m)	Gamma	Suplemental Data" << std::endl;
-      for (int i=0; i<buildings.size(); i++)
+      for (unsigned int i=0; i<buildings.size(); i++)
 	{
 	  qufile << buildings[i].bldNum << '\t' << buildings[i].group << '\t' << buildings[i].type << '\t' 
 		 << buildings[i].height << '\t' << buildings[i].width << '\t' << buildings[i].length << '\t' 

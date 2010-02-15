@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <exception>
 #include <math.h>
 #include <float.h>
 #include "particleControl.h"
@@ -42,15 +43,10 @@ ParticleControl::ParticleControl(GLenum type,int width,int height,
     windMin[i] = 10;
   }
 
-  //cell_dx = 0.5;
-  //cell_dy = 0.5;
-  //cell_dz = 0.5;
-
   nzdz = (int)(nz*(1.0/c_dz));
   nydy = (int)(ny*(1.0/c_dy));
   nxdx = (int)(nx*(1.0/c_dx));
 
- 
   cell_dx = c_dx;
   cell_dy = c_dy;
   cell_dz = c_dz;
@@ -1604,10 +1600,25 @@ void ParticleControl::createWrappedTexture(GLuint texId, GLenum format, int w, i
 
 void ParticleControl::initWindTex(GLuint windField, int* numberInRow, int dataSet){
   // Create wind velocity data texture
-  int arrSize = nxdx*nydy*nzdz;
 
-  wind_vel = new wind[arrSize];
-  cellQuic = new cellType[arrSize];
+  // These values can get large, much larger than ints, so this value needs to be a long at the least!
+  long arrSize = nxdx*nydy*nzdz;
+  try
+    {
+      wind_vel = new wind[arrSize];
+      cellQuic = new cellType[arrSize];
+    }
+  catch (std::bad_alloc&)
+    {
+      std::cout << std::endl;
+      std::cout << "*****************************************************************************************************" << std::endl;
+      std::cout << "Error allocating memory for the wind and cell type textures.  Attempted to allocate " << arrSize << " floats." << std::endl;
+      std::cout << "\tDomain Specs: nx=" << nx << ", ny=" << ny << ", nz=" << nz << std::endl;
+      std::cout << "\t\tcell spacing = (" << cell_dx << ", " << cell_dy << ", " << cell_dz << ")" << std::endl;
+      std::cout << "\t\total cells = " << nxdx * nydy * nzdz << std::endl;
+      std::cout << "*****************************************************************************************************" << std::endl;
+      std::cout << std::endl;
+    }
 
   //Matrix tau11,tau22,tau33,and tau13
   tau = new Matrix[arrSize];

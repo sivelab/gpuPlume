@@ -183,7 +183,7 @@ class ParticleControl{
   int nz;
 
   float cell_dx,cell_dy,cell_dz;
-  int nxdx,nydy,nzdz;
+  long nxdx,nydy,nzdz;
 
   GLenum texType;
 
