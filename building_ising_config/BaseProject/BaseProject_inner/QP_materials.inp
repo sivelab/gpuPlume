@@ -1,0 +1,17 @@
+Ideal Gas
+0.000000e+00	!Decay rate (percent/min)
+0.000000e+00	!Mass median diameter (micron)
+0.000000e+00	!Deposition velocity (cm/s)
+4	!Number of airborne dosage thresholds
+!Dosage(gs/m^3)   Label
+1.000000e+01   !LCT90
+1.000000e+00   !LCT50
+1.000000e-01   !ICT50
+1.000000e-03   !ICT05
+1	!Number of surface flux thresholds
+!Flux(g/m^2)   Label
+1.000000e-03   !default
+2	!Number of probit response curves
+!Label, Population Fraction (%), Dosage (gs/m^3 or g/m^2), probit slope
+LCT, 50, 1, 1.2816
+ICT, 50, 0.001, 0.8224

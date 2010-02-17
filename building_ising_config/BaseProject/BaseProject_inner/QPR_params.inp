@@ -1,0 +1,7 @@
+3			!Output Flag, 1 = Abs. Pressure(Pa), 2 = Gauge Pressure (Pa), 3 = Coefficient of Pressure
+1			!Reference Velocity (m/s)
+101325			!Ambient Pressure (Pa)
+1.5e-05			!Dynamic Air Viscocity (kg/ms)
+1.225			!Air Density (kg/m^3)
+500			!Max number of itterations
+1e-09			!Max allowable error

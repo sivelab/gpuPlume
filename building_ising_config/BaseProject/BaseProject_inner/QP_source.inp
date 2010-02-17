@@ -1,0 +1,66 @@
+4			!Number of sources
+4			!Number of source nodes
+!Start of source number 1
+Source 1 !source name
+1			!Source strength units (1 = g, 2 = g/s, 3 = L,4 = L/s)
+10			!Source Strength
+2			!Source Density (kg/m^3) [Only used for Volume based source strengths]
+2			!Release Type: =1 for instantaneous;=2 for continuous; =3 for discrete continous
+0			!Source start time (s)
+0			!Source duration (s)
+5			!Source geometry (1 = spherical shell, 2 = line, 3 = cylinder, 4 = Explosive,5 = Area, 6 = Moving Point, 7 = spherical volume)
+35			!Area source xfo (m)
+57.5			!Area source yfo (m)
+0.1			!Area source zfo (m)
+100			!Area source length (m)
+5			!Area source width (m)
+2			!Area source height (m)
+!End of source number 1
+!Start of source number 2
+Source 2 !source name
+1			!Source strength units (1 = g, 2 = g/s, 3 = L,4 = L/s)
+10			!Source Strength
+2			!Source Density (kg/m^3) [Only used for Volume based source strengths]
+2			!Release Type: =1 for instantaneous;=2 for continuous; =3 for discrete continous
+0			!Source start time (s)
+0			!Source duration (s)
+5			!Source geometry (1 = spherical shell, 2 = line, 3 = cylinder, 4 = Explosive,5 = Area, 6 = Moving Point, 7 = spherical volume)
+35			!Area source xfo (m)
+102.5			!Area source yfo (m)
+0.1			!Area source zfo (m)
+100			!Area source length (m)
+5			!Area source width (m)
+2			!Area source height (m)
+!End of source number 2
+!Start of source number 3
+Source 3 !source name
+1			!Source strength units (1 = g, 2 = g/s, 3 = L,4 = L/s)
+10			!Source Strength
+2			!Source Density (kg/m^3) [Only used for Volume based source strengths]
+2			!Release Type: =1 for instantaneous;=2 for continuous; =3 for discrete continous
+0			!Source start time (s)
+0			!Source duration (s)
+5			!Source geometry (1 = spherical shell, 2 = line, 3 = cylinder, 4 = Explosive,5 = Area, 6 = Moving Point, 7 = spherical volume)
+60			!Area source xfo (m)
+80			!Area source yfo (m)
+0.1			!Area source zfo (m)
+5			!Area source length (m)
+100			!Area source width (m)
+2			!Area source height (m)
+!End of source number 3
+!Start of source number 4
+Source 4 !source name
+1			!Source strength units (1 = g, 2 = g/s, 3 = L,4 = L/s)
+10			!Source Strength
+2			!Source Density (kg/m^3) [Only used for Volume based source strengths]
+2			!Release Type: =1 for instantaneous;=2 for continuous; =3 for discrete continous
+0			!Source start time (s)
+0			!Source duration (s)
+5			!Source geometry (1 = spherical shell, 2 = line, 3 = cylinder, 4 = Explosive,5 = Area, 6 = Moving Point, 7 = spherical volume)
+105			!Area source xfo (m)
+80			!Area source yfo (m)
+0.1			!Area source zfo (m)
+5			!Area source length (m)
+100			!Area source width (m)
+2			!Area source height (m)
+!End of source number 4

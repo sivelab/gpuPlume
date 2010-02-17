@@ -1,0 +1,6 @@
+TITLE     = "Dosages in 3D"
+VARIABLES = "X" "Y" "Z" "Dosage"
+ZONE T="     5.0 seconds"
+I=     1, J=     1,  K=     1, F=POINT
+DT=(SINGLE SINGLE SINGLE SINGLE)
+ 5.0000E-01 5.0000E-01 5.0000E-01  0.0000E+00
