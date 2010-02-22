@@ -90,7 +90,6 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   fp=fopen(str1.c_str(),"wb");
 
   // Set the default sun angle's
-  // I picked an angle that is for summer in SLC in mid August around noon.
   sun_azimuth = util->sun_azimuth;
   sun_altitude = util->sun_altitude;
   
@@ -725,7 +724,7 @@ int MultipleBuildingsModel::display(){
 				writeShadowMapToFile();
 				exit(0);
       }
-      
+
       // GLfloat windDir[3];
       GLfloat pos[3];
       
@@ -768,10 +767,10 @@ int MultipleBuildingsModel::display(){
       // Initialize the view frustum.
       dc->initializeView();
 			
-			// Draw the visuals (done in DisplayControl).
+      // Draw the visuals (done in DisplayControl).
       dc->drawVisuals(vertex_buffer, duvw_dz, color_buffer, numInRow, twidth, theight, texid[0], prime0);
 			
-			// Uninitialize view (this is done because of treadport compatibility).
+      // Uninitialize view (this is done because of treadport compatibility).
       dc->deinitializeView();
 
       CheckErrorsGL("MBA : called drawVisuals");
@@ -1371,7 +1370,8 @@ void MultipleBuildingsModel::generateShadowMap()
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glViewport(0, 0, 2048, 2048);
-  gluPerspective(lightFieldOfView, 1.0f, lightNearPlane, lightNearPlane + (2.0f * sceneBoundingRadius));
+  // gluPerspective(lightFieldOfView, 1.0f, lightNearPlane, lightNearPlane + (2.0f * sceneBoundingRadius));
+  glOrtho(-1024, 1024, -1024, 1024, lightNearPlane, lightNearPlane + (2.0f * sceneBoundingRadius));
   glGetFloatv(GL_PROJECTION_MATRIX, sunProjectionMatrix);
 	
   glMatrixMode(GL_MODELVIEW);
@@ -1406,9 +1406,9 @@ void MultipleBuildingsModel::genGridShadow(int i) {
   GLfloat positions[util->nx][util->ny][4];
   for(int x = 0; x < util->nx; x++) {
     for(int y = 0; y < util->ny; y++) {
-			positions[x][y][0] = x + 0.5f;
-			positions[x][y][1] = y + 0.5f;
-			positions[x][y][2] = 0.5f;
+			positions[x][y][0] = x * util->dx + 0.5 * util->dx;
+			positions[x][y][1] = y * util->dy + 0.5 * util->dy;
+			positions[x][y][2] = 0.0f;
 			positions[x][y][3] = 1.0f;
     }
   }
@@ -1471,7 +1471,7 @@ void MultipleBuildingsModel::genGridShadow(int i) {
   glUniform1i(tmpID, 0);
 
   tmpID = cellInShadowShader->createUniform("zPos");
-  glUniform1f(tmpID, (float)i);
+  glUniform1f(tmpID, (float)i*util->dz + 0.5*util->dz);
   
   tmpID = cellInShadowShader->createUniform("sunModelviewMatrix");
   glUniformMatrix4fv(tmpID, 1, GL_FALSE, sunModelviewMatrix);
@@ -1522,12 +1522,12 @@ void MultipleBuildingsModel::writeShadowMapToFile() {
   file.open(fileName.c_str(), std::ios_base::out);
   
   for(int i = 0; i < nz; i++) {
-	for(int j = 0; j < nx; j++) {
+	 for(int j = 0; j < nx; j++) {
 	  for(int k = 0; k < ny; k++) {
-		int index = i*nx*ny*4 + j*ny*4 + k*4;
-		file << k + 0.5 << " " << j + 0.5 <<  " " << i + 0.5 << " " << dc->inShadowData[index] << " ";
+		 int index = i*nx*ny*4 + j*ny*4 + k*4;
+		 file << k * util->dy << " " << j * util->dx <<  " " << i * util->dz << " " << dc->inShadowData[index] << " ";
 	  }
-	}
+	 }
   }
   
   file.close();

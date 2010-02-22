@@ -1018,6 +1018,15 @@ void DisplayControl::DrawSkyBox(float x, float y, float z,  float width, float h
 	
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
+  
+  if(drawISD) {
+    glPushMatrix();
+      glTranslatef(x + sun_pos[0], y + sun_pos[1], z + sun_pos[2]);
+      glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
+      glutSolidSphere(10, 50, 50);
+    glPopMatrix();
+  }
+   
   glEnable(GL_DEPTH_TEST);
 } // end DrawSkyBox
 
@@ -2237,25 +2246,52 @@ void DisplayControl::drawInShadowData() {
     for(int j = 0; j < ny; j++) {
       for(int k = 0; k < nx; k++) {
 				int index = i*ny*nx*4 + j*nx*4 + k*4;
-				if(inShadowData[index] < 1) {
+
+        // Center
+        if(inShadowData[index] < 1) {
 					glPushMatrix();
-					glTranslatef(k + 0.5, j + 0.5, i + 0.5);
-					glColor4f(inShadowData[index], inShadowData[index + 1], inShadowData[index + 2], inShadowData[index + 3]);
-					// std::cout << inShadowData[i][j][0] << " " << inShadowData[i][j][1] << " " << inShadowData[i][j][2] << "  ";
-					glutSolidCube(0.1);
+					glTranslatef(k * util->dx + 0.5 * util->dx, j * util->dy + 0.5 * util->dy, i * util->dz + 0.5 * util->dz);
+					glColor4f(inShadowData[index], inShadowData[index], inShadowData[index], 1);
+					glutSolidCube(0.08);
 					glPopMatrix();
 				}
+
+        /*
+				// Bottom
+				if(inShadowData[index] < 1) {
+					glPushMatrix();
+					glTranslatef(k * util->dx + 0.5 * util->dx, j * util->dy + 0.5 * util->dy, i * util->dz);
+					glColor4f(inShadowData[index], inShadowData[index], inShadowData[index], 1);
+					// std::cout << inShadowData[i][j][0] << " " << inShadowData[i][j][1] << " " << inShadowData[i][j][2] << "  ";
+					glutSolidCube(0.05);
+					glPopMatrix();
+				}
+				
+				// North
+				if(inShadowData[index + 1] < 1) {
+					glPushMatrix();
+					glTranslatef(k * util->dx, j * util->dy + 0.5 * util->dy, i * util->dz + 0.5 * util->dz);
+					glColor4f(inShadowData[index + 1], inShadowData[index + 1], inShadowData[index + 1], 1);
+					// std::cout << inShadowData[i][j][0] << " " << inShadowData[i][j][1] << " " << inShadowData[i][j][2] << "  ";
+					glutSolidCube(0.05);
+					glPopMatrix();
+				}
+				
+				// East
+				if(inShadowData[index + 2] < 1) {
+					glPushMatrix();
+					glTranslatef(k * util->dx + 0.5 * util->dx, j * util->dy, i * util->dz + 0.5 * util->dz);
+					glColor4f(inShadowData[index + 2], inShadowData[index + 2], inShadowData[index + 2], 1);
+					// std::cout << inShadowData[i][j][0] << " " << inShadowData[i][j][1] << " " << inShadowData[i][j][2] << "  ";
+					glutSolidCube(0.05);
+					glPopMatrix();
+				}
+
+        */
+
       }
     }
     // std::cout << std::endl;
   }
   
-  glPushMatrix();
-  glTranslatef(sun_pos[0], sun_pos[1], sun_pos[2]);
-  glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-  glutSolidCube(10);
-  glPopMatrix();
-  
-  // int x;
-  // std::cin >> x;
 }

@@ -565,9 +565,9 @@ void keyboard_cb(unsigned char key, int x, int y)
   else if (key == '/')
     {
       if(plume->dc->drawISD == false) {
-	plume->dc->drawISD = true;
+        plume->dc->drawISD = true;
       } else {
-	plume->dc->drawISD = false;
+        plume->dc->drawISD = false;
       }
     }
   else if (key == '?')
