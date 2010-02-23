@@ -1317,7 +1317,10 @@ void MultipleBuildingsModel::generateShadowMap()
   // Set the sun position, so it can be drawn in the world.
   dc->sun_pos[0] = 0;
   dc->sun_pos[1] = 0;
-  dc->sun_pos[2] = 150;
+  dc->sun_pos[2] = sqrt((util->nx * util->dx) * (util->nx * util->dx) 
+                        + (util->ny * util->dy) * (util->ny * util->dy)
+                        + (util->nz * util->dz) * (util->nz * util->dz)
+                       );
   
   float axis[3];
   axis[0] = 0.0;

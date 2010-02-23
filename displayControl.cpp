@@ -1021,12 +1021,12 @@ void DisplayControl::DrawSkyBox(float x, float y, float z,  float width, float h
   
   if(drawISD) {
     glPushMatrix();
-      glTranslatef(x + sun_pos[0], y + sun_pos[1], z + sun_pos[2]);
+      glTranslatef(eye_pos[0] + sun_pos[0], eye_pos[1] + sun_pos[1], eye_pos[2] + sun_pos[2]);
       glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
-      glutSolidSphere(10, 50, 50);
+      glutSolidSphere(5, 20, 20);
     glPopMatrix();
   }
-   
+  
   glEnable(GL_DEPTH_TEST);
 } // end DrawSkyBox
 
