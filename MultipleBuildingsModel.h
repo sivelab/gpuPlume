@@ -51,7 +51,7 @@ class MultipleBuildingsModel : public PlumeControl{
   // not in shadow). For this method to work, the shadow
   // map from the Sun's perspective must have been 
   // generated.
-  void genGridShadow(int i);
+  void genGridShadow(int i, int cellPoints);
 
   // Since we only need to generate the shadow map once, this flag
   // allows us recalculate the shadow map once initially and when

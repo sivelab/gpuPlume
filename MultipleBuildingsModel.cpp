@@ -37,7 +37,7 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   nxdx = (int)(nx*(1.0/util->dx));
   nydy = (int)(ny*(1.0/util->dy));
   nzdz = (int)(nz*(1.0/util->dz));
-
+  
   time_step = util->time_step;
   //Sets up the type of simulation to run
   sim = new Simulation(util->useRealTime,util->duration,&time_step);
@@ -302,17 +302,17 @@ int MultipleBuildingsModel::display(){
 
     if(!firstTime){
       if(sim->update(&time_step)){
-	if(!osgPlume)
-	  quitSimulation = true;
+        if(!osgPlume)
+	        quitSimulation = true;
       }
     }
-    //Store simulation start time and turn on one particle emitter
+    
+    // Store simulation start time and turn on one particle emitter
     if(firstTime){
-      if(!osgPlume)
-	{
-	  for (int pe_i = 0; pe_i < util->numOfPE; pe_i++)
-	    pe[pe_i]->emit = true;
-	}
+      if(!osgPlume) {
+	      for (int pe_i = 0; pe_i < util->numOfPE; pe_i++)
+	      pe[pe_i]->emit = true;
+	    }
       sim->setStartTime(&time_step);
       firstTime = false;
     }
@@ -322,8 +322,8 @@ int MultipleBuildingsModel::display(){
     /////////////////////////////////////////////////////////////
     if(reuseParticles)
       {
-	particleReuse();
-	CheckErrorsGL("MBA: display() - reuse particles");
+        particleReuse();
+        CheckErrorsGL("MBA: display() - reuse particles");
       } 
     
     ////////////////////////////////////////////////////////////
@@ -714,7 +714,8 @@ int MultipleBuildingsModel::display(){
 				generateShadowMap();
 				
 				for(int i = 0; i < util->nz; i++) {
-	  			genGridShadow(i);
+	  			genGridShadow(i, 0);
+	  			genGridShadow(i, 1);
 				}
 				
 				reCalcShadows = false;
@@ -1402,7 +1403,7 @@ void MultipleBuildingsModel::generateShadowMap()
 
 }
 
-void MultipleBuildingsModel::genGridShadow(int i) {
+void MultipleBuildingsModel::genGridShadow(int i, int cellPoints) {
   
   // Create and initialize the array of cell positions (the position being the
   // center of each cell).
@@ -1411,7 +1412,7 @@ void MultipleBuildingsModel::genGridShadow(int i) {
     for(int y = 0; y < util->ny; y++) {
 			positions[x][y][0] = x * util->dx + 0.5 * util->dx;
 			positions[x][y][1] = y * util->dy + 0.5 * util->dy;
-			positions[x][y][2] = 0.0f;
+			positions[x][y][2] = (float)i*util->dz + 0.5*util->dz;
 			positions[x][y][3] = 1.0f;
     }
   }
@@ -1476,6 +1477,16 @@ void MultipleBuildingsModel::genGridShadow(int i) {
   tmpID = cellInShadowShader->createUniform("zPos");
   glUniform1f(tmpID, (float)i*util->dz + 0.5*util->dz);
   
+  tmpID = cellInShadowShader->createUniform("dx");
+  glUniform1f(tmpID, (float)util->dx);
+  tmpID = cellInShadowShader->createUniform("dy");
+  glUniform1f(tmpID, (float)util->dy);
+  tmpID = cellInShadowShader->createUniform("dz");
+  glUniform1f(tmpID, (float)util->dz);
+  
+  tmpID = cellInShadowShader->createUniform("cellPoints");
+  glUniform1i(tmpID, cellPoints);
+  
   tmpID = cellInShadowShader->createUniform("sunModelviewMatrix");
   glUniformMatrix4fv(tmpID, 1, GL_FALSE, sunModelviewMatrix);
   
@@ -1498,8 +1509,11 @@ void MultipleBuildingsModel::genGridShadow(int i) {
   cellInShadowShader->deactivate();
 
   // To use frame buffer specificy read buffer as color attachment 0.
-  glReadPixels(0, 0, util->nx, util->ny, GL_RGBA, GL_FLOAT, &(dc->inShadowData[i*util->ny*util->nx*4]));
-  
+  if(cellPoints == 0) {
+    glReadPixels(0, 0, util->nx, util->ny, GL_RGBA, GL_FLOAT, &(dc->inShadowData[i*util->ny*util->nx*4]));
+  } else {
+    glReadPixels(0, 0, util->nx, util->ny, GL_RGBA, GL_FLOAT, &(dc->inShadowData2[i*util->ny*util->nx*4]));
+  }
   // Cleanup
   glDeleteTextures(1, &cellsInShadow);
 }
@@ -1528,7 +1542,25 @@ void MultipleBuildingsModel::writeShadowMapToFile() {
 	 for(int j = 0; j < nx; j++) {
 	  for(int k = 0; k < ny; k++) {
 		 int index = i*nx*ny*4 + j*ny*4 + k*4;
-		 file << k * util->dy << " " << j * util->dx <<  " " << i * util->dz << " " << dc->inShadowData[index] << " ";
+		 if(dc->inShadowData[index] == 0) {
+		  file << k * util->dy << " " << j * util->dx <<  " " << i * util->dz << " " << "B " << dc->inShadowData[index] << " ";
+		 }
+		 if(dc->inShadowData[index + 1] == 0) {
+		  file << k * util->dy << " " << j * util->dx <<  " " << i * util->dz << " " << "N " << dc->inShadowData[index + 1] << " ";
+		 }
+		 if(dc->inShadowData[index + 2] == 0) {
+		  file << k * util->dy << " " << j * util->dx <<  " " << i * util->dz << " " << "W " << dc->inShadowData[index + 2] << " ";
+		 }
+		 
+		 if(dc->inShadowData2[index] == 0) {
+		  file << k * util->dy << " " << j * util->dx <<  " " << i * util->dz << " " << "T " << dc->inShadowData2[index] << " ";
+		 }
+		 if(dc->inShadowData2[index + 1] == 0) {
+		  file << k * util->dy << " " << j * util->dx <<  " " << i * util->dz << " " << "S " << dc->inShadowData2[index + 1] << " ";
+		 }
+		 if(dc->inShadowData2[index + 2] == 0) {
+		  file << k * util->dy << " " << j * util->dx <<  " " << i * util->dz << " " << "E " << dc->inShadowData2[index + 2] << " ";
+		 }
 	  }
 	 }
   }

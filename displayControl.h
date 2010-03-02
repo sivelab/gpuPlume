@@ -167,6 +167,7 @@ class DisplayControl{
   // The following is for displaying the
   // cell shadow data.
   GLfloat * inShadowData;
+  GLfloat * inShadowData2;
   void drawInShadowData();
   float sun_pos[3];
   bool drawISD;

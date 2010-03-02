@@ -16,6 +16,16 @@ uniform mat4x4 sunScaleAndBiasMatrix;
 // each z slice.
 uniform float zPos;
 
+// This tells the shader which points within the cell to find the shadow values
+// for.
+uniform int cellPoints;
+
+uniform float dx;
+
+uniform float dy;
+
+uniform float dz;
+
 // This is the depth map taken from the sun's position.
 uniform sampler2DShadow shadowMap;
 
@@ -44,36 +54,40 @@ void main(void){
      
 //     average = average / count;
 
-// The following is for each cardinal direction...		 
-//		 vec4 pos = vec4(gl_FragCoord.x, gl_FragCoord.y, zPos - 0.5, 1.0);
-//		 vec4 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
-//		 float bottom = shadow2DProj(shadowMap, index).x;
-		 
-//		 pos = vec4(gl_FragCoord.x, gl_FragCoord.y, zPos + 0.5, 1.0);
-//		 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
-//		 float top = shadow2DProj(shadowMap, index).x;
-		 
-//		 pos = vec4(gl_FragCoord.x - 0.5, gl_FragCoord.y, zPos, 1.0);
-//		 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
-//		 float north = shadow2DProj(shadowMap, index).x;
-		 
-//		 pos = vec4(gl_FragCoord.x + 0.5, gl_FragCoord.y, zPos, 1.0);
-//		 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
-//		 float south = shadow2DProj(shadowMap, index).x;
-		 
-//		 pos = vec4(gl_FragCoord.x, gl_FragCoord.y - 0.5, zPos, 1.0);
-//		 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
-//		 float east = shadow2DProj(shadowMap, index).x;
-		 
-//		 pos = vec4(gl_FragCoord.x, gl_FragCoord.y + 0.5, zPos, 1.0);
-//		 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
-//		 float west = shadow2DProj(shadowMap, index).x;
+vec4 pos;
+vec4 index;
+float pos1, pos2, pos3;
 
-     // This is just for one cell, single sample...
-		 vec4 pos = vec4(gl_FragCoord.x, gl_FragCoord.y, zPos, 1.0);
+  if(cellPoints == 0) {
+  
+		 vec4 pos = vec4(gl_FragCoord.x, gl_FragCoord.y, zPos - 0.49 * dz, 1.0);
 		 vec4 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
-		 float center = shadow2DProj(shadowMap, index).x;
+		 pos1 = shadow2DProj(shadowMap, index).x;
+		 
+		 pos = vec4(gl_FragCoord.x - 0.49 * dx, gl_FragCoord.y, zPos, 1.0);
+		 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
+		 pos2 = shadow2DProj(shadowMap, index).x;
+		 
+		 pos = vec4(gl_FragCoord.x, gl_FragCoord.y - 0.49 * dy, zPos, 1.0);
+		 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
+		 pos3 = shadow2DProj(shadowMap, index).x;
+  
+  } else {
+  
+  	 pos = vec4(gl_FragCoord.x, gl_FragCoord.y, zPos + 0.49 * dz, 1.0);
+		 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
+		 pos1 = shadow2DProj(shadowMap, index).x;
+		 
+		 pos = vec4(gl_FragCoord.x + 0.49 * dx, gl_FragCoord.y, zPos, 1.0);
+		 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
+		 pos2 = shadow2DProj(shadowMap, index).x;
+		 
+		 pos = vec4(gl_FragCoord.x, gl_FragCoord.y + 0.49 * dy, zPos, 1.0);
+		 index = (sunScaleAndBiasMatrix * sunProjectionMatrix * sunModelviewMatrix) * pos;
+		 pos3 = shadow2DProj(shadowMap, index).x;
+  
+  }
 
-     gl_FragColor = vec4(center, center, center, 1.0);
+     gl_FragColor = vec4(pos1, pos2, pos3, 1.0);
 
 }
