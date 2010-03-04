@@ -55,6 +55,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
 #endif
 
   viewingMode = (ViewingMode)util->viewing_mode;
+  viewingMode = ORTHOGRAPHIC_TOP;
   
   if(util->static_treadport_frustum == 1) {
     static_treadport_frustum = true;
@@ -1702,7 +1703,64 @@ void DisplayControl::initializeView() {
       gluLookAt( eye_pos[0], eye_pos[1], eye_pos[2],
                  eye_gaze[0]+eye_pos[0], eye_gaze[1]+eye_pos[1], eye_gaze[2]+eye_pos[2],
                  0, 0, 1 );
-  } else if(viewingMode == VR) {
+  }
+  else if (viewingMode == ORTHOGRAPHIC_TOP)
+    {
+
+    // Modify the view frustum. Note that the legacy code for OpenScene Graph is
+    // in which ever model you are running (i.e. MultipleBuildingsModel).
+    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    // compute a perspective view that encompasses the domain
+    float d = sqrt(nx*nx + ny*ny);
+    float ht = tan(30.0 * M_PI/180.0) * d;
+    
+    Vector3 pt2(nx, ny, ht);
+    Vector3 mpt1(nx, 0, pt2[2]/2.0);
+    Vector3 mpt2(0, ny, pt2[2]/2.0);
+    Vector3 mdpt3 = (mpt2 + mpt1)/2.0;
+
+    float b1 = (mdpt3 - pt2).norm();
+    float hyp = (mpt1 - pt2).norm();
+    float horizTheta = asin( b1/hyp ) * 2.0 * 180.0/M_PI;
+    
+    float aspectRatio = glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT));
+    gluPerspective(horizTheta/aspectRatio, aspectRatio, 0.5, 500.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    gluLookAt( pt2[0], pt2[1], pt2[2],
+	       0.0, 0.0, 0.0,
+	       0, 0, 1 );
+
+    glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
+
+#if 0
+      /// to be completed orthographic views
+      
+      // Modify the view frustum. Note that the legacy code for OpenScene Graph is
+      // in which ever model you are running (i.e. MultipleBuildingsModel).
+      glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      glOrtho(-1.0, nx+1.0, -1.0, ny+1.0, -1.0, nz+1.0);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+      glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
+
+      std::cout << "eye_pos[0] = " << eye_pos[0] << std::endl;
+      glTranslatef(0,0,eye_pos[0]);
+
+      glTranslatef(nx/2.0, ny/2.0, 0.0);
+      glRotatef(180.0, 0.0, 1.0, 0.0);
+      glRotatef(-90.0, 0.0, 0.0, 1.0);
+      glTranslatef(-nx/2.0, -ny/2.0, 0.0);
+#endif
+    } 
+  else if(viewingMode == VR) {
     // TODO: Handle the left and right eye; at the moment we are just doing
     // the same as standard.
 
