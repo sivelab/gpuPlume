@@ -32,6 +32,13 @@ else(WIN32)
   find_package(GLEW REQUIRED)
 endif(WIN32)
 
+FIND_PACKAGE(PNG REQUIRED)
+IF(PNG_FOUND)
+   INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
+   # TARGET_LINK_LIBRARIES(imageviewer ${PNG_LIBRARY})
+ENDIF(PNG_FOUND)
+
+
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLUT_INCLUDE_DIRS})
 include_directories(${GLEW_INCLUDE_PATH})
@@ -40,8 +47,8 @@ set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 set(LIBS ${LIBS} ${GLUT_LIBRARIES})
 set(LIBS ${LIBS} ${GLEW_LIBRARY})
 
-# set(CMAKE_CXX_FLAGS "-g3 -Wall")
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-DGPUPLUME_VERSION=\"${GPUPLUME_VERSION}\"")
+set(CMAKE_CXX_FLAGS "-g3 -Wall")
+# set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-DGPUPLUME_VERSION=\"${GPUPLUME_VERSION}\"")
 
 if(APPLE)
     find_library(CARBON_LIBRARY Carbon)
@@ -122,6 +129,8 @@ add_executable (gpuPlume
 	       graphicsUtil.cpp 
 	       rgb.cpp 
 	       CmdOptionInterpreter.cpp
+	       writepng.cpp writepng.h
+	       PNGImage.cpp PNGImage.h
 ) 
 
 # Link the executable to the TreadNet library. 
@@ -129,6 +138,9 @@ target_link_libraries (gpuPlume NetController)
 target_link_libraries (gpuPlume ClientController)
 target_link_libraries (gpuPlume Packet)
 target_link_libraries (gpuPlume ServerController)
+
+target_link_libraries (gpuPlume png)
+target_link_libraries (gpuPlume z)
 
 # Link the executable to the file parser library. 
 target_link_libraries (gpuPlume quicLoader) 
