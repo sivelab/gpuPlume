@@ -90,7 +90,13 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
     eye_pos[0] = 10;
     eye_pos[1] = 0;
     eye_pos[2] = 0;
-  } else {
+  } if (viewingMode == ORTHOGRAPHIC_TOP)
+      {
+	eye_pos[0] = 0;  
+	eye_pos[1] = 0;
+	eye_pos[2] = 20;
+      }
+  else {
     eye_pos[0] = nx+50;  
     eye_pos[1] = 0;
     eye_pos[2] = 5;
@@ -1756,7 +1762,7 @@ void DisplayControl::initializeView() {
     // glTranslatef(nx/2.0, ny/2.0, 0.0);
     // glRotatef(180.0, 0.0, 1.0, 0.0);
     // glRotatef(-90.0, 0.0, 0.0, 1.0);
-    glTranslatef(eye_pos[0], eye_pos[1], 0.0);
+    glTranslatef(eye_pos[0], 0, eye_pos[1]);
 
     } 
   else if(viewingMode == VR) {
