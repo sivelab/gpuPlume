@@ -1753,10 +1753,10 @@ void DisplayControl::initializeView() {
     glLoadIdentity();
     glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
 
-    glTranslatef(nx/2.0, ny/2.0, 0.0);
+    // glTranslatef(nx/2.0, ny/2.0, 0.0);
     // glRotatef(180.0, 0.0, 1.0, 0.0);
     // glRotatef(-90.0, 0.0, 0.0, 1.0);
-    glTranslatef(-nx/2.0, -ny/2.0, 0.0);
+    glTranslatef(eye_pos[0], eye_pos[1], 0.0);
 
     } 
   else if(viewingMode == VR) {
