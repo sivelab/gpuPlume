@@ -7,6 +7,8 @@
 #include<stdlib.h>
 #include<stdio.h>
 
+#include "PNGImage.h"
+
 #ifdef WIN32
 #include <fstream>
 #include <windows.h>
@@ -263,6 +265,9 @@ void MultipleBuildingsModel::init(bool OSG){
   dc->initTreadport();
 }
 
+int imgCounter = 0;
+bool img_notDone = true;
+
 int MultipleBuildingsModel::display(){
   
   // Timer_t displayStart = mbaTimer->tic();    
@@ -501,126 +506,32 @@ int MultipleBuildingsModel::display(){
       std::ofstream mfunc_output;
       mfunc_output.open(util->output_file.c_str(), std::ios::app);
 
-      // Pete!!!! Need to quantify the size of the collection box
-      // correctly... currently only support 1m boxes with this
-      // function.
+  mfunc_output << "x=dc(:,1);" << std::endl;
+  mfunc_output << "y=dc(:,2);" << std::endl;
+  mfunc_output << "z=dc(:,3);" << std::endl;
+  mfunc_output << "con=dc(:,4);" << std::endl;
 
-      mfunc_output << "\n\n";
+  mfunc_output << "xUni=unique(x);" << std::endl;
+  mfunc_output << "yUni=unique(y);" << std::endl;
+  mfunc_output << "zUni=unique(z);" << std::endl;
+  mfunc_output << "xLen = length(xUni);" << std::endl;
+  mfunc_output << "yLen = length(yUni);" << std::endl;
+  mfunc_output << "zLen = length(zUni);" << std::endl;
+  mfunc_output << "[X Y] = meshgrid(xUni, yUni);" << std::endl;
 
-      mfunc_output << "% Building information\n";
-      mfunc_output << "% xmin xmax ymin ymax zmin zmax\n";
-      mfunc_output << "% These values represent the indices of the various building bounds in the bldBound array (i.e. minX bound, maxX bound and so forth)\n";
-      mfunc_output << "minX = 1;\n";
-      mfunc_output << "maxX = 2;\n";
-      mfunc_output << "minY = 3;\n";
-      mfunc_output << "maxY = 4;\n";
-      mfunc_output << "minZ = 5;\n";
-      mfunc_output << "maxZ = 6;\n";
 
-      // create the building bounds structure
-      // if the center of the collection box is within the building, then remove it.
-      // xfo related to length
-      // yfo related to width and yfo is centered within the width
-      // zfo related to height
+  // only care about first three layers for now
+  mfunc_output << "for i=1:3" << std::endl;
+  mfunc_output << "fid = figure;" << std::endl;
+  mfunc_output << "concSlice=con(z==zUni(i));" << std::endl;
+  mfunc_output << "C=reshape(concSlice,xLen,yLen);" << std::endl;
+  mfunc_output << "pcolor(C')" << std::endl;
+  mfunc_output << "colorbar;" << std::endl;
+  mfunc_output << "title(['Concentration - Z = ',num2str(zUni(i)),'m'])" << std::endl;
+  mfunc_output << "set(gcf,'color','w')" << std::endl;
+  mfunc_output << "print -dpng" << std::endl;
+  mfunc_output << "end" << std::endl;
 
-      mfunc_output << "bldBounds = [\n";
-      for (int bldIdx = 0; bldIdx < util->numBuild; bldIdx++)
-			{
-	  		mfunc_output << "\t" << util->xfo[bldIdx] << ' ' << util->xfo[bldIdx] + util->lti[bldIdx] << ' '
-		       << util->yfo[bldIdx] - util->wti[bldIdx]/2.0 << ' ' << util->yfo[bldIdx] + util->wti[bldIdx]/2.0 << ' '
-		       << util->zfo[bldIdx] << ' ' << util->zfo[bldIdx] + util->ht[bldIdx] << ';' << std::endl;
-			}
-      mfunc_output << "];\n";
-
-      mfunc_output << util->output_id << "_bldconc = [];\n";
-      mfunc_output << util->output_id << "_emitconc = [];\n";
-      mfunc_output << util->output_id << "_goodconc = [];\n";
-
-      mfunc_output << "for idx = 1:size(" << util->output_id << "_conc,1)\n";
-      mfunc_output << "\n";
-      mfunc_output << "  cBox_X = " << util->output_id << "_conc(idx,1);\n";
-      mfunc_output << "  cBox_Y = " << util->output_id << "_conc(idx,2);\n";
-      mfunc_output << "  cBox_Z = " << util->output_id << "_conc(idx,3);\n";
-      mfunc_output << "\n";
-      mfunc_output << "  bldFound = 0;\n";
-      mfunc_output << "  for bld = 1:size(bldBounds,1)\n";
-      mfunc_output << "    if (  ((cBox_X >= bldBounds(bld,minX)) && (cBox_X <= bldBounds(bld,maxX)))   &&   ((cBox_Y >= bldBounds(bld,minY)) && (cBox_Y <= bldBounds(bld,maxY)))    &&    ((cBox_Z >= bldBounds(bld,minZ)) && (cBox_Z <= bldBounds(bld,maxZ)))  )\n";
-      mfunc_output << "      % found the building, so make note and break out\n";
-      mfunc_output << "      bldFound = 1;\n";
-      mfunc_output << "      break;\n";
-      mfunc_output << "    end\n";
-      mfunc_output << "  end\n";
-      mfunc_output << "\n";
-			
-      mfunc_output << "  % also see if the collection box contains the emitters... for now, only handles line emitters- Pete\n";
-      
-      mfunc_output << "emitterBounds = [\n";
-      for (int peIdx = 0; peIdx < util->numOfPE; peIdx++)
-			{
-	  		// pe[pe_i]->emit = true;
-	  		LineEmitter *le = NULL;
-	  		le = dynamic_cast<LineEmitter*>(pe[peIdx]);
-				
-				if(le == NULL) {
-					// If the dynamic cast failed then we don't have a line emitter,
-					// so skip this loop iteration...
-					continue;
-				}
-				
-	  		int xmin = -1, xmax = -1, ymin = -1, ymax = -1, zmin = -1, zmax = -1;
-	  		if (le->xpos < le->xpos_end)
-	    	{
-	      	xmin = (int)floor(le->xpos);  xmax = (int)ceil(le->xpos_end);
-	    	}
-	  		else 
-	    	{
-	      	xmin = (int)floor(le->xpos_end);  xmax = (int)ceil(le->xpos);
-	    	}
-
-	  		if (le->ypos < le->ypos_end)
-	    	{
-	    	  ymin = (int)floor(le->ypos);  ymax = (int)ceil(le->ypos_end);
-	    	}
-	  		else 
-	    	{
-	      	ymin = (int)floor(le->ypos_end);  ymax = (int)ceil(le->ypos);
-	    	}
-
-	  		if (le->zpos < le->zpos_end)
-	    	{
-	      	zmin = (int)floor(le->zpos);  zmax = (int)ceil(le->zpos_end);
-	    	}
-	  		else 
-	    	{
-	      	zmin = (int)floor(le->zpos_end);  zmax = (int)ceil(le->zpos);
-	    	}
-	  
-	  		mfunc_output << "\t" << xmin << ' ' << xmax << ' ' << ymin << ' ' << ymax << ' ' << zmin << ' ' << zmax << ';' << std::endl;
-			}
-      mfunc_output << "];\n";
-
-      mfunc_output << "\n";
-      mfunc_output << "  emitFound = 0;\n";
-      mfunc_output << "\n";
-
-      mfunc_output << "  for emitIdx = 1:size(emitterBounds,1)\n";
-      mfunc_output << "    if (  ((cBox_X >= emitterBounds(emitIdx,minX)) && (cBox_X <= emitterBounds(emitIdx,maxX)))   &&   ((cBox_Y >= emitterBounds(emitIdx,minY)) && (cBox_Y <= emitterBounds(emitIdx,maxY)))    &&    ((cBox_Z >= emitterBounds(emitIdx,minZ)) && (cBox_Z <= emitterBounds(emitIdx,maxZ)))  )\n";
-      mfunc_output << "      % found the emitter, so make note and break out\n";
-      mfunc_output << "      emitFound = 1;\n";
-      mfunc_output << "      break;\n";
-      mfunc_output << "    end\n";
-      mfunc_output << "\n";
-      mfunc_output << "  if bldFound == 1\n";
-      mfunc_output << "     " << util->output_id << "_bldconc = [ " << util->output_id << "_bldconc; " << util->output_id << "_conc(idx,:) ];\n";
-      mfunc_output << "  elseif emitFound == 1\n";
-      mfunc_output << "     " << util->output_id << "_emitconc = [ " << util->output_id << "_emitconc; " << util->output_id << "_conc(idx,:) ];\n";
-      mfunc_output << "  else\n";
-      mfunc_output << "     " << util->output_id << "_goodconc = [ " << util->output_id << "_goodconc; " << util->output_id << "_conc(idx,:) ];\n";
-      mfunc_output << "  end\n";
-      mfunc_output << "\n";
-      mfunc_output << "end\n";
-
-      mfunc_output << "clear minX maxX minY maxY minZ maxZ bldBounds idx bld cBox_X cBox_Y cBox_Z minXL1 maxXL1 minYL1 maxYL1 minXL2 maxXL2 minYL2 maxYL2 minLZ maxLZ bldFound emitFound \n";
       mfunc_output.close();
     }
 
@@ -835,6 +746,28 @@ int MultipleBuildingsModel::display(){
 	  cBoxes[0]->draw(sim->curr_timeStep);
 	}
       }
+
+
+      // ////////////////////////////////////////////
+      if (img_notDone && imgCounter > 2000)
+	{
+	  int iWidth = glutGet(GLUT_WINDOW_WIDTH);
+	  int iHeight = glutGet(GLUT_WINDOW_HEIGHT);
+	  GLfloat *imgBuffer = new GLfloat[ iWidth * iHeight * 3 ];
+	  glReadBuffer(GL_BACK);
+	  glReadPixels(0, 0, iWidth, iHeight, GL_RGB, GL_FLOAT, imgBuffer); 
+	  
+	  cs5721::PNGImage pngimage;
+	  pngimage.writeFileData("plume.png", iWidth, iHeight, imgBuffer);
+	  std::cout << "Wrote PNG file" << std::endl;
+
+	  delete [] imgBuffer;
+	  img_notDone = false;
+	}
+      else
+	imgCounter++;
+
+
       // If we've chose to display the 3D particle domain, we need to
       // set the projection and modelview matrices back to what is
       // needed for the particle advection step
