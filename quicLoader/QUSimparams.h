@@ -28,7 +28,7 @@ public:
   float dx;
   float dy;
   float dz;
-		
+
   int vstretch;
 
   float start_time;
@@ -55,6 +55,8 @@ public:
   int utm_zone;
   int quic_cfd_type;
   int wake_type;
+
+  int explosive_building_damage;
 
 private:
 };

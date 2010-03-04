@@ -14,7 +14,7 @@ bool qpSource::readQUICFile(const std::string &filename)
   std::string line;
   std::stringstream ss(line, std::stringstream::in | std::stringstream::out);
 
-  // first thing in these files is now a comment 
+  // first thing in these files is now a comment with version information
   getline(sourceFile, line);
 
   // Number of sources

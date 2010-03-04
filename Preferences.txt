@@ -1,2 +1,2 @@
-QUICURB_EXE_PATH "/Users/willemsn/wrk/QUICv5p51_07-30-2009pcode/executables"
-QUICPLUME_EXE_PATH "/Users/willemsn/wrk/QUICv5p51_07-30-2009pcode/executables"
+QUICURB_EXE_PATH "/home/cs/vr/users/willemsn/QUICv5p6_01-05-2010pcode/executables"
+QUICPLUME_EXE_PATH "/home/cs/vr/users/willemsn/QUICv5p6_01-05-2010pcode/executables"

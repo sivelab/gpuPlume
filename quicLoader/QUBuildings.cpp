@@ -17,7 +17,7 @@ bool quBuildings::readQUICFile(const std::string &filename)
   std::string line;
   std::stringstream ss(line, std::stringstream::in | std::stringstream::out);
 
-  // first thing in these files is now a comment 
+  // first thing in these files is now a comment with the version information
   getline(bldFile, line);
 
   // x subdomain (southwest corner)

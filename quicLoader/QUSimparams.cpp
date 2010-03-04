@@ -14,13 +14,14 @@ bool quSimParams::readQUICFile(const std::string &filename)
 
   floatElement fe_dx = floatElement("dx (meters)");
   floatElement fe_dy = floatElement("dy (meters)");
+
+  intElement ie_vstretch = intElement("Vertical stretching flag(0=uniform,1=custom,2=parabolic Z,3=parabolic DZ,4=exponential)");
+  lfp->commit(ie_vstretch);
+
   floatElement fe_dz = floatElement("dz (meters)");
   lfp->commit(fe_dx);
   lfp->commit(fe_dy);
   lfp->commit(fe_dz);
-		
-  intElement ie_vstretch = intElement("Vertical stretching flag(0=uniform,1=custom,2=parabolic Z,3=parabolic DZ,4=exponential)");
-  lfp->commit(ie_vstretch);
 
   floatElement fe_start_time   = floatElement("decimal start time (hr)");
   floatElement fe_time_incr    = floatElement("time increment (hr)");
@@ -62,9 +63,13 @@ bool quSimParams::readQUICFile(const std::string &filename)
   intElement ie_utm_zone      = intElement("UTM zone");
   intElement be_quic_cfd_type = intElement("QUIC-CFD Flag");
   intElement ie_wake_type     = intElement("wake flag (0-none, 1-Rockle, 2-Modified Rockle)");
+
+  intElement ie_explosive_building_damage = intElement("Explosive building damage flag (1 = on)");
+
   lfp->commit(ie_utm_zone);
   lfp->commit(be_quic_cfd_type);
   lfp->commit(ie_wake_type);
+  lfp->commit(ie_explosive_building_damage);
 		
   std::cout << "\tParsing QU_simparams.inp:" << filename << std::endl;
   lfp->study(filename);
@@ -82,7 +87,7 @@ bool quSimParams::readQUICFile(const std::string &filename)
   dx = (lfp->recall(fe_dx)) ? fe_dx.value : 1. ;
   dy = (lfp->recall(fe_dy)) ? fe_dy.value : 1. ;
   dz = (lfp->recall(fe_dz)) ? fe_dz.value : 1. ;
-		
+
   vstretch = (lfp->recall(ie_vstretch))     ? ie_vstretch.value     : 0 ;
   start_time = (lfp->recall(fe_start_time))     ? fe_start_time.value     : 0. ;
   time_incr = (lfp->recall(fe_time_incr))      ? fe_time_incr.value      : 0. ;
@@ -108,6 +113,8 @@ bool quSimParams::readQUICFile(const std::string &filename)
   utm_zone      = (lfp->recall(ie_utm_zone))      ? ie_utm_zone.value      :     0 ;
   quic_cfd_type = (lfp->recall(be_quic_cfd_type)) ? be_quic_cfd_type.value : false ;
   wake_type     = (lfp->recall(ie_wake_type))     ? ie_wake_type.value     :     0 ;
+
+  explosive_building_damage = (lfp->recall(ie_explosive_building_damage))     ? ie_explosive_building_damage.value     :     0 ;
 		
   delete lfp;
 
@@ -118,7 +125,8 @@ bool quSimParams::writeQUICFile(const std::string &filename)
 {
   std::ofstream qufile;
   qufile.open(filename.c_str());
-  qufile << "!QUIC 5.51" << std::endl;
+
+  qufile << "!QUIC 5.6" << std::endl;
 
   if (qufile.is_open())
     {
@@ -152,6 +160,7 @@ bool quSimParams::writeQUICFile(const std::string &filename)
       qufile << utmy << "\t\t\t!UTMY of domain origin (m)" << std::endl;
       qufile << utm_zone << "\t\t\t!UTM zone" << std::endl;
       qufile << quic_cfd_type << "\t\t\t!QUIC-CFD Flag" << std::endl;
+      qufile << explosive_building_damage << "\t\t\t!Explosive building damage flag (1 = on)" << std::endl;
 
       return true;
     }

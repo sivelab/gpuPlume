@@ -37,6 +37,7 @@ public:
   float rcl;  // !Reciprocal Monin-Obukhov length(1/m)
   float boundaryLayerHeight;  // !Boundary Layer height (m)
   bool nonLocalMixing;        // !use 1 to enable non-local mixing
+  bool useCFDTurbulence;        // !use 1 to enable use of QUIC-CFD turbulence
   int numParticles;          // !number of particles released over entire simulation
   short particleDistFlag;     // !Number of particle distribution flag (1 = by mass, 2 = by source)
   bool particleSplitFlag;     // !Particle splitting flag

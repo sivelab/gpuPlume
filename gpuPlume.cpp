@@ -181,7 +181,7 @@ int main(int argc, char** argv)
   else 
     {
       glutInitWindowSize(winwidth, winheight);
-      plume->winid = glutCreateWindow("gpuPLUME");
+      plume->winid = glutCreateWindow("gpuplume");
     }
 
   glutDisplayFunc(display);

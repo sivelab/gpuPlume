@@ -201,7 +201,7 @@ void MultipleBuildingsModel::init(bool OSG){
   
   //Create isosurface
 
-  //   isoSurface = new IsoSurface(pc);
+  isoSurface = new IsoSurface(pc);
 
 
   //
@@ -287,13 +287,11 @@ int MultipleBuildingsModel::display(){
 
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
   
-#if 0
   if(isoSurface->once){
     //render the 3D density function texture
     isoSurface->render3DTexture(isoFbo);
     isoSurface->once = false;
   }
-#endif
 
 
   glEnable(texType);
@@ -503,13 +501,16 @@ int MultipleBuildingsModel::display(){
       // output matlab code to remove the collections boxes in the
       // emitter and buildings
 
+      std::ostringstream cStringId;
+      cStringId << util->output_id << "_conc";
+
       std::ofstream mfunc_output;
       mfunc_output.open(util->output_file.c_str(), std::ios::app);
 
-  mfunc_output << "x=dc(:,1);" << std::endl;
-  mfunc_output << "y=dc(:,2);" << std::endl;
-  mfunc_output << "z=dc(:,3);" << std::endl;
-  mfunc_output << "con=dc(:,4);" << std::endl;
+  mfunc_output << "x=" << cStringId.str() << "(:,1);" << std::endl;
+  mfunc_output << "y=" << cStringId.str() << "(:,2);" << std::endl;
+  mfunc_output << "z=" << cStringId.str() << "(:,3);" << std::endl;
+  mfunc_output << "con=" << cStringId.str() << "(:,4);" << std::endl;
 
   mfunc_output << "xUni=unique(x);" << std::endl;
   mfunc_output << "yUni=unique(y);" << std::endl;
@@ -529,7 +530,10 @@ int MultipleBuildingsModel::display(){
   mfunc_output << "colorbar;" << std::endl;
   mfunc_output << "title(['Concentration - Z = ',num2str(zUni(i)),'m'])" << std::endl;
   mfunc_output << "set(gcf,'color','w')" << std::endl;
-  mfunc_output << "print -dpng" << std::endl;
+
+  mfunc_output << "filename = sprintf('" << cStringId.str() << "_%02d.png', i);" << std::endl;
+  mfunc_output << "print('-dpng', filename);" << std::endl;
+
   mfunc_output << "end" << std::endl;
 
       mfunc_output.close();
@@ -601,15 +605,12 @@ int MultipleBuildingsModel::display(){
       /////////////////////////////////////////////////////
       //Render geometry shader outputs to the vertex buffer
       /////////////////////////////////////////////////////
-#if 0
       CheckErrorsGL("before isosurface");
 
       if(oneTime < 1){
 	isoSurface->createIsoSurface();
 	oneTime++;
       }
-#endif
-
 
       CheckErrorsGL("END : after 2nd pass");
 
@@ -714,12 +715,10 @@ int MultipleBuildingsModel::display(){
 				CheckErrorsGL("MBA : after drawing layers");
       }
       
-#if 0
       //Draw isosurface
       if(drawIsoSurface){
 			isoSurface->draw();
       }
-#endif
 
 #if 0
       // Draw the wind field vectors...
@@ -868,13 +867,11 @@ void MultipleBuildingsModel::initFBO(void){
   pathFbo->IsValid();
   FramebufferObject::Disable();
 
-#if 0
   isoFbo = new FramebufferObject();
   isoFbo->Bind();
   isoFbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_3D, isoSurface->tex3d[0]);
   isoFbo->IsValid();
   FramebufferObject::Disable();
-#endif
 }
 
 void MultipleBuildingsModel::setupTextures(){

@@ -19,6 +19,7 @@ bool qpParams::readQUICFile(const std::string &filename)
   floatElement ie_rcl = floatElement("Reciprocal Monin-Obukhov length(1/m)");
   floatElement ie_boundaryLayerHeight = floatElement("Boundary Layer height (m)");
   boolElement ie_nonLocalMixing = boolElement("use 1 to enable non-local mixing");
+  boolElement ie_useCFDTurbulence = boolElement("use 1 to enable use of QUIC-CFD turbulence");
   intElement ie_numParticles = intElement("number of particles released over entire simulation");
   intElement ie_particleDistFlag = intElement("Number of particle distribution flag (1 = by mass, 2 = by source)");
   boolElement ie_particleSplitFlag = boolElement("Particle splitting flag");
@@ -53,6 +54,7 @@ bool qpParams::readQUICFile(const std::string &filename)
   lfp->commit(ie_rcl);
   lfp->commit(ie_boundaryLayerHeight);
   lfp->commit(ie_nonLocalMixing);
+  lfp->commit(ie_useCFDTurbulence);
   lfp->commit(ie_numParticles);
   lfp->commit(ie_particleDistFlag);
   lfp->commit(ie_particleSplitFlag);
@@ -104,6 +106,7 @@ bool qpParams::readQUICFile(const std::string &filename)
   rcl = (lfp->recall(ie_rcl)) ? ie_rcl.value : 0;
   boundaryLayerHeight = (lfp->recall(ie_boundaryLayerHeight)) ? ie_boundaryLayerHeight.value : 0;
   nonLocalMixing = (lfp->recall(ie_nonLocalMixing)) ? ie_nonLocalMixing.value : 0;
+  useCFDTurbulence = (lfp->recall(ie_useCFDTurbulence)) ? ie_useCFDTurbulence.value : 0;
   numParticles = (lfp->recall(ie_numParticles)) ? ie_numParticles.value : 0;
   particleDistFlag = (lfp->recall(ie_particleDistFlag)) ? ie_particleDistFlag.value : 0;
   particleSplitFlag = (lfp->recall(ie_particleSplitFlag)) ? ie_particleSplitFlag.value : 0;
@@ -151,6 +154,7 @@ bool qpParams::writeQUICFile(const std::string &filename)
       qpfile << rcl << "\t\t\t!Reciprocal Monin-Obukhov length(1/m)" << std::endl;
       qpfile << boundaryLayerHeight << "\t\t\t!Boundary Layer height (m)" << std::endl;
       qpfile << nonLocalMixing << "\t\t\t!use 1 to enable non-local mixing" << std::endl;
+      qpfile << useCFDTurbulence << "\t\t\t!use 1 to enable use of QUIC-CFD turbulence" << std::endl;
       qpfile << numParticles << "\t\t\t!number of particles released over entire simulation" << std::endl;
       qpfile << particleDistFlag << "\t\t\t!Number of particle distribution flag (1 = by mass, 2 = by source)" << std::endl;
       qpfile << particleSplitFlag << "\t\t\t!Particle splitting flag" << std::endl;

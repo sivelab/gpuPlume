@@ -3,7 +3,7 @@ pwidth 30
 pheight 10
 
 #Set this to 1 to show the particle display, else 0
-show_particle_visuals 0 
+show_particle_visuals 0
 
 #Change background color; r g b
 back_color 0.2 0.2 0.2
@@ -52,7 +52,7 @@ emit_method 0
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
-pauseMode 0
+pauseMode 1
 
 #Set to 1 to do mean velocity calculation; else 0
 calculateMeanVel 0
