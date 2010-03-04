@@ -1706,7 +1706,7 @@ void DisplayControl::initializeView() {
   }
   else if (viewingMode == ORTHOGRAPHIC_TOP)
     {
-
+#if 0
     // Modify the view frustum. Note that the legacy code for OpenScene Graph is
     // in which ever model you are running (i.e. MultipleBuildingsModel).
     glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
@@ -1726,6 +1726,7 @@ void DisplayControl::initializeView() {
     float hyp = (mpt1 - pt2).norm();
     float horizTheta = asin( b1/hyp ) * 2.0 * 180.0/M_PI;
     
+
     float aspectRatio = glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT));
     gluPerspective(horizTheta/aspectRatio, aspectRatio, 0.5, 500.0);
 
@@ -1737,28 +1738,26 @@ void DisplayControl::initializeView() {
 	       0, 0, 1 );
 
     glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
+#endif
 
-#if 0
       /// to be completed orthographic views
       
       // Modify the view frustum. Note that the legacy code for OpenScene Graph is
       // in which ever model you are running (i.e. MultipleBuildingsModel).
-      glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      glOrtho(-1.0, nx+1.0, -1.0, ny+1.0, -1.0, nz+1.0);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-      glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
+    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-1.0, nx+1.0, -1.0, ny+1.0, -nz, nz*2.0);
 
-      std::cout << "eye_pos[0] = " << eye_pos[0] << std::endl;
-      glTranslatef(0,0,eye_pos[0]);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
 
-      glTranslatef(nx/2.0, ny/2.0, 0.0);
-      glRotatef(180.0, 0.0, 1.0, 0.0);
-      glRotatef(-90.0, 0.0, 0.0, 1.0);
-      glTranslatef(-nx/2.0, -ny/2.0, 0.0);
-#endif
+    glTranslatef(nx/2.0, ny/2.0, 0.0);
+    // glRotatef(180.0, 0.0, 1.0, 0.0);
+    // glRotatef(-90.0, 0.0, 0.0, 1.0);
+    glTranslatef(-nx/2.0, -ny/2.0, 0.0);
+
     } 
   else if(viewingMode == VR) {
     // TODO: Handle the left and right eye; at the moment we are just doing
