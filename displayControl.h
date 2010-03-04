@@ -109,7 +109,8 @@ class DisplayControl{
   enum ViewingMode {
     STANDARD = 0,
     VR = 1,
-    TREADPORT = 2
+    TREADPORT = 2,
+    ORTHOGRAPHIC_TOP = 3
   };
 
   /**
