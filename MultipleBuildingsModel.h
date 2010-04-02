@@ -72,25 +72,9 @@ class MultipleBuildingsModel : public PlumeControl{
 
   Timer *mbaTimer;
   
-  // shadowMap is the handle for the texture where the shadow 
-  // (depth) map is stored on the graphics card.
-  GLuint shadowMap;
-  
   // shadowFBO is the frame buffer used to capture the shadow
   // map.
   FramebufferObject * shadowFBO;
-  
-  // This is a pointer to the model view matrix that was used
-  // when taking a depth map from the sun's perspective.
-  GLfloat * sunModelviewMatrix;
-
-  // This is a pointer to the projection matrix that was used
-  // when taking a depth map from the sun's perspective.
-  GLfloat * sunProjectionMatrix;
-
-  // This is a scale and bias matrixd used for indexing into
-  // the depth/shadow map taken from the sun's perspective.
-  GLfloat sunScaleAndBiasMatrix[16]; 
 
   // cellInShadow is a shader that calculates the percentage
   // visible by the light source per nz slice.

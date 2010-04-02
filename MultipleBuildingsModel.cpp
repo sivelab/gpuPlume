@@ -104,9 +104,11 @@ MultipleBuildingsModel::~MultipleBuildingsModel()
   
   // Preform cleanup for the shadow map.
   shadowFBO->Unattach(GL_DEPTH_ATTACHMENT_EXT);
-  glDeleteTextures(1, &shadowMap);
+  glDeleteTextures(1, &(dc->shadowMap));
   delete shadowFBO;
   delete cellInShadowShader;
+  delete dc->sunProjectionMatrix;
+  delete dc->sunModelviewMatrix;
 }
 
 void MultipleBuildingsModel::init(bool OSG){
@@ -1174,14 +1176,14 @@ void MultipleBuildingsModel::shadowMapSetup()
   reCalcShadows = true;
   
   // Initialize the sun matricies
-  sunModelviewMatrix = new GLfloat[16];
-  sunProjectionMatrix = new GLfloat[16];
+  dc->sunModelviewMatrix = new GLfloat[16];
+  dc->sunProjectionMatrix = new GLfloat[16];
 
   //
   // Initialize the shadow map texture.
   //
-  glGenTextures(1, &shadowMap);
-  glBindTexture(GL_TEXTURE_2D, shadowMap);
+  glGenTextures(1, &(dc->shadowMap));
+  glBindTexture(GL_TEXTURE_2D, dc->shadowMap);
   
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -1200,7 +1202,7 @@ void MultipleBuildingsModel::shadowMapSetup()
   // Initialize the framebuffer and assign the shadow map texture to it.
   //
   shadowFBO = new FramebufferObject();
-  shadowFBO->AttachTexture(GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, shadowMap);
+  shadowFBO->AttachTexture(GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, dc->shadowMap);
 
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
@@ -1267,22 +1269,22 @@ void MultipleBuildingsModel::generateShadowMap()
   std::cout << "Altitude: " << sun_altitude << " Azimuth: " << sun_azimuth << std::endl;
   
   // Prep the scale and bias matrix.
-  sunScaleAndBiasMatrix[0] = 0.5;
-  sunScaleAndBiasMatrix[1] = 0.0;
-  sunScaleAndBiasMatrix[2] = 0.0;
-  sunScaleAndBiasMatrix[3] = 0.0;
-  sunScaleAndBiasMatrix[4] = 0.0;
-  sunScaleAndBiasMatrix[5] = 0.5;
-  sunScaleAndBiasMatrix[6] = 0.0;
-  sunScaleAndBiasMatrix[7] = 0.0;
-  sunScaleAndBiasMatrix[8] = 0.0;
-  sunScaleAndBiasMatrix[9] = 0.0;
-  sunScaleAndBiasMatrix[10] = 0.5;
-  sunScaleAndBiasMatrix[11] = 0.0;
-  sunScaleAndBiasMatrix[12] = 0.5;
-  sunScaleAndBiasMatrix[13] = 0.5;
-  sunScaleAndBiasMatrix[14] = 0.5;
-  sunScaleAndBiasMatrix[15] = 1.0;
+  dc->sunScaleAndBiasMatrix[0] = 0.5;
+  dc->sunScaleAndBiasMatrix[1] = 0.0;
+  dc->sunScaleAndBiasMatrix[2] = 0.0;
+  dc->sunScaleAndBiasMatrix[3] = 0.0;
+  dc->sunScaleAndBiasMatrix[4] = 0.0;
+  dc->sunScaleAndBiasMatrix[5] = 0.5;
+  dc->sunScaleAndBiasMatrix[6] = 0.0;
+  dc->sunScaleAndBiasMatrix[7] = 0.0;
+  dc->sunScaleAndBiasMatrix[8] = 0.0;
+  dc->sunScaleAndBiasMatrix[9] = 0.0;
+  dc->sunScaleAndBiasMatrix[10] = 0.5;
+  dc->sunScaleAndBiasMatrix[11] = 0.0;
+  dc->sunScaleAndBiasMatrix[12] = 0.5;
+  dc->sunScaleAndBiasMatrix[13] = 0.5;
+  dc->sunScaleAndBiasMatrix[14] = 0.5;
+  dc->sunScaleAndBiasMatrix[15] = 1.0;
   
   //
   // Draw the scene from the light's (Sun's) perspective.
@@ -1305,8 +1307,8 @@ void MultipleBuildingsModel::generateShadowMap()
   glLoadIdentity();
   glViewport(0, 0, 2048, 2048);
   // gluPerspective(lightFieldOfView, 1.0f, lightNearPlane, lightNearPlane + (2.0f * sceneBoundingRadius));
-  glOrtho(-1024, 1024, -1024, 1024, lightNearPlane, lightNearPlane + (2.0f * sceneBoundingRadius));
-  glGetFloatv(GL_PROJECTION_MATRIX, sunProjectionMatrix);
+  glOrtho(-1024, 1024, -1024, 1024, 1.0f, lightToSceneDistance * 2);
+  glGetFloatv(GL_PROJECTION_MATRIX, dc->sunProjectionMatrix);
 	
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -1315,7 +1317,7 @@ void MultipleBuildingsModel::generateShadowMap()
 	    0,   0,   0,
 	    0,   0,   1
 	   );
-  glGetFloatv(GL_MODELVIEW_MATRIX, sunModelviewMatrix);
+  glGetFloatv(GL_MODELVIEW_MATRIX, dc->sunModelviewMatrix);
   
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClearDepth(1.0);
@@ -1393,7 +1395,7 @@ void MultipleBuildingsModel::genGridShadow(int i, int cellPoints) {
   GLint tmpID;
 
   glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, shadowMap);
+  glBindTexture(GL_TEXTURE_2D, dc->shadowMap);
   
   tmpID = cellInShadowShader->createUniform("shadowMap");
   glUniform1i(tmpID, 1);
@@ -1418,13 +1420,13 @@ void MultipleBuildingsModel::genGridShadow(int i, int cellPoints) {
   glUniform1i(tmpID, cellPoints);
   
   tmpID = cellInShadowShader->createUniform("sunModelviewMatrix");
-  glUniformMatrix4fv(tmpID, 1, GL_FALSE, sunModelviewMatrix);
+  glUniformMatrix4fv(tmpID, 1, GL_FALSE, dc->sunModelviewMatrix);
   
   tmpID = cellInShadowShader->createUniform("sunProjectionMatrix");
-  glUniformMatrix4fv(tmpID, 1, GL_FALSE, sunProjectionMatrix);
+  glUniformMatrix4fv(tmpID, 1, GL_FALSE, dc->sunProjectionMatrix);
   
   tmpID = cellInShadowShader->createUniform("sunScaleAndBiasMatrix");
-  glUniformMatrix4fv(tmpID, 1, GL_FALSE, (GLfloat*)&sunScaleAndBiasMatrix);
+  glUniformMatrix4fv(tmpID, 1, GL_FALSE, (GLfloat*)&(dc->sunScaleAndBiasMatrix));
     
   glBegin(GL_QUADS);
   {

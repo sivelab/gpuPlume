@@ -14,7 +14,6 @@ static char text_buffer[128];
 #define M_PI_2 M_PI/2.0
 #endif
 
- 
 // sorting tests /////////////////////////
 float sort_eye[3];
 double Distance2Eye(const float* fp)
@@ -55,7 +54,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
 #endif
 
   viewingMode = (ViewingMode)util->viewing_mode;
-  viewingMode = ORTHOGRAPHIC_TOP;
+  // viewingMode = ORTHOGRAPHIC_TOP;
   
   if(util->static_treadport_frustum == 1) {
     static_treadport_frustum = true;
@@ -162,6 +161,10 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
   windField_shader.addShader("Shaders/windFieldLayer_vp.glsl", GLSLObject::VERTEX_SHADER);
   windField_shader.addShader("Shaders/windFieldLayer_fp.glsl", GLSLObject::FRAGMENT_SHADER);
   windField_shader.createProgram();
+  // Lighting shader
+  lighting_shader.addShader("Shaders/lighting_vp.glsl", GLSLObject::VERTEX_SHADER);
+  lighting_shader.addShader("Shaders/lighting_fp.glsl", GLSLObject::FRAGMENT_SHADER);
+  lighting_shader.createProgram();
   
   uniform_windTex = windField_shader.createUniform("Wind");
   uniform_max_velocity = windField_shader.createUniform("max_vel");
@@ -219,6 +222,11 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
   drawISD = false;
   inShadowData = new GLfloat[nz * nx * ny * 4];
   inShadowData2 = new GLfloat[nz * nx * ny * 4];
+  
+  // Setup the matrix to hold the camera model view matrix
+  // (for the lighting shader).
+  cameraModelviewMatrix = new GLfloat[16];
+  
 }
 
 void DisplayControl::initTreadport() {
@@ -272,6 +280,7 @@ DisplayControl::~DisplayControl() {
   delete [] inShadowData2;
 #if !WIN32
   delete treadport;
+  delete [] cameraModelviewMatrix;
 #endif
 }
 
@@ -283,6 +292,37 @@ void DisplayControl::setEmitter(ParticleEmitter* p)
 void DisplayControl::setVisualPlane(VisualPlane* vp)
 {
   plane = vp;
+}
+
+void DisplayControl::enableLightingShader() {
+  
+  glGetFloatv(GL_MODELVIEW_MATRIX, cameraModelviewMatrix);
+  
+  lighting_shader.activate();
+  
+  GLint shader_shadowTexture = lighting_shader.createUniform("shadowMap");
+  glUniform1i(shader_shadowTexture, 1);
+  
+  GLint shader_boundTexture = lighting_shader.createUniform("boundTexture");
+  glUniform1i(shader_boundTexture, 0);
+  
+  GLint shader_lightPosition = lighting_shader.createUniform("lightPosition");
+  glUniform3f(shader_lightPosition, sun_pos[0],  sun_pos[1],  sun_pos[2]);
+  
+  GLint shaderID = lighting_shader.createUniform("lightModelviewMatrix");
+  glUniformMatrix4fv(shaderID, 1, GL_FALSE, sunModelviewMatrix);
+  
+  shaderID = lighting_shader.createUniform("lightProjectionMatrix");
+  glUniformMatrix4fv(shaderID, 1, GL_FALSE, sunProjectionMatrix);
+    
+  shaderID = lighting_shader.createUniform("lightScaleAndBiasMatrix");
+  glUniformMatrix4fv(shaderID, 1, GL_FALSE, (GLfloat*)&sunScaleAndBiasMatrix);
+  
+  shaderID = lighting_shader.createUniform("cameraModelviewMatrix");
+  glUniformMatrix4fv(shaderID, 1, GL_FALSE, cameraModelviewMatrix);
+  
+  CheckErrorsGL("DisplayControl::enableLightingShader: End of method.");
+  
 }
 
 void DisplayControl::drawVisuals(GLuint vertex_buffer, GLuint texid3, GLuint color_buffer, 
@@ -299,8 +339,10 @@ void DisplayControl::drawVisuals(GLuint vertex_buffer, GLuint texid3, GLuint col
     drawFeatures();
   }
   
+  enableLightingShader();
   drawGround();
-
+  lighting_shader.deactivate();
+  
   if(drawISD) {
     drawInShadowData();
   }
@@ -698,8 +740,11 @@ void DisplayControl::drawGround()
 
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, shadowMap);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, displayTex[0]);
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);  
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   
   glColor4f(0.5,0.5,0.5,1.0);
   glBegin(GL_QUADS);
@@ -716,7 +761,9 @@ void DisplayControl::drawGround()
   }
   glEnd();
 
-  glBindTexture(GL_TEXTURE_2D,0);
+  lighting_shader.deactivate();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
   glDisable(GL_TEXTURE_2D);
   glEnable(texType);
 
@@ -1063,6 +1110,9 @@ void DisplayControl::drawFeatures(void)
   //float grid_scale = 1.0;  // currently, just 1 but likely needs to come from QUICPLUME
   glDisable(texType);
   glEnable(GL_TEXTURE_2D);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, shadowMap);
+  glActiveTexture(GL_TEXTURE0);
   // glEnable(GL_COLOR_MATERIAL);
   // glEnable(GL_LIGHTING);
   // glEnable(GL_LIGHT0);
@@ -2388,3 +2438,5 @@ void DisplayControl::drawInShadowData() {
   }
   
 }
+
+

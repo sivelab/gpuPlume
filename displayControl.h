@@ -176,6 +176,25 @@ class DisplayControl{
   // The following is for visualizing the wind direction.
   GLfloat windDir[3];
   
+  // This is a pointer to the model view matrix that was used
+  // when taking a depth map from the sun's perspective.
+  GLfloat * sunModelviewMatrix;
+
+  // This is a pointer to the projection matrix that was used
+  // when taking a depth map from the sun's perspective.
+  GLfloat * sunProjectionMatrix;
+  
+  // This is a pointer to the model view matrix for the camera.
+  GLfloat * cameraModelviewMatrix;
+
+  // This is a scale and bias matrixd used for indexing into
+  // the depth/shadow map taken from the sun's perspective.
+  GLfloat sunScaleAndBiasMatrix[16];
+  
+  // shadowMap is the handle for the texture where the shadow 
+  // (depth) map is stored on the graphics card.
+  GLuint shadowMap;
+  
  private:
   
 #if !WIN32
@@ -208,6 +227,8 @@ class DisplayControl{
    * the network when we are running more than one screen.
    */
   bool inPauseMode;
+  
+  void enableLightingShader();
   
   void createImageTex(GLuint, char*);
   GLubyte* readPPM(char*, int*, int*);
@@ -245,6 +266,7 @@ class DisplayControl{
 
   GLSLObject sphereParticle_shader;
   GLSLObject windField_shader;
+  GLSLObject lighting_shader;
 
   Timer *dTimer;
 

@@ -51,10 +51,10 @@ void main()
   gl_TexCoord[1] = gl_MultiTexCoord1;
   
   // Do some setup for the shadowing in the fragment shader
-  shadowCoord = (lightScaleAndBiasMatrix * lightProjectionMatrix * lightModelviewMatrix) * gl_ModelViewMatrix * gl_Vertex;
+  shadowCoord = (lightScaleAndBiasMatrix * lightProjectionMatrix * lightModelviewMatrix) * gl_Vertex;
   
   // Perform the standard transformation
-  gl_Position = gl_ProjectionMatrix * cameraModelviewMatrix * gl_ModelViewMatrix * gl_Vertex;
+  gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
   
 }
 

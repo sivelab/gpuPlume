@@ -32,7 +32,10 @@ void main(void)
   
   vec4 textureColor = vec4(texture2D(boundTexture, gl_TexCoord[0].st));
   
+  if(shadow == 0.0)
+    shadow = 0.5;
+  
   // Test Output
-  gl_FragColor = textureColor * shadow * lightIntensity;
+  gl_FragColor = textureColor * shadow * 0.5;
   
 }
