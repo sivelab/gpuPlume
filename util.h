@@ -152,6 +152,7 @@ class Util {
   bool onlyCalcShadows;
 
   bool ignoreSignal;
+  bool offscreenRender;
   
   // Structures to contain the QU_simparams.inp, QU_buildings.inp, QU_metparams.inp files.
   quSimParams quSimParamData;

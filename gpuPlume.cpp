@@ -1,11 +1,15 @@
 #include <iostream>
+#include <signal.h>
 
 #include <GL/glew.h>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
-#include <stdlib.h>
-#include <GL/glut.h>
+#include <cstdlib>
+// #include <GL/glut.h>
+#include "GL/gl.h"      // System and OpenGL Stuff
+#include "GL/glut.h"
+#include "GL/glx.h"
 #endif
 
 #ifdef WIN32
@@ -30,6 +34,9 @@
 
 #include "CmdOptionInterpreter.h"
 
+#define PBUFFER_WIDTH  1024
+#define PBUFFER_HEIGHT 1024
+
 // Variables to hold timing array and record timings
 long timing_count = 0;
 bool compute_timings = false;
@@ -44,7 +51,8 @@ Util* util;
 PlumeControl* plume;
 int curr;
 
-void init(void);
+void signalHandler(int sig);
+
 void idle();
 void reshape(int w, int h);
 void display(void);
@@ -57,8 +65,85 @@ int winwidth = 1000, winheight = 1000;
 
 //int last_x, last_y;
 
+// Store all system info in one place
+typedef struct RenderContextRec
+{
+  GLXContext ctx;
+  Display *dpy;
+  GLXContext g_pbufferContext;
+  GLXPbuffer g_pbuffer;
+    Window win;
+    int nWinWidth;
+    int nWinHeight;
+    int nMousePosX;
+    int nMousePosY;
+
+} RenderContext;
+
+void init(RenderContext *rcx);
+void Cleanup(RenderContext *rcx);
+
+void CreateWindow(RenderContext *rcx)
+{
+    XSetWindowAttributes winAttribs;
+    GLint winmask;
+    GLint nMajorVer = 0;
+    GLint nMinorVer = 0;
+    XVisualInfo *visualInfo;
+    static int attributes[] = { GLX_RGBA,
+			        GLX_DOUBLEBUFFER,
+			        GLX_RED_SIZE, 8,
+			        GLX_BLUE_SIZE, 8,
+			        GLX_GREEN_SIZE, 8,
+			        0 };
+
+    // Tell X we are going to use the display
+    rcx->dpy = XOpenDisplay(NULL);
+
+    // Get Version info
+    glXQueryVersion(rcx->dpy, &nMajorVer, &nMinorVer);
+    std::cout << "Supported GLX version - " << nMajorVer << "." << nMinorVer << std::endl;
+
+    if(nMajorVer == 1 && nMinorVer < 2)
+    {
+      std::cerr << "ERROR: GLX 1.2 or greater is necessary\n";
+        XCloseDisplay(rcx->dpy);
+        exit(0);
+    }
+
+    // Get a new visual that meets our attrib requirements
+    visualInfo = glXChooseVisual(rcx->dpy, DefaultScreen(rcx->dpy), attributes);
+
+    // Now create an X window
+    winAttribs.event_mask = ExposureMask | VisibilityChangeMask | 
+                            KeyPressMask | PointerMotionMask    |
+                            StructureNotifyMask ;
+
+    winAttribs.border_pixel = 0;
+    winAttribs.bit_gravity = StaticGravity;
+    winAttribs.colormap = XCreateColormap(rcx->dpy, 
+                                          RootWindow(rcx->dpy, visualInfo->screen), 
+                                          visualInfo->visual, AllocNone);
+    winmask = CWBorderPixel | CWBitGravity | CWEventMask| CWColormap;
+
+    rcx->win = XCreateWindow(rcx->dpy, DefaultRootWindow(rcx->dpy), 20, 20,
+			     rcx->nWinWidth, rcx->nWinHeight, 0, 
+                             visualInfo->depth, InputOutput,
+			     visualInfo->visual, winmask, &winAttribs);
+
+    XMapWindow(rcx->dpy, rcx->win);
+
+    // Also create a new GL context for rendering
+    rcx->ctx = glXCreateContext(rcx->dpy, visualInfo, 0, True);
+    glXMakeCurrent(rcx->dpy, rcx->win, rcx->ctx);
+}
+
+
 int main(int argc, char** argv)
 {
+  // Setup a signal handler to catch the ^C when program exits
+  signal(SIGINT, signalHandler);
+
 #ifdef WIN32
   if (argc == 1)
   {	
@@ -99,6 +184,9 @@ int main(int argc, char** argv)
   argParser.reg("sunAzimuth", 'a', required_argument);
   argParser.reg("sunAltitude", 'e', required_argument);
   argParser.reg("onlyCalcShadows", 'o', no_argument);
+
+  argParser.reg("offscreenRender", 'r', no_argument);
+  argParser.reg("ignoreSignal", 's', no_argument);
 
   // allocate memory for the timing values
   // keep 1000 values
@@ -165,38 +253,64 @@ int main(int argc, char** argv)
 
   Random random_gen(2);
 
-  glutInitDisplayMode( GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE );
-  glutInit(&argc, argv);
-
-  // A variable to allow us (eventually) to control full screen, hopefully, SLI rendering.
-  bool use_game_mode = util->fullscreen;
-  if (use_game_mode) 
+  RenderContext rcx;
+  if (util->offscreenRender == false)
     {
-      //glutGameModeString("1280x1024");
-      glutGameModeString("1024x768");
-      std::cout << "Game Mode Width: " << glutGameModeGet(GLUT_GAME_MODE_WIDTH) << std::endl;
-      std::cout << "Game Mode Height: " << glutGameModeGet(GLUT_GAME_MODE_HEIGHT) << std::endl;
-      glutEnterGameMode();
-    }
-  else 
-    {
-      glutInitWindowSize(winwidth, winheight);
-      plume->winid = glutCreateWindow("gpuplume");
-    }
+      glutInitDisplayMode( GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE );
+      glutInit(&argc, argv);
 
-  glutDisplayFunc(display);
-  glutReshapeFunc(reshape);
-  glutIdleFunc(idle);
-  glutKeyboardFunc(keyboard_cb);
-  glutMotionFunc(motion);
-  glutMouseFunc(mouse);
+      // A variable to allow us (eventually) to control full screen, hopefully, SLI rendering.
+      bool use_game_mode = util->fullscreen;
+      if (use_game_mode) 
+	{
+	  //glutGameModeString("1280x1024");
+	  glutGameModeString("1024x768");
+	  std::cout << "Game Mode Width: " << glutGameModeGet(GLUT_GAME_MODE_WIDTH) << std::endl;
+	  std::cout << "Game Mode Height: " << glutGameModeGet(GLUT_GAME_MODE_HEIGHT) << std::endl;
+	  glutEnterGameMode();
+	}
+      else 
+	{
+	  glutInitWindowSize(winwidth, winheight);
+	  plume->winid = glutCreateWindow("gpuplume");
+	}
+
+      glutDisplayFunc(display);
+      glutReshapeFunc(reshape);
+      glutIdleFunc(idle);
+      glutKeyboardFunc(keyboard_cb);
+      glutMotionFunc(motion);
+      glutMouseFunc(mouse);
+    }
+  else
+    {
+      // ////////////////////////////////////////////////////////////
+      // IMPORTANT!!!
+      // ////////////////////////////////////////////////////////////
+
+      // This is X-based Windowing!!! it is only used for the
+      // off-screen rendering (aka headless rendering) of the gpuplume
+      // code.  This most certainly will not work on Windows and may
+      // be problematic on OS X.  Therefore, by default, glut-based
+      // windowing will be used.
+
+      Bool bWinMapped = False;
+
+      // Set initial window size... don't need big window as we're
+      // rendering to textures.
+      rcx.nWinWidth = 400;
+      rcx.nWinHeight = 200;
+
+      // Setup X window and GLX context
+      CreateWindow(&rcx);
+    }
 
   GLenum err = glewInit();
   if (GLEW_OK != err) 
     {
       std::cout << "Error: " << glewGetErrorString(err) << std::endl;
     }
-
+  
   // We really should place a function call here to do a scan and
   // check over the various OpenGL extensions and states that we
   // require for this code to function.
@@ -216,14 +330,88 @@ int main(int argc, char** argv)
     std::cout << "NOT ready for geom shader." << std::endl;
   */
 
-  init();
+  curr = 0;
+  glEnable(GL_DEPTH_TEST);
+  
+  plume->init(false); 
+  plume->paused = false;
+  plume->inPauseMode = util->pauseMode;
 
   // record the start time
   total_timer[0] = plume_clock->tic();  
 
-  glutMainLoop();
+  if (util->offscreenRender == false)
+    {
+      glutMainLoop();
+    }
+  else 
+    {
+      init(&rcx);
+
+      // Execute loop the whole time the app runs
+      for(;;)
+	{
+	  // XEvent newEvent;
+	  // XWindowAttributes winData;
+
+#if 0
+	  // Watch for new X events
+	  XNextEvent(rcx.dpy, &newEvent);
+
+	  switch(newEvent.type)
+	    {
+	      case UnmapNotify:
+		bWinMapped = False;
+		break;
+	      case MapNotify :
+		bWinMapped = True;
+	      case ConfigureNotify:
+		XGetWindowAttributes(rcx.dpy, rcx.win, &winData);
+		rcx.nWinHeight = winData.height;
+		rcx.nWinWidth = winData.width;
+		// SetupGLState(&rcx);
+		break;
+	      case MotionNotify:
+		// display();
+		break;
+	      case KeyPress:
+	      case DestroyNotify:
+		Cleanup(&rcx);
+		exit(0);
+		break;
+	    }
+#endif
+	  // if(bWinMapped)
+	  // {
+	  // Draw(&rcx);
+	  display();
+	  // }
+
+	  // Display rendering
+	  glXSwapBuffers(rcx.dpy, rcx.win);    
+	}
+
+      Cleanup(&rcx);
+    }
+
   return 0;
 }
+
+void Cleanup(RenderContext *rcx)
+{
+    // Unbind the context before deleting
+    glXMakeCurrent(rcx->dpy, None, NULL);
+
+    glXDestroyContext(rcx->dpy, rcx->ctx);
+    rcx->ctx = NULL;
+
+    XDestroyWindow(rcx->dpy, rcx->win);
+    rcx->win = (Window)NULL;
+
+    XCloseDisplay(rcx->dpy);
+    rcx->dpy = 0;
+}
+
 
 // GLUT reshape function
 void reshape(int w, int h)
@@ -244,14 +432,92 @@ void reshape(int w, int h)
     glLoadIdentity();
 }
 
-void init(void)
+void init(RenderContext *rcx)
 {
-  curr = 0;
-  glEnable(GL_DEPTH_TEST);
-  
-  plume->init(false); 
-  plume->paused = false;
-  plume->inPauseMode = util->pauseMode;
+	//
+	// Create the p-buffer...
+	//
+    
+    int scrnum;
+    GLXFBConfig *fbconfig;
+    XVisualInfo *visinfo;
+    int nitems;
+
+    int attrib[] = 
+    {
+        GLX_DOUBLEBUFFER,  False,
+        GLX_RED_SIZE,      1,
+        GLX_GREEN_SIZE,    1,
+        GLX_BLUE_SIZE,     1,
+        GLX_DEPTH_SIZE,    1,
+        GLX_RENDER_TYPE,   GLX_RGBA_BIT,
+        GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT | GLX_WINDOW_BIT,
+        None
+    };
+
+    int pbufAttrib[] = 
+    {
+        GLX_PBUFFER_WIDTH,   PBUFFER_WIDTH,
+        GLX_PBUFFER_HEIGHT,  PBUFFER_HEIGHT,
+        GLX_LARGEST_PBUFFER, False,
+        None
+    };
+
+    scrnum = DefaultScreen( rcx->dpy );
+
+    fbconfig = glXChooseFBConfig( rcx->dpy,
+                                  scrnum,
+                                  attrib,
+                                  &nitems );
+    if( NULL == fbconfig )
+    {
+        cout << "Error: init - Couldn't get fbconfig" << endl;
+        exit( 1 );
+    }
+
+      rcx->g_pbuffer = glXCreatePbuffer( rcx->dpy, fbconfig[0], pbufAttrib );
+
+    visinfo = glXGetVisualFromFBConfig( rcx->dpy, fbconfig[0] );
+
+    if( !visinfo )
+    {
+        cout << "Error: init - Couldn't get an RGBA, double-buffered visual" << endl;
+        exit( 1 );
+    }
+
+	//
+	// In this sample, we're going to speed things up by sharing display lists 
+	// and textures between rendering contexts.
+	//
+	// With sharing turned on, we can simple create our dynamic texture by 
+	// binding it to the p-buffer and calling glCopyTexSubImage2D, but this
+	// will only work if the window's rendering context is sharing its display 
+	// lists and texture space with the p-buffer's context.
+	//
+	
+      rcx->g_pbufferContext = glXCreateContext( rcx->dpy,
+                                         visinfo,
+                                         rcx->ctx, // Share display lists and textures with the regular window
+                                         GL_TRUE );
+
+    if( !rcx->g_pbufferContext )
+    {
+        cout << "ERROR: init - Call to glXCreateContext failed!" << endl;
+        exit( 1 );
+     }
+
+    XFree( fbconfig );
+    XFree( visinfo );
+    
+    //
+	// We were successful in creating a p-buffer. We can now make its context 
+	// current and set it up just like we would a regular context 
+	// attached to a window.
+	//
+	
+    glXMakeCurrent( rcx->dpy, rcx->g_pbuffer, rcx->g_pbufferContext );
+
+
 
 }
 
@@ -266,13 +532,12 @@ void display(void)
   // if quitting the simulation, 0 is returned
   int quitSimulation = 1;
 
-  // Timer_t displayStart = plume_clock->tic();    
+  Timer_t displayStart = plume_clock->tic();    
 
   quitSimulation = plume->display();
 
-  // Timer_t displayEnd = plume_clock->tic();    
-
-  // std::cout << "Display Time: " << plume_clock->deltau(displayStart, displayEnd) << " us." << std::endl;  
+  Timer_t displayEnd = plume_clock->tic();    
+  std::cout << "Display Time: " << plume_clock->deltau(displayStart, displayEnd) << " us." << std::endl;  
   
   if (quitSimulation == 0)
     {
@@ -284,7 +549,7 @@ void display(void)
 	//  system("pause");
 #endif
 
-      glutDestroyWindow(plume->winid);
+      // glutDestroyWindow(plume->winid);
       exit(0);      
     }
  
@@ -680,4 +945,34 @@ void motion(int x, int y)
     
 
     glutPostRedisplay();
+}
+
+
+void signalHandler(int sig)
+{
+  // this is set this way so that when we execute the gpuplume code
+  // from within the population sampling code, we can actually return
+  // from the gpuplume code and have the population sample code
+  // cleanup well (fixzing database issues and state).  Unfortunately,
+  // this means that we can't ^C the gpuplume code once this gets
+  // going, but repeated ^C's will eventually get the pop sample code
+  // to exit. 
+  
+  // eventually, a chained signal handler system might be better but
+  // for now, this is simple and functional.
+
+  // in any event, this only ignores the signal IFF the ignoreSignal
+  // argument is provided to gpuPlume; otherwise it will exit
+  std::cout << "GPUPlume Signal Caught! Cleaning up and exiting." << std::endl;
+
+  if (util)
+    {
+      if (util->ignoreSignal) 
+	{
+	  std::cout << "\tignoring signal..." << std::endl;
+	  return;
+	}
+    }
+
+  exit(EXIT_SUCCESS);
 }

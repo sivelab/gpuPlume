@@ -85,4 +85,6 @@ void CmdOptionInterpreter::parse()
   if (m_argParser->isSet("ignoreSignal"))
     m_utilPtr->ignoreSignal = true;
 
+  if (m_argParser->isSet("offscreenRender"))
+    m_utilPtr->offscreenRender = true;
 }

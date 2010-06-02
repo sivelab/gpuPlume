@@ -41,6 +41,7 @@ Util::Util(){
   reuse_particles = false;
   fullscreen = false;
   ignoreSignal = false;
+  offscreenRender = false;
 
   // Set some default values so that if they don't 
   // appear in the configuation file the correct

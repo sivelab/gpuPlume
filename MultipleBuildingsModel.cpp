@@ -750,10 +750,14 @@ int MultipleBuildingsModel::display(){
 
 
       // ////////////////////////////////////////////
+#if 0
       if (img_notDone && imgCounter > 2000)
 	{
-	  int iWidth = glutGet(GLUT_WINDOW_WIDTH);
-	  int iHeight = glutGet(GLUT_WINDOW_HEIGHT);
+	  // int iWidth = glutGet(GLUT_WINDOW_WIDTH);
+	  // int iHeight = glutGet(GLUT_WINDOW_HEIGHT);
+
+	  int iWidth = 400;
+	  int iHeight = 200;
 	  GLfloat *imgBuffer = new GLfloat[ iWidth * iHeight * 3 ];
 	  glReadBuffer(GL_BACK);
 	  glReadPixels(0, 0, iWidth, iHeight, GL_RGB, GL_FLOAT, imgBuffer); 
@@ -767,6 +771,7 @@ int MultipleBuildingsModel::display(){
 	}
       else
 	imgCounter++;
+#endif
 
 
       // If we've chose to display the 3D particle domain, we need to
@@ -783,7 +788,7 @@ int MultipleBuildingsModel::display(){
       
       // Finally, swap the front and back buffers to display the
       // particle field to the monitor
-      if(!osgPlume)
+      if(util->offscreenRender == false && (!osgPlume))
 	glutSwapBuffers();
     }
   else{
@@ -791,7 +796,9 @@ int MultipleBuildingsModel::display(){
     //glDisable(texType);
     glDrawBuffer(draw_buffer); // send it to the original buffer
     CheckErrorsGL("END : after not showing visuals");
-    glutSwapBuffers();
+
+    if(util->offscreenRender == false)
+      glutSwapBuffers();
   }
 
   // Timer_t displayEnd = mbaTimer->tic();    
