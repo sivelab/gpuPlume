@@ -40,6 +40,7 @@ Util::Util(){
   output_id = "";
   reuse_particles = false;
   fullscreen = false;
+  ignoreSignal = false;
 
   // Set some default values so that if they don't 
   // appear in the configuation file the correct

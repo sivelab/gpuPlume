@@ -150,6 +150,8 @@ class Util {
   float sun_altitude;
   
   bool onlyCalcShadows;
+
+  bool ignoreSignal;
   
   // Structures to contain the QU_simparams.inp, QU_buildings.inp, QU_metparams.inp files.
   quSimParams quSimParamData;
