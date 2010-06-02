@@ -81,4 +81,8 @@ void CmdOptionInterpreter::parse()
       m_utilPtr->output_id = argVal;
       std::cout << "COMMAND LINE OVERRIDE: using concentration id = " << m_utilPtr->output_id << std::endl;
     }
+
+  if (m_argParser->isSet("ignoreSignal"))
+    m_utilPtr->ignoreSignal = true;
+
 }
