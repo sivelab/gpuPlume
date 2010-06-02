@@ -133,6 +133,9 @@ void CreateWindow(RenderContext *rcx)
 
     XMapWindow(rcx->dpy, rcx->win);
 
+    // hopefully set the window behind all others
+    XLowerWindow(rcx->dpy, rcx->win);
+
     // Also create a new GL context for rendering
     rcx->ctx = glXCreateContext(rcx->dpy, visualInfo, 0, True);
     glXMakeCurrent(rcx->dpy, rcx->win, rcx->ctx);
