@@ -65,6 +65,7 @@ int winwidth = 1000, winheight = 1000;
 
 //int last_x, last_y;
 
+#ifdef __linux__
 // Store all system info in one place
 typedef struct RenderContextRec
 {
@@ -140,7 +141,7 @@ void CreateWindow(RenderContext *rcx)
     rcx->ctx = glXCreateContext(rcx->dpy, visualInfo, 0, True);
     glXMakeCurrent(rcx->dpy, rcx->win, rcx->ctx);
 }
-
+#endif // __linux__
 
 int main(int argc, char** argv)
 {
@@ -256,7 +257,10 @@ int main(int argc, char** argv)
 
   Random random_gen(2);
 
+#ifdef __linux__
   RenderContext rcx;
+#endif // __linux__
+
   if (util->offscreenRender == false)
     {
       glutInitDisplayMode( GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE );
@@ -287,6 +291,7 @@ int main(int argc, char** argv)
     }
   else
     {
+#ifdef __linux__
       // ////////////////////////////////////////////////////////////
       // IMPORTANT!!!
       // ////////////////////////////////////////////////////////////
@@ -306,6 +311,10 @@ int main(int argc, char** argv)
 
       // Setup X window and GLX context
       CreateWindow(&rcx);
+#else
+      std::cerr << "Offscreen Rendering not supported on this architecture/OS!" << std::endl;
+      exit(EXIT_FAILURE);
+#endif // __linux__
     }
 
   GLenum err = glewInit();
@@ -349,6 +358,7 @@ int main(int argc, char** argv)
     }
   else 
     {
+#ifdef __linux__
       init(&rcx);
 
       // Execute loop the whole time the app runs
@@ -395,11 +405,13 @@ int main(int argc, char** argv)
 	}
 
       Cleanup(&rcx);
+#endif // __linux__
     }
 
   return 0;
 }
 
+#ifdef __linux__
 void Cleanup(RenderContext *rcx)
 {
     // Unbind the context before deleting
@@ -413,26 +425,6 @@ void Cleanup(RenderContext *rcx)
 
     XCloseDisplay(rcx->dpy);
     rcx->dpy = 0;
-}
-
-
-// GLUT reshape function
-void reshape(int w, int h)
-{
-    if (h == 0) h = 1;
-
-    glViewport(0, 0, w, h);
-
-    // GPGPU CONCEPT 3b: One-to-one Pixel to Texel Mapping: An Orthographic
-    //                   Projection.
-    // This code sets the projection matrix to orthographic with a range of
-    // [-1,1] in the X and Y dimensions. This allows a trivial mapping of
-    // pixels to texels.
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-1, 1, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 }
 
 void init(RenderContext *rcx)
@@ -522,6 +514,27 @@ void init(RenderContext *rcx)
 
 
 
+}
+#endif // __linux__
+
+
+// GLUT reshape function
+void reshape(int w, int h)
+{
+    if (h == 0) h = 1;
+
+    glViewport(0, 0, w, h);
+
+    // GPGPU CONCEPT 3b: One-to-one Pixel to Texel Mapping: An Orthographic
+    //                   Projection.
+    // This code sets the projection matrix to orthographic with a range of
+    // [-1,1] in the X and Y dimensions. This allows a trivial mapping of
+    // pixels to texels.
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-1, 1, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 void display(void)
