@@ -553,7 +553,7 @@ void display(void)
   quitSimulation = plume->display();
 
   Timer_t displayEnd = plume_clock->tic();    
-  std::cout << "Display Time: " << plume_clock->deltau(displayStart, displayEnd) << " us." << std::endl;  
+  //std::cout << "Display Time: " << plume_clock->deltau(displayStart, displayEnd) << " us." << std::endl;  
   
   if (quitSimulation == 0)
     {
