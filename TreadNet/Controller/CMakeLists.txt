@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 2.6)
 include_directories (../Packet)
 
 # Make sure the linker can find the Packet library once it is built. 
-link_directories (../Packet)
+link_directories (${CMAKE_CURRENT_SOURCE_DIR}/../Packet)
 
 # Create the ClientController library
 add_library (ClientController Client_Controller.cpp)
