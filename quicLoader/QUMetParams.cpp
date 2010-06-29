@@ -12,7 +12,7 @@ bool quMetParams::readQUICFile(const std::string &filename)
     }
 		
   std::string line;
-  std::stringstream ss(line, std::stringstream::in | std::stringstream::out);
+  std::istringstream ss(line, std::stringstream::in);
 
   // first thing in these files is now a comment about the version...
   getline(quicFile, line);
@@ -26,6 +26,7 @@ bool quMetParams::readQUICFile(const std::string &filename)
       std::cerr << "Error!  Exiting!  Only QUIC version 5.72 supported!  Read file with Version " << quicVersion << std::endl;
       exit(EXIT_FAILURE);
     }
+  ss.clear();
 
   // !Met input flag (0=QUIC,1=ITT MM5,2=HOTMAC)
   getline(quicFile, line);
@@ -33,18 +34,12 @@ bool quMetParams::readQUICFile(const std::string &filename)
 
   // This little piece of code is here because strange
   // end-of-line/carriage return characters are showing up after the
-  // version number.  In particular, 0x0a30.  This causes problems
-  // reading the next line of the metparam file.  Since we currently
-  // have a integer betweeen 0 and 3 or so that is expected next, I
-  // just cycle until we get a good int.  This isn't ideal, but until
-  // I understand why this char is showing up, we'll leave it for now.
-  char c;
-  do {
-    ss.get(c);
-  } while ((int)c >= 48 && (int)c <= 57);
-  
-  int mit = (int) c;
-  // ss >> mit;
+  // version number.  In particular, 0x0a30.  For now, I've dealt with
+  // this by just clearing the stringstream's buffer.  Seems to remove
+  // issues with accumulating strings.
+  int mit = -1;
+  ss >> mit;
+  ss.clear();
 
   if (mit == quMetParams::QUIC)
     metInputFlag = quMetParams::QUIC;
@@ -62,11 +57,16 @@ bool quMetParams::readQUICFile(const std::string &filename)
   getline(quicFile, line);
   ss.str(line);
   ss >> numMeasuringSites;
+  ss.clear();
+
 
   // !Maximum size of data points profiles
   getline(quicFile, line);
   ss.str(line);
   ss >> maxSizeProfiles;
+  ss.clear();
+
+
 		
   // !Site Name 
   getline(quicFile, line);
