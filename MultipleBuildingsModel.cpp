@@ -201,10 +201,11 @@ void MultipleBuildingsModel::init(bool OSG){
   
   //std::cout << "max texture size = " << wid << std::endl;
   
+#ifndef __APPLE__
   //Create isosurface
 
   isoSurface = new IsoSurface(pc);
-
+#endif
 
   //
   // set up vertex buffer
@@ -289,11 +290,13 @@ int MultipleBuildingsModel::display(){
 
   glGetIntegerv(GL_DRAW_BUFFER, &draw_buffer);
   
+#ifndef __APPLE__
   if(isoSurface->once){
     //render the 3D density function texture
     isoSurface->render3DTexture(isoFbo);
     isoSurface->once = false;
   }
+#endif
 
 
   glEnable(texType);
@@ -607,12 +610,14 @@ int MultipleBuildingsModel::display(){
       /////////////////////////////////////////////////////
       //Render geometry shader outputs to the vertex buffer
       /////////////////////////////////////////////////////
+#ifndef __APPLE__
       CheckErrorsGL("before isosurface");
 
       if(oneTime < 1){
 	isoSurface->createIsoSurface();
 	oneTime++;
       }
+#endif
 
       CheckErrorsGL("END : after 2nd pass");
 
@@ -717,10 +722,12 @@ int MultipleBuildingsModel::display(){
 				CheckErrorsGL("MBA : after drawing layers");
       }
       
+#ifndef __APPLE__
       //Draw isosurface
       if(drawIsoSurface){
 			isoSurface->draw();
       }
+#endif
 
 #if 0
       // Draw the wind field vectors...
@@ -876,11 +883,13 @@ void MultipleBuildingsModel::initFBO(void){
   pathFbo->IsValid();
   FramebufferObject::Disable();
 
+#ifndef __APPLE__
   isoFbo = new FramebufferObject();
   isoFbo->Bind();
   isoFbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_3D, isoSurface->tex3d[0]);
   isoFbo->IsValid();
   FramebufferObject::Disable();
+#endif
 }
 
 void MultipleBuildingsModel::setupTextures(){
