@@ -80,7 +80,8 @@ bool quBuildings::writeQUICFile(const std::string &filename)
   qufile.open(filename.c_str());
   if (qufile.is_open())
     {
-      qufile << "!QUIC 5.51" << std::endl;
+      // !!!!! different versions here!!! qufile << "!QUIC 5.51" << std::endl;
+      qufile << "!QUIC 5.72" << std::endl;
 
       qufile << x_subdomain_sw << "\t\t\t!x subdomain coordinate (southwest corner) (Cells)" << std::endl;
       qufile << y_subdomain_sw << "\t\t\t!y subdomain coordinate (southwest corner) (Cells)" << std::endl;

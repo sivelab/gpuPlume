@@ -66,10 +66,13 @@ bool quSimParams::readQUICFile(const std::string &filename)
 
   intElement ie_explosive_building_damage = intElement("Explosive building damage flag (1 = on)");
 
+  intElement ie_building_array_flag = intElement("Building Array Flag (1 = on)");  // added by 5.72
+
   lfp->commit(ie_utm_zone);
   lfp->commit(be_quic_cfd_type);
   lfp->commit(ie_wake_type);
   lfp->commit(ie_explosive_building_damage);
+  lfp->commit(ie_building_array_flag);
 		
   std::cout << "\tParsing QU_simparams.inp:" << filename << std::endl;
   lfp->study(filename);
@@ -115,6 +118,7 @@ bool quSimParams::readQUICFile(const std::string &filename)
   wake_type     = (lfp->recall(ie_wake_type))     ? ie_wake_type.value     :     0 ;
 
   explosive_building_damage = (lfp->recall(ie_explosive_building_damage))     ? ie_explosive_building_damage.value     :     0 ;
+  building_array_flag = (lfp->recall(ie_building_array_flag))     ? ie_building_array_flag.value     :     0 ;
 		
   delete lfp;
 
@@ -126,7 +130,7 @@ bool quSimParams::writeQUICFile(const std::string &filename)
   std::ofstream qufile;
   qufile.open(filename.c_str());
 
-  qufile << "!QUIC 5.6" << std::endl;
+  qufile << "!QUIC 5.72" << std::endl;
 
   if (qufile.is_open())
     {
@@ -161,6 +165,9 @@ bool quSimParams::writeQUICFile(const std::string &filename)
       qufile << utm_zone << "\t\t\t!UTM zone" << std::endl;
       qufile << quic_cfd_type << "\t\t\t!QUIC-CFD Flag" << std::endl;
       qufile << explosive_building_damage << "\t\t\t!Explosive building damage flag (1 = on)" << std::endl;
+
+      // added by 5.72
+      qufile << building_array_flag << "\t\t\t!Building Array Flag (1 = on)" << std::endl;
 
       return true;
     }

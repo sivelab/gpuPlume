@@ -17,11 +17,35 @@ bool quMetParams::readQUICFile(const std::string &filename)
   // first thing in these files is now a comment about the version...
   getline(quicFile, line);
 
+  std::string quicComment, quicVersion;
+  ss.str(line);
+  ss >> quicComment >> quicVersion;
+  // std::cout << "quicComment: " << quicComment << ", quicVersion: " << quicVersion << std::endl;
+  if (atof(quicVersion.c_str()) != 5.72)
+    {
+      std::cerr << "Error!  Exiting!  Only QUIC version 5.72 supported!  Read file with Version " << quicVersion << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
   // !Met input flag (0=QUIC,1=ITT MM5,2=HOTMAC)
   getline(quicFile, line);
   ss.str(line);
-  int mit = -1;
-  ss >> mit;
+
+  // This little piece of code is here because strange
+  // end-of-line/carriage return characters are showing up after the
+  // version number.  In particular, 0x0a30.  This causes problems
+  // reading the next line of the metparam file.  Since we currently
+  // have a integer betweeen 0 and 3 or so that is expected next, I
+  // just cycle until we get a good int.  This isn't ideal, but until
+  // I understand why this char is showing up, we'll leave it for now.
+  char c;
+  do {
+    ss.get(c);
+  } while ((int)c >= 48 && (int)c <= 57);
+  
+  int mit = (int) c;
+  // ss >> mit;
+
   if (mit == quMetParams::QUIC)
     metInputFlag = quMetParams::QUIC;
   else if (mit == quMetParams::ITT_MM5)
@@ -68,7 +92,7 @@ bool quMetParams::writeQUICFile(const std::string &filename)
 {
   std::ofstream qufile;
   qufile.open(filename.c_str());
-  qufile << "!QUIC 5.51" << std::endl;
+  qufile << "!QUIC 5.72" << std::endl;
 
   if (qufile.is_open())
     {

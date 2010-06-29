@@ -327,14 +327,16 @@ bool qpSource::writeQUICFile(const std::string &filename)
 
   if (qpfile.is_open())
     {
-      qpfile << "!QUIC 5.51" << std::endl;
+      qpfile << "!QUIC 5.6" << std::endl;
 
       qpfile << numberOfSources << "\t\t\t!Number of sources" << std::endl;
       qpfile << numberOfSourceNodes << "\t\t\t!Number of source nodes" << std::endl;
 
       for (unsigned int i=0; i<sources.size(); i++)
 	{
-	  qpfile << "!Start of source number " << i << std::endl;
+	  // quic uses fortran indexing, so i+1 when writing
+	  qpfile << "!Start of source number " << i+1 << std::endl;
+
 	  qpfile << sources[i].name << "\t\t\t!source name" << std::endl;
 	  qpfile << sources[i].strengthUnits << "\t\t\t!Source strength units (1 = g, 2 = g/s, 3 = L,4 = L/s)" << std::endl;
 	  qpfile << sources[i].strength << "\t\t\t!Source Strength" << std::endl;
@@ -343,12 +345,19 @@ bool qpSource::writeQUICFile(const std::string &filename)
 	  qpfile << sources[i].startTime << "\t\t\t!Source start time (s)" << std::endl;
 	  qpfile << sources[i].duration << "\t\t\t!Source duration (s)" << std::endl;
 	  qpfile << sources[i].geometry << "\t\t\t!Source geometry (1 = spherical shell, 2 = line, 3 = cylinder, 4 = Explosive,5 = Area, 6 = Moving Point, 7 = spherical volume, 8 = Submunitions)" << std::endl;
-	  qpfile << sources[i].points.size() << "\t\t\t!Number of data points" << std::endl;
-	  qpfile << "!x (m)   y (m)   z (m)" << std::endl;
-	  for (unsigned int nPts=0; nPts<sources[i].points.size(); nPts++)
-	    {
-	      qpfile << sources[i].points[nPts].x << ' ' << sources[i].points[nPts].y << ' ' << sources[i].points[nPts].z << std::endl;
-	    }
+	  // qpfile << sources[i].points.size() << "\t\t\t!Number of data points" << std::endl;
+	  // qpfile << "!x (m)   y (m)   z (m)" << std::endl;
+
+	  // only will work for sphere!!!
+
+	  int nPts = 0;
+	  qpfile << sources[i].points[nPts].x << "\t\t\t!x coord of center of sphere (m)" << std::endl;
+	  qpfile << sources[i].points[nPts].y << "\t\t\t!y coord of center of sphere (m)" << std::endl;
+	  qpfile << sources[i].points[nPts].z << "\t\t\t!z coord of center of sphere (m)" << std::endl;
+	  qpfile << sources[i].points[nPts].z << "\t\t\t!z coord of center of sphere (m)" << std::endl;
+	  
+	  qpfile << sources[i].radius << "\t\t\t!radius of sphere (m)" << std::endl;
+
 	  qpfile << "!End of source number " << i << std::endl;
 	}
 

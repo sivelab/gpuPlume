@@ -142,7 +142,7 @@ bool qpParams::writeQUICFile(const std::string &filename)
 
   if (qpfile.is_open())
     {
-      qpfile << "!QUIC 5.51" << std::endl;
+      qpfile << "!QUIC 5.6" << std::endl;
 
       qpfile << sourceFlag << "\t\t\t!Source type flag (1 = Basic, 2 = Dense Gas, 3 = Distributed Particle Size, 4 = Explosive, 5 = ERAD source, 6 = Bio Slurry, 7 = 2-phase, 8 = Exfiltration)" << std::endl;
       qpfile << isiteflag << "\t\t\t!normal QUIC (isitefl=0) or sensor siting (=1) mode" << std::endl;

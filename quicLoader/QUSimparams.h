@@ -57,6 +57,7 @@ public:
   int wake_type;
 
   int explosive_building_damage;
+  int building_array_flag;   // added by 5.72
 
 private:
 };

@@ -36,7 +36,11 @@ bool quSensorParams::readQUICFile(const std::string &filename)
 
   getline(quicFile, line);
   ss.str(line);
-  ss >> siteExponential;
+  ss >> siteZo;
+
+  getline(quicFile, line);
+  ss.str(line);
+  ss >> recipMoninObukhovLen;
 
   // step over the height, speed, direction header
   getline(quicFile, line);
@@ -62,7 +66,11 @@ bool quSensorParams::writeQUICFile(const std::string &filename)
       qufile << yCoord << "\t\t\t!Y coordinate (meters)" << std::endl;
       qufile << decimalTime << "\t\t\t!Decimal time (military time i.e. 0130 = 1.5)" << std::endl;
       qufile << boundaryLayerFlag << "\t\t\t!site boundary layer flag (1 = log, 2 = exp, 3 = urban canopy, 4 = discrete data points)" << std::endl;
-      qufile << siteExponential << "\t\t\t!site exponential" << std::endl;
+
+      // this was modified to fit changes in 5.6  ... prev vers. will no longer work
+      qufile << siteZo << "\t\t\t!site zo" << std::endl;
+      qufile << recipMoninObukhovLen << "\t\t\t!reciprocal Monin-Obukhov Length (1/m)" << std::endl;
+
       qufile << "!Height (m),Speed	(m/s), Direction (deg relative to true N)" << std::endl;
       qufile << height << " " << speed << " " << direction << std::endl;
 

@@ -21,6 +21,9 @@ public:
   
   float decimalTime;
   int boundaryLayerFlag;
+  float siteZo;
+  float recipMoninObukhovLen;
+
   float siteExponential;
 
   float height, speed, direction;
