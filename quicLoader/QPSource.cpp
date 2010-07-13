@@ -327,7 +327,7 @@ bool qpSource::writeQUICFile(const std::string &filename)
 
   if (qpfile.is_open())
     {
-      qpfile << "!QUIC 5.6" << std::endl;
+      qpfile << "!QUIC 5.72" << std::endl;
 
       qpfile << numberOfSources << "\t\t\t!Number of sources" << std::endl;
       qpfile << numberOfSourceNodes << "\t\t\t!Number of source nodes" << std::endl;
@@ -345,20 +345,33 @@ bool qpSource::writeQUICFile(const std::string &filename)
 	  qpfile << sources[i].startTime << "\t\t\t!Source start time (s)" << std::endl;
 	  qpfile << sources[i].duration << "\t\t\t!Source duration (s)" << std::endl;
 	  qpfile << sources[i].geometry << "\t\t\t!Source geometry (1 = spherical shell, 2 = line, 3 = cylinder, 4 = Explosive,5 = Area, 6 = Moving Point, 7 = spherical volume, 8 = Submunitions)" << std::endl;
-	  // qpfile << sources[i].points.size() << "\t\t\t!Number of data points" << std::endl;
-	  // qpfile << "!x (m)   y (m)   z (m)" << std::endl;
-
-	  // only will work for sphere!!!
-
-	  int nPts = 0;
-	  qpfile << sources[i].points[nPts].x << "\t\t\t!x coord of center of sphere (m)" << std::endl;
-	  qpfile << sources[i].points[nPts].y << "\t\t\t!y coord of center of sphere (m)" << std::endl;
-	  qpfile << sources[i].points[nPts].z << "\t\t\t!z coord of center of sphere (m)" << std::endl;
-	  qpfile << sources[i].points[nPts].z << "\t\t\t!z coord of center of sphere (m)" << std::endl;
 	  
-	  qpfile << sources[i].radius << "\t\t\t!radius of sphere (m)" << std::endl;
+	  if (sources[i].geometry == 2)
+	    {
+	      qpfile << sources[i].points.size() << "\t\t\t!Number of data points" << std::endl;
+	      qpfile << "!x (m)   y (m)   z (m)" << std::endl;
+	      
+	      qpfile << sources[i].points[0].x << " " << sources[i].points[0].y << " " << sources[i].points[0].z << std::endl;
+	      qpfile << sources[i].points[1].x << " " << sources[i].points[1].y << " " << sources[i].points[1].z << std::endl;
 
-	  qpfile << "!End of source number " << i << std::endl;
+	      qpfile << "!End of source number " << i << std::endl;
+
+	    }
+	  else 
+	    {
+
+	      // only will work for sphere!!!
+
+	      int nPts = 0;
+	      qpfile << sources[i].points[nPts].x << "\t\t\t!x coord of center of sphere (m)" << std::endl;
+	      qpfile << sources[i].points[nPts].y << "\t\t\t!y coord of center of sphere (m)" << std::endl;
+	      qpfile << sources[i].points[nPts].z << "\t\t\t!z coord of center of sphere (m)" << std::endl;
+	      qpfile << sources[i].points[nPts].z << "\t\t\t!z coord of center of sphere (m)" << std::endl;
+	  
+	      qpfile << sources[i].radius << "\t\t\t!radius of sphere (m)" << std::endl;
+
+	      qpfile << "!End of source number " << i << std::endl;
+	    }
 	}
 
       return true;
