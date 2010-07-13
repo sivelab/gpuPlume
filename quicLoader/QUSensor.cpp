@@ -32,15 +32,54 @@ bool quSensorParams::readQUICFile(const std::string &filename)
 
   getline(quicFile, line);
   ss.str(line);
-  ss >> boundaryLayerFlag;
+  int profileType;
+  ss >> profileType;
 
-  getline(quicFile, line);
-  ss.str(line);
-  ss >> siteZo;
+  boundaryLayerFlag = (ProfileType)profileType;
+  if (boundaryLayerFlag == LOG)
+    {
+      getline(quicFile, line);
+      ss.str(line);
+      ss >> Zo;
+      
+      getline(quicFile, line);
+      ss.str(line);
+      ss >> recipMoninObukhovLen;
+    }
+  else if (boundaryLayerFlag == EXP)
+    {
+      getline(quicFile, line);
+      ss.str(line);
+      ss >> exponential;
+    }
+  else if (boundaryLayerFlag == CANOPY)
+    {
+      getline(quicFile, line);
+      ss.str(line);
+      ss >> Zo;
+      
+      getline(quicFile, line);
+      ss.str(line);
+      ss >> recipMoninObukhovLen;
 
-  getline(quicFile, line);
-  ss.str(line);
-  ss >> recipMoninObukhovLen;
+      getline(quicFile, line);
+      ss.str(line);
+      ss >> canopyHeight;
+      
+      getline(quicFile, line);
+      ss.str(line);
+      ss >> attenuationCoef;
+    }
+  else if (boundaryLayerFlag == DATAPT)
+    {
+      std::cerr << "Do not yet support Discrete Data Points Wind Profiles yet!!!!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  else
+    {
+      std::cerr << "Unknown Wind Profile type: " << boundaryLayerFlag << "!!! Exiting!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
 
   // step over the height, speed, direction header
   getline(quicFile, line);
@@ -67,9 +106,32 @@ bool quSensorParams::writeQUICFile(const std::string &filename)
       qufile << decimalTime << "\t\t\t!Decimal time (military time i.e. 0130 = 1.5)" << std::endl;
       qufile << boundaryLayerFlag << "\t\t\t!site boundary layer flag (1 = log, 2 = exp, 3 = urban canopy, 4 = discrete data points)" << std::endl;
 
-      // this was modified to fit changes in 5.6  ... prev vers. will no longer work
-      qufile << siteZo << "\t\t\t!site zo" << std::endl;
-      qufile << recipMoninObukhovLen << "\t\t\t!reciprocal Monin-Obukhov Length (1/m)" << std::endl;
+      if (boundaryLayerFlag == LOG)
+	{
+	  qufile << Zo << "\t\t\t!site zo" << std::endl;
+	  qufile << recipMoninObukhovLen << "\t\t\t!reciprocal Monin-Obukhov Length (1/m)" << std::endl;
+	}
+      else if (boundaryLayerFlag == EXP)
+	{
+	  qufile << exponential << "\t\t\t!site exponential" << std::endl;
+	}
+      else if (boundaryLayerFlag == CANOPY)
+	{
+	  qufile << Zo << "\t\t\t!site zo" << std::endl;
+	  qufile << recipMoninObukhovLen << "\t\t\t!reciprocal Monin-Obukhov Length (1/m)" << std::endl;
+	  qufile << canopyHeight << "\t\t\t!Canopy height (m)" << std::endl;
+	  qufile << attenuationCoef << "\t\t\t!attenuation coefficient" << std::endl;
+	}
+      else if (boundaryLayerFlag == DATAPT)
+	{
+	  std::cerr << "Do not yet support Discrete Data Points Wind Profiles yet!!!!" << std::endl;
+	  exit(EXIT_FAILURE);
+	}
+      else
+	{
+	  std::cerr << "Unknown Wind Profile type: " << boundaryLayerFlag << "!!! Exiting!" << std::endl;
+	  exit(EXIT_FAILURE);
+	}
 
       qufile << "!Height (m),Speed	(m/s), Direction (deg relative to true N)" << std::endl;
       qufile << height << " " << speed << " " << direction << std::endl;

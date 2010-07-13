@@ -14,15 +14,27 @@
 class quSensorParams : public quicDataFile
 {
 public:
+
+  enum ProfileType {
+    LOG = 1,
+    EXP = 2,
+    CANOPY = 3,
+    DATAPT = 4   
+  };
+
   std::string siteName;
 
   int xCoord;
   int yCoord;
   
   float decimalTime;
-  int boundaryLayerFlag;
-  float siteZo;
+  ProfileType boundaryLayerFlag;
+
+  float exponential;
+  float Zo;
   float recipMoninObukhovLen;
+  float canopyHeight;
+  float attenuationCoef;
 
   float siteExponential;
 
