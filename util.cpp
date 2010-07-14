@@ -583,18 +583,11 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   // ///////////////////////////////////////////////////////////
   quMetParamData.readQUICFile(quicFilesPath + "QU_metparams.inp");
 
-  // just testing the writing abilities...
-  quMetParamData.writeQUICFile("/tmp/QU_metparams.inp");
-
-
   // ///////////////////////////////////////////////////////////
   // 
   // Parse and Read QU_simparams.inp file.
   // ///////////////////////////////////////////////////////////
   quSimParamData.readQUICFile(quicFilesPath + "QU_simparams.inp");
-
-  // just testing the writing abilities...
-  quSimParamData.writeQUICFile("/tmp/QU_simparams.inp");
 
   // Check for discovery and default if necessary.		
   nx = quSimParamData.nx;
@@ -611,9 +604,6 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   // Parse and Read QP_params.inp file.
   // ///////////////////////////////////////////////////////////
   qpParamData.readQUICFile(quicFilesPath + "QP_params.inp");
-
-  // just testing the writing abilities...
-  qpParamData.writeQUICFile("/tmp/QP_params.inp");
 
   // set the various components used by the previous incantations of
   // the software.  In particular, use the particle number here unless
@@ -660,9 +650,6 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   // Parse and Read QU_buildings.inp file.
   // ///////////////////////////////////////////////////////////
   quBuildingData.readQUICFile(quicFilesPath + "QU_buildings.inp");
-
-  // just testing the writing abilities...
-  quBuildingData.writeQUICFile("/tmp/QU_buildings.inp");
 
   numBuild = quBuildingData.buildings.size();
 
@@ -715,9 +702,6 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   // ///////////////////////////////////////////////////////////
   qpSourceData.readQUICFile(quicFilesPath + "QP_source.inp");
 
-  // just testing the writing abilities...
-  qpSourceData.writeQUICFile("/tmp/QP_source.inp");
-
   // make it work with the other stuff...
   //
   // Allocate space for the sources
@@ -734,16 +718,27 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   radius = new float[numOfPE];
   rate = new float[numOfPE];
 
-#if 0
-  if (rType == 1) // IR
-    releaseType = 1;
-  else if (rType == 2)
-    releaseType = 1;
-  else if (rType == 3)
-    releaseType = 0;
-#endif
+  // if the releaseType was previously set to 0, it means that the
+  // simulation is set to run for a specific duration, likely for an
+  // experiment.  As such, we will keep the releaseType at 0.
+  // Otherwise, set it to something else.  Currently, we are not doing
+  // a good job of dealing with the release types as they pertain to
+  // QUIC.  -Pete
 
-  releaseType = 1;
+  // Also!!!! we are not dealing with release type well on a source by
+  // source basis.
+
+  std::cerr << "DEV NOTE: source by source release types are not supported!" << std::endl;
+
+  if (releaseType != 0)
+    {
+      if (qpSourceData.sources[0].release == 1)       // IR
+	releaseType = 2;
+      else if (qpSourceData.sources[0].release == 2)  // CONTINUOUS
+	releaseType = 1;
+      else if (qpSourceData.sources[0].release == 3)  // DISCRETE CONTINUOUS
+	releaseType = 1;
+    }
 
   for (int sourceId = 0; sourceId < qpSourceData.sources.size(); sourceId++)
     {
