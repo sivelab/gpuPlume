@@ -80,20 +80,22 @@ void PlumeControl::setupEmitters()
       std::cout << "Error in setting up particle release type" << std::endl;
     }
 
-    if(pe[i]->releaseType == perTimeStep){
-      //set number of particles to emit = (number of particles/ total number of time steps);
-      float number = (twidth*theight) / (util->duration/time_step);
-      // Num to emit should be averaged across all emitters (for now
-      // until we figure out a more controllable scheme)
-      number = number / (float)util->numOfPE;
+    // If the release type equates to a certain number of particles
+    // over a fixed duration, we need to calculate the number to emit.
+    if(pe[i]->releaseType == perTimeStep)
+      {
+	//set number of particles to emit = (number of particles/ total number of time steps);
+	float number = (twidth*theight) / (util->duration/time_step);
 
-      std::cout << util->duration/time_step << std::endl;
+	// Num to emit should be averaged across all emitters (for now
+	// until we figure out a more controllable scheme)
+	number = number / (float)util->numOfPE;
 
-      //int num = (int)number;
+	// number should likely be rounded up
+	pe[i]->setNumToEmit( round(number) );
 
-      pe[i]->setNumToEmit(number);
-      //std::cout << (twidth*theight)/(util->duration/time_step) << std::endl;
-      std::cout << "Emitting " << number << " particles per time step" <<std::endl;
+	std::cout << "Emitting " << (int)round(number) << " particles per time step for " 
+		  << util->duration/time_step << " simulation steps." << std::endl;
     }
   }
 }
