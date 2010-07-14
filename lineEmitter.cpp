@@ -258,6 +258,8 @@ int LineEmitter::EmitParticle(bool odd,GLuint pos0, GLuint pos1,
     }
   }
 
+  std::cout << "line emitter: numToEmit=" << numToEmit << ", actual count=" << count << std::endl;
+
   return count;
    
 }
