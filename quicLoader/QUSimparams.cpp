@@ -80,7 +80,10 @@ bool quSimParams::readQUICFile(const std::string &filename)
   // Check for discovery and default if necessary.		
   nx = (lfp->recall(ie_nx)) ? ie_nx.value : 0 ;
   ny = (lfp->recall(ie_ny)) ? ie_ny.value : 0 ;
-  nz = (lfp->recall(ie_nz)) ? ie_nz.value : 0 ; nz++;
+
+  nz = (lfp->recall(ie_nz)) ? ie_nz.value : 0 ;
+  // @developer: ??? why -Pete
+  // nz = (lfp->recall(ie_nz)) ? ie_nz.value : 0 ; nz++;
 
   if(nx == 0 || ny == 0) {
     std::cerr << "Error::quicLoader::one or more dimensions is zero." << std::endl;

@@ -105,3 +105,12 @@ bool quBuildings::writeQUICFile(const std::string &filename)
   return true;
 }
 
+int quBuildings::findIdxByBldNum(int n)
+{
+  for (unsigned int i=0; i<buildings.size(); i++)
+    {
+      if (buildings[i].bldNum == n)
+	return i;
+    }
+  return -1;
+}

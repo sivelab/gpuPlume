@@ -47,6 +47,8 @@ public:
 
   std::vector<buildingData> buildings;
   
+  int findIdxByBldNum(int n);
+
 private:
 };
 
