@@ -36,7 +36,7 @@ useRealTime 0
 ustar 0.084
 
 #Set the type of Particle Release
-# release_type 2
+# release_type 0
 
 #Set to 0 and it will release a set number of particles per time step
 #based on simulation duration. 
@@ -52,7 +52,7 @@ emit_method 0
 
 #Initialize Pause Mode
 #Set to 0 to start in pause mode; else 1
-pauseMode 0
+pauseMode 1
 
 #Set to 1 to do mean velocity calculation; else 0
 calculateMeanVel 0
