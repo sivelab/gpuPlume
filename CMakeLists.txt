@@ -20,17 +20,13 @@ INCLUDE_DIRECTORIES (${LIBSIVELAB_PATH})
 LINK_DIRECTORIES (${LIBSIVELAB_PATH}/build/quicutil) 
 LINK_DIRECTORIES (${LIBSIVELAB_PATH}/build/util) 
 
-# Add defines for Windows.
-if(WIN32)
-  add_definitions(-DWIN32)
-endif(WIN32)
-
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 
 # If we are in Windows, set the GLEW path manually.
 if(WIN32)
+  add_definitions(-DWIN32)
   set(GLEW_INCLUDE_PATH "${GPUPLUME_SOURCE_DIR}/glew/include")
   set(GLEW_LIBRARY "${GPUPLUME_SOURCE_DIR}/glew/lib")
 else(WIN32)
@@ -52,7 +48,6 @@ set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 set(LIBS ${LIBS} ${GLUT_LIBRARIES})
 set(LIBS ${LIBS} ${GLEW_LIBRARY})
 
-set(CMAKE_CXX_FLAGS "-g3 -Wall")
 # set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-DGPUPLUME_VERSION=\"${GPUPLUME_VERSION}\"")
 
 if(APPLE)
@@ -144,14 +139,14 @@ target_link_libraries (gpuPlume ClientController)
 target_link_libraries (gpuPlume Packet)
 target_link_libraries (gpuPlume ServerController)
 
-target_link_libraries (gpuPlume ${PNG_LIBRARY})
-target_link_libraries (gpuPlume z)
-
 # Link the executable to the file parser library. 
 # target_link_libraries (gpuPlume quicLoader) 
 # target_link_libraries (gpuPlume StandardFileParser) 
 target_link_libraries (gpuPlume sive-quicutil) 
 target_link_libraries (gpuPlume ${LIBS})
+
+target_link_libraries (gpuPlume ${PNG_LIBRARY})
+target_link_libraries (gpuPlume z)
 
 add_subdirectory (populationSampleOpt)
 
