@@ -1990,9 +1990,9 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   GLfloat *windVBOdata = new GLfloat[ width * height * 3];  // Enough to hold the wind field direction vectors AND the center position of each cell
 #endif
 
-  for (qk=0; qk<nzdz; qk++) 
     for (qi=0; qi<nydy; qi++)
       for (qj=0; qj<nxdx; qj++)
+  for (qk=0; qk<nzdz; qk++) 
 	{	
 	  sigU=0;
 	  sigV=0;

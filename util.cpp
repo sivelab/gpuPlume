@@ -31,7 +31,7 @@
 #include "util.h"
 #include "gpuPlume.h"
 
-#include "legacyFileParser.h"
+// #include "legacyFileParser.h"
 
 Util::Util(){
   num = 0;
@@ -593,6 +593,8 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   nx = quSimParamData.nx;
   ny = quSimParamData.ny;
   nz = quSimParamData.nz;
+
+  std::cout << "domain size = " << nx << ", " << ny << ", " << nz << std::endl;
 
   dx = quSimParamData.dx;
   dy = quSimParamData.dy;

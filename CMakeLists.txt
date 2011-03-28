@@ -15,6 +15,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 set(CMAKE_BUILD_TYPE "Debug")
 
+SET(LIBSIVELAB_PATH "${CMAKE_SOURCE_DIR}/../libsivelab" CACHE STRING "Path to the directory where the libsivelab repository is located.")
+INCLUDE_DIRECTORIES (${LIBSIVELAB_PATH}) 
+LINK_DIRECTORIES (${LIBSIVELAB_PATH}/build/quicutil) 
+LINK_DIRECTORIES (${LIBSIVELAB_PATH}/build/util) 
+
 # Add defines for Windows.
 if(WIN32)
   add_definitions(-DWIN32)
@@ -59,11 +64,11 @@ endif(APPLE)
 # library. This does not actually cause another cmake executable to
 # run. The same process will walk through the project's entire
 # directory structure.  
-add_subdirectory (fileParser)
+# add_subdirectory (fileParser)
 
 # build a library for handling all of the QUIC files for reading and
 # writing.
-add_subdirectory (quicLoader)
+# add_subdirectory (quicLoader)
 
 # Recuse into the TreadNet subdirectory to build the libraries to
 # connect to the TPAWT.
@@ -71,13 +76,13 @@ add_subdirectory (TreadNet/Packet)
 add_subdirectory (TreadNet/Controller)
 
 # Make sure the compiler can find include files from our Hello library. 
-include_directories (${GPUPLUME_SOURCE_DIR}/fileParser/standard) 
+# include_directories (${GPUPLUME_SOURCE_DIR}/fileParser/standard) 
 
 # Make sure the linker can find the Hello library once it is built. 
-link_directories (${GPUPLUME_SOURCE_DIR}/fileParser)
+# link_directories (${GPUPLUME_SOURCE_DIR}/fileParser)
 
-include_directories (${GPUPLUME_SOURCE_DIR}/quicLoader) 
-link_directories (${GPUPLUME_SOURCE_DIR}/quicLoader)
+# include_directories (${GPUPLUME_SOURCE_DIR}/quicLoader) 
+# link_directories (${GPUPLUME_SOURCE_DIR}/quicLoader)
 
 # Make sure the compiler can find the include files for the TreadNet library.
 include_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Packet)
@@ -139,12 +144,13 @@ target_link_libraries (gpuPlume ClientController)
 target_link_libraries (gpuPlume Packet)
 target_link_libraries (gpuPlume ServerController)
 
-target_link_libraries (gpuPlume png)
+target_link_libraries (gpuPlume ${PNG_LIBRARY})
 target_link_libraries (gpuPlume z)
 
 # Link the executable to the file parser library. 
-target_link_libraries (gpuPlume quicLoader) 
-target_link_libraries (gpuPlume StandardFileParser) 
+# target_link_libraries (gpuPlume quicLoader) 
+# target_link_libraries (gpuPlume StandardFileParser) 
+target_link_libraries (gpuPlume sive-quicutil) 
 target_link_libraries (gpuPlume ${LIBS})
 
 add_subdirectory (populationSampleOpt)
