@@ -54,7 +54,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
 #endif
 
   viewingMode = (ViewingMode)util->viewing_mode;
-  // viewingMode = ORTHOGRAPHIC_TOP;
+  viewingMode = ORTHOGRAPHIC_TOP;
   
   if(util->static_treadport_frustum == 1) {
     static_treadport_frustum = true;
@@ -1800,7 +1800,8 @@ void DisplayControl::initializeView() {
       
       // Modify the view frustum. Note that the legacy code for OpenScene Graph is
       // in which ever model you are running (i.e. MultipleBuildingsModel).
-    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+    // glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+    glViewport(0, 0, 500, 500);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-1.0, nx+1.0, -1.0, ny+1.0, -nz, nz*2.0);
