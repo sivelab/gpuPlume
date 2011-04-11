@@ -227,8 +227,8 @@ void VisualPlane::drawAxisAlignedPlane(){
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(texType, tex_id[0]);
-	//glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	//Horizontal Texture coordinates
 	float s,t,r;
@@ -1619,12 +1619,13 @@ void VisualPlane::drawScale(){
     disp = (char *)"Displaying: Wind Field";
     break;
   case 1:
-    disp = (char *)"Displaying: Tau11";
+    // disp = (char *)"Displaying: Tau11";
+    disp = (char *)"Displaying: TKE";
     break;
-  case 2:
-    disp = (char *)"Displaying: Tau22";
-    break;
-  case 3:
+    case 2:
+      disp = (char *)"Displaying: Tau22";
+      break;
+    case 3:
     disp = (char *)"Displaying: Tau33";
     break;
   case 4:
