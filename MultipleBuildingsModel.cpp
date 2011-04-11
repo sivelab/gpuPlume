@@ -712,14 +712,14 @@ int MultipleBuildingsModel::display(){
       glEnable(texType);
 
       if(dc->tau_visual == draw_layers){
-				if(planeVisual->visual_field > 0)
-	  			if(planeVisual->rotationPlane)
-	    			planeVisual->drawRotationalPlane();
-	  			else
-	    			planeVisual->drawAxisAlignedPlane();
-				else
-	  				dc->drawLayers(windField,numInRow, util->calculatedMaxVel);
-				CheckErrorsGL("MBA : after drawing layers");
+	if(planeVisual->visual_field > 0)
+	  if(planeVisual->rotationPlane)
+	    planeVisual->drawRotationalPlane();
+	  else
+	    planeVisual->drawAxisAlignedPlane();
+	else
+	  dc->drawLayers(windField,numInRow, util->calculatedMaxVel);
+	CheckErrorsGL("MBA : after drawing layers");
       }
       
 #ifndef __APPLE__
@@ -741,7 +741,7 @@ int MultipleBuildingsModel::display(){
       glBindBuffer(GL_ARRAY_BUFFER, 0);
 #endif
 
-      //      planeVisual->drawScale();
+      planeVisual->drawScale();
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){
