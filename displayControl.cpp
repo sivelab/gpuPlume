@@ -89,12 +89,13 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
     eye_pos[0] = 10;
     eye_pos[1] = 0;
     eye_pos[2] = 0;
-  } if (viewingMode == ORTHOGRAPHIC_TOP)
-      {
-	eye_pos[0] = 0;  
-	eye_pos[1] = 0;
-	eye_pos[2] = 20;
-      }
+  } 
+  else if (viewingMode == ORTHOGRAPHIC_TOP)
+    {
+      eye_pos[0] = 0;  
+      eye_pos[1] = 0;
+      eye_pos[2] = 0;
+    }
   else {
     eye_pos[0] = nx+50;  
     eye_pos[1] = 0;
@@ -536,7 +537,7 @@ void DisplayControl::slideLeftorRight(float direction)
     eye_pos[0] += xslide;
     eye_pos[1] += yslide;
   }
-
+  std::cout << "EYE: " << eye_pos[0] << ' ' << eye_pos[1] << ' ' << eye_pos[2] << std::endl;
 }
 
 void DisplayControl::lookUporDown(float change)
@@ -1804,16 +1805,20 @@ void DisplayControl::initializeView() {
     glViewport(0, 0, 500, 500);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-1.0, nx+1.0, -1.0, ny+1.0, -nz, nz*2.0);
+    glOrtho(-1.0, nx+1.0, -1.0, ny+1.0, 0.0, nz+1.0);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
 
-    // glTranslatef(nx/2.0, ny/2.0, 0.0);
+      gluLookAt( nx/2.0, ny/2.0, nz+1.0,
+                 nx/2.0, ny/2.0, 0.0,
+                 0, 1, 0 );
+
+      // glTranslatef(nx/2.0, ny/2.0, nz);
     // glRotatef(180.0, 0.0, 1.0, 0.0);
     // glRotatef(-90.0, 0.0, 0.0, 1.0);
-    glTranslatef(eye_pos[0], 0, eye_pos[1]);
+    // glTranslatef(eye_pos[0], 0, eye_pos[1]);
 
     } 
   else if(viewingMode == VR) {

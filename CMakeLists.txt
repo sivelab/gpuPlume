@@ -30,6 +30,12 @@ if(WIN32)
   set(GLEW_INCLUDE_PATH "${GPUPLUME_SOURCE_DIR}/glew/include")
   set(GLEW_LIBRARY "${GPUPLUME_SOURCE_DIR}/glew/lib")
 else(WIN32)
+
+  if(APPLE)
+    set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extLibs/glew/include")
+    set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/extLibs/glew/lib/libGLEW.a")
+  endif(APPLE)
+
   find_package(GLEW REQUIRED)
 endif(WIN32)
 
