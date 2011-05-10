@@ -54,7 +54,7 @@ DisplayControl::DisplayControl(int x, int y, int z, GLenum type, bool initialPau
 #endif
 
   viewingMode = (ViewingMode)util->viewing_mode;
-  viewingMode = ORTHOGRAPHIC_TOP;
+  // viewingMode = ORTHOGRAPHIC_TOP;
   
   if(util->static_treadport_frustum == 1) {
     static_treadport_frustum = true;
