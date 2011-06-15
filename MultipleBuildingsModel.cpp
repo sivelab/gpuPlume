@@ -157,6 +157,7 @@ void MultipleBuildingsModel::init(bool OSG){
   lambda = texid[7];
   tau_dz = texid[8];
   duvw_dz = texid[9];
+  dxyz_wall = texid[18];
 
   //Texture for mean velocities
   meanVel0 = texid[10];
@@ -379,7 +380,7 @@ int MultipleBuildingsModel::display(){
    
     /*else{*/
     pc->multipleBuildingsAdvect(odd,windField,positions0,positions1,prime0,prime1,
-				randomValues,lambda,tau_dz,duvw_dz,time_step,buildings, 
+				randomValues,lambda,tau_dz,duvw_dz,dxyz_wall,time_step,buildings, 
 				cellType, color_by_advect_terms);
     //}
 
@@ -910,7 +911,8 @@ void MultipleBuildingsModel::setupTextures(){
   if(util->windFieldData < 5)
     pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz);
   else if(util->windFieldData == 5)
-    pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau);
+      //   pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau);
+      pc->nonLocalMixing(windField, lambda, tau_dz, duvw_dz,dxyz_wall, tau);
   else
     pc->initLambda_and_Taus_withCalculations(windField, lambda, tau_dz, duvw_dz, tau);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
@@ -988,9 +990,13 @@ void MultipleBuildingsModel::setupTextures(){
 	  random_values.push_back( data[idx + 1] );
 	  random_values.push_back( data[idx + 2] );
 
-	  data[idx] = util->sigU*(data[idx]);   
+	  /*data[idx] = util->sigU*(data[idx]);   
 	  data[idx+1] = util->sigV*(data[idx+1]);
-	  data[idx+2] = util->sigW*(data[idx+2]);
+	  data[idx+2] = util->sigW*(data[idx+2]);*///-balli commented
+          
+          data[idx] = 1.0;//util->sigU;//*(data[idx]);   
+	  data[idx+1] = util->sigV;//*(data[idx+1]);
+	  data[idx+2] = util->sigW;//*(data[idx+2]);
 	  //data[idx] = 100.0;   
 	  //data[idx+1] = 100.0;
 	  //data[idx+2] = 100.0;

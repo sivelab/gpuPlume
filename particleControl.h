@@ -8,6 +8,9 @@
 //////////////////////////////////////////////////
 
 #include <string>
+//non local mixing
+#include <vector>
+#include <string>
 #include <GL/glew.h>
 
 #include "framebufferObject.h"
@@ -55,7 +58,7 @@ class ParticleControl{
   void setupMultipleBuildingsShader(float,int);
 
   void multipleBuildingsAdvect(bool,GLuint,GLuint,GLuint,
-			       GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float,GLuint,GLuint,GLuint);
+			       GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float,GLuint,GLuint,GLuint);
 
   void nonGaussianAdvect(bool,GLuint,GLuint,GLuint,
 			 GLuint,GLuint,GLuint,GLuint,GLuint,GLuint,float);
@@ -82,8 +85,22 @@ class ParticleControl{
   
   void initLambda_and_TauTex(GLuint,GLuint,GLuint);
   void initLambda_and_TauTex_fromQUICFILES(GLuint,GLuint,GLuint,GLuint,GLuint);
-  void initLambda_and_Taus_withCalculations(GLuint,GLuint,GLuint,GLuint,GLuint);
+    void initLambda_and_Taus_withCalculations(GLuint,GLuint,GLuint,GLuint,GLuint);
+    //non local mixing
+    void nonLocalMixing(GLuint,GLuint, GLuint, GLuint,GLuint,GLuint);
+    void detang(const int,const int&, float&, float&, int&,int&,int&);
+    void rotu3psq(const int&,const float&,const float&,const float&,const float&
+                  ,const float&,const float& ,const float& ,float&,float&,float&
+                  ,float&,float&,float&);
+    
+    void rotufsq(const int&,float&,float&,float&,float&,const float&,const float&,const float&,const float&,const float&,const float&);
+    void rotate2d(const int&,const float&,const float&,const float&,const float&,const float&,const float&,const float&,const float&);
+    float sign(const float&,const float&);
 
+    int nint(const int t1);
+    int nint(const float t1);
+
+    //non-localmixing ends
 
   //This function is used to initialize the particle positions.
   //It was needed when we weren't able to directly put 32-bit floating point
@@ -183,12 +200,18 @@ class ParticleControl{
   int nz;
 
   float cell_dx,cell_dy,cell_dz;
-  long nxdx,nydy,nzdz;
+  int nxdx,nydy,nzdz;
 
   GLenum texType;
 
   GLuint windFieldVector_vbo;
   int windFieldVector_w, windFieldVector_h;
+    //non-local mixing
+    std::vector<float> dutotdxi,dutotdyi,dutotdzi,dutotdni,dutotdsi;
+    std::vector<float> alph1ij,alph2ij,alph3ij,bet1ij,bet2ij,bet3ij,gam1ij,gam2ij,gam3ij,alphn1ij;
+    std::vector<float> alphn2ij,alphn3ij,betn1ij,betn2ij,betn3ij,gamn1ij,gamn2ij,gamn3ij,ani,bni,cni;
+    std::vector<float>ufsqgi,vfsqgi,wfsqgi,ufvfgi,ufwfgi,vfwfgi;
+    //non-localmixing ends
 
  private:
 
@@ -252,9 +275,9 @@ class ParticleControl{
   GLint uniform_randomTexCoordOffset, uniform_randomTexWidth, uniform_randomTexHeight;
 
   //Variables for advect shader
-  GLint uniform_postex, uniform_wind, uniform_randomTexture;
-  GLint uniform_primePrev, uniform_primeCurr, uniform_timeStep;
-  GLint uniform_tau_dz, uniform_duvw_dz;
+    GLint uniform_postex, uniform_wind, uniform_randomTexture;
+    GLint uniform_primePrev, uniform_primeCurr, uniform_timeStep;
+    GLint uniform_tau_dz, uniform_duvw_dz,uniform_dxyz_wall;
   GLint uniform_colorAdvectTerms;
 
   //Uniform variables for building

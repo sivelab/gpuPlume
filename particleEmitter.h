@@ -8,7 +8,7 @@
 #include "GLSL.h"
 #include "particleControl.h"
 
-struct pIndex {
+typedef struct{
     int id;
     double time;
     

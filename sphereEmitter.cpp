@@ -10,10 +10,11 @@
 
 static int frame_count = 0;
 
-SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
-			     int w,int h,std::list<int>* ind, GLSLObject* emit_shader,
-			     std::vector<float>* randoms,wind* sig,
-			     int dx,int dy,int dz){
+SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,int w,int h,std::list<int>* ind, GLSLObject* emit_shader,
+                             std::vector<float>* randoms,wind* sig,int dx,int dy,int dz,std::vector<float> alph1
+                             , std::vector<float> alph2,std::vector<float> alph3, std::vector<float> bet1,std::vector<float> bet2,
+                             std::vector<float> bet3,std::vector<float> gam1,std::vector<float> gam2,std::vector<float> gam3){
+								 //Balli : Added rotation arguments
 
   xpos = x;
   ypos = y;
@@ -43,7 +44,17 @@ SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,
 
   random_values = randoms;
   sigma = sig;
-  
+
+  alph1ij = alph1;
+  alph2ij = alph2;
+  alph3ij = alph3;
+  bet1ij  = bet1;
+  bet2ij  = bet2;
+  bet3ij  = bet3;
+  gam1ij  = gam1;
+  gam2ij  = gam2;
+  gam3ij  = gam3;
+    
   //counter used to step through the random values
   curr = 0;
 
@@ -186,15 +197,24 @@ int SphereEmitter::EmitParticle(bool odd, GLuint pos0, GLuint pos1,
 	      s = (p_index%twidth);
 	      t = (p_index/twidth);	  
 
-	      //Determine initial prime value
-	      int p2idx = ((int)zpos)*nydy*nxdx + ((int)ypos)*nxdx + (int)xpos;
-	      px = random_values->at(curr)*(sigma[p2idx].u);
-	      py = random_values->at(curr+1)*(sigma[p2idx].v);
-	      pz = random_values->at(curr+2)*(sigma[p2idx].w);
-	      //std::cout << random_values->at(curr) << std::endl;
-	      curr += 3;
-	      if(curr >= random_values->size())
-	        curr = 0;
+	//Determine initial prime value
+	//int p2idx = ((int)zpos)*nydy*nxdx + ((int)ypos)*nxdx + (int)xpos; //Balli: repalced this statement by the following
+        // Balli:Accounts for variations in initial particle positions
+        int p2idx = ((int)(zpos+offsetz))*nydy*nxdx + ((int)(ypos+offsety))*nxdx + (int)(xpos+offsetx);
+        //Balli: declared following temporary varibale to use them in rotation
+	float pxtemp = random_values->at(curr)*(sigma[p2idx].u);
+	float pytemp = random_values->at(curr+1)*(sigma[p2idx].v);
+	float pztemp = random_values->at(curr+2)*(sigma[p2idx].w);
+
+        //Balli: Added Rotation to primes
+        px = pxtemp * alph1ij.at(p2idx) + pytemp * alph2ij.at(p2idx) + pztemp * alph3ij.at(p2idx);
+        py = pxtemp * bet1ij.at (p2idx) + pytemp * bet2ij.at (p2idx) + pztemp * bet3ij.at (p2idx);
+        pz = pxtemp * gam1ij.at (p2idx) + pytemp * gam2ij.at (p2idx) + pztemp * gam3ij.at (p2idx);
+
+        //std::cout << random_values->at(curr) << std::endl;
+	curr += 3;
+	if(curr >= random_values->size())
+	  curr = 0;
 
 	      if(Punch_Hole){
 	        glPointSize(1.0);
