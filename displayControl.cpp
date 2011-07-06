@@ -1802,20 +1802,29 @@ void DisplayControl::initializeView() {
       // Modify the view frustum. Note that the legacy code for OpenScene Graph is
       // in which ever model you are running (i.e. MultipleBuildingsModel).
     // glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-    glViewport(0, 0, 500, 500);
+
+    // scale the viewport appropriately...
+    float domainAspectRatio = (float)ny / (float)nx;
+
+    std::cout << "nx = " << nx << ", ny = " << ny << std::endl;
+    std::cout << "width = " << (1000/domainAspectRatio) << std::endl;
+
+    glViewport(0, 0, 1000, (float)(1000/domainAspectRatio));
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-1.0, nx+1.0, -1.0, ny+1.0, 0.0, nz+1.0);
+    //glOrtho(-1.0, nx+1.0, -1.0, ny+1.0, -1.0*nz, nz+1.0);
+    gluPerspective(90.0, domainAspectRatio, 1.0, 250.0);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);
 
-      gluLookAt( nx/2.0, ny/2.0, nz+1.0,
-                 nx/2.0, ny/2.0, 0.0,
-                 0, 1, 0 );
+    gluLookAt( nx/2.0, ny/2.0, 2.0*nz,
+    	       nx/2.0, ny/2.0, 0.0,
+	       0, 1, 0 );
 
-      // glTranslatef(nx/2.0, ny/2.0, nz);
+    // glTranslatef(nx/2.0, ny/2.0, nz);
     // glRotatef(180.0, 0.0, 1.0, 0.0);
     // glRotatef(-90.0, 0.0, 0.0, 1.0);
     // glTranslatef(eye_pos[0], 0, eye_pos[1]);

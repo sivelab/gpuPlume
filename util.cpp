@@ -55,6 +55,11 @@ Util::Util(){
   sun_altitude = 0;
 
   onlyCalcShadows = false;
+
+  winWidth = 1;
+  winHeight = 1;
+  problemID = 0;
+  problemInstanceID = 0;
 }
 
 bool Util::isPathAbsolute(const std::string &filename)

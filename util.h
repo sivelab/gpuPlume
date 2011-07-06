@@ -169,6 +169,12 @@ class Util {
   qpParams qpParamData;
   qpSource qpSourceData;
 
+  // problem info
+  unsigned int problemID;
+  unsigned int problemInstanceID;
+
+  int winWidth, winHeight;
+
  private:
 
   void parseLine(char*);

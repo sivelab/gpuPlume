@@ -1975,12 +1975,13 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
   if(quicFilesPath.c_str() != NULL){
     path = quicFilesPath + "QP_turbfield.dat";
   }
-  else
-    path = "Settings/QP_turbfield.dat";
+  else 
+    {
+      std::cerr << "gpuPlume Error: QP_turbield.dat file must exist in the project!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
 
-  //turbulence.open("Settings/QP_turbfield.dat");
   turbulence.open(path.c_str());
-  
   std::string header;
   
   turbulence>>header>>header>>header>>header>>header>>header>>header>>header>>header>>header;
@@ -3182,8 +3183,10 @@ void ParticleControl::QUICWindField(){
   // BIG QUESTION from Pete: why do I need to have nzdz - 1 here to get numbers that are correct for the wind field.   I didn't need this on
   // Linux so there must be some bug in how we're interpreting the nzdz K layer... someone needs to look into this... note that this is only
   // affecting the visualization at the moment, but I'd like to understand what's happening!!!
+  // ???????????
+  // for(int k = 0; k < nzdz-1; k++){   
 
-  for(int k = 0; k < nzdz-1; k++){   
+  for(int k = 0; k < nzdz; k++){   
     for(int i = 0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
 	int p2idx = k*nxdx*nydy + i*nxdx + j;
@@ -3212,7 +3215,8 @@ void ParticleControl::QUICWindField(){
   }
 
   avg_vel = tot_vel/(double)(nxdx*nydy*nzdz);
-  for(int k = 0; k < nzdz-1; k++){   
+  // for(int k = 0; k < nzdz-1; k++){   
+  for(int k = 0; k < nzdz; k++){   
     for(int i = 0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
 	int p2idx = k*nxdx*nydy + i*nxdx + j;

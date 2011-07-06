@@ -87,4 +87,11 @@ void CmdOptionInterpreter::parse()
 
   if (m_argParser->isSet("offscreenRender"))
     m_utilPtr->offscreenRender = true;
+
+  if (m_argParser->isSet("problemID", argVal))
+    m_utilPtr->problemID = atoi(argVal.c_str());
+
+  if (m_argParser->isSet("probInstID", argVal))
+    m_utilPtr->problemInstanceID = atoi(argVal.c_str());
+
 }

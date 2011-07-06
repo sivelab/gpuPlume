@@ -192,6 +192,10 @@ int main(int argc, char** argv)
   argParser.reg("offscreenRender", 'r', no_argument);
   argParser.reg("ignoreSignal", 's', no_argument);
 
+  // args to set the problem id so we can tailor files names appropriately
+  argParser.reg("problemID", 'b', required_argument);
+  argParser.reg("probInstID", 'z', required_argument);
+
   // allocate memory for the timing values
   // keep 1000 values
   timing_N = 1000;
@@ -274,11 +278,19 @@ int main(int argc, char** argv)
 	  glutGameModeString("1024x768");
 	  std::cout << "Game Mode Width: " << glutGameModeGet(GLUT_GAME_MODE_WIDTH) << std::endl;
 	  std::cout << "Game Mode Height: " << glutGameModeGet(GLUT_GAME_MODE_HEIGHT) << std::endl;
+	  util->winWidth = glutGameModeGet(GLUT_GAME_MODE_WIDTH);
+	  util->winHeight = glutGameModeGet(GLUT_GAME_MODE_HEIGHT);
 	  glutEnterGameMode();
 	}
       else 
 	{
-	  glutInitWindowSize(winwidth, winheight);
+	  float domainAspectRatio = (float)util->ny / (float)util->nx;
+	  std::cout << "setting winsize = " << winwidth << " X " << winwidth/domainAspectRatio << std::endl;
+
+	  util->winWidth = winwidth;
+	  util->winHeight = winwidth / domainAspectRatio;
+
+	  glutInitWindowSize(winwidth, winwidth/domainAspectRatio);
 	  plume->winid = glutCreateWindow("gpuplume");
 	}
 
@@ -304,10 +316,15 @@ int main(int argc, char** argv)
 
       Bool bWinMapped = False;
 
+      float domainAspectRatio = (float)util->ny / (float)util->nx;
+
       // Set initial window size... don't need big window as we're
       // rendering to textures.
-      rcx.nWinWidth = 400;
-      rcx.nWinHeight = 200;
+      rcx.nWinWidth = winwidth;
+      rcx.nWinHeight = rcx.nWinWidth / domainAspectRatio;
+
+      util->winWidth = rcx.nWinWidth;
+      util->winHeight = rcx.nWinHeight;
 
       // Setup X window and GLX context
       CreateWindow(&rcx);
@@ -348,6 +365,8 @@ int main(int argc, char** argv)
   plume->init(false); 
   plume->paused = false;
   plume->inPauseMode = util->pauseMode;
+
+  plume->dc->increaseVisualLayer();
 
   // record the start time
   total_timer[0] = plume_clock->tic();  
@@ -539,6 +558,9 @@ void reshape(int w, int h)
 
 void display(void)
 {
+  // For now, turn on visuals for displaying information
+  plume->dc->tau_visual = draw_layers;
+
   if (compute_timings)
     {
       plume_timer[0] = plume_clock->tic();    

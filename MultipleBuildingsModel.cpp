@@ -557,7 +557,7 @@ int MultipleBuildingsModel::display(){
   // screen will make the simulation run more slowly. This feature is
   // mainly included to allow some idea of how much faster the
   // simulation can run if left to run on the GPU.
-  if (util->show_particle_visuals)
+  if (util->show_particle_visuals || (img_notDone && imgCounter > 100))
     {
       glGetIntegerv(GL_READ_BUFFER, &read_buffer);
       // //////////////////////////////////////////////////////////////
@@ -742,7 +742,8 @@ int MultipleBuildingsModel::display(){
       glBindBuffer(GL_ARRAY_BUFFER, 0);
 #endif
 
-      planeVisual->drawScale();
+      // removed for plume code... due to tie in with glut
+      // planeVisual->drawScale();
 
       if(!osgPlume){
 	for(int i=0; i < util->numOfPE; i++){
@@ -758,20 +759,20 @@ int MultipleBuildingsModel::display(){
 
 
       // ////////////////////////////////////////////
-#if 0
-      if (img_notDone && imgCounter > 2000)
+      if (img_notDone && imgCounter > 100)
 	{
-	  // int iWidth = glutGet(GLUT_WINDOW_WIDTH);
-	  // int iHeight = glutGet(GLUT_WINDOW_HEIGHT);
-
-	  int iWidth = 400;
-	  int iHeight = 200;
+	  int iWidth = util->winWidth;
+	  int iHeight = util->winHeight;
 	  GLfloat *imgBuffer = new GLfloat[ iWidth * iHeight * 3 ];
 	  glReadBuffer(GL_BACK);
 	  glReadPixels(0, 0, iWidth, iHeight, GL_RGB, GL_FLOAT, imgBuffer); 
 	  
 	  cs5721::PNGImage pngimage;
-	  pngimage.writeFileData("plume.png", iWidth, iHeight, imgBuffer);
+
+	  std::ostringstream fname;
+	  fname << "/scratch/gpuplume_" << util->problemID << "_" << util->problemInstanceID << ".png";
+	  
+	  pngimage.writeFileData(fname.str(), iWidth, iHeight, imgBuffer);
 	  std::cout << "Wrote PNG file" << std::endl;
 
 	  delete [] imgBuffer;
@@ -779,8 +780,6 @@ int MultipleBuildingsModel::display(){
 	}
       else
 	imgCounter++;
-#endif
-
 
       // If we've chose to display the 3D particle domain, we need to
       // set the projection and modelview matrices back to what is
