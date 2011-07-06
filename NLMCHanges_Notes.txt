@@ -1,0 +1,30 @@
+particleControl.cpp
+--------------------
+leaving out some of the printPrime(odd, true) calls that Balli 
+  - need to check that function to make sure no side effects exist
+
+did not merge the dumpContents changes as I'm not sure if necessary
+
+setting znaut from 0.01 to 0.1f.... seems like this should be read in
+from one of the files!!!
+
+What do we want to do permanently about:
+ float VertGradFactor=pow( (1.0-(minDistance/20.0)) ,3.0/4.0); 
+
+ * how do we normalize the minDistance???
+ * same with wind_vel[p2idx].u = 7.52f*pow(((k+1)/20.0f),0.15f);
+
+
+Need to work on generalizing the following function:
+   float ParticleControl::getMinDistance(int qj, int qi, int qk){
+
+INtegrating into gpuplume trunk, line 5348 introduces a new k variable
+in condition 5 of the switch... this MAY overstep a previous k!!!
+Check back on this!
+
+Review line 993 of multiplebuildingsadvect... sigU term gets set to
+1.0!
+
+
+
+
