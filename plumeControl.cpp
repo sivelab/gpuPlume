@@ -38,9 +38,16 @@ void PlumeControl::setupEmitters()
 				&random_values, pc->sig, nxdx, nydy, nzdz);
       else if (util->petype[i] == 3)
 	// SPHERE EMITTER
+	// pe[i] = new SphereEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
+	// util->rate[i], util->radius[i], twidth, theight, &indices, &emit_shader,
+	// &random_values,pc->sig,nxdx,nydy,nzdz);
+
 	pe[i] = new SphereEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
 				  util->rate[i], util->radius[i], twidth, theight, &indices, &emit_shader,
-				  &random_values,pc->sig,nxdx,nydy,nzdz);
+				  &random_values,pc->sig,nxdx,nydy,nzdz,pc->alph1ij,pc->alph2ij,pc->alph3ij
+                                  ,pc->bet1ij,pc->bet2ij,pc->bet3ij,pc->gam1ij,pc->gam2ij,pc->gam3ij);
+      //Balli: Included rotation parameter in sphere emitter call, other source types should also be changed
+
       else if (util->petype[i] == 4)
 	// PLANE EMITTER
 	pe[i] = new PlaneEmitter(util->xpos[i],util->ypos[i],util->zpos[i], 
