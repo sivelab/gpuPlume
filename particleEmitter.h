@@ -89,6 +89,10 @@ class ParticleEmitter{
   //random values 
   std::vector<float>* random_values; 
 
+  //Balli: included rotation parameter
+  //[didn't know how to achieve this using "references", may be faster if we pass a "const" pointer instead of passing whole vector]
+  std::vector<float> alph1ij,alph2ij,alph3ij,bet1ij,bet2ij,bet3ij,gam1ij,gam2ij,gam3ij;
+
   //Sigma values for wind field from particleControl
   wind* sigma;
 
