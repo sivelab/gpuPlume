@@ -82,16 +82,18 @@ float ReturnCellType(int i,int j,int k)
   }
   return cell_type.x;
 }
+
 float absolute(float i)
 {
   if(i<0) return -i;
   else return i;
 }
-int maximum(int i,int j)
-{
-  if(i>j) return i;
-  else return j;
-}
+
+// int maximum(int i,int j)
+// {
+//   if(i>j) return i;
+//   else return j;
+// }
 
 float sign(const float A,const float B){
   float R;
@@ -105,9 +107,9 @@ float sign(const float A,const float B){
 void main(void)
 {
   vec4 poi=vec4(-1.0,-1.0,-1.0,-1.0);
-  vec3 drift_term;
-  vec3 memory_term;
-  vec3 random_term;
+  // vec3 drift_term;
+  // vec3 memory_term;
+  // vec3 random_term;
   vec4 color = vec4(1.0,1.0,1.0,1.0);
 
   vec2 texCoord = gl_TexCoord[0].xy;
@@ -713,12 +715,21 @@ void main(void)
 	    cIndex.t = float(j) + float(floor(float(k)/float(numInRow)))*float(nydy);
 	    cell_type = vec4(texture2DRect(cellType, cIndex));}*/
 	  //if(ReturnCellType(i,j,k)==0){pos.x=prevPos.x;pos.y=prevPos.y;pos.z=prevPos.z;}
-	  if(ReturnCellType(i,j,k)==0)
-	    {   
-	      //Reflection using the celltypes of the building 
-	      float isign,jsign,ksign;
-	      int imm,jmm,kmm;
-	      while((ReturnCellType(i,j,k)==0) && (cnt<1))
+
+	  // This was in the code and seems redundant with the while loop below...
+	  // if(ReturnCellType(i,j,k)==0)
+	  // {   
+
+	      // 
+	      // Reflection using the celltypes of the building 
+	      // 
+
+	      // float isign,jsign,ksign;
+	      // int imm,jmm,kmm;
+
+	      // why is this bounded to cnt < 1 ?? -Pete  -- when this is set above 1, particles spread heavily 
+	      // against the main flow
+	      while((ReturnCellType(i,j,k)==0) && (cnt<2))
 		{
 		  //imm=int(floor(pos.x)); 
 		  //jmm=int(floor(pos.y)); 
@@ -825,9 +836,10 @@ void main(void)
 
 		  prmCurr = reflect(prmCurr,normal);
 
-		  j = int(floor(pos.y));
 		  i = int(floor(pos.x));
+		  j = int(floor(pos.y));
 		  k = int(floor(pos.z));
+
 		  if(ReturnCellType(i,j,k)==0){pos.x=prevPos1.x; pos.y=prevPos1.y; pos.z=prevPos1.z;}
 
 		  //NOTE: Consider what happens if building is too close to domain.
@@ -844,7 +856,8 @@ void main(void)
 		    }*/
 		  cnt++;
 		}
-	    }//end reflection-if loop
+	      // }//end reflection-if loop
+
 	  timeStepUsed = timeStepUsed + timeStepSim;// stores total time used
 	  timeStepRem = time_step - timeStepUsed; //stores time remaining in the time_step
 	  timeStepSim = timeStepRem; // time stepfor next iteration
@@ -879,56 +892,56 @@ void main(void)
 
       }//loopThrough if
 
-      if(color_advect_terms == 1){
+      // if(color_advect_terms == 1){
 	//Find largest advect term and set color
-	color = vec4(1.0,0.0,0.0,1.0);
+      //color = vec4(1.0,0.0,0.0,1.0);
 
 	//float me = memory_term.x;//length(memory_term);
 	//float dr = drift_term.x;//length(drift_term);
 	//float ra = random_term.x;//length(random_term);
 
-	float me = length(memory_term);
-	float dr = length(drift_term);
-	float ra = length(random_term);
+      //	float me = length(memory_term);
+      //	float dr = length(drift_term);
+      //	float ra = length(random_term);
 
-	float largest = me;
+      //	float largest = me;
 
-	if(dr > largest){
-	  largest = dr;
-	  color = vec4(0.0,1.0,0.0,1.0);
-	}
-	if(ra > largest){
-	  color = vec4(0.0,0.0,1.0,1.0);
-	}
-      }
+      //	if(dr > largest){
+      //	  largest = dr;
+      //	  color = vec4(0.0,1.0,0.0,1.0);
+      //	}
+      //	if(ra > largest){
+      //	  color = vec4(0.0,0.0,1.0,1.0);
+      //        }
+      // 
 
     }//if on domain check
 
   }//while loopthrough condition
 
-  if(color_advect_terms == 1){
-    color=poi;   
+  //  if(color_advect_terms == 1){
+  //    color=poi;   
+  //    if(pos.a <= 0.0 && (!(life_time <= 0.0))){
+  //      gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
+  //      gl_FragData[1] = vec4(prmCurr, 1.0);
+  //      gl_FragData[2] = color;
+  //    }
+  //    else{
+  //      gl_FragData[0] = pos;
+  //      gl_FragData[1] = vec4(prmCurr, 1.0);
+  //      gl_FragData[2] = color;
+  //    }
+  //  }
+  //  else{
     if(pos.a <= 0.0 && (!(life_time <= 0.0))){
       gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
       gl_FragData[1] = vec4(prmCurr, 1.0);
-      gl_FragData[2] = color;
     }
     else{
       gl_FragData[0] = pos;
       gl_FragData[1] = vec4(prmCurr, 1.0);
-      gl_FragData[2] = color;
     }
-  }
-  else{
-    if(pos.a <= 0.0 && (!(life_time <= 0.0))){
-      gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
-      gl_FragData[1] = vec4(prmCurr, 1.0);
-    }
-    else{
-      gl_FragData[0] = pos;
-      gl_FragData[1] = vec4(prmCurr, 1.0);
-    }
-  }
+    // }
 }
 
 //CFL Constant=1.4
