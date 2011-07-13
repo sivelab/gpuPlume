@@ -537,7 +537,7 @@ void DisplayControl::slideLeftorRight(float direction)
     eye_pos[0] += xslide;
     eye_pos[1] += yslide;
   }
-  std::cout << "EYE: " << eye_pos[0] << ' ' << eye_pos[1] << ' ' << eye_pos[2] << std::endl;
+  // std::cout << "EYE: " << eye_pos[0] << ' ' << eye_pos[1] << ' ' << eye_pos[2] << std::endl;
 }
 
 void DisplayControl::lookUporDown(float change)
