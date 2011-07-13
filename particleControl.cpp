@@ -2264,6 +2264,10 @@ void ParticleControl::initLambda_and_TauTex_fromQUICFILES(GLuint windField,GLuin
 void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, 
 							   GLuint tauTex){
 
+  std::cout << "---------------------------------" << std::endl;
+  std::cout << "initLambda_and_Taus_withCalculations!" << std::endl;
+  std::cout << "---------------------------------" << std::endl;
+
   GLfloat *data = new GLfloat[ width * height * 4 ];
   GLfloat *dataWind = new GLfloat[ width * height * 4 ];
   GLfloat *dataTwo = new GLfloat[ width * height * 4 ];
@@ -2525,6 +2529,8 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 
 float ParticleControl::getMinDistance(int qj, int qi, int qk){
   
+  std::cout << "Calling getMinDistance!!!!!!!!!!!!!!!!!!!!!!!!! should be fixed!" << std::endl;
+
   //Following is hardwired, but we need to read the building info mentioned in the input file
   int totBuild=6;
   int xfo[]={20,20,35,35,50,50};//{25};
@@ -3443,6 +3449,8 @@ void ParticleControl::find_tauLocalMax(){
 
 void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, GLuint dxyz_wall, 
                                      GLuint tauTex){
+
+  std::cout << "Running with Non-Local Mixing Calculations" << std::endl;
 
     GLfloat *data     = new GLfloat[ width * height * 4 ];
     GLfloat *dataWind = new GLfloat[ width * height * 4 ];

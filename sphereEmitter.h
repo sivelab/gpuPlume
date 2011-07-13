@@ -9,15 +9,15 @@ class SphereEmitter : public ParticleEmitter{
 
   SphereEmitter(float,float,float,float,float,int,int,std::list<int>*,GLSLObject*,std::vector<float>*,wind*,
 		int,int,int,
-                std::vector<float>, 
-                std::vector<float>,
-                std::vector<float>, 
-		std::vector<float>,
-                std::vector<float>,
-		std::vector<float>,
-		std::vector<float>,
-		std::vector<float>,
-		std::vector<float>);
+                const std::vector<float> &, 
+                const std::vector<float> &,
+                const std::vector<float> &, 
+		const std::vector<float> &,
+                const std::vector<float> &,
+		const std::vector<float> &,
+		const std::vector<float> &,
+		const std::vector<float> &,
+		const std::vector<float> &);
 
 
   virtual int EmitParticle(bool,GLuint,GLuint,float,GLuint,GLuint);

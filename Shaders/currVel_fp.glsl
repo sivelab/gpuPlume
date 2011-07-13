@@ -16,14 +16,18 @@ void main(void)
    vec3 prevPos = vec3(textureRect(position_prev, texCoord));
    vec3 pos = vec3(textureRect(position, texCoord));
 
-   int i = floor(pos.y);
-   int j = floor(pos.x);
+   //   int i = floor(pos.y);
+   //   int j = floor(pos.x);
+   // Is this right???
+   int j = floor(pos.y);
+   int i = floor(pos.x);
    int k = floor(pos.z);
-
 
    //vec3 color = vec3(0.8, 0.8, 1.0);
 	vec3 color_prime;
-   vec3 color = vec3(0.0, 0.0, 0.0);
+	//    vec3 color = vec3(0.0, 0.0, 0.0);
+	//   vec3 color = vec3((float)j/(float)ny, (float)i/(float)ny, (float)k/(float)nz);
+   vec3 color = vec3(1.0,1.0,1.0);
    if((i < ny) && (j < nx) && (k < nz) && (i >= 0) && (j >= 0) && (k >= 0))
    {
       vec2 index;

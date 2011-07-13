@@ -11,9 +11,16 @@
 static int frame_count = 0;
 
 SphereEmitter::SphereEmitter(float x,float y,float z,float rate, float r,int w,int h,std::list<int>* ind, GLSLObject* emit_shader,
-                             std::vector<float>* randoms,wind* sig,int dx,int dy,int dz,std::vector<float> alph1
-                             , std::vector<float> alph2,std::vector<float> alph3, std::vector<float> bet1,std::vector<float> bet2,
-                             std::vector<float> bet3,std::vector<float> gam1,std::vector<float> gam2,std::vector<float> gam3){
+                             std::vector<float>* randoms,wind* sig,int dx,int dy,int dz,
+			     const std::vector<float> &alph1,
+			     const std::vector<float> &alph2,
+			     const std::vector<float> &alph3, 
+			     const std::vector<float> &bet1,
+			     const std::vector<float> &bet2,
+                             const std::vector<float> &bet3,
+			     const std::vector<float> &gam1,
+			     const std::vector<float> &gam2,
+			     const std::vector<float> &gam3){
 								 //Balli : Added rotation arguments
 
   xpos = x;

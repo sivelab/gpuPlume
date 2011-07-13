@@ -11,7 +11,7 @@ void main(void)
   vec4 c2 = vec4(1.0,1.0,0.0,1.0);
   vec4 c3 = vec4(1.0,0.0,0.0,1.0);
 
-  float t = (position.x - xmin)/(xmax-xmin);
+   float t = (position.x - xmin)/(xmax-xmin);
   
   //float r = ((xmax-xmin)/2.0)/(xmax-xmin);
   //gl_FragColor = c1*(1.0-t) + c2*t;
