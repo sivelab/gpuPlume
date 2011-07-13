@@ -270,15 +270,20 @@ void main(void)
       float ustar3 = ustar*ustar*ustar;
             
       /*
-	Balli: Following is a copy of the fortran code for "detang" subroutine for obtaining rotational parameters for the advection process.
-	It will be better if we can move this above as a function so that advection code looks clean and simple
+	Balli: Following is a copy of the fortran code for "detang"
+	subroutine for obtaining rotational parameters for the
+	advection process.  It will be better if we can move this
+	above as a function so that advection code looks clean and
+	simple
       */
 
       float UV       = wind.x*wind.x + wind.y*wind.y;
       float UVW      = wind.z*wind.z + UV;
-      float tVel     = pow(UVW,0.5);
+      // float tVel     = pow(UVW,0.5);
+      float tVel     = sqrt(UVW);
       float tVelI    = 1./(tVel+1.E-10);
-      float totUV    = pow(UV,0.5);
+      // float totUV    = pow(UV,0.5);
+      float totUV    = sqrt(UV);
       float totUVI   = 1./totUV +1.E-10;
             
       int iomega = 0;
@@ -390,8 +395,10 @@ void main(void)
 	if(absolute(wind.z)<1.e-05){
 	  ddxddy2    = dutotdxi*dutotdxi+dutotdyi*dutotdyi;
 	  ddxddyddz2 = ddxddy+dutotdzi*dutotdzi;
-	  ddxddy     = pow(ddxddy2,0.5);
-	  ddxddyddz  = pow(ddxddyddz2,0.5);
+	  //	  ddxddy     = pow(ddxddy2,0.5);
+	  //      ddxddyddz  = pow(ddxddyddz2,0.5);
+	  ddxddy     = sqrt(ddxddy2);
+	  ddxddyddz  = sqrt(ddxddyddz2);
 	  float ddxddyddzI=1./ddxddyddz;
 	  if(ddxddy>0.){
 	    cospsi = dutotdxi/ddxddy;
@@ -436,8 +443,10 @@ void main(void)
 	else{
 	  ddxddy2       = dutotdxi*dutotdxi+dutotdyi*dutotdyi;
 	  ddxddyddz2    = ddxddy+dutotdzi*dutotdzi;
-	  ddxddy        = pow(ddxddy2,0.5);
-	  ddxddyddz     = pow(ddxddyddz2,0.5);
+	  ddxddy        = sqrt(ddxddy2);
+	  ddxddyddz     = sqrt(ddxddyddz2);
+	  // ddxddy        = pow(ddxddy2,0.5);
+	  // ddxddyddz     = pow(ddxddyddz2,0.5);
 	  float ddxddyI = 1./ddxddy;;
 	  if(wind.z>0.){
 	    if(ddxddy>0.){
@@ -466,7 +475,8 @@ void main(void)
 	    gamn1ij=cospsi;
 	    gamn2ij=sinpsi;
 	    gamn3ij=0.;
-	    dutotdni=pow(dutotdxi*dutotdxi+dutotdyi*dutotdyi,0.5);
+	    // dutotdni=pow(dutotdxi*dutotdxi+dutotdyi*dutotdyi,0.5);
+	    dutotdni = sqrt(dutotdxi*dutotdxi+dutotdyi*dutotdyi);
 	    dutotdni=dutotdni;
 	    if(dutotdni<1.e-12)dutotdni=1.e-12;
 	    dutotdsi=dutotdzi;
@@ -540,7 +550,8 @@ void main(void)
 	taylor_microscale=0.;
                 
 	if(taylor_flag > 0){
-	  taylor_microscale=pow( (8.55e-3)*xnu*sigu*sigu/(coeps*utot*utot) ,0.5);
+	  // taylor_microscale=pow( (8.55e-3)*xnu*sigu*sigu/(coeps*utot*utot) ,0.5);
+	  taylor_microscale = sqrt( (8.55e-3)*xnu*sigu*sigu/(coeps*utot*utot) );
 	}
                 
 	tls=2.*sigw*sigw/(coeps+1.e-36);
@@ -577,19 +588,24 @@ void main(void)
 	  *(u1*(lam11*5./1.3+lam13/(1.25*1.3))+w1*(lam13*4./1.3 +lam33/1.3))
 	  *(0.5*w1)*dt-w1*dutotdn*dt;
                 
-	duran=pow(coeps,0.5)*randn.x*pow(dt,0.5);
+	// duran=pow(coeps,0.5)*randn.x*pow(dt,0.5);
+	duran = sqrt(coeps) * randn.x * sqrt(dt);
                 
 	dvdet=-.5*coeps*lam22*v1*dt+(2./1.3)*sigv*dsigwdn*lam22*v1*w1*dt;
                 
-	dvran=pow(coeps,.5)*randn.y*pow(dt,0.5);
+	// dvran=pow(coeps,.5)*randn.y*pow(dt,0.5);
+	dvran = sqrt(coeps) * randn.y * sqrt(dt);
                 
 	dwdet=-.5*coeps*(lam13*u1+lam33*w1)*dt 
 	  +sigw*dsigwdn*dt+((lam13+lam11/1.69)*u1+(lam13/1.69+lam33)*w1)*w1*sigw*dsigwdn*dt;
                 
-	dwran=pow(coeps,.5)*randn.z*pow(dt,.5);
+	// dwran=pow(coeps,.5)*randn.z*pow(dt,.5);
+	dwran = sqrt(coeps) * randn.z * sqrt(dt);
 
-	float vrel2   = pow(((u1+dudet)*(u1+dudet)+(v1+dvdet)*(v1+dvdet)+(w1+dwdet)*(w1+dwdet)),.5);
-	float vrel1   = pow((u1*u1+v1*v1+w1*w1),.5);
+	// float vrel2   = pow(((u1+dudet)*(u1+dudet)+(v1+dvdet)*(v1+dvdet)+(w1+dwdet)*(w1+dwdet)),.5);
+	// float vrel1   = pow((u1*u1+v1*v1+w1*w1),.5);
+	float vrel2   = sqrt(((u1+dudet)*(u1+dudet)+(v1+dvdet)*(v1+dvdet)+(w1+dwdet)*(w1+dwdet)));
+	float vrel1   = sqrt((u1*u1+v1*v1+w1*w1));
 	float vrel    = max(vrel2,vrel1);
 
                 
