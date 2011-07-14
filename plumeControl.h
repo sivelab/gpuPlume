@@ -89,7 +89,7 @@ class PlumeControl{
   std::list<int> indices; 
   std::list<pIndex> indicesInUse;
 
-  GLuint texid[18]; 
+  GLuint texid[19]; 
   GLenum texType,positions0,positions1,windField,randomValues;
     GLenum prime0, prime1, lambda, tau_dz, duvw_dz, tau,dxyz_wall;
   GLenum meanVel0,meanVel1,currDirection,buildings,cellType;

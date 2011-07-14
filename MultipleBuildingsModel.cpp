@@ -41,6 +41,7 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   nzdz = (int)(nz*(1.0/util->dz));
   
   time_step = util->time_step;
+
   //Sets up the type of simulation to run
   sim = new Simulation(util->useRealTime,util->duration,&time_step);
   
@@ -70,9 +71,11 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   //If reuseParticles is set to false: fourth coordinate of particle is -1 if emitted, else 0
   //If reuseParticles is set to true: fourth coordinate is <= lifetime if emiited, else lifetime+1
   reuseParticles = false;
+
   //Set this flag for continuous flow of particles.
   continuousParticleFlow = util->reuse_particles;
   std::cout << "Particle Reuse is " << ((continuousParticleFlow == true) ? "ON" : "OFF") << std::endl;
+
   frameCount = 0;
   if(reuseParticles)
     lifeTime = 1.0;
@@ -94,7 +97,6 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   // Set the default sun angle's
   sun_azimuth = util->sun_azimuth;
   sun_altitude = util->sun_altitude;
-  
 }
 
 MultipleBuildingsModel::~MultipleBuildingsModel()
@@ -111,7 +113,8 @@ MultipleBuildingsModel::~MultipleBuildingsModel()
   delete dc->sunModelviewMatrix;
 }
 
-void MultipleBuildingsModel::init(bool OSG){
+void MultipleBuildingsModel::init(bool OSG)
+{
   osgPlume = OSG;
   
   pathLines = new PathLine(util->pwidth,util->pheight,texType);
@@ -145,6 +148,7 @@ void MultipleBuildingsModel::init(bool OSG){
 
     
   glEnable(texType);
+  // there are more than 18 used... but was set to 18.  Changing it to 19. and texid from plumeControl has 18 spots...
   glGenTextures(18, texid);
   /////////////////////////////
   //Textures used:
@@ -157,6 +161,7 @@ void MultipleBuildingsModel::init(bool OSG){
   lambda = texid[7];
   tau_dz = texid[8];
   duvw_dz = texid[9];
+
   dxyz_wall = texid[18];
 
   //Texture for mean velocities
