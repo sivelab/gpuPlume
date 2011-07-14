@@ -775,7 +775,7 @@ int MultipleBuildingsModel::display(){
 	  cs5721::PNGImage pngimage;
 
 	  std::ostringstream fname;
-	  fname << "/scratch/gpuplume_" << util->problemID << "_" << util->problemInstanceID << ".png";
+	  fname << "/tmp/gpuplume_" << util->problemID << "_" << util->problemInstanceID << ".png";
 	  
 	  pngimage.writeFileData(fname.str(), iWidth, iHeight, imgBuffer);
 	  std::cout << "Wrote PNG file" << std::endl;
