@@ -146,14 +146,15 @@ void MultipleBuildingsModel::init(bool OSG)
     dc->osgPlume = true;
   }
 
-    
   glEnable(texType);
+
   // there are more than 18 used... but was set to 18.  Changing it to 19. and texid from plumeControl has 18 spots...
-  glGenTextures(18, texid);
+  glGenTextures(19, texid);
   /////////////////////////////
   //Textures used:
   positions0 = texid[0];
   positions1 = texid[1];
+  // where's 2?
   windField = texid[3];
   randomValues = texid[4];
   prime0 = texid[5];
@@ -162,13 +163,13 @@ void MultipleBuildingsModel::init(bool OSG)
   tau_dz = texid[8];
   duvw_dz = texid[9];
 
-  dxyz_wall = texid[18];
-
   //Texture for mean velocities
   meanVel0 = texid[10];
   meanVel1 = texid[11];
+
   //Texture used to hold current particle direction
   currDirection = texid[12];
+
   //Texture used for building information
   buildings = texid[13];
   //Texture used for cell type information
@@ -181,6 +182,9 @@ void MultipleBuildingsModel::init(bool OSG)
   tau = texid[16];
 
   advect_terms = texid[17];
+
+  dxyz_wall = texid[18];
+
   /////////////////////////////
   setupTextures(); 
   /////////////////////////////
@@ -358,6 +362,7 @@ int MultipleBuildingsModel::display(){
       }
     }
    
+#ifdef USE_PATHFBO
     ////////////////////////////////////////////////////////////
     // Update Path Lines
     ////////////////////////////////////////////////////////////
@@ -370,6 +375,7 @@ int MultipleBuildingsModel::display(){
     //different fbo
     FramebufferObject::Disable();
     fbo->Bind();
+#endif
     
     ////////////////////////////////////////////////////////////
     // Collection Boxes
@@ -598,9 +604,11 @@ int MultipleBuildingsModel::display(){
 	  }
       //}
       
+#ifdef USE_PATHFBO
       //update path line vbos
       pathFbo->Bind();
       pathLines->updateVBOS();
+#endif
 
       glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
       CheckErrorsGL("after glReadPixels");
@@ -632,6 +640,7 @@ int MultipleBuildingsModel::display(){
       // of the PLUME particle field.
       // //////////////////////////////////////////////////////////////
       
+#if 0
       // Grab the shadow map. Note, this should really only be done
       // every time the light source moves and does not need to be 
       // done every frame (large waste).
@@ -650,6 +659,7 @@ int MultipleBuildingsModel::display(){
 				writeShadowMapToFile();
 				exit(0);
       }
+#endif
 
       // GLfloat windDir[3];
       GLfloat pos[3];
@@ -858,7 +868,8 @@ void MultipleBuildingsModel::initFBO(void){
 
   }
 
-  fbo->IsValid();
+  if (fbo->IsValid() == false)
+    std::cout << "\terror with fbo FrameBuffer." << std::endl;
   FramebufferObject::Disable();
 
   //If the max number of textures that can be attached to the fbo 
@@ -877,16 +888,20 @@ void MultipleBuildingsModel::initFBO(void){
     pc->meanVelBuffer0 = GL_COLOR_ATTACHMENT0_EXT;
     pc->meanVelBuffer1 = GL_COLOR_ATTACHMENT1_EXT;
 
-    fbo2->IsValid();
+    if (fbo2->IsValid() == false)
+      std::cout << "\terror with fbo2 FrameBuffer." << std::endl;
     FramebufferObject::Disable();
   }
 
   
+#ifdef USE_PATHFBO
   pathFbo = new FramebufferObject();
   pathFbo->Bind();
   pathFbo->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, texType, pathTex);
-  pathFbo->IsValid();
+  if (pathFbo->IsValid() == false)
+    std::cout << "\terror with pathFbo FrameBuffer." << std::endl;
   FramebufferObject::Disable();
+#endif
 
 #ifndef __APPLE__
   isoFbo = new FramebufferObject();
@@ -1233,7 +1248,8 @@ void MultipleBuildingsModel::shadowMapSetup()
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
 
-  shadowFBO->IsValid();
+  if (shadowFBO->IsValid() == false)
+    std::cout << "\terror with shadowFBO FrameBuffer." << std::endl;
 
   FramebufferObject::Disable();
 
@@ -1398,8 +1414,11 @@ void MultipleBuildingsModel::genGridShadow(int i, int cellPoints) {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F_ARB, util->nx, util->ny, 0, GL_RGBA, GL_FLOAT, NULL);
   
   // Bind the output texture to the fbo.
+  shadowFBO->Bind();
   shadowFBO->AttachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, cellsInShadow);
-  shadowFBO->IsValid();
+
+  if (shadowFBO->IsValid() == false)
+    std::cout << "\terror with shadowFBO FrameBuffer." << std::endl;
   FramebufferObject::Disable();
   
   // Setup that allows the shader to be able to read the data from our texture.
