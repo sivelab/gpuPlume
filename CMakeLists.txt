@@ -76,6 +76,7 @@ link_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Controller)
 # Add executable called "gpuPlume" that is built from the source files 
 # The source files are placed in the list after the executable name. 
 add_executable (gpuPlume 
+	       getopt.c
 	       gpuPlume.cpp 
 	       ArgumentParsing.h 
 	       ArgumentParsing.cpp
