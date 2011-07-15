@@ -45,8 +45,8 @@ private:
 
   struct ModifiedOption 
   {
+	bool isSet;
     option optParams;
-    bool isSet;
     std::string optionalArgument;
   };
    

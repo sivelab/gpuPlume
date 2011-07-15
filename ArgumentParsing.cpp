@@ -43,15 +43,18 @@ void ArgumentParsing::reg(const std::string& argName, char shortArgName, int has
 bool ArgumentParsing::isSet(const std::string& argName)
 {
   for (unsigned int i=0; i<m_ArgVector.size(); ++i)
-    if (argName == m_ArgVector[i].optParams.name)
+  {
+	  const std::string tmpStr(m_ArgVector[i].optParams.name);
+    if (argName == tmpStr)
       return m_ArgVector[i].isSet;
+  }
   return false;
 }
 
 bool ArgumentParsing::isSet(const std::string& argName, std::string &argValue)
 {
   for (unsigned int i=0; i<m_ArgVector.size(); ++i)
-    if ((argName == m_ArgVector[i].optParams.name) && (m_ArgVector[i].isSet))
+    if ((argName == std::string(m_ArgVector[i].optParams.name)) && (m_ArgVector[i].isSet))
       {
 	argValue = m_ArgVector[i].optionalArgument;
 	return true;
@@ -93,7 +96,7 @@ int ArgumentParsing::process(int argc, char *argv[])
       bool found = false;
       while (!found && argIdx < m_ArgVector.size() && c != '?')
 	{
-	  if (c == m_ArgVector[argIdx].optParams.val)
+	  if (c == (int)m_ArgVector[argIdx].optParams.val)
 	    {
 	      // std::cout << "found option: " << m_ArgVector[argIdx].optParams.name << std::endl;
 	      m_ArgVector[argIdx].isSet = true;
