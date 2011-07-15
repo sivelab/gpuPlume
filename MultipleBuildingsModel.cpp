@@ -7,7 +7,9 @@
 #include<stdlib.h>
 #include<stdio.h>
 
+#ifdef GEN_PNG_IMAGES
 #include "PNGImage.h"
+#endif
 
 #ifdef WIN32
 #include <fstream>
@@ -773,6 +775,7 @@ int MultipleBuildingsModel::display(){
       }
 
 
+#ifdef GEN_PNG_IMAGES
       // ////////////////////////////////////////////
       if (img_notDone && imgCounter > 100)
 	{
@@ -795,6 +798,7 @@ int MultipleBuildingsModel::display(){
 	}
       else
 	imgCounter++;
+#endif
 
       // If we've chose to display the 3D particle domain, we need to
       // set the projection and modelview matrices back to what is
