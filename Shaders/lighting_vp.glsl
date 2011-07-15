@@ -1,14 +1,16 @@
 #version 120
 
 // Incoming color value from OpenGL
-attribute vec4 gl_Color;
+// These are 150 and on changes... will not work on 130 or lower versions
+// attribute vec4 gl_Color;
 
 // Outgoing intensity value for the fragment shader
 varying float lightIntensity;
 
 // Outgoing color values for the fragment shader
-varying vec4 gl_FrontColor;
-varying vec4 gl_BackColor;
+// These are 150 and on changes... will not work on 130 or lower versions
+// varying vec4 gl_FrontColor;
+// varying vec4 gl_BackColor;
 
 // lightPosition is the position of the light which is passed in from OpenGL
 uniform vec3 lightPosition;

@@ -1,7 +1,8 @@
 #version 120
 
 // Incoming color value from the vertex shader.
-varying vec4 gl_Color;
+// These are 150 and on changes... will not work on 130 or lower versions
+// varying vec4 gl_Color;
 
 // Incoming light intensity from the vertex shader.
 varying float lightIntensity;
