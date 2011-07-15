@@ -13,12 +13,25 @@ set(GPUPLUME_VERSION ${GPUPLUME_MAJOR_VERSION}.${GPUPLUME_MINOR_VERSION}.${GPUPL
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-set(CMAKE_BUILD_TYPE "Debug")
+# set(CMAKE_BUILD_TYPE "Debug")
 
 SET(LIBSIVELAB_PATH "${CMAKE_SOURCE_DIR}/../libsivelab" CACHE STRING "Path to the directory where the libsivelab repository is located.")
 INCLUDE_DIRECTORIES (${LIBSIVELAB_PATH}) 
 LINK_DIRECTORIES (${LIBSIVELAB_PATH}/build/quicutil) 
 LINK_DIRECTORIES (${LIBSIVELAB_PATH}/build/util) 
+
+# From http://stackoverflow.com/questions/2368811/how-to-set-warning-level-in-cmake
+if(MSVC)
+  # Force to always compile with W4
+  if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+    string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+  endif()
+elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+  # Update if necessary
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
+endif()
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -30,20 +43,20 @@ if(WIN32)
   set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extLibs/glew/include")
   set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/extLibs/glew/lib/glew32s.lib")
 else(WIN32)
-
   if(APPLE)
     set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extLibs/glew/include")
     set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/extLibs/glew/lib/libGLEW.a")
   endif(APPLE)
-
-  find_package(GLEW REQUIRED)
 endif(WIN32)
+FIND_PACKAGE(GLEW REQUIRED)
 
+IF (APPLE)
 FIND_PACKAGE(PNG REQUIRED)
 IF(PNG_FOUND)
    INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
    # TARGET_LINK_LIBRARIES(imageviewer ${PNG_LIBRARY})
 ENDIF(PNG_FOUND)
+ENDIF(APPLE)
 
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLUT_INCLUDE_DIRS})
