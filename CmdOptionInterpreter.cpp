@@ -54,7 +54,7 @@ void CmdOptionInterpreter::parse()
     m_utilPtr->static_treadport_frustum = 0;
 
   if (m_argParser->isSet("sunAzimuth", argVal))
-    m_utilPtr->sun_azimuth = static_cast<float)(atof(argVal.c_str()));
+    m_utilPtr->sun_azimuth = static_cast<float>(atof(argVal.c_str()));
 
   if (m_argParser->isSet("sunAltitude", argVal))
     m_utilPtr->sun_altitude = static_cast<float>(atof(argVal.c_str()));
