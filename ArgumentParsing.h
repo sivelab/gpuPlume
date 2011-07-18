@@ -15,7 +15,11 @@
 #include <cstring>
 #include <vector>
 
-#include "getopt.h"
+#ifdef WIN32
+#include "getopt_win32.h"
+#else
+#include <getopt.h>
+#endif
 
 class ArgumentParsing
 {
