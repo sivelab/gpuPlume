@@ -13,8 +13,6 @@ set(GPUPLUME_VERSION ${GPUPLUME_MAJOR_VERSION}.${GPUPLUME_MINOR_VERSION}.${GPUPL
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-# set(CMAKE_BUILD_TYPE "Debug")
-
 SET(LIBSIVELAB_PATH "${CMAKE_SOURCE_DIR}/../libsivelab" CACHE STRING "Path to the directory where the libsivelab repository is located.")
 INCLUDE_DIRECTORIES (${LIBSIVELAB_PATH}) 
 LINK_DIRECTORIES (${LIBSIVELAB_PATH}/build/quicutil) 
@@ -94,27 +92,27 @@ add_executable (gpuPlume
                ${GETOPT_FILES}
 	       gpuPlume.cpp 
 	       ArgumentParsing.cpp ArgumentParsing.h 
-	       framebufferObject.cpp 
-	       renderbuffer.cpp 
-	       GLSL.cpp 
-	       glErrorUtil.cpp 
-	       particleControl.cpp 
-	       pointEmitter.cpp 
-	       sphereEmitter.cpp 
+	       framebufferObject.cpp framebufferObject.h
+	       renderbuffer.cpp renderbuffer.h
+	       GLSL.cpp GLSL.h
+	       glErrorUtil.cpp glErrorUtil.h
+	       particleControl.cpp particleControl.h
+	       pointEmitter.cpp pointEmitter.h
+	       sphereEmitter.cpp sphereEmitter.h
 	       particleEmitter.cpp particleEmitter.h
-	       displayControl.cpp 
-	       plumeControl.cpp 
-	       Timer.cpp 
-	       collectionBox.cpp 
+	       displayControl.cpp displayControl.h
+	       plumeControl.cpp plumeControl.h
+	       Timer.cpp Timer.h
+	       collectionBox.cpp collectionBox.h
 	       util.cpp util.h
 	       simulation.cpp 
 	       streamLine.cpp 
-	       Random.cpp 
+	       Random.cpp Random.h
 	       nonGaussianModel.cpp 
 	       GaussianModel.cpp 
 	       Gaussian_2shaders_Model.cpp 
 	       ReflectionModel.cpp 
-	       MultipleBuildingsModel.cpp 
+	       MultipleBuildingsModel.cpp MultipleBuildingsModel.h
 	       GeomTest.cpp 
 	       PathLine.cpp 
 	       Contour.cpp 
