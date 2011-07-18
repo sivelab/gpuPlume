@@ -43,7 +43,7 @@ if(WIN32)
   set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extLibs/glew/include")
   set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/extLibs/glew/lib/glew32s.lib")
 
-  set(GETOPT_FILES "getopt_win32.c getopt_win32.h")
+  set(GETOPT_FILES "getopt_win32.c")
 else(WIN32)
   if(APPLE)
     set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extLibs/glew/include")
@@ -93,8 +93,7 @@ link_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Controller)
 add_executable (gpuPlume 
                ${GETOPT_FILES}
 	       gpuPlume.cpp 
-	       ArgumentParsing.h 
-	       ArgumentParsing.cpp
+	       ArgumentParsing.cpp ArgumentParsing.h 
 	       framebufferObject.cpp 
 	       renderbuffer.cpp 
 	       GLSL.cpp 
@@ -102,12 +101,12 @@ add_executable (gpuPlume
 	       particleControl.cpp 
 	       pointEmitter.cpp 
 	       sphereEmitter.cpp 
-	       particleEmitter.cpp 
+	       particleEmitter.cpp particleEmitter.h
 	       displayControl.cpp 
 	       plumeControl.cpp 
 	       Timer.cpp 
 	       collectionBox.cpp 
-	       util.cpp 
+	       util.cpp util.h
 	       simulation.cpp 
 	       streamLine.cpp 
 	       Random.cpp 
@@ -130,7 +129,7 @@ add_executable (gpuPlume
 	       TreadportManager.cpp 
 	       graphicsUtil.cpp 
 	       rgb.cpp 
-	       CmdOptionInterpreter.cpp
+	       CmdOptionInterpreter.cpp CmdOptionInterpreter.h
 	       writepng.cpp writepng.h
 	       PNGImage.cpp PNGImage.h
 ) 

@@ -54,10 +54,10 @@ void CmdOptionInterpreter::parse()
     m_utilPtr->static_treadport_frustum = 0;
 
   if (m_argParser->isSet("sunAzimuth", argVal))
-    m_utilPtr->sun_azimuth = atoi(argVal.c_str());
+    m_utilPtr->sun_azimuth = static_cast<float)(atof(argVal.c_str()));
 
   if (m_argParser->isSet("sunAltitude", argVal))
-    m_utilPtr->sun_altitude = atoi(argVal.c_str());
+    m_utilPtr->sun_altitude = static_cast<float>(atof(argVal.c_str()));
 
   if (m_argParser->isSet("onlyCalcShadows"))
     m_utilPtr->onlyCalcShadows = true;
@@ -65,8 +65,8 @@ void CmdOptionInterpreter::parse()
   if (m_argParser->isSet("numParticles", argVal))
     {
       m_utilPtr->qpParamData.numParticles = atoi(argVal.c_str());
-      m_utilPtr->twidth = (int)sqrt(m_utilPtr->qpParamData.numParticles);
-      m_utilPtr->theight = (int)sqrt(m_utilPtr->qpParamData.numParticles);
+      m_utilPtr->twidth = (int)sqrt( static_cast<float>(m_utilPtr->qpParamData.numParticles) );
+      m_utilPtr->theight = (int)sqrt( static_cast<float>(m_utilPtr->qpParamData.numParticles) );
       std::cout << "COMMAND LINE OVERRIDE: using num particles=" << m_utilPtr->qpParamData.numParticles << ". Actually using " << m_utilPtr->twidth * m_utilPtr->theight << " particles!" << std::endl;
     }
 

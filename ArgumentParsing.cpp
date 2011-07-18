@@ -44,8 +44,7 @@ bool ArgumentParsing::isSet(const std::string& argName)
 {
   for (unsigned int i=0; i<m_ArgVector.size(); ++i)
   {
-	  const std::string tmpStr(m_ArgVector[i].optParams.name);
-    if (argName == tmpStr)
+    if (argName.compare(m_ArgVector[i].optParams.name) == 0)
       return m_ArgVector[i].isSet;
   }
   return false;
@@ -54,7 +53,7 @@ bool ArgumentParsing::isSet(const std::string& argName)
 bool ArgumentParsing::isSet(const std::string& argName, std::string &argValue)
 {
   for (unsigned int i=0; i<m_ArgVector.size(); ++i)
-    if ((argName == std::string(m_ArgVector[i].optParams.name)) && (m_ArgVector[i].isSet))
+    if ((argName.compare(m_ArgVector[i].optParams.name) == 0) && (m_ArgVector[i].isSet))
       {
 	argValue = m_ArgVector[i].optionalArgument;
 	return true;

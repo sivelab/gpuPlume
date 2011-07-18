@@ -13,7 +13,7 @@
 
 PlumeControl::~PlumeControl(){}
 
-void PlumeControl::init(bool OSG){}
+void PlumeControl::init(bool){}
 
 int PlumeControl::display()
 { 
@@ -99,9 +99,10 @@ void PlumeControl::setupEmitters()
 	number = number / (float)util->numOfPE;
 
 	// number should likely be rounded up
-	pe[i]->setNumToEmit( round(number) );
+	// pe[i]->setNumToEmit( round(number) );
+	pe[i]->setNumToEmit( ceilf(number) );
 
-	std::cout << "Emitting " << (int)round(number) << " particles per time step for " 
+	std::cout << "Emitting " << ceilf(number) << " particles per time step for " 
 		  << util->duration/time_step << " simulation steps." << std::endl;
     }
   }

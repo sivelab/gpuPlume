@@ -5364,7 +5364,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                         int idcelktop=ktop*nxdx*nydy + jcel*nxdx +icel;
                         int iceljcel=jcel*nxdx +icel;
                         if(cellQuic[idcelk].c != 0){
-                            utot=sqrt(wind_vel[idcelk].u*wind_vel[idcelk].u+wind_vel[idcelk].v*wind_vel[idcelk].v+wind_vel[idcelk].w*wind_vel[idcelk].w)+.000001;
+                            utot=sqrt(wind_vel[idcelk].u*wind_vel[idcelk].u+wind_vel[idcelk].v*wind_vel[idcelk].v+wind_vel[idcelk].w*wind_vel[idcelk].w)+.000001f;
                             if(bldtype.at(i) == 4){
                                 if(xc > -0.5*lti[i] && xc < 0.5*lti[i] && 
                                    yc > -0.5*wti[i] && yc < 0.5*wti[i]){

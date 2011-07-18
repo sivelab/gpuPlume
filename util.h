@@ -5,12 +5,6 @@
 #include <fstream>
 #include <sstream>
 
-// #include "quicLoader/QUBuildings.h"
-// #include "quicLoader/QUMetParams.h"
-// #include "quicLoader/QUSimparams.h"
-// #include "quicLoader/QPParams.h"
-// #include "quicLoader/QPSource.h"
-
 #include "quicutil/QUBuildings.h"
 #include "quicutil/QUMetParams.h"
 #include "quicutil/QUSimparams.h"

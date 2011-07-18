@@ -1385,6 +1385,8 @@ void MultipleBuildingsModel::genGridShadow(int i, int cellPoints) {
   
   // Create and initialize the array of cell positions (the position being the
   // center of each cell).
+
+	std::cerr << "THIS IS A VERY BAD WAY TO ALLOCATE DATA!!!! See MultipleBuildingsModel::genGridShadow --> positions[util->nx]....; must be fixed - Pete" << std::endl;
   GLfloat positions[util->nx][util->ny][4];
   for(int x = 0; x < util->nx; x++) {
     for(int y = 0; y < util->ny; y++) {

@@ -554,9 +554,9 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   show_collectionBox_visuals = false;
 
   // background color
-  bcolor[0] = 0.2;
-  bcolor[1] = 0.2;
-  bcolor[2] = 0.2;
+  bcolor[0] = 0.2f;
+  bcolor[1] = 0.2f;
+  bcolor[2] = 0.2f;
 
   advectChoice = 4;  // #4 = one shader for the multiple buildings model
   windFieldData = 5; // #use value of 5 for reading in from QUIC-FILES
@@ -618,14 +618,14 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   // particle reuse, time_step, etc...
 
   // for now, something basic...
-  twidth = (int)sqrt(qpParamData.numParticles);
-  theight = (int)sqrt(qpParamData.numParticles);
+  twidth = (int)sqrt(static_cast<float>(qpParamData.numParticles));
+  theight = (int)sqrt(static_cast<float>(qpParamData.numParticles));
   std::cout << "\t\tRequested " << qpParamData.numParticles << " particles.  Actually using " << twidth * theight << " particles!" << std::endl;
 
   reuse_particles = qpParamData.particleRecyclingFlag;
 
   useRealTime = false;
-  time_step = qpParamData.timeStep;
+  time_step = static_cast<float>(qpParamData.timeStep);
 
   // if the duration is close to zero... don't capture concentrations...
   duration = qpParamData.duration;
