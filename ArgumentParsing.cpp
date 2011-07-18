@@ -11,12 +11,12 @@
 
 ArgumentParsing::ArgumentParsing()
 {
-};
+}
 
 ArgumentParsing::ArgumentParsing(int argc, char *argv[])
 {
   process(argc, argv);
-};
+}
 
 ArgumentParsing::~ArgumentParsing()
 {

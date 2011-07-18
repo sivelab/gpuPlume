@@ -42,6 +42,8 @@ if(WIN32)
   add_definitions(-DWIN32)
   set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extLibs/glew/include")
   set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/extLibs/glew/lib/glew32s.lib")
+
+  set(GETOPT_FILES "getopt_win32.c getopt_win32.h")
 else(WIN32)
   if(APPLE)
     set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extLibs/glew/include")
@@ -89,7 +91,7 @@ link_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Controller)
 # Add executable called "gpuPlume" that is built from the source files 
 # The source files are placed in the list after the executable name. 
 add_executable (gpuPlume 
-	       getopt.c
+               ${GETOPT_FILES}
 	       gpuPlume.cpp 
 	       ArgumentParsing.h 
 	       ArgumentParsing.cpp

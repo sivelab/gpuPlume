@@ -85,7 +85,7 @@ class DisplayControl{
   enum ParticleVisualState
     {
       PARTICLE_SPHERE,
-      PARTICLE_SNOW,
+      PARTICLE_SNOW
     };
   ParticleVisualState particle_visual_state;
 

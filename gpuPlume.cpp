@@ -2,11 +2,11 @@
 #include <signal.h>
 
 #include <GL/glew.h>
+
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <cstdlib>
-// #include <GL/glut.h>
 #include "GL/gl.h"      // System and OpenGL Stuff
 #include "GL/glut.h"
 #include "GL/glx.h"
@@ -314,7 +314,7 @@ int main(int argc, char** argv)
       // be problematic on OS X.  Therefore, by default, glut-based
       // windowing will be used.
 
-      Bool bWinMapped = False;
+      // Bool bWinMapped = False;
 
       float domainAspectRatio = (float)util->ny / (float)util->nx;
 
@@ -575,7 +575,7 @@ void display(void)
   quitSimulation = plume->display();
 
   Timer_t displayEnd = plume_clock->tic();    
-  //std::cout << "Display Time: " << plume_clock->deltau(displayStart, displayEnd) << " us." << std::endl;  
+  std::cout << "Display Time: " << plume_clock->deltam(displayStart, displayEnd) << " ms." << std::endl;  
   
   if (quitSimulation == 0)
     {
