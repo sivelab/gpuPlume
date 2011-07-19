@@ -9,6 +9,7 @@
 #include "quicutil/QUMetParams.h"
 #include "quicutil/QUSimparams.h"
 
+#include "quicutil/QPBuildout.h"
 #include "quicutil/QPParams.h"
 #include "quicutil/QPSource.h"
 
@@ -160,6 +161,7 @@ class Util {
   quMetParams quMetParamData;
 
   // A structure to contain the QP_params.inp, QP_source.inp files.
+  qpBuildout qpBuildoutData;
   qpParams qpParamData;
   qpSource qpSourceData;
 

@@ -22,12 +22,12 @@
 #include "ArgumentParsing.h"
 
 #include "plumeControl.h"
-#include "nonGaussianModel.h"
-#include "GaussianModel.h"
-#include "Gaussian_2shaders_Model.h"
-#include "ReflectionModel.h"
+// #include "nonGaussianModel.h"
+// #include "GaussianModel.h"
+// #include "Gaussian_2shaders_Model.h"
+// #include "ReflectionModel.h"
 #include "MultipleBuildingsModel.h"
-#include "GeomTest.h"
+// #include "GeomTest.h"
 
 #include "Timer.h"
 #include "glErrorUtil.h"
@@ -233,33 +233,36 @@ int main(int argc, char** argv)
   CmdOptionInterpreter cmdOI(&argParser, util);
   cmdOI.parse();
 
+  // no Advect choice
+#if 0
   switch(util->advectChoice){
-  case 0:
-    //util->windFieldData = 4;
-    plume = new Gaussian_2shaders_Model(util);
-    break;
-  case 1:
-    //util->windFieldData = 4;
-    plume = new GaussianModel(util);
-    break;
-  case 2:
-    //util->windFieldData = 5;
-    plume = new NonGaussianModel(util);
-    break;
-  case 3:
-    plume = new ReflectionModel(util);
-    break;
-  case 4:
-    plume = new MultipleBuildingsModel(util);
-    break;
-  case 5:
-    plume = new GeomTest(util);
-    break;
-  default:
-    std::cout << "Error in advection Choice in Settings file!" << std::endl;
+    case 0:
+      //util->windFieldData = 4;
+      plume = new Gaussian_2shaders_Model(util);
+      break;
+    case 1:
+      //util->windFieldData = 4;
+      plume = new GaussianModel(util);
+      break;
+    case 2:
+      //util->windFieldData = 5;
+      plume = new NonGaussianModel(util);
+      break;
+    case 3:
+      plume = new ReflectionModel(util);
+      break;
+    case 4:
+      plume = new MultipleBuildingsModel(util);
+      break;
+    case 5:
+      plume = new GeomTest(util);
+      break;
+    default:
+      std::cout << "Error in advection Choice in Settings file!" << std::endl;
   }
-
+#endif
   Random random_gen(2);
+  plume = new MultipleBuildingsModel(util);
 
 #ifdef __linux__
   RenderContext rcx;
@@ -343,21 +346,11 @@ int main(int argc, char** argv)
   // We really should place a function call here to do a scan and
   // check over the various OpenGL extensions and states that we
   // require for this code to function.
-  if (!GL_ARB_vertex_buffer_object) 
-    {
-      std::cout << "GL_ARB_vertex_buffer_object is NOT available!  Exiting!" << std::endl;
-      exit(-1);
-    }
-/*
-  if(GL_EXT_geometry_shader4){
-    std::cout << "Ready for geom shader!" << std::endl;
-    int numV = 0;
-    glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &numV);
-    std::cout << numV << " number of output vertices." << std::endl;
-  }
-  else
-    std::cout << "NOT ready for geom shader." << std::endl;
-  */
+  //  if (!GL_ARB_vertex_buffer_object) 
+  //    {
+  //      std::cout << "GL_ARB_vertex_buffer_object is NOT available!  Exiting!" << std::endl;
+  //      exit(-1);
+  //    }
 
   curr = 0;
   glEnable(GL_DEPTH_TEST);

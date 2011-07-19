@@ -599,12 +599,15 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
   ny = quSimParamData.ny;
   nz = quSimParamData.nz;
 
-  std::cout << "domain size = " << nx << ", " << ny << ", " << nz << std::endl;
-
   dx = quSimParamData.dx;
   dy = quSimParamData.dy;
   dz = quSimParamData.dz;
 		
+  // ///////////////////////////////////////////////////////////
+  // 
+  // Parse and Read QP_buildout.inp file.
+  // ///////////////////////////////////////////////////////////
+  qpBuildoutData.readQUICFile(quicFilesPath + "QP_buildout.inp");
 
   // ///////////////////////////////////////////////////////////
   // 

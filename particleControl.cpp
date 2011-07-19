@@ -3473,7 +3473,9 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     initCellType();
     
     //Balli: Substracting 1 from nzdz as it is increased by 1  after reading from QU_simparams.inp in Util.cpp
-    nzdz=nzdz-1;
+    // This is no longer true... we need to make sure we treat the variable correctly.
+    // nzdz=nzdz-1;
+
     float nxnynz=nxdx*nydy*nzdz;
     std::string s;
     float dx = m_util_ptr->dx;
@@ -3529,40 +3531,48 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     //Balli : Declaring local vectors
     std::vector<float> elz,ustarz,sigwi,sigvi,ustarij,xi,yi,zi,hgt,hgtveg,eleff,xcb,ycb,icb,jcb,phib,weff,leff,lfr,zcorf,lr;
     std::vector<float>uref,urefu,urefv,urefw, utotktp,uktop,vktop,wktop,deluc,ustargz,elzg,ustarg;
-    std::vector<float>utotcl1,utotmax,gamma,atten,Sx,Sy;
-    std::vector<int>bldtype;
+    std::vector<float>utotcl1,utotmax;
+    
+    // no longer needed
+    // std::vector<int>bldtype;
+    // std::vector<float> gamma, atten, Sx,Sy;
     
     //Balli : Vectors needs to be resized before they are  used otherwise they sometime give runtime errors
     eleff.resize(nxnynz,0.0);// efective length scale-initialized with zero values.
     ustarg.resize(nxnynz,0.0);
 
+    // Rather than re-read QP_buildout.inp here, we instead use the
+    // information previously obtained frmo the quicloaders used by
+    // gpuplume.
+    // 
+    //Balli : Reading "QU_buildout.inp"; THis should be handled in
+    //Util.cpp - This file is required for getiign effective lenths of
+    //downstream and upstream(along with other parameters) cavities
+    //from QUICURB
 
-    
-    //Balli : Reading "QU_buildout.inp"; THis should be handled in Util.cpp
-    //This file is required for getiign effective lenths of downstream and upstream(along with other parameters) cavities from QUICURB
-    std::ifstream QUbldout;
-    char char18[1024];
-    QUbldout.open("QP_buildout.inp");
-    int inumveg,inumgarage;
-    //Balli: IMPORTANT!!!!
-    
-    //OVERWRITING!!! the building parameters here and reading them from QP_bldout file. The values of the key parameters(xfo,yfo,zfo,ht,lti,wti)
-    //will remain same as bldout file has all the information contained in QU_buildings with some additional information needed for
-    //non-local mixing
-    QUbldout>>numBuild;
-    bldtype.resize(numBuild);
-    gamma.resize(numBuild);
-    atten.resize(numBuild);
-    Sx.resize(numBuild);
-    Sy.resize(numBuild);
+    // grab the number of buildings read from QP_buildout.inp
+    unsigned int numBuild = m_util_ptr->qpBuildoutData.buildings.size();
+    unsigned int inumveg = m_util_ptr->qpBuildoutData.numVegetativeCanopies;
+
+    // completed
+    // bldtype.resize(numBuild);
+    // gamma.resize(numBuild);
+    // atten.resize(numBuild);
+    // Sx.resize(numBuild);
+    // Sy.resize(numBuild);
+
+    // Pete Left off here and thus... weff, leff, lfr, and lr will be all zero and thus, incorrect!
+    std::cerr << "Pete-- please fix weff, leff, lfr, and lr!" << std::endl;
     weff.resize(numBuild);
     leff.resize(numBuild);
     lfr.resize(numBuild);
     lr.resize(numBuild);
+
+#if 0
     std::getline(QUbldout,s);
     QUbldout>>inumveg;
     std::getline(QUbldout,s);
-    
+
     for(int i=0;i<numBuild-inumveg;i++){
         QUbldout>>char18>>char18>>char18;
         int buildnum;
@@ -3600,6 +3610,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
         QUbldout>>char18>>char18>>char18>>char18;
     }
     QUbldout.close();
+#endif
     
     //Balli: IMPORTANT!!
     //QP differs from GPU in the indices i,j,k of all the arrays (u,v,w etc.)
@@ -3634,7 +3645,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     int k=0;
     if(numBuild > 0 && numBuild != inumveg){
         for(int  i_b=0;i_b<numBuild;i_b++){
-            if(bldtype.at(i_b)==9){
+            if(m_util_ptr->qpBuildoutData.buildings[i_b].type == 9){
                 continue;
             }
             ht_avg=ht[i_b]+zfo[i_b]+ht_avg;
@@ -4023,7 +4034,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     utotmax.resize(nxnynz);
 
     for(int i=0;i<numBuild;i++){
-        if(bldtype.at(i)==9)continue;
+        if(m_util_ptr->qpBuildoutData.buildings[i].type == 9)continue;
         //! mdw 4-16-2004 added proper treatment of zfo
         float temp=0.f;
         int ktop=0;
@@ -4036,7 +4047,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             kmid=k;
             if(0.5*ht[i]+zfo[i]<z.at(k))break;
         }
-        if(bldtype.at(i)==3){
+        if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
             xcb.at(i)=xfo[i];
         }
         else{
@@ -4219,7 +4230,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 ycd=ycb.at(i)+(.5*leff.at(i)+.1*dx)*sinphi;// !
                 
                 //!mdw 7-10-2006 made changes to xcd, ycd,xcu, & ycu - formerly used .5 dx
-                if(bldtype.at(i)==3){
+                if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
                     xcu=xcb.at(i)-(.4*leff.at(i)+dx)*cosphi;// ! (upstream)
                     ycu=ycb.at(i)-(.4*leff.at(i)+dx)*sinphi; //!
                 }
@@ -4241,7 +4252,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 //!mdw 7-10-2006 made changes to xcd, ycd,xcu, & ycu - formerly used .5 dx
                 xcd=xcb.at(i)+(.5*leff.at(i)+.1*dx)*cosphi;
                 ycd=ycb.at(i)+(.5*leff.at(i)+.1*dx)*sinphi;
-                if(bldtype.at(i)==3){
+                if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
                     xcu=xcb.at(i)-(.4*leff.at(i)+dx)*cosphi;// ! (upstream)
                     ycu=ycb.at(i)-(.4*leff.at(i)+dx)*sinphi;// !
                 }
@@ -4365,7 +4376,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 //!mdw 7-05-2006 made changes to xcu,ycu, xcd & ycd - formerly used .5 dy or .5 dx
                 xcd=xcb.at(i)+(.5*leff.at(i)+dy)*cosphi;// ! get the first point on the center line outside of the building (downstream)
                 ycd=ycb.at(i)+(.5*leff.at(i)+dy)*sinphi;// !
-                if(bldtype.at(i)==3){
+                if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
                     xcu=xcb.at(i)-(.4*leff.at(i)+dx)*cosphi;// ! (upstream)
                     ycu=ycb.at(i)-(.4*leff.at(i)+dx)*sinphi; //!
                 }
@@ -4387,7 +4398,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                    //! MAN 9/15/2005 use weff and leff appropriately
                 xcd=xcb.at(i)+(.5*leff.at(i)+dy)*cosphi;
                 ycd=ycb.at(i)+(.5*leff.at(i)+dy)*sinphi;
-                if(bldtype.at(i)==3){
+                if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
                     xcu=xcb.at(i)-(.4*leff.at(i)+dx)*cosphi;// ! (upstream)
                     ycu=ycb.at(i)-(.4*leff.at(i)+dx)*sinphi;// !
                 }
@@ -5237,7 +5248,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
         int npentx,npenty,ipent1,ipent2,jpent1,jpent2,ibuild;
         
         ibuild=1;
-        switch(bldtype.at(i)){
+        switch(m_util_ptr->qpBuildoutData.buildings[i].type) {
         case(3):
             xpent1=xfo[i]-wti[i]*.2f-dx;
             temp = ((.4f*wti[i])/dx); 
@@ -5315,17 +5326,22 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
         case(4):
         case(5):
             
-            float x0=xfo[i]+0.5*lti[i]*cos(gamma.at(i)*pi/180.);
-            float y0=yfo[i]+0.5*lti[i]*sin(gamma.at(i)*pi/180.);
+	  float cgamma = cos( m_util_ptr->qpBuildoutData.buildings[i].gamma * pi/180.0 );
+  	  float sgamma = sin( m_util_ptr->qpBuildoutData.buildings[i].gamma * pi/180.0 );
+
+	  float x0=xfo[i]+0.5*lti[i]*cgamma;
+	  float y0=yfo[i]+0.5*lti[i]*sgamma;
             
-            float x1=xfo[i]+0.5*wti[ibuild]*sin(gamma.at(i)*pi/180.);
-            float y1=yfo[i]-0.5*wti[ibuild]*cos(gamma.at(i)*pi/180.);
-            float x2=x1+lti[i]*cos(gamma.at(i)*pi/180.);
-            float y2=y1+lti[i]*sin(gamma.at(i)*pi/180.);
-            float x4=xfo[i]-0.5*wti[i]*sin(gamma.at(i)*pi/180.);
-            float y4=yfo[i]+0.5*wti[i]*cos(gamma.at(i)*pi/180.);
-            float x3=x4+lti[i]*cos(gamma.at(i)*pi/180.);
-            float y3=y4+lti[i]*sin(gamma.at(i)*pi/180.);
+	  float x1=xfo[i]+0.5*wti[ibuild]*sgamma;
+	  float y1=yfo[i]-0.5*wti[ibuild]*cgamma;
+
+	  float x2=x1+lti[i]*cgamma;
+	  float y2=y1+lti[i]*sgamma;
+	  float x4=xfo[i]-0.5*wti[i]*sgamma;
+	  float y4=yfo[i]+0.5*wti[i]*cgamma;
+	  float x3=x4+lti[i]*cgamma;
+	  float y3=y4+lti[i]*sgamma;
+
             float temp1 = std::min(x1,x2);
             float temp2 = std::min(temp1,x3);
             float temp3 = std::min(temp2,x4);
@@ -5346,10 +5362,10 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             
             for(int icel=icelmin;icel<=icelmax+1;icel++){
                 for(int jcel=jcelmin; jcel<=jcelmax+1;jcel++){
-                    float xc=(((icel)-0.5)*dx-x0)*cos(gamma.at(i)*pi/180.)+
-                        (((jcel)-0.5)*dy-y0)*sin(gamma.at(i)*pi/180.);
-                    float yc=-(((icel)-0.5)*dx-x0)*sin(gamma.at(i)*pi/180.)+
-                        (((jcel)-0.5)*dy-y0)*cos(gamma.at(i)*pi/180.);
+                    float xc=(((icel)-0.5)*dx-x0)*cgamma+
+                        (((jcel)-0.5)*dy-y0)*sgamma;
+                    float yc=-(((icel)-0.5)*dx-x0)*sgamma+
+                        (((jcel)-0.5)*dy-y0)*cgamma;
 					int kk=0;
                     for(int k=1;k<=ktp;k++){
                         kk=k;
@@ -5365,7 +5381,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                         int iceljcel=jcel*nxdx +icel;
                         if(cellQuic[idcelk].c != 0){
                             utot=sqrt(wind_vel[idcelk].u*wind_vel[idcelk].u+wind_vel[idcelk].v*wind_vel[idcelk].v+wind_vel[idcelk].w*wind_vel[idcelk].w)+.000001f;
-                            if(bldtype.at(i) == 4){
+                            if(m_util_ptr->qpBuildoutData.buildings[i].type == 4){
                                 if(xc > -0.5*lti[i] && xc < 0.5*lti[i] && 
                                    yc > -0.5*wti[i] && yc < 0.5*wti[i]){
                                     incourt=1;
