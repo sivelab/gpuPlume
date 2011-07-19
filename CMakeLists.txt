@@ -108,10 +108,10 @@ add_executable (gpuPlume
 	       simulation.cpp 
 	       streamLine.cpp 
 	       Random.cpp Random.h
-	       nonGaussianModel.cpp 
-	       GaussianModel.cpp 
-	       Gaussian_2shaders_Model.cpp 
-	       ReflectionModel.cpp 
+#	       nonGaussianModel.cpp 
+#	       GaussianModel.cpp 
+#	       Gaussian_2shaders_Model.cpp 
+#	       ReflectionModel.cpp 
 	       MultipleBuildingsModel.cpp MultipleBuildingsModel.h
 	       GeomTest.cpp 
 	       PathLine.cpp 
@@ -149,3 +149,8 @@ target_link_libraries (gpuPlume z)
 
 add_subdirectory (populationSampleOpt)
 
+# add_executable (cudaPlume
+#  cudaPlume.cpp
+#   util.cpp util.h
+# )
+# target_link_libraries (cudaPlume sive-quicutil) 
