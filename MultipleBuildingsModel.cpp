@@ -1386,7 +1386,10 @@ void MultipleBuildingsModel::genGridShadow(int i, int cellPoints) {
   // Create and initialize the array of cell positions (the position being the
   // center of each cell).
 
-	std::cerr << "THIS IS A VERY BAD WAY TO ALLOCATE DATA!!!! See MultipleBuildingsModel::genGridShadow --> positions[util->nx]....; must be fixed - Pete" << std::endl;
+  std::cerr << "THIS IS A VERY BAD WAY TO ALLOCATE DATA!!!! See MultipleBuildingsModel::genGridShadow --> positions[util->nx]....; must be fixed - code has been removed until it is fixed! - Pete" << std::endl;
+
+  GLuint posTex;
+#if 0 
   GLfloat positions[util->nx][util->ny][4];
   for(int x = 0; x < util->nx; x++) {
     for(int y = 0; y < util->ny; y++) {
@@ -1399,7 +1402,6 @@ void MultipleBuildingsModel::genGridShadow(int i, int cellPoints) {
 
 	// Create and initialize a texture to store the positions on the graphics
 	// card.
-  GLuint posTex;
   glGenTextures(1, &posTex);
   glBindTexture(GL_TEXTURE_RECTANGLE_ARB, posTex);
   glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -1407,6 +1409,7 @@ void MultipleBuildingsModel::genGridShadow(int i, int cellPoints) {
   glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA32F_ARB, util->nx, util->ny, 0, GL_RGBA, GL_FLOAT, &positions);
+#endif
 
   // Set up the output texture
   // NOTE NEED LOGIC TO USE THE LARGER OF NX NY!!! IF WE DON'T HAVE SQUARE DOMAIN.
