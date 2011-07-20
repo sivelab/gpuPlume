@@ -3529,13 +3529,13 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     turbfield.open("GPU_turbfield.dat");
     
     //Balli : Declaring local vectors
-    std::vector<float> elz,ustarz,sigwi,sigvi,ustarij,xi,yi,zi,hgt,hgtveg,eleff,xcb,ycb,icb,jcb,phib,weff,leff,lfr,zcorf,lr;
+    std::vector<float> elz,ustarz,sigwi,sigvi,ustarij,xi,yi,zi,hgt,hgtveg,eleff,xcb,ycb,icb,jcb,phib,zcorf;
     std::vector<float>uref,urefu,urefv,urefw, utotktp,uktop,vktop,wktop,deluc,ustargz,elzg,ustarg;
     std::vector<float>utotcl1,utotmax;
     
     // no longer needed
     // std::vector<int>bldtype;
-    // std::vector<float> gamma, atten, Sx,Sy;
+    // std::vector<float> gamma, atten, Sx,Sy, weff, leff, lfr, lr
     
     //Balli : Vectors needs to be resized before they are  used otherwise they sometime give runtime errors
     eleff.resize(nxnynz,0.0);// efective length scale-initialized with zero values.
@@ -3560,13 +3560,10 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     // atten.resize(numBuild);
     // Sx.resize(numBuild);
     // Sy.resize(numBuild);
-
-    // Pete Left off here and thus... weff, leff, lfr, and lr will be all zero and thus, incorrect!
-    std::cerr << "Pete-- please fix weff, leff, lfr, and lr!" << std::endl;
-    weff.resize(numBuild);
-    leff.resize(numBuild);
-    lfr.resize(numBuild);
-    lr.resize(numBuild);
+    // weff.resize(numBuild);
+    // leff.resize(numBuild);
+    // lfr.resize(numBuild);
+    // lr.resize(numBuild);
 
 #if 0
     std::getline(QUbldout,s);
@@ -4128,11 +4125,12 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
         float xcd,ycd,xcu,ycu,xcul,ycul,cosfac;
 
 
-        if(fabs(sinphit)>=fabs(cosphit)){
-            ycbp3=ycb.at(i)+(.5*weff.at(i)+.33*weff.at(i))*sinphit;// ! Get reference values for x,y for non-local mixing
-            xcbp3=xcb.at(i)+(.5*weff.at(i)+.33*weff.at(i))*cosphit;// ! 1/3 bldg width outside of building is the boundary for the non-local mixing
-            ycbm3=ycb.at(i)-(.5*weff.at(i)+.33*weff.at(i))*sinphit;
-            xcbm3=xcb.at(i)-(.5*weff.at(i)+.33*weff.at(i))*cosphit;
+        if(fabs(sinphit)>=fabs(cosphit))
+	  {
+            ycbp3=ycb.at(i)+(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*sinphit;// ! Get reference values for x,y for non-local mixing
+            xcbp3=xcb.at(i)+(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*cosphit;// ! 1/3 bldg width outside of building is the boundary for the non-local mixing
+            ycbm3=ycb.at(i)-(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*sinphit;
+            xcbm3=xcb.at(i)-(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*cosphit;
             temp=(xcbp3-dx)/dx;
             icbp3=nint(temp);//substracted dx to comply gpu
             temp=(xcbm3-dx)/dx;
@@ -4216,32 +4214,32 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     if(cellQuic[idMid2].c != 0) break;
                 }
             }
-            ycbp=ycb.at(i)+(.5*leff.at(i))*sinphi;
-            xcbp=xcb.at(i)+(.5*leff.at(i))*cosphi;
-            ycbm=ycb.at(i)-(.5*leff.at(i))*sinphi;
-            xcbm=xcb.at(i)-(.5*leff.at(i))*cosphi;
+            ycbp=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphi;
+            xcbp=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*cosphi;
+            ycbm=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphi;
+            xcbm=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*cosphi;
 
             
             if(cosphi>=0.f){
                 //! Note the current upstream and downstream limits for the wake non-local mixing
                 //! are 3*lr in the downstream direction and lfx upstream in the x direction
                 //! and lfy upstream in the y direction
-                xcd=xcb.at(i)+(.5*leff.at(i)+.1*dx)*cosphi; // ! get the first point on the center line outside of the building (downstream)
-                ycd=ycb.at(i)+(.5*leff.at(i)+.1*dx)*sinphi;// !
+                xcd=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+.1*dx)*cosphi; // ! get the first point on the center line outside of the building (downstream)
+                ycd=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+.1*dx)*sinphi;// !
                 
                 //!mdw 7-10-2006 made changes to xcd, ycd,xcu, & ycu - formerly used .5 dx
                 if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
-                    xcu=xcb.at(i)-(.4*leff.at(i)+dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.4*leff.at(i)+dx)*sinphi; //!
+                    xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
+                    ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi; //!
                 }
                 else{
-                    xcu=xcb.at(i)-(.5*leff.at(i)+0.1*dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.5*leff.at(i)+0.1*dx)*sinphi;// !
+                    xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*cosphi;// ! (upstream)
+                    ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
                 }
                  
                 //!mdw 7-05-2006 made changes to xcul & ycul - formerly used .5 dx
-                xcul=xcu-(lfr.at(i)+dx)*cosphi;// ! get upper limit of the eddie
-                ycul=ycu-(lfr.at(i)+dy)*sinphi;
+                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upper limit of the eddie
+                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;
                 xcul=std::max(xcul,0.f);
                 xcul=std::min(xcul,dx*(nxdx-1));
                 ycul=std::max(ycul,0.f);
@@ -4250,19 +4248,19 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             }
             else{
                 //!mdw 7-10-2006 made changes to xcd, ycd,xcu, & ycu - formerly used .5 dx
-                xcd=xcb.at(i)+(.5*leff.at(i)+.1*dx)*cosphi;
-                ycd=ycb.at(i)+(.5*leff.at(i)+.1*dx)*sinphi;
+                xcd=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+.1*dx)*cosphi;
+                ycd=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+.1*dx)*sinphi;
                 if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
-                    xcu=xcb.at(i)-(.4*leff.at(i)+dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.4*leff.at(i)+dx)*sinphi;// !
+                    xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
+                    ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi;// !
                 }
                 else{  
-                    xcu=xcb.at(i)-(.5*leff.at(i)+0.1*dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.5*leff.at(i)+0.1*dx)*sinphi;// !
+                    xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*cosphi;// ! (upstream)
+                    ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
                 }
                 //!mdw 7-05-2006 made changes to xcul & ycul - formerly used .5 dx
-                xcul=xcu-(lfr.at(i)+dx)*cosphi;// ! get upstream limit on the front cavity
-                ycul=ycu-(lfr.at(i)+dy)*sinphi;// !
+                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upstream limit on the front cavity
+                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;// !
                 xcul=std::max(xcul,0.f);
                 xcul=std::min(xcul,dx*(nxdx-1));
                 ycul=std::max(ycul,0.f);
@@ -4272,10 +4270,10 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
         }
         else{// ! if you are more aligned with y than x
             //! MAN 9/15/2005 use weff and leff appropriately
-            ycbp3=ycb.at(i)+(.5*weff.at(i)+.33*weff.at(i))*sinphit;// ! get the effective length of the building
-            xcbp3=xcb.at(i)+(.5*weff.at(i)+.33*weff.at(i))*cosphit;
-            ycbm3=ycb.at(i)-(.5*weff.at(i)+.33*weff.at(i))*sinphit;
-            xcbm3=xcb.at(i)-(.5*weff.at(i)+.33*weff.at(i))*cosphit;
+            ycbp3=ycb.at(i)+(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*sinphit;// ! get the effective length of the building
+            xcbp3=xcb.at(i)+(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*cosphit;
+            ycbm3=ycb.at(i)-(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*sinphit;
+            xcbm3=xcb.at(i)-(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*cosphit;
             //! end MAN 9/15/2005
             temp=(xcbp3-dx)/dx;
             icbp3=nint(temp);
@@ -4364,30 +4362,30 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     if(cellQuic[idMid2].c != 0) break;
                 }
             }
-            ycbp=ycb.at(i)+(.5*leff.at(i))*sinphit;// !  get back of the building
-            xcbp=xcb.at(i)+(.5*leff.at(i))*cosphit;// !
-            ycbm=ycb.at(i)-(.5*leff.at(i))*sinphit;// !  get front of the building
-            xcbm=xcb.at(i)-(.5*leff.at(i))*cosphit;// !
+            ycbp=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphit;// !  get back of the building
+            xcbp=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*cosphit;// !
+            ycbm=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphit;// !  get front of the building
+            xcbm=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*cosphit;// !
             if(sinphi>=0.f){
                 //! Note the current upstream and downstream limits for the wake non-local mixing
                 //    ! are 3*lr in the downstream direction and lfx upstream in the x direction
                 //  ! and lfy upstream in the y direction
                 //! MAN 9/15/2005 use weff and leff appropriately
                 //!mdw 7-05-2006 made changes to xcu,ycu, xcd & ycd - formerly used .5 dy or .5 dx
-                xcd=xcb.at(i)+(.5*leff.at(i)+dy)*cosphi;// ! get the first point on the center line outside of the building (downstream)
-                ycd=ycb.at(i)+(.5*leff.at(i)+dy)*sinphi;// !
+                xcd=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*cosphi;// ! get the first point on the center line outside of the building (downstream)
+                ycd=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*sinphi;// !
                 if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
-                    xcu=xcb.at(i)-(.4*leff.at(i)+dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.4*leff.at(i)+dx)*sinphi; //!
+                    xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
+                    ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi; //!
                 }
                 else{
-                    xcu=xcb.at(i)-(.5*leff.at(i)+0.1*dx)*cosphi;// ! (upstream) 
-                    ycu=ycb.at(i)-(.5*leff.at(i)+0.1*dx)*sinphi;// !
+                    xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*cosphi;// ! (upstream) 
+                    ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
                 }
                 //! end MAN 9/15/2005
                 //! mdw 7-05-2006 eliminated .5 dx  or .5 dy in favor of dx & dy
-                xcul=xcu-(lfr.at(i)+dx)*cosphi;// ! get upper limit of the eddie
-                ycul=ycu-(lfr.at(i)+dy)*sinphi;
+                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upper limit of the eddie
+                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;
                 xcul=std::max(xcul,0.f);
                 xcul=std::min(xcul,dx*(nxdx-1));
                 ycul=std::max(ycul,0.f);
@@ -4396,20 +4394,20 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             }
             else{
                    //! MAN 9/15/2005 use weff and leff appropriately
-                xcd=xcb.at(i)+(.5*leff.at(i)+dy)*cosphi;
-                ycd=ycb.at(i)+(.5*leff.at(i)+dy)*sinphi;
+                xcd=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*cosphi;
+                ycd=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*sinphi;
                 if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
-                    xcu=xcb.at(i)-(.4*leff.at(i)+dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.4*leff.at(i)+dx)*sinphi;// !
+                    xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
+                    ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi;// !
                 }
                 else{
-                    xcu=xcb.at(i)-(.5*leff.at(i)+dx)*cosphi;// ! (upstream) 
-                    ycu=ycb.at(i)-(.5*leff.at(i)+dx)*sinphi;// !
+                    xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream) 
+                    ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi;// !
                 }
                 //! end MAN 9/15/2005
                 
-                xcul=xcu+(lfr.at(i)+dx)*cosphi;// ! get upstream limit on the front cavity
-                ycul=ycu+(lfr.at(i)+dy)*sinphi;// !
+                xcul=xcu+(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upstream limit on the front cavity
+                ycul=ycu+(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;// !
                 xcul=std::max(xcul,0.f);
                 xcul=std::min(xcul,dx*(nxdx-1));
                 ycul=std::max(ycul,0.f);
@@ -4501,8 +4499,8 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 
             }
             //! mdw 7-05-2006 changed from .5 dx or .5 dy to dx & dy to be consistent with nint
-            xcdl=xcd+(3.*lr.at(i)+dx)*zkfac*cosphi;// ! calculate the x,y limit of the wake as a function of height
-            ycdl=ycd+(3.*lr.at(i)+dy)*zkfac*sinphi;// !
+            xcdl=xcd+(3.*m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*zkfac*cosphi;// ! calculate the x,y limit of the wake as a function of height
+            ycdl=ycd+(3.*m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*zkfac*sinphi;// !
             xcdl=std::min(xcdl,dx*(nxdx));
             ycdl=std::min(ycdl,dy*(nydy));
             xcdl=std::max(xcdl,0.f);
@@ -4532,20 +4530,20 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             ds=0.7*std::min(dx,dy);// ! pick a step that is small enough to not skip grid cells
             sdown=sqrt((xcdl-xcd)*(xcdl-xcd)+(ycdl-ycd)*(ycdl-ycd))+2.*ds;// ! calculate the limits for the distance measured along the centerline (rear)
             sup=sqrt((xcul-xcu)*(xcul-xcu)+(ycul-ycu)*(ycul-ycu))+2.*ds;//   ! same for the front eddy
-            stin=.5*leff.at(i);//
+            stin=.5*m_util_ptr->qpBuildoutData.buildings[i].leff;//
             temp=stin/ds;
             istinf=nint(temp)+1.f;
             //!mdw 7-11-2006 changed istinf to allow replacement to center of bldg
             //!mdw 5-14-2004 corrected expression for st; older versions gave errors for wide blds
             st=sqrt((xcbp3-xcb.at(i))*(xcbp3-xcb.at(i))+(ycbp3-ycb.at(i))*(ycbp3-ycb.at(i)))+1.*ds;// ! total distance to point
-			temp=(st+.333*leff.at(i))/ds;
+			temp=(st+.333*m_util_ptr->qpBuildoutData.buildings[i].leff)/ds;
             istf=nint(temp)+1.f;//   ! (transverse direction) 
             //!mdw 6-9-2004 extended the transverse integration to st+.333*leff
             temp=sdown/ds;
             isf=nint(temp)+1;// ! setup limits of calculations (for do loops) (along cneterline down)  
             temp=sup/ds;
             isfu=nint(temp)+1;//  ! (along centerline up) 
-            if(lfr.at(i) < 0.f)isfu=0;
+            if(m_util_ptr->qpBuildoutData.buildings[i].lfr < 0.f)isfu=0;
             
             //!mdw 4-16-2004 added correction for ktop+3 > nz-1
             
@@ -4632,7 +4630,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                         //! Selects the largest gradient (vert or horiz transfer)
                         //! mdw 4-16-2004 added proper treatment of zfo
                         
-                        if((2.*deluc.at(ik)/weff.at(i))<(utotktp.at(iceljcel)/(ht[i]+zfo[i])) &&
+		      if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceljcel)/(ht[i]+zfo[i])) &&
                            delutz>.2*zcorf.at(k)*utotktp.at(iceljcel)){// ! vertical dominates
                             ustargz.at(idcelk)=std::max(knlc*utotktp.at(iceljcel),ustargz.at(idcelk)); 
                             if(fabs(ustargz.at(idcelk)-knlc*utotktp.at(iceljcel))<1.e-05*ustargz.at(idcelk)){//!This value dominates over prev. buildings.
@@ -4662,7 +4660,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                     upsqg=cusq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
                                     wpsqg=cvsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
                                     vpwpg=0.f;
-                                    elzg.at(idcelk)=0.5*weff.at(i);
+                                    elzg.at(idcelk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
                                     vpsqg=cwsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
                                     rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
                                 }
@@ -4725,7 +4723,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                             //! mdw 4-16-2004 added proper treatment of zfo
                             //! mdw 6-10-2004 changed to make check on centerline rather than local value
                             int ik=k*nxdx*nydy +i;
-                            if((2.*deluc.at(ik)/weff.at(i))<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
+                            if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
                                && delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
                                 if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
                                     ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
@@ -4756,7 +4754,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                         wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
                                         vpwpg=0.;
                                         vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        elzg.at(idceltk)=.5*weff.at(i);
+                                        elzg.at(idceltk)=.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
                                         rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
                                     }
                                 }
@@ -4839,7 +4837,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                         +pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2));
                             // mdw 4-16-2004 added proper treatment of zfo
                             // mdw 6-10-2004 made check on centerline rather than local value
-                            if((2.*deluc.at(ik)/weff.at(i))<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
+                            if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
                                && delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
                                 if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
                                     ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
@@ -4872,7 +4870,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                         // for eddy transport in uv we dont consider uw
                                         upsqg=cusq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
                                         wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        elzg.at(idceltk)=0.5f*weff.at(i);
+                                        elzg.at(idceltk)=0.5f* m_util_ptr->qpBuildoutData.buildings[i].weff ;
                                         vpwpg=0.f;
                                         vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
                                         rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
@@ -4966,7 +4964,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                       pow( (urefw.at(ik)-wind_vel[idcelk].w),2));
                     // Selects the largest gradient (vert or horiz transfer)
                     // mdw 4-16-2004 added proper treatment of zfo
-                    if((2.*deluc.at(ik)/weff.at(i))<(utotktp.at(iceljcel)/(ht[i]+zfo[i])) 
+                    if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceljcel)/(ht[i]+zfo[i])) 
                        && delutz>.2*zcorf.at(k)*utotktp.at(iceljcel)){ // vertical dominates
                         if(ustargz.at(idcelk)<knlc*utotktp.at(iceljcel)){ // This value dominates over prev. buildings.
                             ustargz.at(idcelk)=knlc*utotktp.at(iceljcel);
@@ -4997,7 +4995,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                 upsqg=cusq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
                                 wpsqg=cvsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
                                 vpwpg=0.;
-                                elzg.at(idcelk)=0.5*weff.at(i);
+                                elzg.at(idcelk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
                                 vpsqg=cwsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
                                 rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
                             }
@@ -5051,7 +5049,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                     pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2));
                         // mdw 4-16-2004 added proper treatment of zfo
                         // mdw 6-10-2004 made check on centerline deluc rather than local delut
-                        if((2.*deluc.at(ik)/weff.at(i))<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
+                        if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
                            && delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
                             if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
                                 ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
@@ -5083,7 +5081,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                     wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
                                     vpwpg=0.;
                                     vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                    elzg.at(idceltk)=0.5*weff.at(i);
+                                    elzg.at(idceltk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
                                     rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
                                 }
                             }
@@ -5168,7 +5166,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                     pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2));
                         // mdw 4-16-2004 added proper treatment of zfo
                         // mdw 6-10-2004 made check on centerline rather than local value
-                        if((2.*deluc.at(ik)/weff.at(i))<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
+                        if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
                            &&delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
                             
                             if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
@@ -5202,7 +5200,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                     upsqg=cusq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
                                     wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
                                     vpwpg=0.;
-                                    elzg.at(idceltk)=0.5*weff.at(i);
+                                    elzg.at(idceltk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
                                     vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
                                     rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
                                 }
