@@ -1806,8 +1806,8 @@ void DisplayControl::initializeView() {
     // scale the viewport appropriately...
     float domainAspectRatio = (float)ny / (float)nx;
 
-    std::cout << "nx = " << nx << ", ny = " << ny << std::endl;
-    std::cout << "width = " << (1000/domainAspectRatio) << std::endl;
+    //    std::cout << "nx = " << nx << ", ny = " << ny << std::endl;
+    //    std::cout << "width = " << (1000/domainAspectRatio) << std::endl;
 
     glViewport(0, 0, 1000, (float)(1000/domainAspectRatio));
 
