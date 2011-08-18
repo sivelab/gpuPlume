@@ -4238,8 +4238,8 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 }
                  
                 //!mdw 7-05-2006 made changes to xcul & ycul - formerly used .5 dx
-                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upper limit of the eddie
-                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;
+                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upper limit of the eddie
+                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;
                 xcul=std::max(xcul,0.f);
                 xcul=std::min(xcul,dx*(nxdx-1));
                 ycul=std::max(ycul,0.f);
@@ -4259,8 +4259,8 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
                 }
                 //!mdw 7-05-2006 made changes to xcul & ycul - formerly used .5 dx
-                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upstream limit on the front cavity
-                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;// !
+                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upstream limit on the front cavity
+                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;// !
                 xcul=std::max(xcul,0.f);
                 xcul=std::min(xcul,dx*(nxdx-1));
                 ycul=std::max(ycul,0.f);
@@ -4384,8 +4384,8 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 }
                 //! end MAN 9/15/2005
                 //! mdw 7-05-2006 eliminated .5 dx  or .5 dy in favor of dx & dy
-                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upper limit of the eddie
-                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;
+                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upper limit of the eddie
+                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;
                 xcul=std::max(xcul,0.f);
                 xcul=std::min(xcul,dx*(nxdx-1));
                 ycul=std::max(ycul,0.f);
@@ -4406,8 +4406,8 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 }
                 //! end MAN 9/15/2005
                 
-                xcul=xcu+(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upstream limit on the front cavity
-                ycul=ycu+(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;// !
+                xcul=xcu+(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upstream limit on the front cavity
+                ycul=ycu+(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;// !
                 xcul=std::max(xcul,0.f);
                 xcul=std::min(xcul,dx*(nxdx-1));
                 ycul=std::max(ycul,0.f);
@@ -4543,7 +4543,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             isf=nint(temp)+1;// ! setup limits of calculations (for do loops) (along cneterline down)  
             temp=sup/ds;
             isfu=nint(temp)+1;//  ! (along centerline up) 
-            if(m_util_ptr->qpBuildoutData.buildings[i].lfr < 0.f)isfu=0;
+            if(m_util_ptr->qpBuildoutData.buildings[i].lr < 0.f)isfu=0;
             
             //!mdw 4-16-2004 added correction for ktop+3 > nz-1
             
