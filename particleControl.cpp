@@ -103,8 +103,8 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   uniform_lambda = multipleBuildings_shader.createUniform("lambda");
   uniform_tau_dz = multipleBuildings_shader.createUniform("tau_dz");
   uniform_duvw_dz = multipleBuildings_shader.createUniform("duvw_dz");
- uniform_dxyz_wall = multipleBuildings_shader.createUniform("dxy_wall");//Balli: new texture for storing distance to a surface in all directions  
-uniform_randomTexCoordOffset = multipleBuildings_shader.createUniform("random_texCoordOffset");
+  uniform_dxyz_wall = multipleBuildings_shader.createUniform("dxy_wall");//Balli: new texture for storing distance to a surface in all directions  
+  uniform_randomTexCoordOffset = multipleBuildings_shader.createUniform("random_texCoordOffset");
   uniform_randomTexWidth = multipleBuildings_shader.createUniform("random_texWidth");
   uniform_randomTexHeight = multipleBuildings_shader.createUniform("random_texHeight");
   uniform_buildings = multipleBuildings_shader.createUniform("buildings");
@@ -122,7 +122,15 @@ uniform_randomTexCoordOffset = multipleBuildings_shader.createUniform("random_te
   GLint udx = multipleBuildings_shader.createUniform("dx");
   GLint udy = multipleBuildings_shader.createUniform("dy");
   GLint udz = multipleBuildings_shader.createUniform("dz");
-    
+
+  // Uniform variabls to hold QP_params
+  GLint uniform_qpParam_BLH = multipleBuildings_shader.createUniform("qpParam_BLH");
+  GLint uniform_qpParam_RCMOL = multipleBuildings_shader.createUniform("qpParam_RCMOL");
+  GLint uniform_qpParam_z0 = multipleBuildings_shader.createUniform("qpParam_z0");
+
+  // Some shader uniform values do not change over the simulation.
+  // Thus, set the values now.
+
   multipleBuildings_shader.activate();
 
   glUniform1fARB(ulifeTime, life_time);
@@ -136,6 +144,10 @@ uniform_randomTexCoordOffset = multipleBuildings_shader.createUniform("random_te
   glUniform1iARB(unydy, nydy);
   glUniform1iARB(unzdz, nzdz);
   glUniform1iARB(uNumInRow, numInRow);
+
+  glUniform1fARB(uniform_qpParam_BLH, m_util_ptr->qpParamData.boundaryLayerHeight);
+  glUniform1fARB(uniform_qpParam_RCMOL, m_util_ptr->qpParamData.rcl);
+  glUniform1fARB(uniform_qpParam_z0, m_util_ptr->qpParamData.z0);
 
   multipleBuildings_shader.deactivate();
 }
@@ -2358,7 +2370,7 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 	    du_dz = (wind_vel[idxAbove].u - wind_vel[idxBelow].u)/(2.0f*dz); 
 	  }
 
-	  float VertGradFactor=pow( (1.0-(minDistance/20.0)) ,3.0/4.0); 
+	  float VertGradFactor=pow( (1.0-(minDistance/m_util_ptr->qpParamData.boundaryLayerHeight)) ,3.0/4.0); 
 	  ustar=0.4*minDistance*du_dz; //Note: ustar doesn't include the vertGradFactor; sigmas do have vertGradFactor
 
 	  data3[texidx] = du_dz; //du_dz
@@ -2403,7 +2415,7 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 	  dataWind[texidx+1] = wind_vel[p2idx].v;
 	  dataWind[texidx+2] = wind_vel[p2idx].w;	  
 	  dataWind[texidx+3] = (0.5*5.7)*(ustar*ustar*ustar)*
-	    pow((1.0f-0.85f*minDistance/25.0f),(1.5f))/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
+	    pow((1.0f-0.85f*minDistance/m_util_ptr->qpParamData.boundaryLayerHeight),(1.5f))/(0.4*(minDistance));//This value is the '0.5*CoEps' value	
 
 	  updateMaxandMinWindVel(dataWind[texidx],dataWind[texidx+1],dataWind[texidx+2],dataWind[texidx+3]);
 
@@ -2529,6 +2541,12 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 
 float ParticleControl::getMinDistance(int qj, int qi, int qk){
   
+  assert(0==1);
+
+  std::cout << "Calling getMinDistance!!!!!!!!!!!!!!!!!!!!!!!!! should be fixed!" << std::endl;
+  std::cout << "Calling getMinDistance!!!!!!!!!!!!!!!!!!!!!!!!! should be fixed!" << std::endl;
+  std::cout << "Calling getMinDistance!!!!!!!!!!!!!!!!!!!!!!!!! should be fixed!" << std::endl;
+  std::cout << "Calling getMinDistance!!!!!!!!!!!!!!!!!!!!!!!!! should be fixed!" << std::endl;
   std::cout << "Calling getMinDistance!!!!!!!!!!!!!!!!!!!!!!!!! should be fixed!" << std::endl;
 
   //Following is hardwired, but we need to read the building info mentioned in the input file
@@ -2853,7 +2871,7 @@ void ParticleControl::variedUWindField(){
     for(int i = 0; i < nydy; i++){
       for(int j = 0; j < nxdx; j++){
 	int p2idx = k*nxdx*nydy + i*nxdx + j;
-	wind_vel[p2idx].u = 7.52f*pow(((k+1)/25.0f),0.15f);
+	wind_vel[p2idx].u = 7.52f*pow(((k+1)/m_util_ptr->qpParamData.boundaryLayerHeight),0.15f);
 	wind_vel[p2idx].v = 0.0f;
 	wind_vel[p2idx].w = 0.0f;
 	//wind_vel[p2idx].id = -1.0;
@@ -3499,7 +3517,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     float rcl  = 0.0f;  //Monin-obo length, should be in the input file-Balli-06/10/09
     float z0   = 0.1f;  //Should be in the input file-Balli-06/10/09
     int roofflag = 2;   //should be in the input file-Balli-06/10/09
-    float h      = 25.f; //Boundary Layer Height-should be in the input file-Balli-06/10/09
+    float h      = m_util_ptr->qpParamData.boundaryLayerHeight; //Boundary Layer Height-should be in the input file-Balli-06/10/09
     //**************************ATTENTION********************************************************
 
     
@@ -3977,7 +3995,9 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     //Therefore following few lines do not effect the final solution at all
     // phi will be calculated again by taking into account the actual wind angle at each building.
 
-    float phi=270.-theta;
+    float phi = m_util_ptr->quMetParamData.quSensorData.direction - theta;
+    // Was -->> float phi = 270.-theta;
+
     phi=phi*pi/180.;
     float cosphi=cos(phi);
     int iupc=0;

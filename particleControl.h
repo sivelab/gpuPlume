@@ -294,8 +294,6 @@ class ParticleControl{
   //Uniform variables for the Current Velocity shader
   GLint uniform_currentPrime, uniform_windVelocity,uniform_partPos, uniform_prevPartPos;
 
-
-  
   GLfloat* buffer_mem;
 
   GLint currentbuffer;

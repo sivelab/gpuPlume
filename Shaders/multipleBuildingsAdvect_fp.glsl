@@ -33,6 +33,10 @@ uniform float life_time;
 uniform int color_advect_terms;
 uniform int velocity_to_color_by;
 
+uniform float qpParam_BLH;
+uniform float qpParam_RCMOL;
+uniform float qpParam_z0;
+
 //
 // This variable contains a uniformally generated random 2D vector in
 // the range [0,1].  The value is generated on the CPU each iteration
@@ -56,9 +60,6 @@ float dutotdni,dutotdsi,ani,bni,cni,dutotds;
 float cosomeg,sinomeg,tanomeg,omeg1,cosomeg1,sinomeg1,dutotdn1,dutotdn;
 
 //Hard wired variables !!MUST BE READ INTO SHADER FROM PARTICLE CONTROL  ***!!! ATTENTION!!!***
-float h=25.;
-float rcl=0.;
-float z0 = 0.1;
 float z0coeff = 1.01;
 float taylor_flag = 0.;
 //Hardwired variables end
@@ -66,7 +67,7 @@ float taylor_flag = 0.;
 float xnu = 0.;//Balli: initialized as zero; can change later if we add some more capabilities from QP
 float kkar = 0.4;
 
-float z0fac = z0*z0coeff;
+float z0fac = qpParam_z0*z0coeff;
 
 float ReturnCellType(int i,int j,int k)
 {
@@ -237,7 +238,7 @@ void main(void)
 	dyc=pos.y-.5*dy-dy*float(j);
 	dwym=dym+dyc;
       }
-      if(drzp<z0*z0fac){
+      if(drzp<qpParam_z0*z0fac){
 	pos.z=pos.z-z0fac;
 	dzc=pos.z-(k+0.5*dz);
 	drzp=dzp-dzc;
@@ -530,19 +531,19 @@ void main(void)
 	v1 = upPrev * betn1ij  + vpPrev * betn2ij  + wpPrev * betn3ij ;
 	w1 = upPrev * gamn1ij  + vpPrev * gamn2ij  + wpPrev * gamn3ij ; 
             
-	if(rcl<0 && pos.z<=.99*h){
-	  coeps=5.7*(ustar3*(1.-.75*pos.z*rcl)*pow( (1.-.85*pos.z/h),(1.5))/(dwall*kkar));
+	if(qpParam_RCMOL<0.0 && (pos.z <= 0.99*qpParam_BLH)){
+	  coeps=5.7*(ustar3*(1.-.75*pos.z*qpParam_RCMOL)*pow( (1.-.85*pos.z/qpParam_BLH),(1.5))/(dwall*kkar));
 	}
 	else{
-	  if(rcl<0.){
-	    coeps=5.7*(ustar3*(1.-.75*.99*h*rcl)*pow( (1.-.85*.99),(1.5))/(dwall*kkar));
+	  if(qpParam_RCMOL<0.0){
+	    coeps=5.7*(ustar3*(1.-.75*.99*qpParam_BLH*qpParam_RCMOL)*pow( (1.-.85*.99),(1.5))/(dwall*kkar));
 	  }
 	  else{
-	    if(pos.z<=.99*h){
-	      coeps=5.7*(ustar3*(1.+3.7*pos.z*rcl)*pow( (1.-.85*pos.z/h),(1.5))/(dwall*kkar));
+	    if(pos.z<=.99*qpParam_BLH){
+	      coeps=5.7*(ustar3*(1.+3.7*pos.z*qpParam_RCMOL)*pow( (1.-.85*pos.z/qpParam_BLH),(1.5))/(dwall*kkar));
 	    }
 	    else{
-	      coeps=5.7*(ustar3*(1.+3.7*.99*h*rcl)*pow( (1.-.85*.99),(1.5))/(dwall*kkar));
+	      coeps=5.7*(ustar3*(1.+3.7*.99*qpParam_BLH*qpParam_RCMOL)*pow( (1.-.85*.99),(1.5))/(dwall*kkar));
 	    }
 	  }
 	} 
@@ -559,8 +560,8 @@ void main(void)
 	  //dt=0.5*tls; // Commented this out as the code freezes if I uncomment this ***!!!ATTENTION!!!***
 	  timeStepSim = dt;
 	}
-	if((k+0.5*dz)<=.99*h){
-	  tau13=ustar*ustar*pow( (1.-(k+0.5*dz)/h),(1.5));
+	if((k+0.5*dz)<=.99*qpParam_BLH){
+	  tau13=ustar*ustar*pow( (1.-(k+0.5*dz)/qpParam_BLH),(1.5));
 	}
 	else{
 	  tau13=ustar*ustar*pow((1.-.99),(1.5));
