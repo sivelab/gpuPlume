@@ -127,6 +127,7 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   GLint uniform_qpParam_BLH = multipleBuildings_shader.createUniform("qpParam_BLH");
   GLint uniform_qpParam_RCMOL = multipleBuildings_shader.createUniform("qpParam_RCMOL");
   GLint uniform_qpParam_z0 = multipleBuildings_shader.createUniform("qpParam_z0");
+  GLint uniform_qpParam_taylorMicroscaleMin = multipleBuildings_shader.createUniform("qpParam_taylorMicroscaleMin");
 
   // Some shader uniform values do not change over the simulation.
   // Thus, set the values now.
@@ -148,6 +149,7 @@ void ParticleControl::setupMultipleBuildingsShader(float life_time, int shader){
   glUniform1fARB(uniform_qpParam_BLH, m_util_ptr->qpParamData.boundaryLayerHeight);
   glUniform1fARB(uniform_qpParam_RCMOL, m_util_ptr->qpParamData.rcl);
   glUniform1fARB(uniform_qpParam_z0, m_util_ptr->qpParamData.z0);
+  glUniform1fARB(uniform_qpParam_taylorMicroscaleMin, m_util_ptr->qpParamData.taylorMicroscaleMin);
 
   multipleBuildings_shader.deactivate();
 }

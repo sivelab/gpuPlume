@@ -36,6 +36,7 @@ uniform int velocity_to_color_by;
 uniform float qpParam_BLH;
 uniform float qpParam_RCMOL;
 uniform float qpParam_z0;
+uniform float qpParam_taylorMicroscaleMin;
 
 //
 // This variable contains a uniformally generated random 2D vector in
@@ -61,7 +62,6 @@ float cosomeg,sinomeg,tanomeg,omeg1,cosomeg1,sinomeg1,dutotdn1,dutotdn;
 
 //Hard wired variables !!MUST BE READ INTO SHADER FROM PARTICLE CONTROL  ***!!! ATTENTION!!!***
 float z0coeff = 1.01;
-float taylor_flag = 0.;
 //Hardwired variables end
 
 float xnu = 0.;//Balli: initialized as zero; can change later if we add some more capabilities from QP
@@ -550,7 +550,8 @@ void main(void)
 	utot    = tVel;
 	taylor_microscale=0.;
                 
-	if(taylor_flag > 0){
+	if(qpParam_taylorMicroscaleMin > 0.0)
+	{
 	  // taylor_microscale=pow( (8.55e-3)*xnu*sigu*sigu/(coeps*utot*utot) ,0.5);
 	  taylor_microscale = sqrt( (8.55e-3)*xnu*sigu*sigu/(coeps*utot*utot) );
 	}
