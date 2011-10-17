@@ -67,7 +67,7 @@ float z0coeff = 1.01;
 float xnu = 0.;//Balli: initialized as zero; can change later if we add some more capabilities from QP
 float kkar = 0.4;
 
-float z0fac = qpParam_z0*z0coeff;
+float z0fac = qpParam_z0 * z0coeff;
 
 float ReturnCellType(int i,int j,int k)
 {
@@ -282,10 +282,12 @@ void main(void)
       float UVW      = wind.z*wind.z + UV;
       // float tVel     = pow(UVW,0.5);
       float tVel     = sqrt(UVW);
-      float tVelI    = 1./(tVel+1.E-10);
+      //       float tVelI    = 1./(tVel+1.E-10);
+      float tVelI    = 1./(tVel+1.E-6);
       // float totUV    = pow(UV,0.5);
       float totUV    = sqrt(UV);
-      float totUVI   = 1./totUV +1.E-10;
+      //       float totUVI   = 1./totUV +1.E-10;
+      float totUVI   = 1./totUV +1.E-6;
             
       int iomega = 0;
       float cospsi,sinpsi,cosphiw,sinphiw,omenum,omeden;
@@ -303,7 +305,8 @@ void main(void)
 	omenum  = -dutotdxi*sinpsi + dutotdyi*cospsi;
 	omeden  = dutotdxi*cospsi*sinphiw + dutotdyi*sinpsi*sinphiw - dutotdzi*cosphiw;
 	if(iomega==0){
-	  if(absolute(omeden)<1.e-10){
+	//	  if(absolute(omeden)<1.e-10){
+	  if(absolute(omeden)<1.e-6){
 	    cosomeg = 0.;
 	    sinomeg = 1.;
 	    dutotdn = dutotdxi*(sinpsi*sinomeg-cospsi*sinphiw*cosomeg) 
@@ -479,7 +482,8 @@ void main(void)
 	    // dutotdni=pow(dutotdxi*dutotdxi+dutotdyi*dutotdyi,0.5);
 	    dutotdni = sqrt(dutotdxi*dutotdxi+dutotdyi*dutotdyi);
 	    dutotdni=dutotdni;
-	    if(dutotdni<1.e-12)dutotdni=1.e-12;
+	    // 	    if(dutotdni<1.e-12)dutotdni=1.e-12;
+	    if(dutotdni<1.e-6)dutotdni=1.e-6;
 	    dutotdsi=dutotdzi;
 	    ani=cospsi;
 	    bni=sinpsi;
@@ -556,9 +560,10 @@ void main(void)
 	  taylor_microscale = sqrt( (8.55e-3)*xnu*sigu*sigu/(coeps*utot*utot) );
 	}
                 
-	tls=2.*sigw*sigw/(coeps+1.e-36);
+	// tls=2.*sigw*sigw/(coeps+1.e-36);
+	tls=2.*sigw*sigw/(coeps+1.e-5);
 	if(dt > 0.5*tls &&  dt > taylor_microscale){
-	  //dt=0.5*tls; // Commented this out as the code freezes if I uncomment this ***!!!ATTENTION!!!***
+	  dt=0.5*tls;    // Commented this out as the code freezes if I uncomment this ***!!!ATTENTION!!!***
 	  timeStepSim = dt;
 	}
 	if((k+0.5*dz)<=.99*qpParam_BLH){
@@ -631,7 +636,11 @@ void main(void)
 	  loopdt=true;
 	}
 	float xrel = vrel*dt + pow( (wind.x*wind.x+wind.y*wind.y+wind.z*wind.z) , 0.5)*dt;
-	if(xrel+absolute(wind.x)*dt>0.7*dx||5.*pow((coeps*dt),0.5)*dt>0.7*dx){
+	// Pete
+	// CFL condition using 70% rather than 50% here
+	// 
+	// sqrt(coeps*dt) is term from langevin equation
+	if ( xrel+absolute(wind.x)*dt>0.7*dx || 5.0 * pow((coeps*dt),0.5) * dt > 0.7*dx){
 	  timeStepSim=min(dt/2.,timeStepRem);
 	  loopdt=true;
 	}
@@ -652,6 +661,7 @@ void main(void)
 	  loopdt = false;
 	}
       }//while loopdt ends
+
       if(loopdt == false){
 	du = dudet + duran;
 	dv = dvdet + dvran;
@@ -664,7 +674,13 @@ void main(void)
 	prmCurr = vec3(uNewRan,vNewRan,wNewRan);
 
 	//Now move the particle by adding the direction.
+	//	vec4 ppos = pos;
 	pos = pos + vec4(wind.x,wind.y,wind.z,0.0)*timeStepSim + vec4(0.5*(prmPrev+prmCurr),0.0)*timeStepSim;
+	//	vec4 pdir = ppos - pos;
+	// 	float plength = length(length);
+
+	//	if (plength > 1.7)
+	//	pos = vec4(0.0, 0.0, 0.0, 1.0);
 
 	//if(ReturnCellType(i,j,k)==0) pos=pos+vec4(1.0,-2.0,0.0,0.0);
 	vec3 n;
@@ -882,14 +898,18 @@ void main(void)
 
 	  if(timeStepRem>epsilon){
 	    loopThrough=true;
+
 	    //I think we need to do this????
 	    //update prevPos and prevPrime
+
 	    prevPos = vec3(pos);
 	    prmPrev = prmCurr;
+
 	    // Commented out in bally's changes... not in prev version of LM
 	    //upPrev=prmPrev.x;
 	    //vpPrev=prmPrev.y;
 	    //wpPrev=prmPrev.z;
+
 	    //generating random number
 	    rTexCoord.s = rTexCoord.s + 1.0;
 	    rTexCoord.t = rTexCoord.t + 1.0;
