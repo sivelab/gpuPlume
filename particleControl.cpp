@@ -2543,6 +2543,8 @@ void ParticleControl::initLambda_and_Taus_withCalculations(GLuint windField,GLui
 
 float ParticleControl::getMinDistance(int qj, int qi, int qk){
   
+  std::cout << "This function cannot be called!!!!! Calling getMinDistance!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+
   assert(0==1);
 
   std::cout << "Calling getMinDistance!!!!!!!!!!!!!!!!!!!!!!!!! should be fixed!" << std::endl;
