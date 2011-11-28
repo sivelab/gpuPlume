@@ -615,54 +615,61 @@ void main(void)
 	float vrel1   = sqrt((u1*u1+v1*v1+w1*w1));
 	float vrel    = max(vrel2,vrel1);
 
-                
-	if(vrel>4.*sigu && ivrelch==0||vrel>100.){
-	  rTexCoord.s = rTexCoord.s + 1.0;
-	  rTexCoord.t = rTexCoord.t + 1.0;
-	  if (rTexCoord.s > float(random_texWidth))
-	    rTexCoord.s = rTexCoord.s - float(random_texWidth);
-	  if (rTexCoord.t > float(random_texHeight))
-	    rTexCoord.t = rTexCoord.t - float(random_texHeight);
-                    
-	  randn = vec3(texture2DRect(random, rTexCoord));
-                    
-	  u1      = sigu*randn.x;
-	  v1      = sigv*randn.y;
-	  w1      = sigw*randn.z;
-	  upPrev  = u1 * alph1ij + v1 * alph2ij + w1 * alph3ij ;
-	  vpPrev  = u1 * bet1ij  + v1 * bet2ij  + w1 * bet3ij  ;
-	  wpPrev  = u1 * gam1ij  + v1 * gam2ij  + w1 * gam3ij  ;
-	  ivrelch = 1;
-	  loopdt=true;
-	}
+	// if relative velocity > 4.0*sigun
+	if(vrel>4.0*sigu && (ivrelch==0 || vrel>100.))
+	  {
+	    rTexCoord.s = rTexCoord.s + 1.0;
+	    rTexCoord.t = rTexCoord.t + 1.0;
+	    if (rTexCoord.s > float(random_texWidth))
+	      rTexCoord.s = rTexCoord.s - float(random_texWidth);
+	    if (rTexCoord.t > float(random_texHeight))
+	      rTexCoord.t = rTexCoord.t - float(random_texHeight);
+	    
+	    randn = vec3(texture2DRect(random, rTexCoord));
+	    
+	    u1      = sigu*randn.x;
+	    v1      = sigv*randn.y;
+	    w1      = sigw*randn.z;
+	    upPrev  = u1 * alph1ij + v1 * alph2ij + w1 * alph3ij ;
+	    vpPrev  = u1 * bet1ij  + v1 * bet2ij  + w1 * bet3ij  ;
+	    wpPrev  = u1 * gam1ij  + v1 * gam2ij  + w1 * gam3ij  ;
+	    ivrelch = 1;
+	    loopdt=true;
+	  }
+
 	float xrel = vrel*dt + pow( (wind.x*wind.x+wind.y*wind.y+wind.z*wind.z) , 0.5)*dt;
 	// Pete
 	// CFL condition using 70% rather than 50% here
 	// 
 	// sqrt(coeps*dt) is term from langevin equation
-	if ( xrel+absolute(wind.x)*dt>0.7*dx || 5.0 * pow((coeps*dt),0.5) * dt > 0.7*dx){
-	  timeStepSim=min(dt/2.,timeStepRem);
-	  loopdt=true;
-	}
-	if(xrel+absolute(wind.y)*dt>0.7*dy||5.*pow((coeps*dt),.5)*dt>0.7*dy){
-	  timeStepSim=min(dt/2.,timeStepRem);
-	  loopdt=true;
-	}
-
-	if(xrel+absolute(wind.z)*dt>0.7*dz||5.*pow( (coeps*dt),.5)*dt>0.7*dz){
-	  timeStepSim=min(dt/2.,timeStepRem);
-	  loopdt=true;
-	}
-	else{
-	  loopdt=false;
-	}
+	if ( xrel+absolute(wind.x)*dt > 0.7*dx || 5.0 * pow((coeps*dt),0.5) * dt > 0.7*dx )
+	  {
+	    timeStepSim=min(dt/2.,timeStepRem);
+	    loopdt=true;
+	  }
+	if ( xrel+absolute(wind.y)*dt > 0.7*dy || 5.*pow((coeps*dt),.5)*dt>0.7*dy )
+	  {
+	    timeStepSim=min(dt/2.,timeStepRem);
+	    loopdt=true;
+	  }
+	if ( xrel+absolute(wind.z)*dt>0.7*dz||5.*pow( (coeps*dt),.5)*dt>0.7*dz )
+	  {
+	    timeStepSim=min(dt/2.,timeStepRem);
+	    loopdt=true;
+	  }
+	else
+	  {
+	    loopdt=false;
+	  }
                 
-	if(timeStepSim<=epsilon){
-	  loopdt = false;
-	}
+	if(timeStepSim<=epsilon)
+	  {
+	    loopdt = false;
+	  }
       }//while loopdt ends
 
       if(loopdt == false){
+	// d{uvw}det combine memory and drift term
 	du = dudet + duran;
 	dv = dvdet + dvran;
 	dw = dwdet + dwran;

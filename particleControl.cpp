@@ -3470,60 +3470,51 @@ void ParticleControl::find_tauLocalMax(){
 }
 
 void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, GLuint dxyz_wall, 
-                                     GLuint tauTex){
-
+                                     GLuint tauTex)
+{
   std::cout << "Running with Non-Local Mixing Calculations" << std::endl;
 
-    GLfloat *data     = new GLfloat[ width * height * 4 ];
-    GLfloat *dataWind = new GLfloat[ width * height * 4 ];
-    GLfloat *dataTwo  = new GLfloat[ width * height * 4 ];
-    GLfloat *dataTau  = new GLfloat[width*height*4];
-    GLfloat *data3    = new GLfloat[width*height*4];
-    GLfloat *data4    = new GLfloat[width*height*4];
+  GLfloat *data     = new GLfloat[ width * height * 4 ];
+  GLfloat *dataWind = new GLfloat[ width * height * 4 ];
+  GLfloat *dataTwo  = new GLfloat[ width * height * 4 ];
+  GLfloat *dataTau  = new GLfloat[width*height*4];
+  GLfloat *data3    = new GLfloat[width*height*4];
+  GLfloat *data4    = new GLfloat[width*height*4];
 
+  //Balli's new additions this is essentially a direct copy of the FORTRAN
+  initCellType();
     
-#if 0
-    //
-    // Create a VBO to hold the data for drawing arrows
-    //
-    
-    GLfloat *windVBOdata = new GLfloat[ width * height * 3];  // Enough to hold the wind field direction vectors AND the center position of each cell
-#endif
-    
-    
-    //Balli's new additions this is essentially a direct copy of the FORTRAN
-    initCellType();
-    
-    //Balli: Substracting 1 from nzdz as it is increased by 1  after reading from QU_simparams.inp in Util.cpp
-    // This is no longer true... we need to make sure we treat the variable correctly.
-    // nzdz=nzdz-1;
+  //Balli: Substracting 1 from nzdz as it is increased by 1  after reading from QU_simparams.inp in Util.cpp
+  // This is no longer true... we need to make sure we treat the variable correctly.
+  // nzdz=nzdz-1;
+  std::string s;
 
-    float nxnynz=nxdx*nydy*nzdz;
-    std::string s;
-    float dx = m_util_ptr->dx;
-    float dy = m_util_ptr->dy;
-    float dz = m_util_ptr->dz;
-    std::vector<float> dz_array,z,zm;
-    dz_array.resize(nzdz,dz);
-    z.resize(nzdz,0.0f);
-    zm.resize(nzdz,0.0f);
-    //Balli: Initialized first element of z and zm array before begining the loop as in GPU Plume
-    //we do not store values below the ground, which are zero anyways
-    z.at(0)  = dz_array.at(0);
-    zm.at(0) = z.at(0)-0.5*dz_array.at(0);
+  float nxnynz=nxdx*nydy*nzdz;
+
+  float dx = m_util_ptr->dx;
+  float dy = m_util_ptr->dy;
+  float dz = m_util_ptr->dz;
+
+  std::vector<float> dz_array,z,zm;
+  dz_array.resize(nzdz,dz);
+  z.resize(nzdz,0.0f);
+  zm.resize(nzdz,0.0f);
+
+  //Balli: Initialized first element of z and zm array before begining the loop as in GPU Plume
+  //we do not store values below the ground, which are zero anyways
+  z.at(0)  = dz_array.at(0);
+  zm.at(0) = z.at(0) - 0.5*dz_array.at(0);
     
-    for(int k=1;k<nzdz;k++){
-        z.at(k)  = z.at(k-1)+dz_array.at(k);
-        zm.at(k) = z.at(k)-0.5*dz_array.at(k);
+  for(int k=1;k<nzdz;k++)
+    {
+      z.at(k)  = z.at(k-1)+dz_array.at(k);
+      zm.at(k) = z.at(k)-0.5*dz_array.at(k);
     }
-    //**************************ATTENTION********************************************************
-    //Balli: Following should be grabbed from the input files: Hardwired here !!!!     IMPORTANT!!!
-    float rcl  = 0.0f;  //Monin-obo length, should be in the input file-Balli-06/10/09
-    float z0   = 0.1f;  //Should be in the input file-Balli-06/10/09
-    int roofflag = 2;   //should be in the input file-Balli-06/10/09
-    float h      = m_util_ptr->qpParamData.boundaryLayerHeight; //Boundary Layer Height-should be in the input file-Balli-06/10/09
-    //**************************ATTENTION********************************************************
 
+  int roofflag = m_util_ptr->quSimParamData.roof_type;
+  float rcl = m_util_ptr->qpParamData.rcl;
+  float z0 = m_util_ptr->qpParamData.z0;
+  float h = m_util_ptr->qpParamData.boundaryLayerHeight; //Boundary Layer Height
     
     //Balli: declaring few constants
     const float kkar = 0.4f;           //von karman constant
@@ -3587,50 +3578,6 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     // lfr.resize(numBuild);
     // lr.resize(numBuild);
 
-#if 0
-    std::getline(QUbldout,s);
-    QUbldout>>inumveg;
-    std::getline(QUbldout,s);
-
-    for(int i=0;i<numBuild-inumveg;i++){
-        QUbldout>>char18>>char18>>char18;
-        int buildnum;
-        QUbldout>>buildnum;
-        QUbldout>>char18>>char18;
-        QUbldout>>bldtype.at(i);
-        QUbldout>>char18>>char18;
-        QUbldout>>gamma.at(i);
-        QUbldout>>char18>>char18;
-        QUbldout>>ht[i];
-        QUbldout>>char18>>char18;
-        QUbldout>>wti[i];
-        QUbldout>>char18>>char18;
-        QUbldout>>lti[i];
-        QUbldout>>char18>>char18;
-        QUbldout>>xfo[i];
-        QUbldout>>char18>>char18;
-        QUbldout>>yfo[i];
-        QUbldout>>char18>>char18;
-        QUbldout>>zfo[i];
-        QUbldout>>char18>>char18;
-        QUbldout>>weff.at(i);
-        QUbldout>>char18>>char18;
-        QUbldout>>leff.at(i);
-        QUbldout>>char18>>char18;
-        QUbldout>>lfr.at(i);
-        QUbldout>>char18>>char18;
-        QUbldout>>lr.at(i);
-        QUbldout>>char18>>char18;
-        QUbldout>>atten.at(i);
-        QUbldout>>char18>>char18;
-        QUbldout>>Sx.at(i);
-        QUbldout>>char18>>char18;
-        QUbldout>>Sy.at(i);
-        QUbldout>>char18>>char18>>char18>>char18;
-    }
-    QUbldout.close();
-#endif
-    
     //Balli: IMPORTANT!!
     //QP differs from GPU in the indices i,j,k of all the arrays (u,v,w etc.)
     //Following calculations are for Boundary layer case only and it provides an insight into the coordinate sytem differences
