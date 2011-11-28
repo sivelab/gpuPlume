@@ -7,6 +7,8 @@
 #include<stdlib.h>
 #include<stdio.h>
 
+#define USE_PATHFBO
+
 #ifdef GEN_PNG_IMAGES
 #include "PNGImage.h"
 #endif
@@ -713,7 +715,7 @@ int MultipleBuildingsModel::display(){
 
       CheckErrorsGL("MBA : called drawVisuals");
 
-#if 0
+#ifdef USE_PATHFBO
       //stream->draw();
       if (pathLines)
 	{
@@ -934,8 +936,8 @@ void MultipleBuildingsModel::setupTextures(){
   if(util->windFieldData < 5)
     pc->initLambda_and_TauTex(lambda, tau_dz, duvw_dz);
   else if(util->windFieldData == 5)
-      //   pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau);
-      pc->nonLocalMixing(windField, lambda, tau_dz, duvw_dz,dxyz_wall, tau);
+    // pc->initLambda_and_TauTex_fromQUICFILES(windField, lambda, tau_dz, duvw_dz, tau);
+    pc->nonLocalMixing(windField, lambda, tau_dz, duvw_dz,dxyz_wall, tau);
   else
     pc->initLambda_and_Taus_withCalculations(windField, lambda, tau_dz, duvw_dz, tau);
   CheckErrorsGL("\tcreated texid[7], the lambda texture...");
