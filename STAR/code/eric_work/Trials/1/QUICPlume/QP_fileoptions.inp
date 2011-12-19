@@ -1,5 +1,0 @@
-3			!output data file format flag (1=ascii, 2=binary, 3=both)
-0			!use 1 to write out QP_wallfield
-1			!use 1 to write out QP_turbfield
-0			!use 1 to write out QP_lctout
-0			!use 1 to write out QP_turbtype

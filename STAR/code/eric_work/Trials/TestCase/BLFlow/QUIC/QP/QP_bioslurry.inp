@@ -1,6 +1,0 @@
-0.01 	!Agent concentration(g agent/cm^3)
-1 	!Atmospheric pressure (atm)
-2 	!Number of levels in met profile
-!Height (m), Temperature (K), Relative Humidity
-2 293 0.3
-10 292.2 0.29
