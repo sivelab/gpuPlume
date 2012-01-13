@@ -15,8 +15,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 SET(LIBSIVELAB_PATH "${CMAKE_SOURCE_DIR}/../libsivelab" CACHE STRING "Path to the directory where the libsivelab repository is located.")
 INCLUDE_DIRECTORIES (${LIBSIVELAB_PATH}) 
-LINK_DIRECTORIES (${LIBSIVELAB_PATH}/build/quicutil) 
-LINK_DIRECTORIES (${LIBSIVELAB_PATH}/build/util) 
+LINK_DIRECTORIES (${LIBSIVELAB_PATH}/lib)
 
 # From http://stackoverflow.com/questions/2368811/how-to-set-warning-level-in-cmake
 if(MSVC)
