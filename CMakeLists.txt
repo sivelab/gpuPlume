@@ -13,7 +13,7 @@ set(GPUPLUME_VERSION ${GPUPLUME_MAJOR_VERSION}.${GPUPLUME_MINOR_VERSION}.${GPUPL
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-SET(LIBSIVELAB_PATH "${CMAKE_SOURCE_DIR}/../libsivelab" CACHE STRING "Path to the directory where the libsivelab repository is located.")
+SET(LIBSIVELAB_PATH "${CMAKE_SOURCE_DIR}/../libsivelab" CACHE STRING "Path to the directory where the libsivelab repository is located (assumes code is built into a directory named 'build').")
 INCLUDE_DIRECTORIES (${LIBSIVELAB_PATH}) 
 LINK_DIRECTORIES (${LIBSIVELAB_PATH}/lib)
 
@@ -39,8 +39,6 @@ if(WIN32)
   add_definitions(-DWIN32)
   set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extLibs/glew/include")
   set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/extLibs/glew/lib/glew32s.lib")
-
-  set(GETOPT_FILES "getopt_win32.c")
 else(WIN32)
   if(APPLE)
     set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extLibs/glew/include")
@@ -53,7 +51,6 @@ IF (APPLE)
 FIND_PACKAGE(PNG REQUIRED)
 IF(PNG_FOUND)
    INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
-   # TARGET_LINK_LIBRARIES(imageviewer ${PNG_LIBRARY})
 ENDIF(PNG_FOUND)
 ENDIF(APPLE)
 
@@ -88,7 +85,6 @@ link_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Controller)
 # Add executable called "gpuPlume" that is built from the source files 
 # The source files are placed in the list after the executable name. 
 add_executable (gpuPlume 
-               ${GETOPT_FILES}
 	       gpuPlume.cpp 
 	       ArgumentParsing.cpp ArgumentParsing.h 
 	       framebufferObject.cpp framebufferObject.h
@@ -127,8 +123,8 @@ add_executable (gpuPlume
 	       graphicsUtil.cpp 
 	       rgb.cpp 
 	       CmdOptionInterpreter.cpp CmdOptionInterpreter.h
-	       writepng.cpp writepng.h
-	       PNGImage.cpp PNGImage.h
+#	       writepng.cpp writepng.h
+#	       PNGImage.cpp PNGImage.h
 ) 
 
 # Link the executable to the TreadNet library. 
@@ -138,8 +134,6 @@ target_link_libraries (gpuPlume Packet)
 target_link_libraries (gpuPlume ServerController)
 
 # Link the executable to the file parser library. 
-# target_link_libraries (gpuPlume quicLoader) 
-# target_link_libraries (gpuPlume StandardFileParser) 
 target_link_libraries (gpuPlume sive-quicutil) 
 target_link_libraries (gpuPlume ${LIBS})
 
