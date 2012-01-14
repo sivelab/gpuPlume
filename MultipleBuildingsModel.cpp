@@ -68,7 +68,7 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   createImages = false;
   quitSimulation = false;
   drawIsoSurface = false;
-  color_by_advect_terms = false;
+  color_by_advect_terms = true;
   //stream = new StreamLine(twidth,theight,nx,ny,nz);
   
   //Set whether to reuse particles or not
@@ -101,6 +101,8 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   // Set the default sun angle's
   sun_azimuth = util->sun_azimuth;
   sun_altitude = util->sun_altitude;
+
+  m_searchForRogues = true;
 }
 
 MultipleBuildingsModel::~MultipleBuildingsModel()
@@ -115,6 +117,12 @@ MultipleBuildingsModel::~MultipleBuildingsModel()
   delete cellInShadowShader;
   delete dc->sunProjectionMatrix;
   delete dc->sunModelviewMatrix;
+
+  if (m_searchForRogues)
+    {
+      rogueFileDump << "];" << std::endl;
+      rogueFileDump.close();
+    }
 }
 
 void MultipleBuildingsModel::init(bool OSG)
@@ -280,6 +288,23 @@ void MultipleBuildingsModel::init(bool OSG)
 
   // Initialize the treadport.
   dc->initTreadport();
+
+
+  // Allocate memory for detecting rogue particles... note that we
+  // only need to do this if we want to compare previous and current
+  // positions.
+  if (m_searchForRogues)
+    {
+      m_hostPosBuffer = new GLfloat[ twidth * theight * 4 ];
+      m_hostPosPrimeBuffer = new GLfloat[ twidth * theight * 4 ];
+      m_hostAdvectTerms = new GLfloat[ twidth * theight * 4 ];
+
+      std::ostringstream fileName;
+      fileName << "/tmp/rogueParticles.m";
+
+      rogueFileDump.open(fileName.str().c_str());
+      rogueFileDump << "rogueData = [" << std::endl;
+    }
 }
 
 int imgCounter = 0;
@@ -401,6 +426,73 @@ int MultipleBuildingsModel::display(){
 
       CheckErrorsGL("MBA: display() - advection");
      
+
+
+      // dump out data about rogue particles
+
+      if (m_searchForRogues)
+	{
+	  GLfloat *currBuffer;
+	  GLfloat *prevBuffer;
+
+	  if (odd)
+	    {
+	      glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+	      currBuffer = m_hostPosBuffer;
+	    }
+	  else 
+	    {
+	      glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+	      currBuffer = m_hostPosPrimeBuffer;
+	    }
+	  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, currBuffer); 
+
+
+	  if (odd)
+	    {
+	      glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+	      prevBuffer = m_hostPosPrimeBuffer;
+	    }
+	  else 
+	    {
+	      glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+	      prevBuffer = m_hostPosBuffer;
+	    }
+	  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, prevBuffer); 
+
+	  // Get out the various advect terms per particle here
+	  glReadBuffer(GL_COLOR_ATTACHMENT7_EXT);
+	  glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, m_hostAdvectTerms); 	  
+
+	  for(int i = 3; i <= (theight*twidth*4); i+=4)
+	    {
+	      //Get the x,y,z position of the particle
+	      float x = currBuffer[i-3];
+	      float y = currBuffer[i-2];
+	      float z = currBuffer[i-1];
+
+	      float xp = prevBuffer[i-3];
+	      float yp = prevBuffer[i-2];
+	      float zp = prevBuffer[i-1];
+
+	      float aTx = m_hostAdvectTerms[i-3];
+	      float aTy = m_hostAdvectTerms[i-2];
+	      float aTz = m_hostAdvectTerms[i-1];
+	      float aTw = m_hostAdvectTerms[i-0];
+
+	      float calcVel = sqrt( ((xp - x) * (xp - x)) + 
+				    ((yp - y) * (yp - y)) + 
+				    ((zp - z) * (zp - z)) );
+	      if (calcVel > 1.0)
+		rogueFileDump << sim->curr_timeStep << ' ' << i << ' ' << calcVel << ' ' 
+			      << x << ' ' << y << ' ' << z << ' ' 
+			      << xp << ' ' << yp << ' ' << zp << ' ' 
+			      << aTx << ' ' << aTy << ' ' << aTz << ' ' << aTw << std::endl;
+	    }
+	}    
+
+
+#if 0
       if(color_by_advect_terms){
 	int_buffer = new GLfloat[ twidth * theight * 4 ];
 	glReadBuffer(GL_COLOR_ATTACHMENT7_EXT);
@@ -430,6 +522,7 @@ int MultipleBuildingsModel::display(){
 	}    
 	delete [] int_buffer;
       }
+#endif
  
     ////////////////////////////////////////////////////////////
     // Get Position for Streams

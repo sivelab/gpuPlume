@@ -261,7 +261,10 @@ int main(int argc, char** argv)
       std::cout << "Error in advection Choice in Settings file!" << std::endl;
   }
 #endif
-  Random random_gen(2);
+
+  long int seedVal = (long)time(0) % (long)getpid();
+  Random random_gen( seedVal );
+
   plume = new MultipleBuildingsModel(util);
 
 #ifdef __linux__
@@ -564,6 +567,9 @@ void display(void)
   int quitSimulation = 1;
 
   Timer_t displayStart = plume_clock->tic();    
+
+  plume->pe[curr]->emit = true;
+  plume->pe[curr]->releaseType = onePerKeyPress;
 
   quitSimulation = plume->display();
 

@@ -17,7 +17,7 @@ void main(void)
   vec4 color = vec4(texture3D(Tau, texCoord));
     
   vec3 layerColor; 
-  float tke = color.x + color.y + color.z;
+  float tke = color.x / 3.0; //  + color.y + color.z;
 
   float minTKE = (min11 + min22 + min33);
   float maxTKE = (max11 + max22 + max33);

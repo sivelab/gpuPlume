@@ -79,6 +79,13 @@ class MultipleBuildingsModel : public PlumeControl{
   // cellInShadow is a shader that calculates the percentage
   // visible by the light source per nz slice.
   GLSLObject * cellInShadowShader;
+
+
+  bool m_searchForRogues;
+  std::ofstream rogueFileDump;
+  GLfloat *m_hostPosBuffer;
+  GLfloat *m_hostPosPrimeBuffer;
+  GLfloat *m_hostAdvectTerms;
 };
 
 #endif 

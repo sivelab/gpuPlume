@@ -1753,7 +1753,8 @@ void DisplayControl::initializeView() {
     glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 250.0);
+
+    gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH)/float(glutGet(GLUT_WINDOW_HEIGHT)), 1.0, 1250.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glClearColor(util->bcolor[0], util->bcolor[1], util->bcolor[2], 1.0);

@@ -2920,6 +2920,8 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
   else
     path = "Settings/QU_celltype.dat";
   
+  std::cout << "READING " << path << "!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+
   std::ifstream in;
   in.open(path.c_str(),std::ios::binary|std::ios::in);
     	
@@ -3296,6 +3298,8 @@ void ParticleControl::initCellType(){
   // ignoring the ground values for the cellype also
   //Balli had ++k ?
 
+  std::cout << "cell type!!!" << path << std::endl;
+
   for(int k=0;k<(4*nxdx*nydy);++k){// there are 4 columns in the wind file
     QUICCellType>>groundVal;
   }
@@ -3314,7 +3318,7 @@ void ParticleControl::initCellType(){
       }
     }
   }
-  
+
   QUICCellType.close();
 }
 void ParticleControl::initParticlePositions(FramebufferObject* fbo, GLuint texId){

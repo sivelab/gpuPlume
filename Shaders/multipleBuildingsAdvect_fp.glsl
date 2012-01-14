@@ -589,11 +589,12 @@ void main(void)
                 
 	randn = vec3(texture2DRect(random, rTexCoord));
                 
-	dudet = -.5*coeps*(lam11*u1+lam13*w1)*dt+dutotdn*w1*dt 
-	  +utot*dutotds*dt+u1*dutotds*dt+sigu/(1.3*2.)*dsigwdn*dt 
-	  +sigu*dsigwdn
-	  *(u1*(lam11*5./1.3+lam13/(1.25*1.3))+w1*(lam13*4./1.3 +lam33/1.3))
-	  *(0.5*w1)*dt-w1*dutotdn*dt;
+	dudet = -.5*coeps*(lam11*u1+lam13*w1)*dt 
+	  + dutotdn*w1*dt 
+	  + utot*dutotds*dt + u1*dutotds*dt + sigu/(1.3*2.)*dsigwdn*dt 
+	  + sigu*dsigwdn
+	  * (u1*(lam11*5./1.3+lam13/(1.25*1.3)) + w1*(lam13*4./1.3 + lam33/1.3))
+	  * (0.5*w1)*dt-w1*dutotdn*dt;
                 
 	// duran=pow(coeps,0.5)*randn.x*pow(dt,0.5);
 	duran = sqrt(coeps) * randn.x * sqrt(dt);
@@ -608,12 +609,16 @@ void main(void)
                 
 	// dwran=pow(coeps,.5)*randn.z*pow(dt,.5);
 	dwran = sqrt(coeps) * randn.z * sqrt(dt);
-
+	
 	// float vrel2   = pow(((u1+dudet)*(u1+dudet)+(v1+dvdet)*(v1+dvdet)+(w1+dwdet)*(w1+dwdet)),.5);
 	// float vrel1   = pow((u1*u1+v1*v1+w1*w1),.5);
 	float vrel2   = sqrt(((u1+dudet)*(u1+dudet)+(v1+dvdet)*(v1+dvdet)+(w1+dwdet)*(w1+dwdet)));
 	float vrel1   = sqrt((u1*u1+v1*v1+w1*w1));
 	float vrel    = max(vrel2,vrel1);
+
+	// output partcle specific computation
+	float memory = -.5*coeps*(lam11*u1+lam13*w1)*dt;
+	color = vec4(dudet, dvdet, dwdet, vrel);
 
 	// if relative velocity > 4.0*sigun
 	if(vrel>4.0*sigu && (ivrelch==0 || vrel>100.))
@@ -981,10 +986,12 @@ void main(void)
     if(pos.a <= 0.0 && (!(life_time <= 0.0))){
       gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
       gl_FragData[1] = vec4(prmCurr, 1.0);
+      gl_FragData[2] = color;
     }
     else{
       gl_FragData[0] = pos;
       gl_FragData[1] = vec4(prmCurr, 1.0);
+      gl_FragData[2] = color;
     }
     // }
 }

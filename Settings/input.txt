@@ -1,6 +1,6 @@
 #Path Lines
-pwidth 30
-pheight 10
+pwidth 1000
+pheight 100
 
 #Set this to 1 to show the particle display, else 0
 show_particle_visuals 1
