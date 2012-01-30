@@ -921,6 +921,8 @@ int MultipleBuildingsModel::display(){
     if(util->offscreenRender == false)
       glutSwapBuffers();
   }
+  
+  usleep(500000);
 
   // Timer_t displayEnd = mbaTimer->tic();    
   //  std::cout << "MBA Display Time: " << mbaTimer->deltau(displayStart, displayEnd) << " us." << std::endl;  

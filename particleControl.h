@@ -239,6 +239,8 @@ class ParticleControl{
   wind* wind_vel;
   cellType* cellQuic;
 
+  int retrieveCellTypeFromArray(int idx) const;
+
   int numBuild;
   int* numSides;
   float* gamma;

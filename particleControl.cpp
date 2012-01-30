@@ -3482,6 +3482,17 @@ void ParticleControl::find_tauLocalMax(){
 #endif
 }
 
+int ParticleControl::retrieveCellTypeFromArray(int idx) const
+{
+  // catch bogus indices that assume we need info from the QUIC ground layer
+  if (idx < 0) std::cout << "idx = " << idx << std::endl;
+  if (idx < 0) return 0;
+
+  return cellQuic[idx].c;
+}
+			      
+
+
 void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_dz, GLuint duvw_dz, GLuint dxyz_wall, 
                                      GLuint tauTex)
 {
@@ -3689,8 +3700,8 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 for(int i=0; i<nxdx;i++){
                     int p2idx = k*nxdx*nydy + j*nxdx + i;
                     int ij = j*nxdx + i;
-                    if(cellQuic[p2idx].c == 0)hgt.at(ij)=std::max(hgt.at(ij),z.at(k));
-                    if(cellQuic[p2idx].c == 8)hgtveg.at(ij)=std::max(hgtveg.at(ij),z.at(k));
+                    if(retrieveCellTypeFromArray(p2idx) == 0)hgt.at(ij)=std::max(hgt.at(ij),z.at(k));
+                    if(retrieveCellTypeFromArray(p2idx) == 8)hgtveg.at(ij)=std::max(hgtveg.at(ij),z.at(k));
                 }
             }
         }
@@ -3794,7 +3805,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 int ij = j*nxdx + i;
                 int idklow=0;
                 //new changes from QUIC
-                if(cellQuic[p2idx].c != 0){
+                if(retrieveCellTypeFromArray(p2idx) != 0){
                     dzm.at(p2idx)=zm.at(k)-hgt.at(ij);
                     eleff.at(p2idx)=dzm.at(p2idx);
                 }
@@ -3811,8 +3822,8 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 		  std::cout << "KM1 = " << km1 << ", cellQuic = " << (int)cellQuic[km1].c << std::endl;
 #endif
 
-                if(((cellQuic[km1].c == 0) || (cellQuic[km1].c==8)) && 
-                   (cellQuic[p2idx].c != 0 && cellQuic[p2idx].c != 8) || k == 0){//altered k
+                if(((retrieveCellTypeFromArray(km1) == 0) || (retrieveCellTypeFromArray(km1)==8)) && 
+                   (retrieveCellTypeFromArray(p2idx) != 0 && retrieveCellTypeFromArray(p2idx) != 8) || k == 0){//altered k
                     utotl=0.f;
                     utotu=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u+wind_vel[p2idx].v*wind_vel[p2idx].v+wind_vel[p2idx].w*wind_vel[p2idx].w);
                     //MDW 7-01-2005 changed the way vertical gradients are calculated to avoid inaccuracies
@@ -3835,7 +3846,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                         ustarz.at(p2idx)=ustar;
                     }
                     else{
-                        if(cellQuic[km1].c!=8){
+		      if(retrieveCellTypeFromArray(km1)!=8){
                             ustar=kkar*utotu/(log(.5f*dz/z0)-psim);
                             elz.at(p2idx)=kkar*.5f*dz;
                             ustarz.at(p2idx)=ustar;
@@ -3849,7 +3860,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                             ustarz.at(p2idx)=ustar;
                         }
                     }
-                    if(cellQuic[km1].c!=8 && k!=0){
+                    if(retrieveCellTypeFromArray(km1)!=8 && k!=0){
                         sigwi.at(km1)=0.f;
                         sigvi.at(km1)=0.f;
                         ustarij.at(km1)=0.f;
@@ -3868,7 +3879,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                         utotu=sqrt(wind_vel[kp1].u*wind_vel[kp1].u+wind_vel[kp1].v*wind_vel[kp1].v+wind_vel[kp1].w*wind_vel[kp1].w);
                         // mdw 7-08-2005 changed the way vertical gradients are calculated to better represent
                         // log-law behavior
-                        if(cellQuic[p2idx].c==8){
+                        if(retrieveCellTypeFromArray(p2idx)==8){
                             dutotdzi.at(p2idx)=(utotu-utotl)/(dz_array.at(k)+.5*dz_array.at(k-1)+.5*dz_array.at(k+1));
                             ustarz.at(p2idx)=elcanopy*dutotdzi.at(p2idx);
                             elz.at(p2idx)=elcanopy*std::min(1.f,(zi.at(k)-z0)/(0.3f*hgtveg.at(ij)));
@@ -3902,7 +3913,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                             dutotdzi.at(p2idx)=(dutotu-dutotl)/(dz_array.at(k)+.5*dz_array.at(k-1)+.5*dz_array.at(k+1))
                                 +ustarz.at(idklow)*psim/(kkar*zi.at(k));
                             elz.at(p2idx)=kkar*(eleff.at(p2idx)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                              if(cellQuic[kp1].c != 0 && cellQuic[p2idx].c != 0  && cellQuic[km1].c != 0){
+			    if(retrieveCellTypeFromArray(kp1) != 0 && retrieveCellTypeFromArray(p2idx) != 0  && retrieveCellTypeFromArray(km1) != 0){
                                   // mdw 7-01-2005 centered around k instead of k-1 and ajusted for log-law behavior
                                   utot=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u+wind_vel[p2idx].v*wind_vel[p2idx].v+wind_vel[p2idx].w*wind_vel[p2idx].w);
                                   utotl=sqrt(wind_vel[km1].u*wind_vel[km1].u+wind_vel[km1].v*wind_vel[km1].v+wind_vel[km1].w*wind_vel[km1].w);
@@ -4144,7 +4155,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             int jp1=0;
             int jp2=0;
             int isign=0;
-            if(cellQuic[id].c == 0){
+            if(retrieveCellTypeFromArray(id) == 0){
                 if(sinphit>0.f){
                     jp1=jcbp3;
                     jp2=nydy-1;
@@ -4166,7 +4177,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     icbp3=std::min(nx-1,icbp3);
                     //!mdw 34/01/2004 forced indices to be within domain
                     int idMid=kmid*nxdx*nydy + jcbp3*nxdx +icbp3;
-                    if(cellQuic[idMid].c!= 0) break;
+                    if(retrieveCellTypeFromArray(idMid)!= 0) break;
                 }
             }
 
@@ -4175,7 +4186,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             int jm2=0;
             int jm1=0;
             isign=0;
-            if(cellQuic[id2].c == 0){
+            if(retrieveCellTypeFromArray(id2) == 0){
                 if(sinphit>0.f){
                     jm2=0;//altered for GPU;
                     jm1=jcbm3;
@@ -4203,7 +4214,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     icbp3=std::max(0,icbp3);
                     icbm3=std::max(0,icbm3);
                     int idMid2=kmid*nxdx*nydy + jcbm3*nxdx +icbm3;
-                    if(cellQuic[idMid2].c != 0) break;
+                    if(retrieveCellTypeFromArray(idMid2) != 0) break;
                 }
             }
             ycbp=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphi;
@@ -4289,7 +4300,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             int ip2=0;
             int isign=0;
             
-            if(cellQuic[id].c== 0){
+            if(retrieveCellTypeFromArray(id)== 0){
                 if(cosphit>0){
                     ip1=icbp3;
                     ip2=ny-1;
@@ -4318,12 +4329,12 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     icbp3=std::max(0,icbp3);//altered for GPU
                     icbm3=std::max(0,icbm3);//altered for GPU
                     int idMid=kmid*nxdx*nydy + jcbp3*nxdx + icbp3;
-                    if(cellQuic[idMid].c!= 0) break;
+                    if(retrieveCellTypeFromArray(idMid)!= 0) break;
                 }
             }
             int id2=kmid*nxdx*nydy +jcbm3*nxdx + icbm3;
             
-            if(cellQuic[id2].c == 0){
+            if(retrieveCellTypeFromArray(id2) == 0){
                 int im1=0;
                 int im2=0;
                 isign=0;
@@ -4351,7 +4362,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     icbp3=std::max(0,icbp3);
                     icbm3=std::max(0,icbm3);
                     int idMid2=kmid*nxdx*nydy + jcbm3*nxdx +icbm3;
-                    if(cellQuic[idMid2].c != 0) break;
+                    if(retrieveCellTypeFromArray(idMid2) != 0) break;
                 }
             }
             ycbp=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphit;// !  get back of the building
@@ -4582,7 +4593,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 jcel=std::min(nydy-1,jcel);
                 jcel=std::max(1,jcel);//altered for GPU (2 to 1)
                 int id=k*nxdx*nydy + jcel*nxdx +icel;
-                if(cellQuic[id].c == 0 && is==1){
+                if(retrieveCellTypeFromArray(id) == 0 && is==1){
                     isini=2;
                 }
                 utot=sqrt(wind_vel[id].u*wind_vel[id].u + wind_vel[id].v*wind_vel[id].v + wind_vel[id].w*wind_vel[id].w);
@@ -4610,7 +4621,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 int ik=k*nxdx*nydy+i;
                 cosl=wind_vel[idcelk].u/utot;
                 sinl=wind_vel[idcelk].v/utot;
-                if(cellQuic[idcelk].c > 0){
+                if(retrieveCellTypeFromArray(idcelk) > 0){
                     delutz=sqrt( pow( (wind_vel[idcelk].u-zcorf.at(k)*uktop.at(iceljcel)),2.f)
                                  +pow( (wind_vel[idcelk].v -zcorf.at(k)*vktop.at(iceljcel)),2.f)
                                  +pow( (wind_vel[idcelk].w -zcorf.at(k)*wktop.at(iceljcel)),2.f) );
@@ -4682,7 +4693,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     jcelt=std::max(1,jcelt);
                     int iceltjcelt=jcelt*nxdx + icelt;
                     int idceltk= k*nxdx*nydy + jcelt*nxdx +icelt;
-                    if(cellQuic[idceltk].c > 0){
+                    if(retrieveCellTypeFromArray(idceltk) > 0){
                         utott=sqrt(wind_vel[idceltk].u*wind_vel[idceltk].u + wind_vel[idceltk].v*wind_vel[idceltk].v
                                    + wind_vel[idceltk].w*wind_vel[idceltk].w);
                         utott=utott+.000001f;
@@ -4798,7 +4809,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     iceltjcelt=jcelt*nxdx + icelt;
                     int idceltktop=ktop*nxdx*nydy + jcelt*nxdx +icelt;
                     idceltk=k*nxdx*nydy + jcelt*nxdx +icelt;
-                    if(cellQuic[idceltk].c > 0){
+                    if(retrieveCellTypeFromArray(idceltk) > 0){
                         utott=sqrt(wind_vel[idceltk].u*wind_vel[idceltk].u+wind_vel[idceltk].v*wind_vel[idceltk].v
                                    +wind_vel[idceltk].w*wind_vel[idceltk].w);
                         utott=utott+.000001;
@@ -4918,7 +4929,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 jcel=std::max(1,jcel);
                 int idcelk=k*nxdx*nydy +jcel*nxdx +icel;
                 int iceljcel=jcel*nxdx +icel;
-                if(cellQuic[idcelk].c == 0 && is == 1){
+                if(retrieveCellTypeFromArray(idcelk) == 0 && is == 1){
                     isini=2;
                 }
                 int idcelktop=ktop*nxdx*nydy + jcel*nxdx +icel;
@@ -5279,7 +5290,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                 wktop.at(iceljcel)=0.;
                             }
                         }
-                        if(k!=ktp && cellQuic[idcelk].c != 0){
+                        if(k!=ktp && retrieveCellTypeFromArray(idcelk) != 0){
                             // MAN 9/14/2005 pentagon courtyard nonlocal mixing fix
                             delutz=sqrt((wind_vel[idcelk].u-uktop.at(iceljcel))*(wind_vel[idcelk].u-uktop.at(iceljcel))
                                         +(wind_vel[idcelk].v-vktop.at(iceljcel))*(wind_vel[idcelk].v-vktop.at(iceljcel))+ 
@@ -5369,7 +5380,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                         int idcelk=k*nxdx*nydy + jcel*nxdx +icel;
                         int idcelktop=ktop*nxdx*nydy + jcel*nxdx +icel;
                         int iceljcel=jcel*nxdx +icel;
-                        if(cellQuic[idcelk].c != 0){
+                        if(retrieveCellTypeFromArray(idcelk) != 0){
                             utot=sqrt(wind_vel[idcelk].u*wind_vel[idcelk].u+wind_vel[idcelk].v*wind_vel[idcelk].v+wind_vel[idcelk].w*wind_vel[idcelk].w)+.000001f;
                             if(m_util_ptr->qpBuildoutData.buildings[i].type == 4){
                                 if(xc > -0.5*lti[i] && xc < 0.5*lti[i] && 
@@ -5405,7 +5416,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                                     wktop.at(iceljcel)=0.;
                                 }
                             }
-                            if(k!=ktp && cellQuic[idcelk].c != 0){
+                            if(k!=ktp && retrieveCellTypeFromArray(idcelk) != 0){
                                 // MAN 9/14/2005 pentagon courtyard nonlocal mixing fix
                                 delutz=sqrt((wind_vel[idcelk].u-uktop.at(iceljcel))*(wind_vel[idcelk].u-uktop.at(iceljcel))
                                             +(wind_vel[idcelk].v-vktop.at(iceljcel))*(wind_vel[idcelk].v-vktop.at(iceljcel))+ 
@@ -5526,7 +5537,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 elcanopy=0.;
                 int klim=1;
                 
-                if(cellQuic[id].c==8){
+                if(retrieveCellTypeFromArray(id)==8){
                     zbrac=1.;
                 }
                 else{
@@ -5542,17 +5553,17 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     dzm.at(id)=zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f);
                 // MAN 9/21/2005 roof top mixing length fix
                 eleff.at(id)=dzm.at(id);
-                if(cellQuic[id].c==8)eleff.at(id)=elcanopy*std::min(1.,(dzm.at(id)-z0)/(.3*hgtveg.at(ij)))/kkar;
+                if(retrieveCellTypeFromArray(id)==8)eleff.at(id)=elcanopy*std::min(1.,(dzm.at(id)-z0)/(.3*hgtveg.at(ij)))/kkar;
                 int kdif=k-1;
                 eleff.at(id)=std::max(zm.at(k)-hgt.at(ij)*pow( (hgt.at(ij)/zm.at(k)),m_roof),0.0);
                 if(zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f)>0.f)
                     eleff.at(id)=std::min(eleff.at(id),zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                if(cellQuic[id].c==8)eleff.at(id)=elcanopy*std::min(1.,(zi.at(k)-z0)/(.3*hgtveg.at(ij)))/kkar;
+                if(retrieveCellTypeFromArray(id)==8)eleff.at(id)=elcanopy*std::min(1.,(zi.at(k)-z0)/(.3*hgtveg.at(ij)))/kkar;
                 klim=nzdz;
                 // calculation of ustar in the vertical
-                if(cellQuic[idkm1].c == 0 && cellQuic[id].c != 0){
+                if(retrieveCellTypeFromArray(idkm1) == 0 && retrieveCellTypeFromArray(id) != 0){
                     utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v*+wind_vel[id].w*wind_vel[id].w);
-                    if(cellQuic[id].c!=8){
+                    if(retrieveCellTypeFromArray(id)!=8){
                         if(rcl>0){
                             phim=1.+4.7*rcl*0.5*dz;
                             psim=-4.7*rcl*0.5*dz;
@@ -5572,23 +5583,23 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     }
                 }
                 else{
-                    if(cellQuic[id].c != 0){
+		  if(retrieveCellTypeFromArray(id) != 0){
                         utotu=sqrt(wind_vel[kp1].u*wind_vel[kp1].u+wind_vel[kp1].v*wind_vel[kp1].v+wind_vel[kp1].w*wind_vel[kp1].w);
                         utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v*+wind_vel[id].w*wind_vel[id].w);
-                        if(fabs(dutotdzi.at(id))>1.e-06 && cellQuic[id].c!=8 && dzm.at(id)>2.*dz){
+                        if(fabs(dutotdzi.at(id))>1.e-06 && retrieveCellTypeFromArray(id)!=8 && dzm.at(id)>2.*dz){
                             elz.at(id)=kkar*utot/fabs(dutotdzi.at(id));
                             // MAN 9/21/2005 roof top mixing length fix
                             if((kkar*eleff.at(id))<elz.at(id))
                                 elz.at(id)=kkar*eleff.at(id);
                             else
                                 elz.at(id)=kkar*eleff.at(id);
-                            if(cellQuic[id].c==8){
+                            if(retrieveCellTypeFromArray(id)==8){
                                 elz.at(id)=elcanopy*std::min(1.,(zi.at(k)-z0)/(.3*hgtveg.at(ij)));
                                 eleff.at(id)=elz.at(id)/kkar;
                             }
                         }
                         if(k < nz-1){
-                            if((cellQuic[kp1].c!=8)&&(cellQuic[id].c==8)){
+			  if((retrieveCellTypeFromArray(kp1)!=8)&&(retrieveCellTypeFromArray(id)==8)){
                                 if(fabs(dutotdzi.at(id))>1.e-06){
                                     elz.at(id)=kkar*utot/fabs(dutotdzi.at(id));
                                     if((kkar*eleff.at(id))<elz.at(id)) elz.at(id)=kkar*eleff.at(id);
@@ -5596,7 +5607,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                             }
                         }
                         // We have just put in the vortex mixing length for the last cell in the canopy
-                        if(cellQuic[idkm1].c!=8){
+                        if(retrieveCellTypeFromArray(idkm1)!=8){
                             if(rcl>0){
                                 phim=1.+4.7*rcl*eleff.at(id);
                                 psim=-4.7*rcl*eleff.at(id);
@@ -5612,7 +5623,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                             utotl=sqrt(wind_vel[idkm1].u*wind_vel[idkm1].u+wind_vel[idkm1].v*wind_vel[idkm1].v+wind_vel[idkm1].w*wind_vel[idkm1].w);
                             dutotdzi.at(id)=(utotu-utotl)/(2.*dz);
                             //corrected wrong gradient at the vegetative canopy top 12/22/2008
-                            if(cellQuic[id].c!=8){
+                            if(retrieveCellTypeFromArray(id)!=8){
                                 elz.at(id)=kkar*.5*dz;
                             }
                             else{
@@ -5621,7 +5632,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                             ustar=elz.at(id)*fabs(dutotdzi.at(id));
                             ustarz.at(id)=ustar;
                         }
-                        if(cellQuic[idkm1].c!=8){
+                        if(retrieveCellTypeFromArray(idkm1)!=8){
                             if(rcl>0){
                                 phim=1.+4.7*rcl*eleff.at(id);
                                 psim=-4.7*rcl*eleff.at(id);
@@ -5676,7 +5687,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     int idkk=kk*nxdx*nydy +j*nxdx +i;
                     int celltypeidkk=0;
                     if(idkk>=0){
-                        celltypeidkk=cellQuic[idkk].c;
+		      celltypeidkk=retrieveCellTypeFromArray(idkk);
                     }
                     if(celltypeidkk == 0){
                         dzp.at(id)=.5*dz+(kk-k-1)*dz;
@@ -5691,7 +5702,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     int idii=k*nxdx*nydy +j*nxdx +ii;
                     int celltypeidii=1;//as in x or y direction we assume fluid in all directions out of domain
                     if(idii>=0){
-                        celltypeidii=cellQuic[idii].c;
+		      celltypeidii=retrieveCellTypeFromArray(idii);
                     }                        
                     if(celltypeidii == 0){
                         dxm.at(id)=.5*dx+(i-ii-1)*dx;
@@ -5706,7 +5717,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     int idii=k*nxdx*nydy +j*nxdx +ii;
                     int celltypeidii=1;//as in x or y direction we assume fluid in all directions out of domain
                     if(idii>=0){
-                        celltypeidii=cellQuic[idii].c;
+		      celltypeidii=retrieveCellTypeFromArray(idii);
                     }
                     
                     if(celltypeidii == 0){
@@ -5722,7 +5733,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     int idjj=k*nxdx*nydy +jj*nxdx +i;
                     int celltypeidjj=1;//as in x or y direction we assume fluid in all directions out of domain
                     if(idjj>=0){
-                        celltypeidjj=cellQuic[idjj].c;
+		      celltypeidjj=retrieveCellTypeFromArray(idjj);
                     }
                     if(celltypeidjj == 0){
                         dym.at(id)=.5*dy+(j-jj-1)*dy;
@@ -5737,7 +5748,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     int idjj=k*nxdx*nydy +jj*nxdx +i;
                     int celltypeidjj=1;//as in x or y direction we assume fluid in all directions out of domain
                     if(idjj>=0){
-                        celltypeidjj=cellQuic[idjj].c;
+		      celltypeidjj=retrieveCellTypeFromArray(idjj);
                     }
                     if(celltypeidjj == 0){
                         dyp.at(id)=.5*dy+(jj-j-1)*dy;
@@ -5745,7 +5756,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     }
                 }
                 // we need to calculate the largest change in utot
-                if(cellQuic[id].c == 0){
+                if(retrieveCellTypeFromArray(id) == 0){
                     eps=0.;
                     sigu=0.;
                     sigv=0.;
@@ -5757,7 +5768,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     sig[id].v = 0.0f;   
                     sig[id].w = 0.0f;
                 }
-                if(cellQuic[id].c != 0){//for all fuid cells
+                if(retrieveCellTypeFromArray(id) != 0){//for all fuid cells
                     // first we set up parameters for cells near boundary
                     if(j<1||j>=ny-1||i<1||i>=nx-1){//boundary cells
                         // calculation of near-boundary values of u*y, ly, dely, and the
@@ -5818,7 +5829,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                         // away from boundaries u*y, ly, dely, and gradients
                         int idim1=k*nxdx*nydy +j*nxdx +(i-1);
                         int idip1=k*nxdx*nydy +j*nxdx +(i+1);
-                        if(cellQuic[idim1].c != 0 && cellQuic[id].c != 0  && cellQuic[idip1].c != 0){
+                        if(retrieveCellTypeFromArray(idim1) != 0 && retrieveCellTypeFromArray(id) != 0  && retrieveCellTypeFromArray(idip1) != 0){
                             //mdw 3-08-2004 start changes for highest gradient
                             utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
                             utotm=sqrt(wind_vel[idim1].u*wind_vel[idim1].u+wind_vel[idim1].v*wind_vel[idim1].v+wind_vel[idim1].w*wind_vel[idim1].w);
@@ -5836,11 +5847,11 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                             // mdw 3-08-2004end changes
                         }
                         else{
-                            if(cellQuic[id].c == 0){ ////BALLI
+			  if(retrieveCellTypeFromArray(id) == 0){ ////BALLI
                                 dutotdxi.at(id)=0.;
                             }
                             else{
-                                if(cellQuic[idim1].c == 0){ ////BALLI
+			      if(retrieveCellTypeFromArray(idim1) == 0){ ////BALLI
                                     dutotdxi.at(id)=2.*sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)/dx;
                                     dutotdxi.at(id)=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)
                                         /(log((.5*dx)/z0)*(.5*dx));
@@ -5854,7 +5865,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                         
                         int idjm1=k*nxdx*nydy +(j-1)*nxdx +i;
                         int idjp1=k*nxdx*nydy +(j+1)*nxdx +i;
-                        if(cellQuic[id].c != 0 && cellQuic[idjm1].c != 0 && cellQuic[idjp1].c != 0){
+                        if(retrieveCellTypeFromArray(id) != 0 && retrieveCellTypeFromArray(idjm1) != 0 && retrieveCellTypeFromArray(idjp1) != 0){
                             //mdw 3-08-2008 start gradient changes
                             utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w);
                             utotm=sqrt(wind_vel[idjm1].u*wind_vel[idjm1].u+wind_vel[idjm1].v*wind_vel[idjm1].v+wind_vel[idjm1].w*wind_vel[idjm1].w);
@@ -5872,11 +5883,11 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                             // mdw 3-08-2004end changes
                         }
                         else{
-                            if(cellQuic[id].c == 0){
+			  if(retrieveCellTypeFromArray(id) == 0){
                                 dutotdyi.at(id)=0.;
                             }
                             else{
-                                if(cellQuic[idjm1].c == 0){
+			      if(retrieveCellTypeFromArray(idjm1) == 0){
                                     dutotdyi.at(id)=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v+wind_vel[id].w*wind_vel[id].w)
                                         /(log((.5*dy)/z0)*(.5*dy));
                                 }
@@ -5892,7 +5903,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     dwall=std::min(dwall,dzm.at(id));
                     elz.at(id)=kkar*dwall; // length scale based on distance to wall
 
-                    if(cellQuic[id].c !=8)elz.at(id)=kkar*dwall; // length scale based on distance to wall
+                    if(retrieveCellTypeFromArray(id) !=8)elz.at(id)=kkar*dwall; // length scale based on distance to wall
                     if(fabs(dutotdni.at(id))>1.e-6){
                         x_b=std::min(dxm.at(id),dxp.at(id));
                         if(x_b>std::max(del_b,dx)) x_b=0;
@@ -5913,7 +5924,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                             }
                         }
                     }
-                    if(cellQuic[id].c!=8){
+                    if(retrieveCellTypeFromArray(id)!=8){
                         if(rcl>0){
                             phim=1.+4.7*rcl*eleff.at(id);
                             psim=-4.7*rcl*eleff.at(id);
@@ -6097,7 +6108,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     i * 4;
                 
                 
-                if(cellQuic[id].c != 0){
+                if(retrieveCellTypeFromArray(id) != 0){
                     int idim1=k*nxdx*nydy +j*nxdx +(i-1);
                     int idip1=k*nxdx*nydy +j*nxdx +(i+1);
                     
