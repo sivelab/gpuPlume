@@ -1635,6 +1635,9 @@ void ParticleControl::initWindTex(GLuint windField, int* numberInRow, int dataSe
 
   // These values can get large, much larger than ints, so this value needs to be a long at the least!
   long arrSize = nxdx*nydy*nzdz;
+
+  std::cout << "ARR SIZE: " << arrSize << std::endl;
+
   try
     {
       wind_vel = new wind[arrSize];
@@ -3303,6 +3306,9 @@ void ParticleControl::initCellType(){
   for(int k=0;k<(4*nxdx*nydy);++k){// there are 4 columns in the wind file
     QUICCellType>>groundVal;
   }
+
+  long count = 0;
+
   double quicIndex;
   for(int k = 0; k < nzdz; k++){   
     for(int i = 0; i < nydy; i++){
@@ -3314,10 +3320,13 @@ void ParticleControl::initCellType(){
 	QUICCellType>>quicIndex;
 
 	QUICCellType>>cellQuic[p2idx].c ;//storing the Celltype values in the Cell structure
+	count++;
 
       }
     }
   }
+
+  std::cout << "COUNT = " << count << std::endl;
 
   QUICCellType.close();
 }
@@ -3794,6 +3803,14 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     eleff.at(p2idx)=0.f;
                 }
                 elcanopy=0.f;
+
+
+#if 0
+		// *** Pete
+		if (km1 < 0)
+		  std::cout << "KM1 = " << km1 << ", cellQuic = " << (int)cellQuic[km1].c << std::endl;
+#endif
+
                 if(((cellQuic[km1].c == 0) || (cellQuic[km1].c==8)) && 
                    (cellQuic[p2idx].c != 0 && cellQuic[p2idx].c != 8) || k == 0){//altered k
                     utotl=0.f;
