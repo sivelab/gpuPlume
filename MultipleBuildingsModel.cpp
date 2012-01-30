@@ -912,7 +912,7 @@ int MultipleBuildingsModel::display(){
       if(util->offscreenRender == false && (!osgPlume))
 	glutSwapBuffers();
 
-      usleep(200000);
+      usleep(2000);
     }
   else{
     FramebufferObject::Disable();
