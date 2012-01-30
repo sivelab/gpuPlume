@@ -3485,7 +3485,7 @@ void ParticleControl::find_tauLocalMax(){
 int ParticleControl::retrieveCellTypeFromArray(int idx) const
 {
   // catch bogus indices that assume we need info from the QUIC ground layer
-  if (idx < 0) std::cout << "idx = " << idx << std::endl;
+  // if (idx < 0) std::cout << "idx = " << idx << std::endl;
   if (idx < 0) return 0;
 
   return cellQuic[idx].c;
@@ -5584,6 +5584,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 }
                 else{
 		  if(retrieveCellTypeFromArray(id) != 0){
+		    // potential problem if kp1 is greater than index bounds...
                         utotu=sqrt(wind_vel[kp1].u*wind_vel[kp1].u+wind_vel[kp1].v*wind_vel[kp1].v+wind_vel[kp1].w*wind_vel[kp1].w);
                         utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v*+wind_vel[id].w*wind_vel[id].w);
                         if(fabs(dutotdzi.at(id))>1.e-06 && retrieveCellTypeFromArray(id)!=8 && dzm.at(id)>2.*dz){
@@ -5659,9 +5660,16 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 sig[id].w = 0.0f;   
                 
                 tau[id].t11   = 0.0f;        
-                tau[id+1].t22 = 0.0f;        
-                tau[id+2].t33 = 0.0f;
-                tau[id+3].t13 = 0.0f;
+                tau[id].t22 = 0.0f;        
+                tau[id].t33 = 0.0f;
+                tau[id].t13 = 0.0f;
+
+		// ????
+                // tau[id].t11   = 0.0f;        
+                // tau[id+1].t22 = 0.0f;        
+                // tau[id+2].t33 = 0.0f;
+                // tau[id+3].t13 = 0.0f;
+
                 //Make tau's a texture so that they can be visualized as horizontal layers in the domain
                 dataTau[texidx] = 0.0f;   
                 dataTau[texidx+1] =0.0f;  
@@ -6026,9 +6034,19 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 float tau13=ustarij.at(id)*ustarij.at(id);
                 
                 tau[id].t11   = tau11;             //Tau11
-                tau[id+1].t22 = tau22;             //Tau22
-                tau[id+2].t33 = tau33;             //Tau33
-                tau[id+3].t13 = tau13;             //Tau13
+                tau[id].t22 = tau22;             //Tau22
+                tau[id].t33 = tau33;             //Tau33
+                tau[id].t13 = tau13;             //Tau13
+
+		// Is this correct - Pete (01/30/12) why are we
+		// indexing ahead of the structure rather than setting
+		// the various tau components... fixed above in what I
+		// think is correct as of this writing.
+                // tau[id].t11   = tau11;             //Tau11
+		// tau[id+1].t22 = tau22;             //Tau22
+                // tau[id+2].t33 = tau33;             //Tau33
+                // tau[id+3].t13 = tau13;             //Tau13
+
                 //Make tau's a texture so that they can be visualized as horizontal layers in the domain
 
                 
