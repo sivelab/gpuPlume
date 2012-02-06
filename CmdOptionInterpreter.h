@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "ArgumentParsing.h"
+#include "util/ArgumentParsing.h"
 #include "util.h"
 
 class CmdOptionInterpreter {
@@ -28,7 +28,7 @@ class CmdOptionInterpreter {
    *  Constructor that takes in a reference 
    *  to a Util object.
    */
-  CmdOptionInterpreter(ArgumentParsing *argParser, Util * util);
+  CmdOptionInterpreter(sivelab::ArgumentParsing *argParser, Util * util);
   
   /**
    *  Destructor.
@@ -49,7 +49,7 @@ class CmdOptionInterpreter {
  private:
 
   Util *m_utilPtr;
-  ArgumentParsing *m_argParser;
+  sivelab::ArgumentParsing *m_argParser;
 
 };
 

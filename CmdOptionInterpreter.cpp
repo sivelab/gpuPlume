@@ -13,7 +13,7 @@ CmdOptionInterpreter::CmdOptionInterpreter()
   m_argParser = NULL;
 }
 
-CmdOptionInterpreter::CmdOptionInterpreter(ArgumentParsing *argParser, Util *util) 
+CmdOptionInterpreter::CmdOptionInterpreter(sivelab::ArgumentParsing *argParser, Util *util) 
 {
   m_utilPtr = util;
   m_argParser = argParser;
@@ -37,48 +37,55 @@ void CmdOptionInterpreter::parse()
       // std::cout << "Version: " << GPUPLUME_VERSION << std::endl;
     }
 
-
   if (m_argParser->isSet("fullscreen"))
     m_utilPtr->fullscreen = true;
 
-  if (m_argParser->isSet("networkmode", argVal))
-    m_utilPtr->network_mode = atoi(argVal.c_str());
+  int tmpInt;
+  if (m_argParser->isSet("networkmode", tmpInt))
+    m_utilPtr->network_mode = tmpInt;
 
-  if (m_argParser->isSet("viewingmode", argVal)) 
-    m_utilPtr->viewing_mode = atoi(argVal.c_str());
+  tmpInt = 0;
+  if (m_argParser->isSet("viewingmode", tmpInt)) 
+    m_utilPtr->viewing_mode = tmpInt;
 
-  if (m_argParser->isSet("treadportview", argVal))
-    m_utilPtr->treadport_view = argVal.c_str()[0];
+  char tmpChar;
+  if (m_argParser->isSet("treadportview", tmpChar))
+    m_utilPtr->treadport_view = tmpChar;
 
   if (m_argParser->isSet("dynamicTreadportFrustum"))
     m_utilPtr->static_treadport_frustum = 0;
 
-  if (m_argParser->isSet("sunAzimuth", argVal))
-    m_utilPtr->sun_azimuth = static_cast<float>(atof(argVal.c_str()));
+  float tmpFloat = 0.0;
+  if (m_argParser->isSet("sunAzimuth", tmpFloat))
+    m_utilPtr->sun_azimuth = tmpFloat;
 
-  if (m_argParser->isSet("sunAltitude", argVal))
-    m_utilPtr->sun_altitude = static_cast<float>(atof(argVal.c_str()));
+  tmpFloat = 0.0;
+  if (m_argParser->isSet("sunAltitude", tmpFloat))
+    m_utilPtr->sun_altitude = tmpFloat;
 
   if (m_argParser->isSet("onlyCalcShadows"))
     m_utilPtr->onlyCalcShadows = true;
 
-  if (m_argParser->isSet("numParticles", argVal))
+  tmpInt = 0;
+  if (m_argParser->isSet("numParticles", tmpInt))
     {
-      m_utilPtr->qpParamData.numParticles = atoi(argVal.c_str());
+      m_utilPtr->qpParamData.numParticles = tmpInt;
       m_utilPtr->twidth = (int)sqrt( static_cast<float>(m_utilPtr->qpParamData.numParticles) );
       m_utilPtr->theight = (int)sqrt( static_cast<float>(m_utilPtr->qpParamData.numParticles) );
       std::cout << "COMMAND LINE OVERRIDE: using num particles=" << m_utilPtr->qpParamData.numParticles << ". Actually using " << m_utilPtr->twidth * m_utilPtr->theight << " particles!" << std::endl;
     }
 
-  if (m_argParser->isSet("concFile", argVal))
+  std::string tmpString = "";
+  if (m_argParser->isSet("concFile", tmpString))
     {
-      m_utilPtr->output_file = argVal;
+      m_utilPtr->output_file = tmpString;
       std::cout << "COMMAND LINE OVERRIDE: using concentration output file: " << m_utilPtr->output_file << std::endl;
     }
 
-  if (m_argParser->isSet("concId", argVal))
+  tmpString = "";
+  if (m_argParser->isSet("concId", tmpString))
     {
-      m_utilPtr->output_id = argVal;
+      m_utilPtr->output_id = tmpString;
       std::cout << "COMMAND LINE OVERRIDE: using concentration id = " << m_utilPtr->output_id << std::endl;
     }
 
@@ -88,10 +95,11 @@ void CmdOptionInterpreter::parse()
   if (m_argParser->isSet("offscreenRender"))
     m_utilPtr->offscreenRender = true;
 
-  if (m_argParser->isSet("problemID", argVal))
-    m_utilPtr->problemID = atoi(argVal.c_str());
+  tmpInt = 0;
+  if (m_argParser->isSet("problemID", tmpInt))
+    m_utilPtr->problemID = tmpInt;
 
-  if (m_argParser->isSet("probInstID", argVal))
-    m_utilPtr->problemInstanceID = atoi(argVal.c_str());
-
+  tmpInt = 0;
+  if (m_argParser->isSet("probInstID", tmpInt))
+    m_utilPtr->problemInstanceID = tmpInt;
 }

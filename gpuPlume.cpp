@@ -19,7 +19,7 @@
 #include <tchar.h>
 #endif
 
-#include "ArgumentParsing.h"
+#include "util/handlePlumeArgs.h"
 
 #include "plumeControl.h"
 // #include "nonGaussianModel.h"
@@ -173,28 +173,11 @@ int main(int argc, char** argv)
   // 
   // Setup command line argument parsing
   // 
-  ArgumentParsing argParser;
-  argParser.reg("version", 'v', no_argument);
-
-  argParser.reg("numParticles", 'p', required_argument);
-  argParser.reg("concFile", 'c', required_argument);
-  argParser.reg("concId", 'i', required_argument);
-
-  argParser.reg("fullscreen", 'f', no_argument);
-  argParser.reg("networkmode", 'n', required_argument);
-  argParser.reg("viewingmode", 'm', required_argument);
-  argParser.reg("treadportview", 't', required_argument);
-  argParser.reg("dynamicTreadportFrustum", 'd', no_argument);
-  argParser.reg("sunAzimuth", 'a', required_argument);
-  argParser.reg("sunAltitude", 'e', required_argument);
-  argParser.reg("onlyCalcShadows", 'o', no_argument);
-
-  argParser.reg("offscreenRender", 'r', no_argument);
-  argParser.reg("ignoreSignal", 's', no_argument);
+  sivelab::PlumeArgs argParser;
 
   // args to set the problem id so we can tailor files names appropriately
-  argParser.reg("problemID", 'b', required_argument);
-  argParser.reg("probInstID", 'z', required_argument);
+  argParser.reg("problemID", "specifies the problem ID to use for the optimization run", sivelab::ArgumentParsing::INT, 'b');
+  argParser.reg("probInstID", "specifies the problem instance ID to use for optimization", sivelab::ArgumentParsing::INT, 'z');
 
   // allocate memory for the timing values
   // keep 1000 values
@@ -211,12 +194,16 @@ int main(int argc, char** argv)
 
   util = new Util();
 
+  // Parse any command line options specifed.
+  argParser.process(argc, argv);  
+
   // Must supply an argument containing the .prof file to be read.
-  if (argc >= 2)
+  std::string quicInputFile;
+  if (argParser.isSet("quicproj", quicInputFile))
     {
-      std::cout << "Reading input from file: \"" << argv[1] << "\"" << std::endl;
+      std::cout << "Reading input from file: \"" << quicInputFile << "\"" << std::endl;
       
-      if (util->readInput(argv[1]) == false)
+      if (util->readInput( quicInputFile ) == false)
 	{
 	  std::cerr << "Could not open or parse input file: \"" << argv[1] << "\"\nExiting." << std::endl;
 	  exit(EXIT_FAILURE);
@@ -228,8 +215,6 @@ int main(int argc, char** argv)
       exit(EXIT_FAILURE);
     }
   
-  // Parse any command line options specifed.
-  argParser.processCommandLineArgs(argc, argv);  
   CmdOptionInterpreter cmdOI(&argParser, util);
   cmdOI.parse();
 

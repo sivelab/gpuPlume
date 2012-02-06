@@ -47,6 +47,9 @@ else(WIN32)
 endif(WIN32)
 FIND_PACKAGE(GLEW REQUIRED)
 
+SET(Boost_USE_STATIC_LIBS ON)
+FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+
 IF (APPLE)
 FIND_PACKAGE(PNG REQUIRED)
 IF(PNG_FOUND)
@@ -86,7 +89,7 @@ link_directories (${GPUPLUME_SOURCE_DIR}/TreadNet/Controller)
 # The source files are placed in the list after the executable name. 
 add_executable (gpuPlume 
 	       gpuPlume.cpp 
-	       ArgumentParsing.cpp ArgumentParsing.h 
+# 	       ArgumentParsing.cpp ArgumentParsing.h 
 	       framebufferObject.cpp framebufferObject.h
 	       renderbuffer.cpp renderbuffer.h
 	       GLSL.cpp GLSL.h
@@ -135,15 +138,11 @@ target_link_libraries (gpuPlume ServerController)
 
 # Link the executable to the file parser library. 
 target_link_libraries (gpuPlume sive-quicutil) 
+target_link_libraries (gpuPlume sive-util) 
 target_link_libraries (gpuPlume ${LIBS})
+target_link_libraries (gpuPlume ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 
-target_link_libraries (gpuPlume ${PNG_LIBRARY})
+target_link_libraries (gpuPlume png)
 target_link_libraries (gpuPlume z)
 
 add_subdirectory (populationSampleOpt)
-
-# add_executable (cudaPlume
-#  cudaPlume.cpp
-#   util.cpp util.h
-# )
-# target_link_libraries (cudaPlume sive-quicutil) 
