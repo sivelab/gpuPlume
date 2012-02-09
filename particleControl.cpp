@@ -3781,449 +3781,456 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     float dutotdzm=0.;
     float dutotdza=0.;
    
-    for(int j=0;j<nydy;j++){
-        for(int i=0;i<nxdx;i++){
+    //
+    // Beginning of NonLocalMixing 
+    // 
+    bool useNonLocalMixing = true;
+    if (useNonLocalMixing == true)
+      {
+
+	for(int j=0;j<nydy;j++){
+	  for(int i=0;i<nxdx;i++){
             int ij = j*nxdx + i;
             if(hgtveg.at(ij) > 0.){
-                for(int kk=0;kk<nzdz;k++){
-                    kcantop=kk;
-                    if(hgtveg.at(ij) <= z.at(kk))break;
-                }
-                int idcan  = kcantop*nxdx*nydy + j*nxdx + i;
-                int id1can = (kcantop+1)*nxdx*nydy + j*nxdx + i;
+	      for(int kk=0;kk<nzdz;k++){
+		kcantop=kk;
+		if(hgtveg.at(ij) <= z.at(kk))break;
+	      }
+	      int idcan  = kcantop*nxdx*nydy + j*nxdx + i;
+	      int id1can = (kcantop+1)*nxdx*nydy + j*nxdx + i;
                 
-                ucantop=.5*sqrt(wind_vel[idcan].u*wind_vel[idcan].u+wind_vel[idcan].v*wind_vel[idcan].v+wind_vel[idcan].w*wind_vel[idcan].w)
-                    + .5*sqrt(wind_vel[id1can].u*wind_vel[id1can].u+wind_vel[id1can].v*wind_vel[id1can].v+wind_vel[id1can].w*wind_vel[id1can].w); 
+	      ucantop=.5*sqrt(wind_vel[idcan].u*wind_vel[idcan].u+wind_vel[idcan].v*wind_vel[idcan].v+wind_vel[idcan].w*wind_vel[idcan].w)
+		+ .5*sqrt(wind_vel[id1can].u*wind_vel[id1can].u+wind_vel[id1can].v*wind_vel[id1can].v+wind_vel[id1can].w*wind_vel[id1can].w); 
             }
             for(int k=0;k<nzdz;k++){
 
-                dz=dz_array.at(k);
-                int km1   = (k-1)*nxdx*nydy + j*nxdx + i;
-                int kp1   = (k+1)*nxdx*nydy + j*nxdx + i;
-                int knz1 = (nzdz-1)*nxdx*nydy + j*nxdx + i;
-                int p2idx = k*nxdx*nydy + j*nxdx + i;
-                int ij = j*nxdx + i;
-                int idklow=0;
-                //new changes from QUIC
-                if(retrieveCellTypeFromArray(p2idx) != 0){
-                    dzm.at(p2idx)=zm.at(k)-hgt.at(ij);
-                    eleff.at(p2idx)=dzm.at(p2idx);
-                }
-                else{
-                    dzm.at(p2idx)=0.f;
-                    eleff.at(p2idx)=0.f;
-                }
-                elcanopy=0.f;
+	      dz=dz_array.at(k);
+	      int km1   = (k-1)*nxdx*nydy + j*nxdx + i;
+	      int kp1   = (k+1)*nxdx*nydy + j*nxdx + i;
+	      int knz1 = (nzdz-1)*nxdx*nydy + j*nxdx + i;
+	      int p2idx = k*nxdx*nydy + j*nxdx + i;
+	      int ij = j*nxdx + i;
+	      int idklow=0;
+	      //new changes from QUIC
+	      if(retrieveCellTypeFromArray(p2idx) != 0){
+		dzm.at(p2idx)=zm.at(k)-hgt.at(ij);
+		eleff.at(p2idx)=dzm.at(p2idx);
+	      }
+	      else{
+		dzm.at(p2idx)=0.f;
+		eleff.at(p2idx)=0.f;
+	      }
+	      elcanopy=0.f;
 
 
 #if 0
-		// *** Pete
-		if (km1 < 0)
-		  std::cout << "KM1 = " << km1 << ", cellQuic = " << (int)cellQuic[km1].c << std::endl;
+	      // *** Pete
+	      if (km1 < 0)
+		std::cout << "KM1 = " << km1 << ", cellQuic = " << (int)cellQuic[km1].c << std::endl;
 #endif
 
-                if(((retrieveCellTypeFromArray(km1) == 0) || (retrieveCellTypeFromArray(km1)==8)) && 
-                   (retrieveCellTypeFromArray(p2idx) != 0 && retrieveCellTypeFromArray(p2idx) != 8) || k == 0){//altered k
-                    utotl=0.f;
-                    utotu=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u+wind_vel[p2idx].v*wind_vel[p2idx].v+wind_vel[p2idx].w*wind_vel[p2idx].w);
-                    //MDW 7-01-2005 changed the way vertical gradients are calculated to avoid inaccuracies
-                    // in the representation of the gradients of a log-law term
+	      if(((retrieveCellTypeFromArray(km1) == 0) || (retrieveCellTypeFromArray(km1)==8)) && 
+		 (retrieveCellTypeFromArray(p2idx) != 0 && retrieveCellTypeFromArray(p2idx) != 8) || k == 0){//altered k
+		utotl=0.f;
+		utotu=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u+wind_vel[p2idx].v*wind_vel[p2idx].v+wind_vel[p2idx].w*wind_vel[p2idx].w);
+		//MDW 7-01-2005 changed the way vertical gradients are calculated to avoid inaccuracies
+		// in the representation of the gradients of a log-law term
                     
-                    if(rcl>0){
-                        phim=1.f+4.7f*rcl*.5f*dz;
-                        psim=-4.7f*rcl*.5f*dz;
-                    }
-                    else{
-                        phim=pow( (1.f-15.f*rcl*.5f*dz),(-.25f));
-                        psim=2.f*log((1.f+1.f/phim)/2.f)+log((1.f+1.f/pow(phim,2.f))/2.f)-2.f*atan(1.f/phim)+pi/2.f;
-                    }
-                    if(hgtveg.at(ij)>zi.at(k)){                           
-                        phim=1.f;
-                        psim=0.f;
-                        elz.at(p2idx)=elcanopy*std::min(1.f,(zi.at(k)-z0)/(.3f*hgtveg.at(ij)));
-                        ustar=elz.at(p2idx)*utotu/(.5f*dz);
-                        dutotdzi.at(p2idx)=utotu/(.5f*dz);
-                        ustarz.at(p2idx)=ustar;
-                    }
-                    else{
-		      if(retrieveCellTypeFromArray(km1)!=8){
-                            ustar=kkar*utotu/(log(.5f*dz/z0)-psim);
-                            elz.at(p2idx)=kkar*.5f*dz;
-                            ustarz.at(p2idx)=ustar;
-                            dutotdzi.at(p2idx)=ustar*phim/elz.at(p2idx);
-                        }
-                        else{
-                            utotl=sqrt(wind_vel[km1].u*wind_vel[km1].u+wind_vel[km1].v*wind_vel[km1].v+wind_vel[km1].w*wind_vel[km1].w);
-                            dutotdzi.at(p2idx)=2.f*(utotu-utotl)/(dz_array.at(k-1)+dz_array.at(k));
-                            elz.at(p2idx)=kkar*.5f*dz;
-                            ustar=elz.at(p2idx)*dutotdzi.at(p2idx);
-                            ustarz.at(p2idx)=ustar;
-                        }
-                    }
-                    if(retrieveCellTypeFromArray(km1)!=8 && k!=0){
-                        sigwi.at(km1)=0.f;
-                        sigvi.at(km1)=0.f;
-                        ustarij.at(km1)=0.f;
-                        ustarz.at(km1)=0.f;
-                    }
-                }
-                else{
-                    if(k==nzdz-1){ // find gradient using a non-CDD approach
-                        utotl=sqrt(wind_vel[km1].u*wind_vel[km1].u+wind_vel[km1].v*wind_vel[km1].v+wind_vel[km1].w*wind_vel[km1].w);
-                        utotu=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u+wind_vel[p2idx].v*wind_vel[p2idx].v+wind_vel[p2idx].w*wind_vel[p2idx].w);
-                        dutotdzi.at(knz1)=dutotdzi.at(km1)*zm.at(k-1)/zm.at(k);
-                        elz.at(p2idx)=kkar*(eleff.at(p2idx)-hgtveg.at(ij));
-                    }
-                    else{ // find gradient using a CDD approach
-                        utotl=sqrt(wind_vel[km1].u*wind_vel[km1].u+wind_vel[km1].v*wind_vel[km1].v+wind_vel[km1].w*wind_vel[km1].w);
-                        utotu=sqrt(wind_vel[kp1].u*wind_vel[kp1].u+wind_vel[kp1].v*wind_vel[kp1].v+wind_vel[kp1].w*wind_vel[kp1].w);
-                        // mdw 7-08-2005 changed the way vertical gradients are calculated to better represent
-                        // log-law behavior
-                        if(retrieveCellTypeFromArray(p2idx)==8){
-                            dutotdzi.at(p2idx)=(utotu-utotl)/(dz_array.at(k)+.5*dz_array.at(k-1)+.5*dz_array.at(k+1));
-                            ustarz.at(p2idx)=elcanopy*dutotdzi.at(p2idx);
-                            elz.at(p2idx)=elcanopy*std::min(1.f,(zi.at(k)-z0)/(0.3f*hgtveg.at(ij)));
-                        }
-                        else{
-                            int klow=0;
-                            for (int kk=0;kk<nzdz;kk++){
-                                klow=kk;
-                                if(std::max(hgt.at(ij),hgtveg.at(ij))<z.at(kk))break;
-                            }
+		if(rcl>0){
+		  phim=1.f+4.7f*rcl*.5f*dz;
+		  psim=-4.7f*rcl*.5f*dz;
+		}
+		else{
+		  phim=pow( (1.f-15.f*rcl*.5f*dz),(-.25f));
+		  psim=2.f*log((1.f+1.f/phim)/2.f)+log((1.f+1.f/pow(phim,2.f))/2.f)-2.f*atan(1.f/phim)+pi/2.f;
+		}
+		if(hgtveg.at(ij)>zi.at(k)){                           
+		  phim=1.f;
+		  psim=0.f;
+		  elz.at(p2idx)=elcanopy*std::min(1.f,(zi.at(k)-z0)/(.3f*hgtveg.at(ij)));
+		  ustar=elz.at(p2idx)*utotu/(.5f*dz);
+		  dutotdzi.at(p2idx)=utotu/(.5f*dz);
+		  ustarz.at(p2idx)=ustar;
+		}
+		else{
+		  if(retrieveCellTypeFromArray(km1)!=8){
+		    ustar=kkar*utotu/(log(.5f*dz/z0)-psim);
+		    elz.at(p2idx)=kkar*.5f*dz;
+		    ustarz.at(p2idx)=ustar;
+		    dutotdzi.at(p2idx)=ustar*phim/elz.at(p2idx);
+		  }
+		  else{
+		    utotl=sqrt(wind_vel[km1].u*wind_vel[km1].u+wind_vel[km1].v*wind_vel[km1].v+wind_vel[km1].w*wind_vel[km1].w);
+		    dutotdzi.at(p2idx)=2.f*(utotu-utotl)/(dz_array.at(k-1)+dz_array.at(k));
+		    elz.at(p2idx)=kkar*.5f*dz;
+		    ustar=elz.at(p2idx)*dutotdzi.at(p2idx);
+		    ustarz.at(p2idx)=ustar;
+		  }
+		}
+		if(retrieveCellTypeFromArray(km1)!=8 && k!=0){
+		  sigwi.at(km1)=0.f;
+		  sigvi.at(km1)=0.f;
+		  ustarij.at(km1)=0.f;
+		  ustarz.at(km1)=0.f;
+		}
+	      }
+	      else{
+		if(k==nzdz-1){ // find gradient using a non-CDD approach
+		  utotl=sqrt(wind_vel[km1].u*wind_vel[km1].u+wind_vel[km1].v*wind_vel[km1].v+wind_vel[km1].w*wind_vel[km1].w);
+		  utotu=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u+wind_vel[p2idx].v*wind_vel[p2idx].v+wind_vel[p2idx].w*wind_vel[p2idx].w);
+		  dutotdzi.at(knz1)=dutotdzi.at(km1)*zm.at(k-1)/zm.at(k);
+		  elz.at(p2idx)=kkar*(eleff.at(p2idx)-hgtveg.at(ij));
+		}
+		else{ // find gradient using a CDD approach
+		  utotl=sqrt(wind_vel[km1].u*wind_vel[km1].u+wind_vel[km1].v*wind_vel[km1].v+wind_vel[km1].w*wind_vel[km1].w);
+		  utotu=sqrt(wind_vel[kp1].u*wind_vel[kp1].u+wind_vel[kp1].v*wind_vel[kp1].v+wind_vel[kp1].w*wind_vel[kp1].w);
+		  // mdw 7-08-2005 changed the way vertical gradients are calculated to better represent
+		  // log-law behavior
+		  if(retrieveCellTypeFromArray(p2idx)==8){
+		    dutotdzi.at(p2idx)=(utotu-utotl)/(dz_array.at(k)+.5*dz_array.at(k-1)+.5*dz_array.at(k+1));
+		    ustarz.at(p2idx)=elcanopy*dutotdzi.at(p2idx);
+		    elz.at(p2idx)=elcanopy*std::min(1.f,(zi.at(k)-z0)/(0.3f*hgtveg.at(ij)));
+		  }
+		  else{
+		    int klow=0;
+		    for (int kk=0;kk<nzdz;kk++){
+		      klow=kk;
+		      if(std::max(hgt.at(ij),hgtveg.at(ij))<z.at(kk))break;
+		    }
 
-                            idklow = klow*nxdx*nydy + j*nxdx + i;
-                            if(rcl>0){
-                                phim=1.f+4.7f*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                                psim=-4.7f*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                            }
-                            else{
-                                phim=pow( (1.f-15.f*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))),(-.25f));
-                                psim=2.f*log((1.f+1.f/phim)/2.f)+log((1.f+1.f/pow(phim,2.f))/2.f)-2.f*atan(1.f/phim)+pi/2.f;
-                            }
-                            dutotl=utotl-ustarz.at(idklow)*(log((zi.at(k-1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))/z0)-psim)/kkar;
-                            if(rcl>0){
-                                phim=1.f+4.7f*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                                psim=-4.7f*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                            }
-                            else{
-                                phim=pow( (1.f-15.f*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))),(-.25f));
-                                psim=2.f*log((1.f+1.f/phim)/2.f)+log((1.f+1.f/pow(phim,2.f))/2.f)-2.f*atan(1.f/phim)+pi/2.f;
-                            }
-                            dutotu=utotu-ustarz.at(idklow)*(log((zi.at(k+1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))/z0)-psim)/kkar;
-                            dutotdzi.at(p2idx)=(dutotu-dutotl)/(dz_array.at(k)+.5*dz_array.at(k-1)+.5*dz_array.at(k+1))
-                                +ustarz.at(idklow)*psim/(kkar*zi.at(k));
-                            elz.at(p2idx)=kkar*(eleff.at(p2idx)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-			    if(retrieveCellTypeFromArray(kp1) != 0 && retrieveCellTypeFromArray(p2idx) != 0  && retrieveCellTypeFromArray(km1) != 0){
-                                  // mdw 7-01-2005 centered around k instead of k-1 and ajusted for log-law behavior
-                                  utot=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u+wind_vel[p2idx].v*wind_vel[p2idx].v+wind_vel[p2idx].w*wind_vel[p2idx].w);
-                                  utotl=sqrt(wind_vel[km1].u*wind_vel[km1].u+wind_vel[km1].v*wind_vel[km1].v+wind_vel[km1].w*wind_vel[km1].w);
-                                  utotu=sqrt(wind_vel[kp1].u*wind_vel[kp1].u+wind_vel[kp1].v*wind_vel[kp1].v+wind_vel[kp1].w*wind_vel[kp1].w);
-                                  if(rcl>0){
-                                      phim=1.f+4.7f*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                                      psim=-4.7f*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                                  }
-                                  else{
-                                      phim=pow( (1.-15.*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))),(-.25));
-                                      psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
-                                  }
-                                  dutotl=utotl-ustarz.at(idklow)*(log((zi.at(k-1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))/z0)-psim)/kkar;
-                                  if(rcl>0){
-                                      phim=1.+4.7*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                                      psim=-4.7*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                                  }
-                                  else{
-                                      phim=pow( (1.-15.*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))),(-.25));
-                                      psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
-                                  }
-                                  dutotu=utotu-ustarz.at(idklow)*(log((zi.at(k+1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))/z0)-psim)/kkar;
-                                  // mdw 3-08-2004 begin changes for highest gradient rather than centered diff gradient
-                                  if(rcl>0){
-                                      phim=1.+4.7*rcl*(eleff.at(p2idx)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                                      psim=-4.7*rcl*(eleff.at(p2idx)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
-                                  }
-                                  else{
-                                      phim=pow( (1.-15.*rcl*(eleff.at(p2idx)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))),(-.25) );
-                                      psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
-                                  }
-                                  dutot=utot-ustarz.at(idklow)*(log((zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))/z0)-psim)/kkar;
-                                  dutotdzc=(dutotu-dutotl)/(dz_array.at(k)+.5*dz_array.at(k+1)+.5*dz_array.at(k-1));
-                                  dutotdzp=(dutotu-dutot)/(.5*dz_array.at(k+1)+.5*dz_array.at(k));
-                                  dutotdzm=(dutot-dutotl)/(.5*dz_array.at(k)+.5*dz_array.at(k-1));
-                                  dutotdza=0.5*(fabs(dutotdzp+ustarz.at(idklow)*phim/(kkar*(zi.at(k) 
-                                                                                          -std::max((hgtveg.at(ij)-elcanopy/kkar),0.f)))) 
-                                                +fabs(dutotdzm+ustarz.at(idklow)*phim/(kkar*(zi.at(k) 
-                                                                                           -std::max((hgtveg.at(ij)-elcanopy/kkar),0.f)))));
-                                  if(abs(dutotdzp+ustarz.at(idklow)*phim/(kkar*(zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))))> 
-                                     fabs(dutotdzm+ustarz.at(idklow)*phim/(kkar*(zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))))){
-                                      dutotdzi.at(p2idx)=dutotdzp+ustarz.at(idklow)*phim/(kkar*(zi.at(k) 
-                                                                                               -std::max((hgtveg.at(ij)-elcanopy/kkar),0.f)));
-                                  }
-                                  else{
-                                      dutotdzi.at(p2idx)=dutotdzm+ustarz.at(idklow)*phim/(kkar*(zi.at(k) 
-                                                                                                -std::max((hgtveg.at(ij)-elcanopy/kkar),0.f)));
+		    idklow = klow*nxdx*nydy + j*nxdx + i;
+		    if(rcl>0){
+		      phim=1.f+4.7f*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+		      psim=-4.7f*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+		    }
+		    else{
+		      phim=pow( (1.f-15.f*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))),(-.25f));
+		      psim=2.f*log((1.f+1.f/phim)/2.f)+log((1.f+1.f/pow(phim,2.f))/2.f)-2.f*atan(1.f/phim)+pi/2.f;
+		    }
+		    dutotl=utotl-ustarz.at(idklow)*(log((zi.at(k-1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))/z0)-psim)/kkar;
+		    if(rcl>0){
+		      phim=1.f+4.7f*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+		      psim=-4.7f*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+		    }
+		    else{
+		      phim=pow( (1.f-15.f*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))),(-.25f));
+		      psim=2.f*log((1.f+1.f/phim)/2.f)+log((1.f+1.f/pow(phim,2.f))/2.f)-2.f*atan(1.f/phim)+pi/2.f;
+		    }
+		    dutotu=utotu-ustarz.at(idklow)*(log((zi.at(k+1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))/z0)-psim)/kkar;
+		    dutotdzi.at(p2idx)=(dutotu-dutotl)/(dz_array.at(k)+.5*dz_array.at(k-1)+.5*dz_array.at(k+1))
+		      +ustarz.at(idklow)*psim/(kkar*zi.at(k));
+		    elz.at(p2idx)=kkar*(eleff.at(p2idx)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+		    if(retrieveCellTypeFromArray(kp1) != 0 && retrieveCellTypeFromArray(p2idx) != 0  && retrieveCellTypeFromArray(km1) != 0){
+		      // mdw 7-01-2005 centered around k instead of k-1 and ajusted for log-law behavior
+		      utot=sqrt(wind_vel[p2idx].u*wind_vel[p2idx].u+wind_vel[p2idx].v*wind_vel[p2idx].v+wind_vel[p2idx].w*wind_vel[p2idx].w);
+		      utotl=sqrt(wind_vel[km1].u*wind_vel[km1].u+wind_vel[km1].v*wind_vel[km1].v+wind_vel[km1].w*wind_vel[km1].w);
+		      utotu=sqrt(wind_vel[kp1].u*wind_vel[kp1].u+wind_vel[kp1].v*wind_vel[kp1].v+wind_vel[kp1].w*wind_vel[kp1].w);
+		      if(rcl>0){
+			phim=1.f+4.7f*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+			psim=-4.7f*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+		      }
+		      else{
+			phim=pow( (1.-15.*rcl*(eleff.at(km1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))),(-.25));
+			psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
+		      }
+		      dutotl=utotl-ustarz.at(idklow)*(log((zi.at(k-1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))/z0)-psim)/kkar;
+		      if(rcl>0){
+			phim=1.+4.7*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+			psim=-4.7*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+		      }
+		      else{
+			phim=pow( (1.-15.*rcl*(eleff.at(kp1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))),(-.25));
+			psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
+		      }
+		      dutotu=utotu-ustarz.at(idklow)*(log((zi.at(k+1)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))/z0)-psim)/kkar;
+		      // mdw 3-08-2004 begin changes for highest gradient rather than centered diff gradient
+		      if(rcl>0){
+			phim=1.+4.7*rcl*(eleff.at(p2idx)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+			psim=-4.7*rcl*(eleff.at(p2idx)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
+		      }
+		      else{
+			phim=pow( (1.-15.*rcl*(eleff.at(p2idx)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))),(-.25) );
+			psim=2.*log((1.+1./phim)/2.)+log((1.+1./pow(phim,2.f))/2.)-2.*atan(1./phim)+pi/2.;
+		      }
+		      dutot=utot-ustarz.at(idklow)*(log((zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))/z0)-psim)/kkar;
+		      dutotdzc=(dutotu-dutotl)/(dz_array.at(k)+.5*dz_array.at(k+1)+.5*dz_array.at(k-1));
+		      dutotdzp=(dutotu-dutot)/(.5*dz_array.at(k+1)+.5*dz_array.at(k));
+		      dutotdzm=(dutot-dutotl)/(.5*dz_array.at(k)+.5*dz_array.at(k-1));
+		      dutotdza=0.5*(fabs(dutotdzp+ustarz.at(idklow)*phim/(kkar*(zi.at(k) 
+										-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f)))) 
+				    +fabs(dutotdzm+ustarz.at(idklow)*phim/(kkar*(zi.at(k) 
+										 -std::max((hgtveg.at(ij)-elcanopy/kkar),0.f)))));
+		      if(abs(dutotdzp+ustarz.at(idklow)*phim/(kkar*(zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))))> 
+			 fabs(dutotdzm+ustarz.at(idklow)*phim/(kkar*(zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f))))){
+			dutotdzi.at(p2idx)=dutotdzp+ustarz.at(idklow)*phim/(kkar*(zi.at(k) 
+										  -std::max((hgtveg.at(ij)-elcanopy/kkar),0.f)));
+		      }
+		      else{
+			dutotdzi.at(p2idx)=dutotdzm+ustarz.at(idklow)*phim/(kkar*(zi.at(k) 
+										  -std::max((hgtveg.at(ij)-elcanopy/kkar),0.f)));
                                       
                                       
-                                  }
-                              }
-                              // use centered differences away from the boundaries
-                        }
-                    }
-                }
+		      }
+		    }
+		    // use centered differences away from the boundaries
+		  }
+		}
+	      }
             }
-        }
-    }//end for loops
+	  }
+	}//end for loops
 
-    //Balli: Above loop is working as expected. I have matched every variable value with QP (Balli-06/14/09)
-    // IMPORTANT!!! Theta is never read from input file. so its values will be zero always.
-    //Therefore following few lines do not effect the final solution at all
-    // phi will be calculated again by taking into account the actual wind angle at each building.
+	//Balli: Above loop is working as expected. I have matched every variable value with QP (Balli-06/14/09)
+	// IMPORTANT!!! Theta is never read from input file. so its values will be zero always.
+	//Therefore following few lines do not effect the final solution at all
+	// phi will be calculated again by taking into account the actual wind angle at each building.
 
-    float phi = m_util_ptr->quMetParamData.quSensorData.direction - theta;
-    // Was -->> float phi = 270.-theta;
+	float phi = m_util_ptr->quMetParamData.quSensorData.direction - theta;
+	// Was -->> float phi = 270.-theta;
 
-    phi=phi*pi/180.;
-    float cosphi=cos(phi);
-    int iupc=0;
-    if(cosphi>=0)
-        iupc=0;//altered for GPU
-    else
-        iupc=nxdx;
+	phi=phi*pi/180.;
+	float cosphi=cos(phi);
+	int iupc=0;
+	if(cosphi>=0)
+	  iupc=0;//altered for GPU
+	else
+	  iupc=nxdx;
     
-    float sinphi=sin(phi);
-    int jupc=0;
-    if(sinphi>=0.f)
-        jupc=0;//altered for GPU
-    else
-        jupc=nydy;
+	float sinphi=sin(phi);
+	int jupc=0;
+	if(sinphi>=0.f)
+	  jupc=0;//altered for GPU
+	else
+	  jupc=nydy;
     
-    float phit=phi+0.5*pi;
-    float cosphit=cos(phit);
-    float sinphit=sin(phit);
+	float phit=phi+0.5*pi;
+	float cosphit=cos(phit);
+	float sinphit=sin(phit);
     
-    //Following variables are required for non-local mixing.
-    float xcelt=0.f;
-    float ycelt=0.f;
-    int icelt=0;
-    int jcelt=0;
+	//Following variables are required for non-local mixing.
+	float xcelt=0.f;
+	float ycelt=0.f;
+	int icelt=0;
+	int jcelt=0;
     
-    float xceln=0.f;
-    float yceln=0.f;
-    int iceln=0;
-    int jceln=0;
-    float utott=0.f;
-    float delut=0.f;
-    float delutz=0.f;
-    xcb.resize(numBuild);
-    ycb.resize(numBuild);
-    icb.resize(numBuild);
-    jcb.resize(numBuild);
-    phib.resize(numBuild);
-    zcorf.resize(nxnynz);
-    uref.resize(nxnynz);
-    urefu.resize(nxnynz);
-    urefv.resize(nxnynz);
-    urefw.resize(nxnynz);
-    utotktp.resize(nxnynz);
-    uktop.resize(nxnynz);
-    vktop.resize(nxnynz);
-    wktop.resize(nxnynz);
-    deluc.resize(nxnynz);
-    ustargz.resize(nxnynz);
-    elzg.resize(nxnynz,(nxdx+1.)*dx);// initialized it with a value similar to QP
-    utotcl1.resize(nxnynz);
-    utotmax.resize(nxnynz);
+	float xceln=0.f;
+	float yceln=0.f;
+	int iceln=0;
+	int jceln=0;
+	float utott=0.f;
+	float delut=0.f;
+	float delutz=0.f;
+	xcb.resize(numBuild);
+	ycb.resize(numBuild);
+	icb.resize(numBuild);
+	jcb.resize(numBuild);
+	phib.resize(numBuild);
+	zcorf.resize(nxnynz);
+	uref.resize(nxnynz);
+	urefu.resize(nxnynz);
+	urefv.resize(nxnynz);
+	urefw.resize(nxnynz);
+	utotktp.resize(nxnynz);
+	uktop.resize(nxnynz);
+	vktop.resize(nxnynz);
+	wktop.resize(nxnynz);
+	deluc.resize(nxnynz);
+	ustargz.resize(nxnynz);
+	elzg.resize(nxnynz,(nxdx+1.)*dx);// initialized it with a value similar to QP
+	utotcl1.resize(nxnynz);
+	utotmax.resize(nxnynz);
 
-    for(int i=0;i<numBuild;i++){
-        if(m_util_ptr->qpBuildoutData.buildings[i].type == 9)continue;
-        //! mdw 4-16-2004 added proper treatment of zfo
-        float temp=0.f;
-        int ktop=0;
-        for(int k=0;k<nzdz;k++){
+	for(int i=0;i<numBuild;i++){
+	  if(m_util_ptr->qpBuildoutData.buildings[i].type == 9)continue;
+	  //! mdw 4-16-2004 added proper treatment of zfo
+	  float temp=0.f;
+	  int ktop=0;
+	  for(int k=0;k<nzdz;k++){
             ktop=k;
             if(ht[i]+zfo[i]<z.at(k))break;
-        }
-        int kmid=0;
-        for(int k=0;k<nzdz;k++){        
+	  }
+	  int kmid=0;
+	  for(int k=0;k<nzdz;k++){        
             kmid=k;
             if(0.5*ht[i]+zfo[i]<z.at(k))break;
-        }
-        if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
+	  }
+	  if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
             xcb.at(i)=xfo[i];
-        }
-        else{
+	  }
+	  else{
             xcb.at(i)=xfo[i]+.5*lti[i];
-        }
-        ycb.at(i)=yfo[i];
-        temp=(xcb.at(i)-dx)/dx;//substracted dx to comply with GPU
-        icb.at(i)=nint(temp);
-        temp=(ycb.at(i)-dy)/dy;//substracted dy to comply with GPU
-        jcb.at(i)=nint(temp);
-        //!mdw 6-05-2005 put in procedure to calculate phi & phit
-        int kendv=0;
-        if(roofflag==2){
+	  }
+	  ycb.at(i)=yfo[i];
+	  temp=(xcb.at(i)-dx)/dx;//substracted dx to comply with GPU
+	  icb.at(i)=nint(temp);
+	  temp=(ycb.at(i)-dy)/dy;//substracted dy to comply with GPU
+	  jcb.at(i)=nint(temp);
+	  //!mdw 6-05-2005 put in procedure to calculate phi & phit
+	  int kendv=0;
+	  if(roofflag==2){
             float Bs=ht[i];
             float BL=wti[i];
             
             if(wti[i]<ht[i]){
-                Bs=wti[i];
-                BL=ht[i];
+	      Bs=wti[i];
+	      BL=ht[i];
             }
             float Rscale = ((pow(Bs,(2.f/3.f)))*(pow(BL,(1.f/3.f))));
             float temp=std::max(.22f*Rscale,.11f*wti[i]);
             float zclim  =std::max(temp,.11f*lti[i]);
             for(int k=0;k<nzdz;k++){        
-                kendv=k;
-                if(zclim<z.at(k))break;
+	      kendv=k;
+	      if(zclim<z.at(k))break;
             }
-        }
-        else{
+	  }
+	  else{
             for(int k=0;k<nzdz;k++){        
-                kendv=k;
-                if(ht[i]+zfo[i]<z.at(k))break;
+	      kendv=k;
+	      if(ht[i]+zfo[i]<z.at(k))break;
             }
-        }
-        kendv=std::min(kendv,nzdz);
+	  }
+	  kendv=std::min(kendv,nzdz);
         
-        int idvel=kendv*nxdx*nydy + jcb.at(i)*nxdx +icb.at(i);
-        double tempv=wind_vel[idvel].v;
-        double tempu=wind_vel[idvel].u;
-        phib.at(i)=atan2(tempv,tempu);
-        phi=phib.at(i);
-        cosphi=cos(phi);
-        int iupc=0;
-        if(cosphi>=0)
+	  int idvel=kendv*nxdx*nydy + jcb.at(i)*nxdx +icb.at(i);
+	  double tempv=wind_vel[idvel].v;
+	  double tempu=wind_vel[idvel].u;
+	  phib.at(i)=atan2(tempv,tempu);
+	  phi=phib.at(i);
+	  cosphi=cos(phi);
+	  int iupc=0;
+	  if(cosphi>=0)
             iupc=0;//altered for GPU
-        else
+	  else
             iupc=nxdx;
         
-        sinphi=sin(phi);
-        int jupc=0;
-        if(sinphi>=0)
+	  sinphi=sin(phi);
+	  int jupc=0;
+	  if(sinphi>=0)
             jupc=0;//altered for GPU
-        else
+	  else
             jupc=nydy;
         
-        float phit=phi+0.5*pi;
-        cosphit=cos(phit);
-        sinphit=sin(phit);
+	  float phit=phi+0.5*pi;
+	  cosphit=cos(phit);
+	  sinphit=sin(phit);
         
-        //! ycbp3, and xcbp3 give points 1.5 units outside
-        //! of the bldg boundaries to compute reference utot
-        float ycbp3=0.f;
-        float xcbp3=0.f;
-        float ycbm3=0.f;
-        float xcbm3=0.f;
-        int icbp3=0;
-        int icbm3=0;
-        int jcbp3=0;
-        int jcbm3=0;
-        float dycbp3=0.f;
-        float dycbm3=0.f;
-        float dxcbp3=0.f;
-        float dxcbm3=0.f;
-        float ycbp=0.f;
-        float xcbp=0.f;
-        float ycbm=0.f;
-        float xcbm=0.f;
-        float xcd,ycd,xcu,ycu,xcul,ycul,cosfac;
+	  //! ycbp3, and xcbp3 give points 1.5 units outside
+	  //! of the bldg boundaries to compute reference utot
+	  float ycbp3=0.f;
+	  float xcbp3=0.f;
+	  float ycbm3=0.f;
+	  float xcbm3=0.f;
+	  int icbp3=0;
+	  int icbm3=0;
+	  int jcbp3=0;
+	  int jcbm3=0;
+	  float dycbp3=0.f;
+	  float dycbm3=0.f;
+	  float dxcbp3=0.f;
+	  float dxcbm3=0.f;
+	  float ycbp=0.f;
+	  float xcbp=0.f;
+	  float ycbm=0.f;
+	  float xcbm=0.f;
+	  float xcd,ycd,xcu,ycu,xcul,ycul,cosfac;
 
 
-        if(fabs(sinphit)>=fabs(cosphit))
-	  {
-            ycbp3=ycb.at(i)+(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*sinphit;// ! Get reference values for x,y for non-local mixing
-            xcbp3=xcb.at(i)+(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*cosphit;// ! 1/3 bldg width outside of building is the boundary for the non-local mixing
-            ycbm3=ycb.at(i)-(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*sinphit;
-            xcbm3=xcb.at(i)-(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*cosphit;
-            temp=(xcbp3-dx)/dx;
-            icbp3=nint(temp);//substracted dx to comply gpu
-            temp=(xcbm3-dx)/dx;
-            icbm3=nint(temp);//substracted dx to comply gpu
-            temp=(ycbp3-dy)/dy;
-            jcbp3=nint(temp);//substracted dx to comply gpu
-            temp=(ycbm3-dy)/dy;
-            jcbm3=nint(temp);//substracted dx to comply gpu
-            jcbp3=std::min(jcbp3,nydy-1);
-            jcbm3=std::min(jcbm3,nydy-1);
-            icbp3=std::min(icbp3,nxdx-1);
-            icbm3=std::min(icbm3,nxdx-1);
-            jcbp3=std::max(0,jcbp3);//changed from 1 to zeros to comply with gpu
-            jcbm3=std::max(0,jcbm3);
-            icbp3=std::max(0,icbp3);
-            icbm3=std::max(0,icbm3);
-            //! searching in the plus y direction for building free flow
-            int id=kmid*nxdx*nydy + jcbp3*nxdx +icbp3;
-            int jp1=0;
-            int jp2=0;
-            int isign=0;
-            if(retrieveCellTypeFromArray(id) == 0){
+	  if(fabs(sinphit)>=fabs(cosphit))
+	    {
+	      ycbp3=ycb.at(i)+(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*sinphit;// ! Get reference values for x,y for non-local mixing
+	      xcbp3=xcb.at(i)+(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*cosphit;// ! 1/3 bldg width outside of building is the boundary for the non-local mixing
+	      ycbm3=ycb.at(i)-(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*sinphit;
+	      xcbm3=xcb.at(i)-(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*cosphit;
+	      temp=(xcbp3-dx)/dx;
+	      icbp3=nint(temp);//substracted dx to comply gpu
+	      temp=(xcbm3-dx)/dx;
+	      icbm3=nint(temp);//substracted dx to comply gpu
+	      temp=(ycbp3-dy)/dy;
+	      jcbp3=nint(temp);//substracted dx to comply gpu
+	      temp=(ycbm3-dy)/dy;
+	      jcbm3=nint(temp);//substracted dx to comply gpu
+	      jcbp3=std::min(jcbp3,nydy-1);
+	      jcbm3=std::min(jcbm3,nydy-1);
+	      icbp3=std::min(icbp3,nxdx-1);
+	      icbm3=std::min(icbm3,nxdx-1);
+	      jcbp3=std::max(0,jcbp3);//changed from 1 to zeros to comply with gpu
+	      jcbm3=std::max(0,jcbm3);
+	      icbp3=std::max(0,icbp3);
+	      icbm3=std::max(0,icbm3);
+	      //! searching in the plus y direction for building free flow
+	      int id=kmid*nxdx*nydy + jcbp3*nxdx +icbp3;
+	      int jp1=0;
+	      int jp2=0;
+	      int isign=0;
+	      if(retrieveCellTypeFromArray(id) == 0){
                 if(sinphit>0.f){
-                    jp1=jcbp3;
-                    jp2=nydy-1;
-                    isign=1;
+		  jp1=jcbp3;
+		  jp2=nydy-1;
+		  isign=1;
                 }
                 else{
-                    jp1=jcbp3;
-                    jp2=0;//altered for GPU
-                    isign=-1;
+		  jp1=jcbp3;
+		  jp2=0;//altered for GPU
+		  isign=-1;
                 }
             
                 for(int ji=jp1;ji<=jp2;ji=ji+isign){
-                    jcbp3=jcbp3+isign;
-                    jcbp3=std::min(nydy-1,jcbp3);
-                    dycbp3=dy*(jcbp3-1)-ycbp3;
-                    ycbp3=dy*(jcbp3-1);
-                    xcbp3=xcbp3+cosphit*dycbp3/sinphit;
-                    icbp3=int(xcbp3/dx)+1-dx;
-                    icbp3=std::min(nx-1,icbp3);
-                    //!mdw 34/01/2004 forced indices to be within domain
-                    int idMid=kmid*nxdx*nydy + jcbp3*nxdx +icbp3;
-                    if(retrieveCellTypeFromArray(idMid)!= 0) break;
+		  jcbp3=jcbp3+isign;
+		  jcbp3=std::min(nydy-1,jcbp3);
+		  dycbp3=dy*(jcbp3-1)-ycbp3;
+		  ycbp3=dy*(jcbp3-1);
+		  xcbp3=xcbp3+cosphit*dycbp3/sinphit;
+		  icbp3=int(xcbp3/dx)+1-dx;
+		  icbp3=std::min(nx-1,icbp3);
+		  //!mdw 34/01/2004 forced indices to be within domain
+		  int idMid=kmid*nxdx*nydy + jcbp3*nxdx +icbp3;
+		  if(retrieveCellTypeFromArray(idMid)!= 0) break;
                 }
-            }
+	      }
 
-            //! searching in the minus y direction for building free flow
-            int id2=kmid*nxdx*nydy + jcbm3*nxdx +icbm3;
-            int jm2=0;
-            int jm1=0;
-            isign=0;
-            if(retrieveCellTypeFromArray(id2) == 0){
+	      //! searching in the minus y direction for building free flow
+	      int id2=kmid*nxdx*nydy + jcbm3*nxdx +icbm3;
+	      int jm2=0;
+	      int jm1=0;
+	      isign=0;
+	      if(retrieveCellTypeFromArray(id2) == 0){
                 if(sinphit>0.f){
-                    jm2=0;//altered for GPU;
-                    jm1=jcbm3;
-                    isign=1;
+		  jm2=0;//altered for GPU;
+		  jm1=jcbm3;
+		  isign=1;
                 }
                 else{
-                    jm2=nydy-1;
-                    jm1=jcbm3;
-                    isign=-1;
+		  jm2=nydy-1;
+		  jm1=jcbm3;
+		  isign=-1;
                 }
                 for(int ji=jm1;ji>=jm2;ji=ji-isign){// do ji=jm1,jm2,-isign 
-                    jcbm3=jcbm3-isign;
-                    dycbm3=dy*(jcbm3-1)-ycbm3;
-                    ycbm3=dy*(jcbm3-1);
-                    xcbm3=xcbm3+cosphit*dycbm3/sinphit;
-                    temp=(xcbm3-dx)/dx;
-                    icbm3=nint(temp);
+		  jcbm3=jcbm3-isign;
+		  dycbm3=dy*(jcbm3-1)-ycbm3;
+		  ycbm3=dy*(jcbm3-1);
+		  xcbm3=xcbm3+cosphit*dycbm3/sinphit;
+		  temp=(xcbm3-dx)/dx;
+		  icbm3=nint(temp);
                                         
-                    jcbp3=std::min(jcbp3,ny-1);
-                    jcbm3=std::min(jcbm3,ny-1);
-                    icbp3=std::min(icbp3,nx-1);
-                    icbm3=std::min(icbm3,nx-1);
-                    jcbp3=std::max(0,jcbp3);
-                    jcbm3=std::max(0,jcbm3);
-                    icbp3=std::max(0,icbp3);
-                    icbm3=std::max(0,icbm3);
-                    int idMid2=kmid*nxdx*nydy + jcbm3*nxdx +icbm3;
-                    if(retrieveCellTypeFromArray(idMid2) != 0) break;
+		  jcbp3=std::min(jcbp3,ny-1);
+		  jcbm3=std::min(jcbm3,ny-1);
+		  icbp3=std::min(icbp3,nx-1);
+		  icbm3=std::min(icbm3,nx-1);
+		  jcbp3=std::max(0,jcbp3);
+		  jcbm3=std::max(0,jcbm3);
+		  icbp3=std::max(0,icbp3);
+		  icbm3=std::max(0,icbm3);
+		  int idMid2=kmid*nxdx*nydy + jcbm3*nxdx +icbm3;
+		  if(retrieveCellTypeFromArray(idMid2) != 0) break;
                 }
-            }
-            ycbp=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphi;
-            xcbp=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*cosphi;
-            ycbm=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphi;
-            xcbm=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*cosphi;
+	      }
+	      ycbp=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphi;
+	      xcbp=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*cosphi;
+	      ycbm=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphi;
+	      xcbm=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*cosphi;
 
             
-            if(cosphi>=0.f){
+	      if(cosphi>=0.f){
                 //! Note the current upstream and downstream limits for the wake non-local mixing
                 //! are 3*lr in the downstream direction and lfx upstream in the x direction
                 //! and lfy upstream in the y direction
@@ -4232,12 +4239,12 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 
                 //!mdw 7-10-2006 made changes to xcd, ycd,xcu, & ycu - formerly used .5 dx
                 if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
-                    xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi; //!
+		  xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
+		  ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi; //!
                 }
                 else{
-                    xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
+		  xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*cosphi;// ! (upstream)
+		  ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
                 }
                  
                 //!mdw 7-05-2006 made changes to xcul & ycul - formerly used .5 dx
@@ -4248,18 +4255,18 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 ycul=std::max(ycul,0.f);
                 ycul=std::min(ycul,dy*(nydy-1));
                 cosfac=1.;
-            }
-            else{
+	      }
+	      else{
                 //!mdw 7-10-2006 made changes to xcd, ycd,xcu, & ycu - formerly used .5 dx
                 xcd=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+.1*dx)*cosphi;
                 ycd=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+.1*dx)*sinphi;
                 if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
-                    xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi;// !
+		  xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
+		  ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi;// !
                 }
                 else{  
-                    xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
+		  xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*cosphi;// ! (upstream)
+		  ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
                 }
                 //!mdw 7-05-2006 made changes to xcul & ycul - formerly used .5 dx
                 xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upstream limit on the front cavity
@@ -4269,9 +4276,9 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 ycul=std::max(ycul,0.f);
                 ycul=std::min(ycul,dy*(nydy-1));
                 cosfac=-1.;
-            }
-        }
-        else{// ! if you are more aligned with y than x
+	      }
+	    }
+	  else{// ! if you are more aligned with y than x
             //! MAN 9/15/2005 use weff and leff appropriately
             ycbp3=ycb.at(i)+(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*sinphit;// ! get the effective length of the building
             xcbp3=xcb.at(i)+(.5* m_util_ptr->qpBuildoutData.buildings[i].weff +.33* m_util_ptr->qpBuildoutData.buildings[i].weff )*cosphit;
@@ -4301,175 +4308,175 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             int isign=0;
             
             if(retrieveCellTypeFromArray(id)== 0){
-                if(cosphit>0){
-                    ip1=icbp3;
-                    ip2=ny-1;
-                    isign=1;
-                }
-                else{
-                    ip1=icbp3;
-                    ip2=0;//altered for GPU
-                    isign=-1;
-                }
-                // ! decide which is closest building/floor
+	      if(cosphit>0){
+		ip1=icbp3;
+		ip2=ny-1;
+		isign=1;
+	      }
+	      else{
+		ip1=icbp3;
+		ip2=0;//altered for GPU
+		isign=-1;
+	      }
+	      // ! decide which is closest building/floor
 				
-                for(int ip=ip1;ip<=ip2;ip=ip+isign){//do ip=ip1,ip2,isign 
-                    icbp3=icbp3+isign;
-                    dxcbp3=dx*(icbp3-1)-xcbp3;
-                    xcbp3=dx*((icbp3-1));
-                    ycbp3=ycbp3+dxcbp3*sinphit/cosphit;
-                    temp=(ycbp3-dy)/dy;
-                    jcbp3=nint(temp);
-                    jcbp3=std::min(jcbp3,nydy-1);
-                    jcbm3=std::min(jcbm3,nydy-1);
-                    icbp3=std::min(icbp3,nxdx-1);
-                    icbm3=std::min(icbm3,nxdx-1);
-                    jcbp3=std::max(0,jcbp3);//altered for GPU
-                    jcbm3=std::max(0,jcbm3);//altered for GPU
-                    icbp3=std::max(0,icbp3);//altered for GPU
-                    icbm3=std::max(0,icbm3);//altered for GPU
-                    int idMid=kmid*nxdx*nydy + jcbp3*nxdx + icbp3;
-                    if(retrieveCellTypeFromArray(idMid)!= 0) break;
-                }
+	      for(int ip=ip1;ip<=ip2;ip=ip+isign){//do ip=ip1,ip2,isign 
+		icbp3=icbp3+isign;
+		dxcbp3=dx*(icbp3-1)-xcbp3;
+		xcbp3=dx*((icbp3-1));
+		ycbp3=ycbp3+dxcbp3*sinphit/cosphit;
+		temp=(ycbp3-dy)/dy;
+		jcbp3=nint(temp);
+		jcbp3=std::min(jcbp3,nydy-1);
+		jcbm3=std::min(jcbm3,nydy-1);
+		icbp3=std::min(icbp3,nxdx-1);
+		icbm3=std::min(icbm3,nxdx-1);
+		jcbp3=std::max(0,jcbp3);//altered for GPU
+		jcbm3=std::max(0,jcbm3);//altered for GPU
+		icbp3=std::max(0,icbp3);//altered for GPU
+		icbm3=std::max(0,icbm3);//altered for GPU
+		int idMid=kmid*nxdx*nydy + jcbp3*nxdx + icbp3;
+		if(retrieveCellTypeFromArray(idMid)!= 0) break;
+	      }
             }
             int id2=kmid*nxdx*nydy +jcbm3*nxdx + icbm3;
             
             if(retrieveCellTypeFromArray(id2) == 0){
-                int im1=0;
-                int im2=0;
-                isign=0;
-                if(cosphit>0.f){
-                    im1=icbm3;
-                    im2=0;//altered for GPU
-                    isign=1;
-                }
-                else{
-                    im1=icbm3;
-                    im2=nx-icbm3+1;
-                    isign=-1;
-                }
-                for(int im=im1;im<=im2;im=im+isign){//do im=im1,im2,-isign 
-                    icbm3=icbm3-isign;
-                    dxcbm3=dx*((icbm3-1))-xcbm3;
-                    xcbm3=dx*((icbm3-1));
-                    jcbm3=jcbm3+dxcbm3*sinphit/cosphit;
-                    jcbp3=std::min(jcbp3,ny-1);
-                    jcbm3=std::min(jcbm3,ny-1);
-                    icbp3=std::min(icbp3,nx-1);
-                    icbm3=std::min(icbm3,nx-1);
-                    jcbp3=std::max(0,jcbp3);
-                    jcbm3=std::max(0,jcbm3);
-                    icbp3=std::max(0,icbp3);
-                    icbm3=std::max(0,icbm3);
-                    int idMid2=kmid*nxdx*nydy + jcbm3*nxdx +icbm3;
-                    if(retrieveCellTypeFromArray(idMid2) != 0) break;
-                }
+	      int im1=0;
+	      int im2=0;
+	      isign=0;
+	      if(cosphit>0.f){
+		im1=icbm3;
+		im2=0;//altered for GPU
+		isign=1;
+	      }
+	      else{
+		im1=icbm3;
+		im2=nx-icbm3+1;
+		isign=-1;
+	      }
+	      for(int im=im1;im<=im2;im=im+isign){//do im=im1,im2,-isign 
+		icbm3=icbm3-isign;
+		dxcbm3=dx*((icbm3-1))-xcbm3;
+		xcbm3=dx*((icbm3-1));
+		jcbm3=jcbm3+dxcbm3*sinphit/cosphit;
+		jcbp3=std::min(jcbp3,ny-1);
+		jcbm3=std::min(jcbm3,ny-1);
+		icbp3=std::min(icbp3,nx-1);
+		icbm3=std::min(icbm3,nx-1);
+		jcbp3=std::max(0,jcbp3);
+		jcbm3=std::max(0,jcbm3);
+		icbp3=std::max(0,icbp3);
+		icbm3=std::max(0,icbm3);
+		int idMid2=kmid*nxdx*nydy + jcbm3*nxdx +icbm3;
+		if(retrieveCellTypeFromArray(idMid2) != 0) break;
+	      }
             }
             ycbp=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphit;// !  get back of the building
             xcbp=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*cosphit;// !
             ycbm=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*sinphit;// !  get front of the building
             xcbm=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff)*cosphit;// !
             if(sinphi>=0.f){
-                //! Note the current upstream and downstream limits for the wake non-local mixing
-                //    ! are 3*lr in the downstream direction and lfx upstream in the x direction
-                //  ! and lfy upstream in the y direction
-                //! MAN 9/15/2005 use weff and leff appropriately
-                //!mdw 7-05-2006 made changes to xcu,ycu, xcd & ycd - formerly used .5 dy or .5 dx
-                xcd=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*cosphi;// ! get the first point on the center line outside of the building (downstream)
-                ycd=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*sinphi;// !
-                if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
-                    xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi; //!
-                }
-                else{
-                    xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*cosphi;// ! (upstream) 
-                    ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
-                }
-                //! end MAN 9/15/2005
-                //! mdw 7-05-2006 eliminated .5 dx  or .5 dy in favor of dx & dy
-                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upper limit of the eddie
-                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;
-                xcul=std::max(xcul,0.f);
-                xcul=std::min(xcul,dx*(nxdx-1));
-                ycul=std::max(ycul,0.f);
-                ycul=std::min(ycul,dy*(nydy-1));
-                cosfac=1.f;
+	      //! Note the current upstream and downstream limits for the wake non-local mixing
+	      //    ! are 3*lr in the downstream direction and lfx upstream in the x direction
+	      //  ! and lfy upstream in the y direction
+	      //! MAN 9/15/2005 use weff and leff appropriately
+	      //!mdw 7-05-2006 made changes to xcu,ycu, xcd & ycd - formerly used .5 dy or .5 dx
+	      xcd=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*cosphi;// ! get the first point on the center line outside of the building (downstream)
+	      ycd=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*sinphi;// !
+	      if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
+		xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
+		ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi; //!
+	      }
+	      else{
+		xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*cosphi;// ! (upstream) 
+		ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
+	      }
+	      //! end MAN 9/15/2005
+	      //! mdw 7-05-2006 eliminated .5 dx  or .5 dy in favor of dx & dy
+	      xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upper limit of the eddie
+	      ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;
+	      xcul=std::max(xcul,0.f);
+	      xcul=std::min(xcul,dx*(nxdx-1));
+	      ycul=std::max(ycul,0.f);
+	      ycul=std::min(ycul,dy*(nydy-1));
+	      cosfac=1.f;
             }
             else{
-                   //! MAN 9/15/2005 use weff and leff appropriately
-                xcd=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*cosphi;
-                ycd=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*sinphi;
-                if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
-                    xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
-                    ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi;// !
-                }
-                else{
-                    xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream) 
-                    ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi;// !
-                }
-                //! end MAN 9/15/2005
+	      //! MAN 9/15/2005 use weff and leff appropriately
+	      xcd=xcb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*cosphi;
+	      ycd=ycb.at(i)+(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dy)*sinphi;
+	      if(m_util_ptr->qpBuildoutData.buildings[i].type == 3){
+		xcu=xcb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream)
+		ycu=ycb.at(i)-(.4*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi;// !
+	      }
+	      else{
+		xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*cosphi;// ! (upstream) 
+		ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+dx)*sinphi;// !
+	      }
+	      //! end MAN 9/15/2005
                 
-                xcul=xcu+(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upstream limit on the front cavity
-                ycul=ycu+(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;// !
-                xcul=std::max(xcul,0.f);
-                xcul=std::min(xcul,dx*(nxdx-1));
-                ycul=std::max(ycul,0.f);
-                ycul=std::min(ycul,dy*(nydy-1));
-                cosfac=-1.f;
+	      xcul=xcu+(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upstream limit on the front cavity
+	      ycul=ycu+(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;// !
+	      xcul=std::max(xcul,0.f);
+	      xcul=std::min(xcul,dx*(nxdx-1));
+	      ycul=std::max(ycul,0.f);
+	      ycul=std::min(ycul,dy*(nydy-1));
+	      cosfac=-1.f;
             }
-        }
-        //!mdw 7-05-2006 change form to ixxx or jxxx =nint()+1
-        temp=(xcd-dx)/dx;//altered to comply with GPU
-        int icd=nint(temp)+1;// ! get indicies for the downstream center line to back of the building
-        temp=(ycd-dy)/dy;//altered to comply with GPU
-        int jcd=nint(temp)+1;
-        //!mdw 4-16-2004 added correction for ktop+3 > nz-1
-        int ktp=std::min(ktop,nzdz-1);//didn't alter here as ktop is already aligned with GPU coordinates
-        float zk=0.f;
-        float zbrac=0.f;
-        float zkfac=0.f;
-        float xcdl=0.f;
-        float ycdl=0.f;
-        int icdl=0;
-        int jcdl=0;
-        int icu=0;
-        int jcu=0;
-        int icul=0;
-        int jcul=0;
-        float urefz=0.f;
-        float ds=0.f;
-        float sdown=0.f;
-        float sup=0.f;
-        float stin=0.f;
-        float istinf=0.f;
-        float st=0.f;
-        int istf=0;
-        int isf=0;
-        int isfu=0;
-        float utotp=0.f;
-        float utotm=0.f;
-        float cosu=0.f;
-        float sinv=0.f;
-        int isini=0;
-        float cosl=0.f;
-        float sinl=0.f;
-        float delutz=0.f;
-        float upvpg=0.f;
-        float upwpg=0.f;
-        float upsqg=0.f;
-        float vpsqg=0.f;
-        float vpwpg=0.f;
-        float wpsqg=0.f;
-        float duy=0.f;
+	  }
+	  //!mdw 7-05-2006 change form to ixxx or jxxx =nint()+1
+	  temp=(xcd-dx)/dx;//altered to comply with GPU
+	  int icd=nint(temp)+1;// ! get indicies for the downstream center line to back of the building
+	  temp=(ycd-dy)/dy;//altered to comply with GPU
+	  int jcd=nint(temp)+1;
+	  //!mdw 4-16-2004 added correction for ktop+3 > nz-1
+	  int ktp=std::min(ktop,nzdz-1);//didn't alter here as ktop is already aligned with GPU coordinates
+	  float zk=0.f;
+	  float zbrac=0.f;
+	  float zkfac=0.f;
+	  float xcdl=0.f;
+	  float ycdl=0.f;
+	  int icdl=0;
+	  int jcdl=0;
+	  int icu=0;
+	  int jcu=0;
+	  int icul=0;
+	  int jcul=0;
+	  float urefz=0.f;
+	  float ds=0.f;
+	  float sdown=0.f;
+	  float sup=0.f;
+	  float stin=0.f;
+	  float istinf=0.f;
+	  float st=0.f;
+	  int istf=0;
+	  int isf=0;
+	  int isfu=0;
+	  float utotp=0.f;
+	  float utotm=0.f;
+	  float cosu=0.f;
+	  float sinv=0.f;
+	  int isini=0;
+	  float cosl=0.f;
+	  float sinl=0.f;
+	  float delutz=0.f;
+	  float upvpg=0.f;
+	  float upwpg=0.f;
+	  float upsqg=0.f;
+	  float vpsqg=0.f;
+	  float vpwpg=0.f;
+	  float wpsqg=0.f;
+	  float duy=0.f;
         
-        for(int k=ktp;k>=0;k--){//do k=ktp,2,-1  ! Account for wake difference in the cavity
+	  for(int k=ktp;k>=0;k--){//do k=ktp,2,-1  ! Account for wake difference in the cavity
             
             zk=zm.at(k);
             if(zi.at(k)<.99*h){
-                zbrac=pow( (1.f-zi.at(k)/h) , 1.5f);
+	      zbrac=pow( (1.f-zi.at(k)/h) , 1.5f);
             }
             else{
-                zbrac=pow( (1.f-.99f),1.5f);
+	      zbrac=pow( (1.f-.99f),1.5f);
             }
             //zbrac=pow( (1.f-zi.at(k)/h) , 1.5f);
             //!mdw 4-16-2004 added correction for ktop+3 > nz-1
@@ -4477,28 +4484,28 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             int idupcktop=(ktop+3)*nxdx*nydy + jupc*nxdx +iupc;
             int idupcnzm1=(nzdz-1)*nxdx*nydy + jupc*nxdx +iupc;
             if(ktop+3<=nzdz-1){
-                zcorf.at(k)=sqrt(wind_vel[idupc].u*wind_vel[idupc].u + wind_vel[idupc].v*wind_vel[idupc].v + wind_vel[idupc].w*wind_vel[idupc].w)/
-                    sqrt(wind_vel[idupcktop].u*wind_vel[idupcktop].u + wind_vel[idupcktop].v*wind_vel[idupcktop].v
-                         + wind_vel[idupcktop].w*wind_vel[idupcktop].w);
+	      zcorf.at(k)=sqrt(wind_vel[idupc].u*wind_vel[idupc].u + wind_vel[idupc].v*wind_vel[idupc].v + wind_vel[idupc].w*wind_vel[idupc].w)/
+		sqrt(wind_vel[idupcktop].u*wind_vel[idupcktop].u + wind_vel[idupcktop].v*wind_vel[idupcktop].v
+		     + wind_vel[idupcktop].w*wind_vel[idupcktop].w);
             }
             else{
-                zcorf.at(k)=sqrt(wind_vel[idupc].u*wind_vel[idupc].u + wind_vel[idupc].v*wind_vel[idupc].v + wind_vel[idupc].w*wind_vel[idupc].w)/
-                    sqrt(wind_vel[idupcnzm1].u*wind_vel[idupcnzm1].u + wind_vel[idupcnzm1].v*wind_vel[idupcnzm1].v
-                         + wind_vel[idupcnzm1].w*wind_vel[idupcnzm1].w);
+	      zcorf.at(k)=sqrt(wind_vel[idupc].u*wind_vel[idupc].u + wind_vel[idupc].v*wind_vel[idupc].v + wind_vel[idupc].w*wind_vel[idupc].w)/
+		sqrt(wind_vel[idupcnzm1].u*wind_vel[idupcnzm1].u + wind_vel[idupcnzm1].v*wind_vel[idupcnzm1].v
+		     + wind_vel[idupcnzm1].w*wind_vel[idupcnzm1].w);
             }
                         
             
             //! mdw 4-16-2004 added proper treatment of zfo
             if(zk<ht[i]+zfo[i]){
-                zkfac=sqrt(1.-pow((zk/(ht[i]+zfo[i])),2));
+	      zkfac=sqrt(1.-pow((zk/(ht[i]+zfo[i])),2));
             }
             else{
-                if(k==ktp){
-                    zkfac=1.;
-                }
-                else{
-                    zkfac=0.f;
-                }
+	      if(k==ktp){
+		zkfac=1.;
+	      }
+	      else{
+		zkfac=0.f;
+	      }
                 
             }
             //! mdw 7-05-2006 changed from .5 dx or .5 dy to dx & dy to be consistent with nint
@@ -4524,11 +4531,11 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             //!mdw 4-16-2004 added correction for ktop+3 > nz-1
             int idktop=(ktop+3)*nxdx*nydy + jcb.at(i)*nxdx +icb.at(i);
             if(ktop+3<=nzdz-1){
-                //! calculating the reference wind un-disturbed by the building
-                urefz=sqrt(wind_vel[idktop].u*wind_vel[idktop].u + wind_vel[idktop].v*wind_vel[idktop].v + wind_vel[idktop].w*wind_vel[idktop].w);
+	      //! calculating the reference wind un-disturbed by the building
+	      urefz=sqrt(wind_vel[idktop].u*wind_vel[idktop].u + wind_vel[idktop].v*wind_vel[idktop].v + wind_vel[idktop].w*wind_vel[idktop].w);
             }
             else{
-                urefz=sqrt(pow(ualoft,2.f)+pow(valoft,2.f));
+	      urefz=sqrt(pow(ualoft,2.f)+pow(valoft,2.f));
             }
             ds=0.7*std::min(dx,dy);// ! pick a step that is small enough to not skip grid cells
             sdown=sqrt((xcdl-xcd)*(xcdl-xcd)+(ycdl-ycd)*(ycdl-ycd))+2.*ds;// ! calculate the limits for the distance measured along the centerline (rear)
@@ -4539,7 +4546,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             //!mdw 7-11-2006 changed istinf to allow replacement to center of bldg
             //!mdw 5-14-2004 corrected expression for st; older versions gave errors for wide blds
             st=sqrt((xcbp3-xcb.at(i))*(xcbp3-xcb.at(i))+(ycbp3-ycb.at(i))*(ycbp3-ycb.at(i)))+1.*ds;// ! total distance to point
-			temp=(st+.333*m_util_ptr->qpBuildoutData.buildings[i].leff)/ds;
+	    temp=(st+.333*m_util_ptr->qpBuildoutData.buildings[i].leff)/ds;
             istf=nint(temp)+1.f;//   ! (transverse direction) 
             //!mdw 6-9-2004 extended the transverse integration to st+.333*leff
             temp=sdown/ds;
@@ -4560,16 +4567,16 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             int idp=k*nxdx*nydy + jcbp3*nxdx +icbp3;
             int idm=k*nxdx*nydy + jcbm3*nxdx +icbm3;
             if(utotp>=utotm){
-                uref.at(ik)=utotp+.000001;
-                urefu.at(ik)=uref.at(ik)*cos(phib.at(i));
-                urefv.at(ik)=uref.at(ik)*sin(phib.at(i));
-                urefw.at(ik)=wind_vel[idp].w;
+	      uref.at(ik)=utotp+.000001;
+	      urefu.at(ik)=uref.at(ik)*cos(phib.at(i));
+	      urefv.at(ik)=uref.at(ik)*sin(phib.at(i));
+	      urefw.at(ik)=wind_vel[idp].w;
             }
             else{
-                uref.at(ik)=utotm+.000001;
-                urefu.at(ik)=uref.at(ik)*cos(phib.at(i));
-                urefv.at(ik)=uref.at(ik)*sin(phib.at(i));
-                urefw.at(ik)=wind_vel[idm].w;
+	      uref.at(ik)=utotm+.000001;
+	      urefu.at(ik)=uref.at(ik)*cos(phib.at(i));
+	      urefv.at(ik)=uref.at(ik)*sin(phib.at(i));
+	      urefw.at(ik)=wind_vel[idm].w;
             }
             //!!!!!!!
             cosu=(urefu.at(ik)+.000001)/uref.at(ik);
@@ -4582,766 +4589,772 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             int jcel=0;
             float utot=0.f;
             for(int is=1;is<=isf;is++){//   do is=1,isf 
-                xcell=xcd+ds*(is-1)*cosphi;
-                ycell=ycd+ds*(is-1)*sinphi;
-                temp=(xcell-dx)/dx;//substracted dx for GPU
-                icel=nint(temp)+1;
-                temp=(ycell-dy)/dy;//substracted dy for GPU
-                jcel=nint(temp)+1;
-                icel=std::min(nxdx-1,icel);
-                icel=std::max(1,icel);//altered for GPU (2 to 1)
-                jcel=std::min(nydy-1,jcel);
-                jcel=std::max(1,jcel);//altered for GPU (2 to 1)
-                int id=k*nxdx*nydy + jcel*nxdx +icel;
-                if(retrieveCellTypeFromArray(id) == 0 && is==1){
-                    isini=2;
-                }
-                utot=sqrt(wind_vel[id].u*wind_vel[id].u + wind_vel[id].v*wind_vel[id].v + wind_vel[id].w*wind_vel[id].w);
-                //!mdw 4-16-2004 added correction for ktop+3 > nz-1
-                int iceljcel=jcel*nxdx +icel;
-                int idcel=ktop*nxdx*nydy + jcel*nxdx +icel;
+	      xcell=xcd+ds*(is-1)*cosphi;
+	      ycell=ycd+ds*(is-1)*sinphi;
+	      temp=(xcell-dx)/dx;//substracted dx for GPU
+	      icel=nint(temp)+1;
+	      temp=(ycell-dy)/dy;//substracted dy for GPU
+	      jcel=nint(temp)+1;
+	      icel=std::min(nxdx-1,icel);
+	      icel=std::max(1,icel);//altered for GPU (2 to 1)
+	      jcel=std::min(nydy-1,jcel);
+	      jcel=std::max(1,jcel);//altered for GPU (2 to 1)
+	      int id=k*nxdx*nydy + jcel*nxdx +icel;
+	      if(retrieveCellTypeFromArray(id) == 0 && is==1){
+		isini=2;
+	      }
+	      utot=sqrt(wind_vel[id].u*wind_vel[id].u + wind_vel[id].v*wind_vel[id].v + wind_vel[id].w*wind_vel[id].w);
+	      //!mdw 4-16-2004 added correction for ktop+3 > nz-1
+	      int iceljcel=jcel*nxdx +icel;
+	      int idcel=ktop*nxdx*nydy + jcel*nxdx +icel;
                 
-                if(k==ktp){
-                    if(ktop<=nzdz-1){
-                        utotktp.at(iceljcel)=utot;
-                        uktop.at(iceljcel)=wind_vel[idcel].u;
-                        vktop.at(iceljcel)=wind_vel[idcel].v;
-                        wktop.at(iceljcel)=wind_vel[idcel].w;
-                    }
-                    else{
-                        utotktp.at(iceljcel)=sqrt(ualoft*ualoft+valoft*valoft); //check:: compare with QP, may be a bug in QP
-                        uktop.at(iceljcel)=ualoft;
-                        vktop.at(iceljcel)=valoft;
-                        wktop.at(iceljcel)=0.f;
-                    }
-                }
-                //! this sets reference for vertical transfer
-                utot=utot+.000001;
-                int idcelk=k*nxdx*nydy +jcel*nxdx +icel;
-                int ik=k*nxdx*nydy+i;
-                cosl=wind_vel[idcelk].u/utot;
-                sinl=wind_vel[idcelk].v/utot;
-                if(retrieveCellTypeFromArray(idcelk) > 0){
-                    delutz=sqrt( pow( (wind_vel[idcelk].u-zcorf.at(k)*uktop.at(iceljcel)),2.f)
-                                 +pow( (wind_vel[idcelk].v -zcorf.at(k)*vktop.at(iceljcel)),2.f)
-                                 +pow( (wind_vel[idcelk].w -zcorf.at(k)*wktop.at(iceljcel)),2.f) );
-                    deluc.at(ik)=sqrt( pow( (urefu.at(ik)-wind_vel[idcelk].u),2.f)
-                                       +pow( (urefv.at(ik)-wind_vel[idcelk].v),2.f)
-                                       +pow( (urefw.at(ik)-wind_vel[idcelk].w),2.f));
-                    //!mdw 4-16-2004 added correction for ktop+3 > nz-1
-                    if(k!=ktp){
-                        //! Selects the largest gradient (vert or horiz transfer)
-                        //! mdw 4-16-2004 added proper treatment of zfo
+	      if(k==ktp){
+		if(ktop<=nzdz-1){
+		  utotktp.at(iceljcel)=utot;
+		  uktop.at(iceljcel)=wind_vel[idcel].u;
+		  vktop.at(iceljcel)=wind_vel[idcel].v;
+		  wktop.at(iceljcel)=wind_vel[idcel].w;
+		}
+		else{
+		  utotktp.at(iceljcel)=sqrt(ualoft*ualoft+valoft*valoft); //check:: compare with QP, may be a bug in QP
+		  uktop.at(iceljcel)=ualoft;
+		  vktop.at(iceljcel)=valoft;
+		  wktop.at(iceljcel)=0.f;
+		}
+	      }
+	      //! this sets reference for vertical transfer
+	      utot=utot+.000001;
+	      int idcelk=k*nxdx*nydy +jcel*nxdx +icel;
+	      int ik=k*nxdx*nydy+i;
+	      cosl=wind_vel[idcelk].u/utot;
+	      sinl=wind_vel[idcelk].v/utot;
+	      if(retrieveCellTypeFromArray(idcelk) > 0){
+		delutz=sqrt( pow( (wind_vel[idcelk].u-zcorf.at(k)*uktop.at(iceljcel)),2.f)
+			     +pow( (wind_vel[idcelk].v -zcorf.at(k)*vktop.at(iceljcel)),2.f)
+			     +pow( (wind_vel[idcelk].w -zcorf.at(k)*wktop.at(iceljcel)),2.f) );
+		deluc.at(ik)=sqrt( pow( (urefu.at(ik)-wind_vel[idcelk].u),2.f)
+				   +pow( (urefv.at(ik)-wind_vel[idcelk].v),2.f)
+				   +pow( (urefw.at(ik)-wind_vel[idcelk].w),2.f));
+		//!mdw 4-16-2004 added correction for ktop+3 > nz-1
+		if(k!=ktp){
+		  //! Selects the largest gradient (vert or horiz transfer)
+		  //! mdw 4-16-2004 added proper treatment of zfo
                         
-		      if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceljcel)/(ht[i]+zfo[i])) &&
-                           delutz>.2*zcorf.at(k)*utotktp.at(iceljcel)){// ! vertical dominates
-                            ustargz.at(idcelk)=std::max(knlc*utotktp.at(iceljcel),ustargz.at(idcelk)); 
-                            if(fabs(ustargz.at(idcelk)-knlc*utotktp.at(iceljcel))<1.e-05*ustargz.at(idcelk)){//!This value dominates over prev. buildings.
-                                elzg.at(idcelk)=ht[i]+zfo[i];
-                                upvpg=0.f;
-                                upwpg=-ctau13*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                upsqg=cusq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                vpsqg=cvsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                vpwpg=0.f;
-                                wpsqg=cwsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                ustarg.at(idcelk)=ustargz.at(idcelk);
-                                rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                            }
-                        }
-                        else{
-                            //! We use the vertical gradient as dominant if it is sharper than the horizontal
-                            duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl;
-                            //! we now have the delta u between the outside of the bldg and the center of the wake
-                            //! mdw 6-10-2004 removed
-                            if(deluc.at(ik)>.2*uref.at(ik)){
-                                ustarg.at(idcelk)=std::max(ustarg.at(idcelk),knlc*deluc.at(ik));
-                                if(fabs(ustarg.at(idcelk)-knlc*deluc.at(ik))<1.e-05*ustarg.at(idcelk)){// ! if the horiz is dominant calculate sigmas
-                                    upvpg=0.f;
-                                    //! on axis u prime v prime is zero
-                                    upwpg=0.f;
-                                    //! for eddy transport in uv we dont consider uw
-                                    upsqg=cusq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
-                                    wpsqg=cvsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
-                                    vpwpg=0.f;
-                                    elzg.at(idcelk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
-                                    vpsqg=cwsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
-                                    rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                                }
-                            }
-                        }
-                    }
-                }
-                else{
-                    deluc.at(ik)=0.;
-                    delutz=0.;
-                }
-                //! transverse do loop in downstream wake
+		  if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceljcel)/(ht[i]+zfo[i])) &&
+		     delutz>.2*zcorf.at(k)*utotktp.at(iceljcel)){// ! vertical dominates
+		    ustargz.at(idcelk)=std::max(knlc*utotktp.at(iceljcel),ustargz.at(idcelk)); 
+		    if(fabs(ustargz.at(idcelk)-knlc*utotktp.at(iceljcel))<1.e-05*ustargz.at(idcelk)){//!This value dominates over prev. buildings.
+		      elzg.at(idcelk)=ht[i]+zfo[i];
+		      upvpg=0.f;
+		      upwpg=-ctau13*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+		      upsqg=cusq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+		      vpsqg=cvsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+		      vpwpg=0.f;
+		      wpsqg=cwsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+		      ustarg.at(idcelk)=ustargz.at(idcelk);
+		      rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+		    }
+		  }
+		  else{
+		    //! We use the vertical gradient as dominant if it is sharper than the horizontal
+		    duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl;
+		    //! we now have the delta u between the outside of the bldg and the center of the wake
+		    //! mdw 6-10-2004 removed
+		    if(deluc.at(ik)>.2*uref.at(ik)){
+		      ustarg.at(idcelk)=std::max(ustarg.at(idcelk),knlc*deluc.at(ik));
+		      if(fabs(ustarg.at(idcelk)-knlc*deluc.at(ik))<1.e-05*ustarg.at(idcelk)){// ! if the horiz is dominant calculate sigmas
+			upvpg=0.f;
+			//! on axis u prime v prime is zero
+			upwpg=0.f;
+			//! for eddy transport in uv we dont consider uw
+			upsqg=cusq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
+			wpsqg=cvsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
+			vpwpg=0.f;
+			elzg.at(idcelk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
+			vpsqg=cwsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
+			rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+		      }
+		    }
+		  }
+		}
+	      }
+	      else{
+		deluc.at(ik)=0.;
+		delutz=0.;
+	      }
+	      //! transverse do loop in downstream wake
                 
-                for(int ist=2;ist<=istf;ist++){//do ist=2,istf 
-                    //! first direction in the transverse of the wake
-                    xcelt=xcell+ds*(ist-1.f)*cosphit;
-                    ycelt=ycell+ds*(ist-1.f)*sinphit;
-                    temp=(xcelt-dx)/dx;
-                    icelt=nint(temp)+1;
-                    temp=(ycelt-dy)/dy;
-                    jcelt=nint(temp)+1;
-                    if(fabs(xcelt-xcell)<.5f*ds)icelt=icel;
-                    if(fabs(ycelt-ycell)<.5f*ds)jcelt=jcel;
-                    icelt=std::min(nxdx-1,icelt);
-                    icelt=std::max(1,icelt);
-                    jcelt=std::min(nydy-1,jcelt);
-                    jcelt=std::max(1,jcelt);
-                    int iceltjcelt=jcelt*nxdx + icelt;
-                    int idceltk= k*nxdx*nydy + jcelt*nxdx +icelt;
-                    if(retrieveCellTypeFromArray(idceltk) > 0){
-                        utott=sqrt(wind_vel[idceltk].u*wind_vel[idceltk].u + wind_vel[idceltk].v*wind_vel[idceltk].v
-                                   + wind_vel[idceltk].w*wind_vel[idceltk].w);
-                        utott=utott+.000001f;
-                        //!mdw 4-16-2004 added correction for ktop+3 > nz-1
+	      for(int ist=2;ist<=istf;ist++){//do ist=2,istf 
+		//! first direction in the transverse of the wake
+		xcelt=xcell+ds*(ist-1.f)*cosphit;
+		ycelt=ycell+ds*(ist-1.f)*sinphit;
+		temp=(xcelt-dx)/dx;
+		icelt=nint(temp)+1;
+		temp=(ycelt-dy)/dy;
+		jcelt=nint(temp)+1;
+		if(fabs(xcelt-xcell)<.5f*ds)icelt=icel;
+		if(fabs(ycelt-ycell)<.5f*ds)jcelt=jcel;
+		icelt=std::min(nxdx-1,icelt);
+		icelt=std::max(1,icelt);
+		jcelt=std::min(nydy-1,jcelt);
+		jcelt=std::max(1,jcelt);
+		int iceltjcelt=jcelt*nxdx + icelt;
+		int idceltk= k*nxdx*nydy + jcelt*nxdx +icelt;
+		if(retrieveCellTypeFromArray(idceltk) > 0){
+		  utott=sqrt(wind_vel[idceltk].u*wind_vel[idceltk].u + wind_vel[idceltk].v*wind_vel[idceltk].v
+			     + wind_vel[idceltk].w*wind_vel[idceltk].w);
+		  utott=utott+.000001f;
+		  //!mdw 4-16-2004 added correction for ktop+3 > nz-1
 
-                        int idceltktop=ktop*nxdx*nydy + jcelt*nxdx +icelt;
-                        if(k==ktp){
-                            if(ktop<nzdz-1){
-                                utotktp.at(iceltjcelt)=utott;
-                                uktop.at(iceltjcelt)=wind_vel[idceltktop].u;
-                                vktop.at(iceltjcelt)=wind_vel[idceltktop].v;
-                                wktop.at(iceltjcelt)=wind_vel[idceltktop].w;
-                            }
-                            else{
-                                utotktp.at(iceltjcelt)=sqrt(ualoft*ualoft+valoft*valoft);
-                                uktop.at(iceltjcelt)=ualoft;
-                                vktop.at(iceltjcelt)=valoft;  
-                                wktop.at(iceltjcelt)=0.;
-                            }
-                        }
-                        int ik=k*nxdx*nydy +i;
-                        delut=sqrt(pow( (urefu.at(ik)-wind_vel[idceltk].u),2.f)+
-                                   pow( (urefv.at(ik)-wind_vel[idceltk].v),2.f)+
-                                   pow( (urefw.at(ik)-wind_vel[idceltk].w),2.f));
-                        delutz=sqrt(pow( (wind_vel[idceltk].u-zcorf.at(k)*uktop.at(iceltjcelt)),2.f)
-                                    +pow( (wind_vel[idceltk].v-zcorf.at(k)*vktop.at(iceltjcelt)),2.f)
-                                    +pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2.f));
-                        //!mdw 4-16-2004 added correction for ktop+3 > nz-1
-                        if(k!=ktp){
-                            //! mdw 4-16-2004 added proper treatment of zfo
-                            //! mdw 6-10-2004 changed to make check on centerline rather than local value
-                            int ik=k*nxdx*nydy +i;
-                            if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
-                               && delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
-                                if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
-                                    ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
-                                    elzg.at(idceltk)=ht[i]+zfo[i];
-                                    upvpg=0.;
-                                    upwpg=-ctau13*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                    upsqg=cusq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                    vpsqg=cvsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                    vpwpg=0.;
-                                    wpsqg=cwsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                    ustarg.at(idceltk)=ustargz.at(idceltk);
-                                    rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                                }
-                            }
-                            else{
-                                // We use the vertical gradient as dominant if it is sharper than the horizontal
-                                cosl=wind_vel[idceltk].u/utott;
-                                sinl=wind_vel[idceltk].v/utott;
-                                duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl;
-                                // mdw 6-10-2004 changed check from delut (local value) to deluc.at(ik); centerline
-                                if(delut>.2*uref.at(ik)){
-                                    if(ustarg.at(idceltk)<knlc*deluc.at(ik)){
-                                        ustarg.at(idceltk)=knlc*deluc.at(ik);
-                                        upvpg=-((ist-1.f)/(istf-1.f))*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        upwpg=0.;
-                                        // for eddy transport in uv we dont consider uw
-                                        upsqg=cusq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        vpwpg=0.;
-                                        vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        elzg.at(idceltk)=.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
-                                        rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                                    }
-                                }
-                            }
-                            if(is==isini){
-                                for(int isin=isini+1;isin<=istinf;isin++){//do isin=isini+1,istinf
-                                    xceln=xcelt-ds*(isin-1)*cosphi;
-                                    yceln=ycelt-ds*(isin-1)*sinphi;
-                                    temp=(xceln-dx)/dx;
-                                    iceln=nint(temp)+1;
-                                    temp=(yceln-dy)/dy;
-                                    jceln=nint(temp)+1;
-                                    iceln=std::min(nxdx-1,iceln);
-                                    iceln=std::max(1,iceln);
-                                    jceln=std::min(nydy-1,jceln);
-                                    jceln=std::max(1,jceln);
-                                    // mdw 3/22/2004PM added if statement to avoid replacing non-zero ustarg stuff
-                                    // with zero values
-                                    int idcelnk= k*nxdx*nydy + jceln*nxdx +iceln;
-                                    if(ustarg.at(idceltk)>ustarg.at(idcelnk)){
-                                        ustarg.at(idcelnk)=ustarg.at(idceltk);
-                                        elzg.at(idcelnk)=elzg.at(idceltk);
-                                        ufsqgi.at(idcelnk)=ufsqgi.at(idceltk);
-                                        vfsqgi.at(idcelnk)=vfsqgi.at(idceltk);
-                                        wfsqgi.at(idcelnk)=wfsqgi.at(idceltk);
-                                        ufvfgi.at(idcelnk)=ufvfgi.at(idceltk);
-                                        ufwfgi.at(idcelnk)=ufwfgi.at(idceltk);
-                                        vfwfgi.at(idcelnk)=vfwfgi.at(idceltk);
-                                    }
-                                    // mdw 3/22/2004PM new endif for new if then
-                                }//enddo
-                            }
-                        }
-                    }
-                    // opposite direction in the transverse of the wake
-                    xcelt=xcell-ds*(ist-1.f)*cosphit;
-                    ycelt=ycell-ds*(ist-1.f)*sinphit;
-                    temp=(xcelt-dx)/dx;
-                    icelt=nint(temp)+1; 
-                    temp=(ycelt-dy)/dy;
-                    jcelt=nint(temp)+1; 
-                    if(fabs(xcelt-xcell)<.5*ds)icelt=icel;
-                    if(fabs(ycelt-ycell)<.5*ds)jcelt=jcel;
-                    icelt=std::min(nxdx-1,icelt); 
-                    icelt=std::max(1,icelt);
-                    jcelt=std::min(nydy-1,jcelt);
-                    jcelt=std::max(1,jcelt);
+		  int idceltktop=ktop*nxdx*nydy + jcelt*nxdx +icelt;
+		  if(k==ktp){
+		    if(ktop<nzdz-1){
+		      utotktp.at(iceltjcelt)=utott;
+		      uktop.at(iceltjcelt)=wind_vel[idceltktop].u;
+		      vktop.at(iceltjcelt)=wind_vel[idceltktop].v;
+		      wktop.at(iceltjcelt)=wind_vel[idceltktop].w;
+		    }
+		    else{
+		      utotktp.at(iceltjcelt)=sqrt(ualoft*ualoft+valoft*valoft);
+		      uktop.at(iceltjcelt)=ualoft;
+		      vktop.at(iceltjcelt)=valoft;  
+		      wktop.at(iceltjcelt)=0.;
+		    }
+		  }
+		  int ik=k*nxdx*nydy +i;
+		  delut=sqrt(pow( (urefu.at(ik)-wind_vel[idceltk].u),2.f)+
+			     pow( (urefv.at(ik)-wind_vel[idceltk].v),2.f)+
+			     pow( (urefw.at(ik)-wind_vel[idceltk].w),2.f));
+		  delutz=sqrt(pow( (wind_vel[idceltk].u-zcorf.at(k)*uktop.at(iceltjcelt)),2.f)
+			      +pow( (wind_vel[idceltk].v-zcorf.at(k)*vktop.at(iceltjcelt)),2.f)
+			      +pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2.f));
+		  //!mdw 4-16-2004 added correction for ktop+3 > nz-1
+		  if(k!=ktp){
+		    //! mdw 4-16-2004 added proper treatment of zfo
+		    //! mdw 6-10-2004 changed to make check on centerline rather than local value
+		    int ik=k*nxdx*nydy +i;
+		    if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
+		       && delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
+		      if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
+			ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
+			elzg.at(idceltk)=ht[i]+zfo[i];
+			upvpg=0.;
+			upwpg=-ctau13*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+			upsqg=cusq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+			vpsqg=cvsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+			vpwpg=0.;
+			wpsqg=cwsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+			ustarg.at(idceltk)=ustargz.at(idceltk);
+			rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+		      }
+		    }
+		    else{
+		      // We use the vertical gradient as dominant if it is sharper than the horizontal
+		      cosl=wind_vel[idceltk].u/utott;
+		      sinl=wind_vel[idceltk].v/utott;
+		      duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl;
+		      // mdw 6-10-2004 changed check from delut (local value) to deluc.at(ik); centerline
+		      if(delut>.2*uref.at(ik)){
+			if(ustarg.at(idceltk)<knlc*deluc.at(ik)){
+			  ustarg.at(idceltk)=knlc*deluc.at(ik);
+			  upvpg=-((ist-1.f)/(istf-1.f))*ustarg.at(idceltk)*ustarg.at(idceltk);
+			  upwpg=0.;
+			  // for eddy transport in uv we dont consider uw
+			  upsqg=cusq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			  wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			  vpwpg=0.;
+			  vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			  elzg.at(idceltk)=.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
+			  rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+			}
+		      }
+		    }
+		    if(is==isini){
+		      for(int isin=isini+1;isin<=istinf;isin++){//do isin=isini+1,istinf
+			xceln=xcelt-ds*(isin-1)*cosphi;
+			yceln=ycelt-ds*(isin-1)*sinphi;
+			temp=(xceln-dx)/dx;
+			iceln=nint(temp)+1;
+			temp=(yceln-dy)/dy;
+			jceln=nint(temp)+1;
+			iceln=std::min(nxdx-1,iceln);
+			iceln=std::max(1,iceln);
+			jceln=std::min(nydy-1,jceln);
+			jceln=std::max(1,jceln);
+			// mdw 3/22/2004PM added if statement to avoid replacing non-zero ustarg stuff
+			// with zero values
+			int idcelnk= k*nxdx*nydy + jceln*nxdx +iceln;
+			if(ustarg.at(idceltk)>ustarg.at(idcelnk)){
+			  ustarg.at(idcelnk)=ustarg.at(idceltk);
+			  elzg.at(idcelnk)=elzg.at(idceltk);
+			  ufsqgi.at(idcelnk)=ufsqgi.at(idceltk);
+			  vfsqgi.at(idcelnk)=vfsqgi.at(idceltk);
+			  wfsqgi.at(idcelnk)=wfsqgi.at(idceltk);
+			  ufvfgi.at(idcelnk)=ufvfgi.at(idceltk);
+			  ufwfgi.at(idcelnk)=ufwfgi.at(idceltk);
+			  vfwfgi.at(idcelnk)=vfwfgi.at(idceltk);
+			}
+			// mdw 3/22/2004PM new endif for new if then
+		      }//enddo
+		    }
+		  }
+		}
+		// opposite direction in the transverse of the wake
+		xcelt=xcell-ds*(ist-1.f)*cosphit;
+		ycelt=ycell-ds*(ist-1.f)*sinphit;
+		temp=(xcelt-dx)/dx;
+		icelt=nint(temp)+1; 
+		temp=(ycelt-dy)/dy;
+		jcelt=nint(temp)+1; 
+		if(fabs(xcelt-xcell)<.5*ds)icelt=icel;
+		if(fabs(ycelt-ycell)<.5*ds)jcelt=jcel;
+		icelt=std::min(nxdx-1,icelt); 
+		icelt=std::max(1,icelt);
+		jcelt=std::min(nydy-1,jcelt);
+		jcelt=std::max(1,jcelt);
                     
-                    iceltjcelt=jcelt*nxdx + icelt;
-                    int idceltktop=ktop*nxdx*nydy + jcelt*nxdx +icelt;
-                    idceltk=k*nxdx*nydy + jcelt*nxdx +icelt;
-                    if(retrieveCellTypeFromArray(idceltk) > 0){
-                        utott=sqrt(wind_vel[idceltk].u*wind_vel[idceltk].u+wind_vel[idceltk].v*wind_vel[idceltk].v
-                                   +wind_vel[idceltk].w*wind_vel[idceltk].w);
-                        utott=utott+.000001;
-                        delut=sqrt(pow( (urefu.at(ik)-wind_vel[idceltk].u),2)
-                                   + pow( (urefv.at(ik)-wind_vel[idceltk].v),2)
-                                   + pow( (urefw.at(ik)-wind_vel[idceltk].w),2));
-                        // mdw 4-16-2004 added correction for ktop+3 > nz-1
+		iceltjcelt=jcelt*nxdx + icelt;
+		int idceltktop=ktop*nxdx*nydy + jcelt*nxdx +icelt;
+		idceltk=k*nxdx*nydy + jcelt*nxdx +icelt;
+		if(retrieveCellTypeFromArray(idceltk) > 0){
+		  utott=sqrt(wind_vel[idceltk].u*wind_vel[idceltk].u+wind_vel[idceltk].v*wind_vel[idceltk].v
+			     +wind_vel[idceltk].w*wind_vel[idceltk].w);
+		  utott=utott+.000001;
+		  delut=sqrt(pow( (urefu.at(ik)-wind_vel[idceltk].u),2)
+			     + pow( (urefv.at(ik)-wind_vel[idceltk].v),2)
+			     + pow( (urefw.at(ik)-wind_vel[idceltk].w),2));
+		  // mdw 4-16-2004 added correction for ktop+3 > nz-1
                         
-                        if(k==ktp){
-                            if(ktop<=nzdz-1){
-                                utotktp.at(iceltjcelt)=utott;
-                                uktop.at(iceltjcelt)=wind_vel[idceltktop].u;
-                                vktop.at(iceltjcelt)=wind_vel[idceltktop].v;
-                                wktop.at(iceltjcelt)=wind_vel[idceltktop].w;
-                            }
-                            else{
-                                utotktp.at(iceltjcelt)=sqrt(ualoft*ualoft+valoft*valoft);
-                                uktop.at(iceltjcelt)=ualoft;
-                                vktop.at(iceltjcelt)=valoft;
-                                wktop.at(iceltjcelt)=0.;
-                            }
-                        }
-                        // mdw 4-16-2004 added correction for ktop+3 > nz-1
+		  if(k==ktp){
+		    if(ktop<=nzdz-1){
+		      utotktp.at(iceltjcelt)=utott;
+		      uktop.at(iceltjcelt)=wind_vel[idceltktop].u;
+		      vktop.at(iceltjcelt)=wind_vel[idceltktop].v;
+		      wktop.at(iceltjcelt)=wind_vel[idceltktop].w;
+		    }
+		    else{
+		      utotktp.at(iceltjcelt)=sqrt(ualoft*ualoft+valoft*valoft);
+		      uktop.at(iceltjcelt)=ualoft;
+		      vktop.at(iceltjcelt)=valoft;
+		      wktop.at(iceltjcelt)=0.;
+		    }
+		  }
+		  // mdw 4-16-2004 added correction for ktop+3 > nz-1
                         
-                        if(k!=ktp){
-                            delutz=sqrt(pow( (wind_vel[idceltk].u-zcorf.at(k)*uktop.at(iceltjcelt)),2)
-                                        +pow( (wind_vel[idceltk].v-zcorf.at(k)*vktop.at(iceltjcelt)),2)
-                                        +pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2));
-                            // mdw 4-16-2004 added proper treatment of zfo
-                            // mdw 6-10-2004 made check on centerline rather than local value
-                            if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
-                               && delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
-                                if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
-                                    ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
-                                    elzg.at(idceltk)=ht[i]+zfo[i];
-                                    upvpg=0.;
-                                    upwpg=-ctau13*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                    upsqg=cusq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                    vpsqg=cvsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                    vpwpg=0.;
-                                    wpsqg=cwsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                    ustarg.at(idceltk)=ustargz.at(idceltk);
-                                    rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                                }
-                            }
-                            else{
-                                // We use the vertical gradient as dominant if it is sharper than the horizontal
-                                cosl=wind_vel[idceltk].u/utott;
-                                sinl=wind_vel[idceltk].v/utott;
-                                duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl; 
-                                // mdw 6-10-2004 made check on centerline value rather than local value
+		  if(k!=ktp){
+		    delutz=sqrt(pow( (wind_vel[idceltk].u-zcorf.at(k)*uktop.at(iceltjcelt)),2)
+				+pow( (wind_vel[idceltk].v-zcorf.at(k)*vktop.at(iceltjcelt)),2)
+				+pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2));
+		    // mdw 4-16-2004 added proper treatment of zfo
+		    // mdw 6-10-2004 made check on centerline rather than local value
+		    if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
+		       && delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
+		      if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
+			ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
+			elzg.at(idceltk)=ht[i]+zfo[i];
+			upvpg=0.;
+			upwpg=-ctau13*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+			upsqg=cusq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+			vpsqg=cvsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+			vpwpg=0.;
+			wpsqg=cwsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+			ustarg.at(idceltk)=ustargz.at(idceltk);
+			rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+		      }
+		    }
+		    else{
+		      // We use the vertical gradient as dominant if it is sharper than the horizontal
+		      cosl=wind_vel[idceltk].u/utott;
+		      sinl=wind_vel[idceltk].v/utott;
+		      duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl; 
+		      // mdw 6-10-2004 made check on centerline value rather than local value
                                 
-                                if(delut>.2f*uref.at(ik)){
-                                    if(ustarg.at(idceltk)<knlc*deluc.at(ik)){
-                                        ustarg.at(idceltk)=knlc*deluc.at(ik);
-                                        upvpg=((ist-1.f)/(istf-1.f))*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        upwpg=0.f;
-                                        // for eddy transport in uv we dont consider uw
-                                        upvpg=ctau13*zbrac*((ist-1.f)/(istf-1.f))*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        upwpg=0.f;
-                                        // for eddy transport in uv we dont consider uw
-                                        upsqg=cusq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        elzg.at(idceltk)=0.5f* m_util_ptr->qpBuildoutData.buildings[i].weff ;
-                                        vpwpg=0.f;
-                                        vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                        rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                                    }
-                                }
-                            }
-                            if(is==isini){
-                                for(int isin=isini+1;isin<=istinf;isin++){
-                                    xceln=xcelt-ds*(isin-1)*cosphi;
-                                    yceln=ycelt-ds*(isin-1)*sinphi;
-                                    temp=(xceln-dx)/dx;
-                                    iceln=nint(temp)+1; 
-                                    temp=(yceln-dy)/dy;
-                                    jceln=nint(temp)+1; 
-                                    iceln=std::min(nxdx-1,iceln);
-                                    iceln=std::max(1,iceln);
-                                    jceln=std::min(nydy-1,jceln);
-                                    jceln=std::max(1,jceln);
-                                    int idcelnk=k*nxdx*nydy +jceln*nxdx +iceln;
-                                    // mdw 3/22/2004pm adding new if then structure to avoid replacing non-zero
-                                    // ustarg with zero ones
-                                    if(ustarg.at(idceltk)>ustarg.at(idcelnk)){
-                                        ustarg.at(idcelnk)=ustarg.at(idceltk);
-                                        elzg.at(idcelnk)=elzg.at(idceltk); 
-                                        ufsqgi.at(idcelnk)=ufsqgi.at(idceltk);
-                                        vfsqgi.at(idcelnk)=vfsqgi.at(idceltk);
-                                        wfsqgi.at(idcelnk)=wfsqgi.at(idceltk);
-                                        ufvfgi.at(idcelnk)=ufvfgi.at(idceltk);
-                                        ufwfgi.at(idcelnk)=ufwfgi.at(idceltk);
-                                        vfwfgi.at(idcelnk)=vfwfgi.at(idceltk);
-                                    }
-                                }//enddo
-                                // mdw 3/22/2004 end of new if then structure
-                            }//endif
-                        }//endif
-                    }
-                }   //lp021
+		      if(delut>.2f*uref.at(ik)){
+			if(ustarg.at(idceltk)<knlc*deluc.at(ik)){
+			  ustarg.at(idceltk)=knlc*deluc.at(ik);
+			  upvpg=((ist-1.f)/(istf-1.f))*ustarg.at(idceltk)*ustarg.at(idceltk);
+			  upwpg=0.f;
+			  // for eddy transport in uv we dont consider uw
+			  upvpg=ctau13*zbrac*((ist-1.f)/(istf-1.f))*ustarg.at(idceltk)*ustarg.at(idceltk);
+			  upwpg=0.f;
+			  // for eddy transport in uv we dont consider uw
+			  upsqg=cusq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			  wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			  elzg.at(idceltk)=0.5f* m_util_ptr->qpBuildoutData.buildings[i].weff ;
+			  vpwpg=0.f;
+			  vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			  rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+			}
+		      }
+		    }
+		    if(is==isini){
+		      for(int isin=isini+1;isin<=istinf;isin++){
+			xceln=xcelt-ds*(isin-1)*cosphi;
+			yceln=ycelt-ds*(isin-1)*sinphi;
+			temp=(xceln-dx)/dx;
+			iceln=nint(temp)+1; 
+			temp=(yceln-dy)/dy;
+			jceln=nint(temp)+1; 
+			iceln=std::min(nxdx-1,iceln);
+			iceln=std::max(1,iceln);
+			jceln=std::min(nydy-1,jceln);
+			jceln=std::max(1,jceln);
+			int idcelnk=k*nxdx*nydy +jceln*nxdx +iceln;
+			// mdw 3/22/2004pm adding new if then structure to avoid replacing non-zero
+			// ustarg with zero ones
+			if(ustarg.at(idceltk)>ustarg.at(idcelnk)){
+			  ustarg.at(idcelnk)=ustarg.at(idceltk);
+			  elzg.at(idcelnk)=elzg.at(idceltk); 
+			  ufsqgi.at(idcelnk)=ufsqgi.at(idceltk);
+			  vfsqgi.at(idcelnk)=vfsqgi.at(idceltk);
+			  wfsqgi.at(idcelnk)=wfsqgi.at(idceltk);
+			  ufvfgi.at(idcelnk)=ufvfgi.at(idceltk);
+			  ufwfgi.at(idcelnk)=ufwfgi.at(idceltk);
+			  vfwfgi.at(idcelnk)=vfwfgi.at(idceltk);
+			}
+		      }//enddo
+		      // mdw 3/22/2004 end of new if then structure
+		    }//endif
+		  }//endif
+		}
+	      }   //lp021
             }  //lp022
 
             isini=1;
             for(int is=1; is<=isfu;is++){//do is=1,isfu
-                // upstream front eddy along the centerline
-                xcell=xcu-ds*(is-1.f)*cosphi;
-                ycell=ycu-ds*(is-1.f)*sinphi;
-                //mdw 7-05-2006 changed form form =nint( / ) to nint( / )+1
-                temp=(xcell-dx)/dx;
-                icel=nint(temp)+1; 
-                temp=(ycell-dy)/dy;
-                jcel=nint(temp)+1; 
-                icel=std::min(nxdx-1,icel);
-                icel=std::max(1,icel);
-                jcel=std::min(nydy-1,jcel);
-                jcel=std::max(1,jcel);
-                int idcelk=k*nxdx*nydy +jcel*nxdx +icel;
-                int iceljcel=jcel*nxdx +icel;
-                if(retrieveCellTypeFromArray(idcelk) == 0 && is == 1){
-                    isini=2;
-                }
-                int idcelktop=ktop*nxdx*nydy + jcel*nxdx +icel;
-                idcelk=k*nxdx*nydy + jcel*nxdx +icel;
-                utot=sqrt(wind_vel[idcelk].u*wind_vel[idcelk].u+wind_vel[idcelk].v*wind_vel[idcelk].v+wind_vel[idcelk].w*wind_vel[idcelk].w);
-                // mdw 1-22-2004 new lines in support of bldg infiltration
-                if((k==kmid)&&(is==1))utotcl1.at(i)=utot;
-                if((k==kmid)&&(utot>utotmax.at(i)))utotmax.at(i)=utot; 
-                utot=utot+.000001;
-                //mdw 4-16-2004 added correction for ktop+3 > nz-1
-                if(k==ktp){
-                    if(ktop<=nzdz-1){
-                        utotktp.at(iceljcel)=utot;
-                        uktop.at(iceljcel)=wind_vel[idcelktop].u;
-                        vktop.at(iceljcel)=wind_vel[idcelktop].v;
-                        wktop.at(iceljcel)=wind_vel[idcelktop].w;
-                    }
-                    else{
-                        utotktp.at(iceljcel)=sqrt(ualoft*ualoft+valoft*valoft);
-                        uktop.at(iceljcel)=ualoft;
-                        vktop.at(iceljcel)=valoft;
-                        wktop.at(iceljcel)=0.;
-                    }
-                }
-                deluc.at(ik)=sqrt(pow( (urefu.at(ik)-wind_vel[idcelk].u),2)+
-                                  pow( (urefv.at(ik)-wind_vel[idcelk].v),2)+
-                                  pow( (urefw.at(ik)-wind_vel[idcelk].w),2));
-                //mdw 4-16-2004 added correction for ktop+3 > nz-1
-                if(k!=ktp){
-                    delutz=sqrt(pow( (wind_vel[idcelk].u-zcorf.at(k)*uktop.at(iceljcel)),2)+
-                                pow( (wind_vel[idcelk].v-zcorf.at(k)*vktop.at(iceljcel)),2)+
-                                pow( (wind_vel[idcelk].w-zcorf.at(k)*wktop.at(iceljcel)),2));
-                    deluc.at(ik)=sqrt(pow( (urefu.at(ik)-wind_vel[idcelk].u),2)+
-                                      pow( (urefv.at(ik)-wind_vel[idcelk].v),2)+
-                                      pow( (urefw.at(ik)-wind_vel[idcelk].w),2));
-                    // Selects the largest gradient (vert or horiz transfer)
-                    // mdw 4-16-2004 added proper treatment of zfo
-                    if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceljcel)/(ht[i]+zfo[i])) 
-                       && delutz>.2*zcorf.at(k)*utotktp.at(iceljcel)){ // vertical dominates
-                        if(ustargz.at(idcelk)<knlc*utotktp.at(iceljcel)){ // This value dominates over prev. buildings.
-                            ustargz.at(idcelk)=knlc*utotktp.at(iceljcel);
-                            elzg.at(idcelk)=ht[i]+zfo[i];
-                            upvpg=0.;
-                            upwpg=-ctau13*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                            upsqg=cusq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                            vpsqg=cvsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                            vpwpg=0.;
-                            wpsqg=cwsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk); // align sigmas with the overall mean wind
-                            ustarg.at(idcelk)=ustargz.at(idcelk);
-                            rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                        }
-                    }
-                    else{
-                        // We use the vertical gradient as dominant if it is sharper than the horizontal
-                        cosl=wind_vel[idcelk].u/utot;
-                        sinl=wind_vel[idcelk].v/utot;
-                        duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl;
-                        // we now have the delta u between the outside of the bldg and the center of the wake
-                        if(deluc.at(ik)>.2*uref.at(ik)){
-                            if(ustarg.at(idcelk)<knlc*deluc.at(ik)){
-                                ustarg.at(idcelk)=knlc*deluc.at(ik);
-                                upvpg=0.;
-                                // on axis u prime v prime is zero
-                                upwpg=0.;
-                                // for eddy transport in uv we dont consider uw
-                                upsqg=cusq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
-                                wpsqg=cvsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
-                                vpwpg=0.;
-                                elzg.at(idcelk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
-                                vpsqg=cwsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
-                                rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                            }
-                        }
-                    }
-                }
-                for(int ist=2;ist<=istf;ist++){//do ist=2,istf
-                    // first direction in the transverse of the front eddy
-                    xcelt=xcell+ds*(ist-1.f)*cosphit;
-                    ycelt=ycell+ds*(ist-1.f)*sinphit;
-                    //mdw 7-05-2006 changed form from nint( / ) to nint( / )+1
-                    temp=(xcelt-dx)/dx;
-                    icelt=nint(temp)+1;
-                    temp=(ycelt-dy)/dy;
-                    jcelt=nint(temp)+1;
-                    if(fabs(xcelt-xcell)<.5*ds)icelt=icel;
-                    if(fabs(ycelt-ycell)<.5*ds)jcelt=jcel;
-                    //mdw 7-11-2006 check added to use closest axis cell
-                    icelt=std::min(nxdx-1,icelt);
-                    icelt=std::max(1,icelt);
-                    jcelt=std::min(nydy-1,jcelt);
-                    jcelt=std::max(1,jcelt);
-                    int idceltk=k*nxdx*nydy + jcelt*nxdx +icelt;
-                    int idceltktop=ktop*nxdx*nydy + jcelt*nxdx +icelt;
-                    int iceltjcelt=jcelt*nxdx + icelt;
-                    utott=sqrt(wind_vel[idceltk].u*wind_vel[idceltk].u+wind_vel[idceltk].v*wind_vel[idceltk].v
-                               +wind_vel[idceltk].w*wind_vel[idceltk].w);
-                    utott=utott+.000001;
-                    delut=sqrt(pow( (urefu.at(ik)-wind_vel[idceltk].u),2)+
-                               pow( (urefv.at(ik)-wind_vel[idceltk].v),2)+
-                               pow( (urefw.at(ik)-wind_vel[idceltk].w),2));
-                    //mdw 4-16-2004 added correction for ktop+3 > nz-1
-                    if(k==ktp){
-                        if(ktop<=nzdz-1){
-                            utotktp.at(iceltjcelt)=utott;
-                            uktop.at(iceltjcelt)=wind_vel[idceltktop].u;
-                            vktop.at(iceltjcelt)=wind_vel[idceltktop].v;
-                            wktop.at(iceltjcelt)=wind_vel[idceltktop].w;
-                        }
-                        else{
-                            utotktp.at(iceltjcelt)=sqrt(ualoft*ualoft+valoft*valoft);
-                            uktop.at(iceltjcelt)=ualoft;
-                            vktop.at(iceltjcelt)=valoft;
-                            wktop.at(iceltjcelt)=0.;
-                        }
-                    }
-                    //mdw 4-16-2004 added correction for ktop+3 > nz-1
-                    if(k!=ktp){
-                        delutz=sqrt(pow( (wind_vel[idceltk].u-zcorf.at(k)*uktop.at(iceltjcelt)),2)+
-                                    pow( (wind_vel[idceltk].v-zcorf.at(k)*vktop.at(iceltjcelt)),2)+
-                                    pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2));
-                        // mdw 4-16-2004 added proper treatment of zfo
-                        // mdw 6-10-2004 made check on centerline deluc rather than local delut
-                        if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
-                           && delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
-                            if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
-                                ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
-                                elzg.at(idceltk)=ht[i]+zfo[i];
-                                upvpg=0.;
-                                upwpg=-ctau13*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                upsqg=cusq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                vpsqg=cvsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                vpwpg=0.;
-                                wpsqg=cwsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                ustarg.at(idceltk)=ustargz.at(idceltk);
-                                rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                            }
-                        }
-                        else{
-                            // We use the vertical gradient as dominant if it is sharper than the horizontal
-                            cosl=wind_vel[idceltk].u/utott;
-                            sinl=wind_vel[idceltk].v/utott;
-                            duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl;
-                            // mdw 6-10-2004 made check on centerline rather than local value
-                            if(delut>.2*uref.at(ik)){
-                                if(ustarg.at(idceltk)<knlc*deluc.at(ik)){
-                                    ustarg.at(idceltk)=knlc*deluc.at(ik);
-                                    // for eddy transport in uv we dont consider uw
-                                    upvpg=-ctau13*zbrac*((ist-1.f)/(istf-1.f))*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                    upwpg=0.;
-                                    // for eddy transport in uv we dont consider uw
-                                    upsqg=cusq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                    wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                    vpwpg=0.;
-                                    vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                    elzg.at(idceltk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
-                                    rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                                }
-                            }
-                        }
-                        if(is==isini){
-                            for(int isin=isini+1;isin<=istinf;isin++){//do isin=isini+1,istinf
-                                xceln=xcelt+ds*(isin-1)*cosphi;
-                                yceln=ycelt+ds*(isin-1)*sinphi;
-                                temp=(xceln-dx)/dx;
-                                iceln=nint(temp)+1; 
-                                temp=(yceln-dy)/dy;
-                                jceln=nint(temp)+1; 
-                                iceln=std::min(nxdx-1,iceln);
-                                iceln=std::max(1,iceln);
-                                jceln=std::min(nydy-1,jceln);
-                                jceln=std::max(1,jceln);
+	      // upstream front eddy along the centerline
+	      xcell=xcu-ds*(is-1.f)*cosphi;
+	      ycell=ycu-ds*(is-1.f)*sinphi;
+	      //mdw 7-05-2006 changed form form =nint( / ) to nint( / )+1
+	      temp=(xcell-dx)/dx;
+	      icel=nint(temp)+1; 
+	      temp=(ycell-dy)/dy;
+	      jcel=nint(temp)+1; 
+	      icel=std::min(nxdx-1,icel);
+	      icel=std::max(1,icel);
+	      jcel=std::min(nydy-1,jcel);
+	      jcel=std::max(1,jcel);
+	      int idcelk=k*nxdx*nydy +jcel*nxdx +icel;
+	      int iceljcel=jcel*nxdx +icel;
+	      if(retrieveCellTypeFromArray(idcelk) == 0 && is == 1){
+		isini=2;
+	      }
+	      int idcelktop=ktop*nxdx*nydy + jcel*nxdx +icel;
+	      idcelk=k*nxdx*nydy + jcel*nxdx +icel;
+	      utot=sqrt(wind_vel[idcelk].u*wind_vel[idcelk].u+wind_vel[idcelk].v*wind_vel[idcelk].v+wind_vel[idcelk].w*wind_vel[idcelk].w);
+	      // mdw 1-22-2004 new lines in support of bldg infiltration
+	      if((k==kmid)&&(is==1))utotcl1.at(i)=utot;
+	      if((k==kmid)&&(utot>utotmax.at(i)))utotmax.at(i)=utot; 
+	      utot=utot+.000001;
+	      //mdw 4-16-2004 added correction for ktop+3 > nz-1
+	      if(k==ktp){
+		if(ktop<=nzdz-1){
+		  utotktp.at(iceljcel)=utot;
+		  uktop.at(iceljcel)=wind_vel[idcelktop].u;
+		  vktop.at(iceljcel)=wind_vel[idcelktop].v;
+		  wktop.at(iceljcel)=wind_vel[idcelktop].w;
+		}
+		else{
+		  utotktp.at(iceljcel)=sqrt(ualoft*ualoft+valoft*valoft);
+		  uktop.at(iceljcel)=ualoft;
+		  vktop.at(iceljcel)=valoft;
+		  wktop.at(iceljcel)=0.;
+		}
+	      }
+	      deluc.at(ik)=sqrt(pow( (urefu.at(ik)-wind_vel[idcelk].u),2)+
+				pow( (urefv.at(ik)-wind_vel[idcelk].v),2)+
+				pow( (urefw.at(ik)-wind_vel[idcelk].w),2));
+	      //mdw 4-16-2004 added correction for ktop+3 > nz-1
+	      if(k!=ktp){
+		delutz=sqrt(pow( (wind_vel[idcelk].u-zcorf.at(k)*uktop.at(iceljcel)),2)+
+			    pow( (wind_vel[idcelk].v-zcorf.at(k)*vktop.at(iceljcel)),2)+
+			    pow( (wind_vel[idcelk].w-zcorf.at(k)*wktop.at(iceljcel)),2));
+		deluc.at(ik)=sqrt(pow( (urefu.at(ik)-wind_vel[idcelk].u),2)+
+				  pow( (urefv.at(ik)-wind_vel[idcelk].v),2)+
+				  pow( (urefw.at(ik)-wind_vel[idcelk].w),2));
+		// Selects the largest gradient (vert or horiz transfer)
+		// mdw 4-16-2004 added proper treatment of zfo
+		if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceljcel)/(ht[i]+zfo[i])) 
+		   && delutz>.2*zcorf.at(k)*utotktp.at(iceljcel)){ // vertical dominates
+		  if(ustargz.at(idcelk)<knlc*utotktp.at(iceljcel)){ // This value dominates over prev. buildings.
+		    ustargz.at(idcelk)=knlc*utotktp.at(iceljcel);
+		    elzg.at(idcelk)=ht[i]+zfo[i];
+		    upvpg=0.;
+		    upwpg=-ctau13*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+		    upsqg=cusq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+		    vpsqg=cvsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+		    vpwpg=0.;
+		    wpsqg=cwsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk); // align sigmas with the overall mean wind
+		    ustarg.at(idcelk)=ustargz.at(idcelk);
+		    rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+		  }
+		}
+		else{
+		  // We use the vertical gradient as dominant if it is sharper than the horizontal
+		  cosl=wind_vel[idcelk].u/utot;
+		  sinl=wind_vel[idcelk].v/utot;
+		  duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl;
+		  // we now have the delta u between the outside of the bldg and the center of the wake
+		  if(deluc.at(ik)>.2*uref.at(ik)){
+		    if(ustarg.at(idcelk)<knlc*deluc.at(ik)){
+		      ustarg.at(idcelk)=knlc*deluc.at(ik);
+		      upvpg=0.;
+		      // on axis u prime v prime is zero
+		      upwpg=0.;
+		      // for eddy transport in uv we dont consider uw
+		      upsqg=cusq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
+		      wpsqg=cvsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
+		      vpwpg=0.;
+		      elzg.at(idcelk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
+		      vpsqg=cwsq*zbrac*ustarg.at(idcelk)*ustarg.at(idcelk);
+		      rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+		    }
+		  }
+		}
+	      }
+	      for(int ist=2;ist<=istf;ist++){//do ist=2,istf
+		// first direction in the transverse of the front eddy
+		xcelt=xcell+ds*(ist-1.f)*cosphit;
+		ycelt=ycell+ds*(ist-1.f)*sinphit;
+		//mdw 7-05-2006 changed form from nint( / ) to nint( / )+1
+		temp=(xcelt-dx)/dx;
+		icelt=nint(temp)+1;
+		temp=(ycelt-dy)/dy;
+		jcelt=nint(temp)+1;
+		if(fabs(xcelt-xcell)<.5*ds)icelt=icel;
+		if(fabs(ycelt-ycell)<.5*ds)jcelt=jcel;
+		//mdw 7-11-2006 check added to use closest axis cell
+		icelt=std::min(nxdx-1,icelt);
+		icelt=std::max(1,icelt);
+		jcelt=std::min(nydy-1,jcelt);
+		jcelt=std::max(1,jcelt);
+		int idceltk=k*nxdx*nydy + jcelt*nxdx +icelt;
+		int idceltktop=ktop*nxdx*nydy + jcelt*nxdx +icelt;
+		int iceltjcelt=jcelt*nxdx + icelt;
+		utott=sqrt(wind_vel[idceltk].u*wind_vel[idceltk].u+wind_vel[idceltk].v*wind_vel[idceltk].v
+			   +wind_vel[idceltk].w*wind_vel[idceltk].w);
+		utott=utott+.000001;
+		delut=sqrt(pow( (urefu.at(ik)-wind_vel[idceltk].u),2)+
+			   pow( (urefv.at(ik)-wind_vel[idceltk].v),2)+
+			   pow( (urefw.at(ik)-wind_vel[idceltk].w),2));
+		//mdw 4-16-2004 added correction for ktop+3 > nz-1
+		if(k==ktp){
+		  if(ktop<=nzdz-1){
+		    utotktp.at(iceltjcelt)=utott;
+		    uktop.at(iceltjcelt)=wind_vel[idceltktop].u;
+		    vktop.at(iceltjcelt)=wind_vel[idceltktop].v;
+		    wktop.at(iceltjcelt)=wind_vel[idceltktop].w;
+		  }
+		  else{
+		    utotktp.at(iceltjcelt)=sqrt(ualoft*ualoft+valoft*valoft);
+		    uktop.at(iceltjcelt)=ualoft;
+		    vktop.at(iceltjcelt)=valoft;
+		    wktop.at(iceltjcelt)=0.;
+		  }
+		}
+		//mdw 4-16-2004 added correction for ktop+3 > nz-1
+		if(k!=ktp){
+		  delutz=sqrt(pow( (wind_vel[idceltk].u-zcorf.at(k)*uktop.at(iceltjcelt)),2)+
+			      pow( (wind_vel[idceltk].v-zcorf.at(k)*vktop.at(iceltjcelt)),2)+
+			      pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2));
+		  // mdw 4-16-2004 added proper treatment of zfo
+		  // mdw 6-10-2004 made check on centerline deluc rather than local delut
+		  if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
+		     && delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
+		    if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
+		      ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
+		      elzg.at(idceltk)=ht[i]+zfo[i];
+		      upvpg=0.;
+		      upwpg=-ctau13*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+		      upsqg=cusq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+		      vpsqg=cvsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+		      vpwpg=0.;
+		      wpsqg=cwsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+		      ustarg.at(idceltk)=ustargz.at(idceltk);
+		      rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+		    }
+		  }
+		  else{
+		    // We use the vertical gradient as dominant if it is sharper than the horizontal
+		    cosl=wind_vel[idceltk].u/utott;
+		    sinl=wind_vel[idceltk].v/utott;
+		    duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl;
+		    // mdw 6-10-2004 made check on centerline rather than local value
+		    if(delut>.2*uref.at(ik)){
+		      if(ustarg.at(idceltk)<knlc*deluc.at(ik)){
+			ustarg.at(idceltk)=knlc*deluc.at(ik);
+			// for eddy transport in uv we dont consider uw
+			upvpg=-ctau13*zbrac*((ist-1.f)/(istf-1.f))*ustarg.at(idceltk)*ustarg.at(idceltk);
+			upwpg=0.;
+			// for eddy transport in uv we dont consider uw
+			upsqg=cusq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			vpwpg=0.;
+			vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			elzg.at(idceltk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
+			rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+		      }
+		    }
+		  }
+		  if(is==isini){
+		    for(int isin=isini+1;isin<=istinf;isin++){//do isin=isini+1,istinf
+		      xceln=xcelt+ds*(isin-1)*cosphi;
+		      yceln=ycelt+ds*(isin-1)*sinphi;
+		      temp=(xceln-dx)/dx;
+		      iceln=nint(temp)+1; 
+		      temp=(yceln-dy)/dy;
+		      jceln=nint(temp)+1; 
+		      iceln=std::min(nxdx-1,iceln);
+		      iceln=std::max(1,iceln);
+		      jceln=std::min(nydy-1,jceln);
+		      jceln=std::max(1,jceln);
                                 
-                                int idcelnk=k*nxdx*nydy + jceln*nxdx +iceln;
-                                int idcelnktop=ktop*nxdx*nydy + jceln*nxdx +iceln;
-                                int icelnjceln=jceln*nxdx + iceln;
-                                // mdw 3/22/2004pm added new if then structure to prevent replacing non-zero
-                                // ustarg s with zero ones
-                                if(ustarg.at(idceltk)>ustarg.at(idcelnk)){
-                                    ustarg.at(idcelnk)=ustarg.at(idceltk);
-                                    elzg.at(idcelnk)=elzg.at(idceltk);
-                                    ufsqgi.at(idcelnk)=ufsqgi.at(idceltk);
-                                    vfsqgi.at(idcelnk)=vfsqgi.at(idceltk);
-                                    wfsqgi.at(idcelnk)=wfsqgi.at(idceltk);
-                                    ufvfgi.at(idcelnk)=ufvfgi.at(idceltk);
-                                    ufwfgi.at(idcelnk)=ufwfgi.at(idceltk);
-                                    vfwfgi.at(idcelnk)=vfwfgi.at(idceltk);
-                                }
-                                // mdw 3/22/2004pm end  of new if then structure
-                            }//enddo
-                        }
-                    }
-                    // opposite direction in the transverse of the front eddy
-                    xcelt=xcell-ds*(ist-1.f)*cosphit;
-                    ycelt=ycell-ds*(ist-1.f)*sinphit;
-                    //mdw 7-05-2006 changed form from nint( / ) to nint( / )+1
-                    temp=(xcelt-dx)/dx;
-                    icelt=nint(temp)+1; 
-                    temp=(ycelt-dy)/dy;
-                    jcelt=nint(temp)+1; 
+		      int idcelnk=k*nxdx*nydy + jceln*nxdx +iceln;
+		      int idcelnktop=ktop*nxdx*nydy + jceln*nxdx +iceln;
+		      int icelnjceln=jceln*nxdx + iceln;
+		      // mdw 3/22/2004pm added new if then structure to prevent replacing non-zero
+		      // ustarg s with zero ones
+		      if(ustarg.at(idceltk)>ustarg.at(idcelnk)){
+			ustarg.at(idcelnk)=ustarg.at(idceltk);
+			elzg.at(idcelnk)=elzg.at(idceltk);
+			ufsqgi.at(idcelnk)=ufsqgi.at(idceltk);
+			vfsqgi.at(idcelnk)=vfsqgi.at(idceltk);
+			wfsqgi.at(idcelnk)=wfsqgi.at(idceltk);
+			ufvfgi.at(idcelnk)=ufvfgi.at(idceltk);
+			ufwfgi.at(idcelnk)=ufwfgi.at(idceltk);
+			vfwfgi.at(idcelnk)=vfwfgi.at(idceltk);
+		      }
+		      // mdw 3/22/2004pm end  of new if then structure
+		    }//enddo
+		  }
+		}
+		// opposite direction in the transverse of the front eddy
+		xcelt=xcell-ds*(ist-1.f)*cosphit;
+		ycelt=ycell-ds*(ist-1.f)*sinphit;
+		//mdw 7-05-2006 changed form from nint( / ) to nint( / )+1
+		temp=(xcelt-dx)/dx;
+		icelt=nint(temp)+1; 
+		temp=(ycelt-dy)/dy;
+		jcelt=nint(temp)+1; 
                     
-                    if(fabs(xcelt-xcell)<.5*ds)icelt=icel;
-                    if(fabs(ycelt-ycell)<.5*ds)jcelt=jcel;
-                    //mdw 7-11-2006 check added to use closest axis cell
-                    icelt=std::min(nxdx-1,icelt);
-                    icelt=std::max(1,icelt);
-                    jcelt=std::min(nydy-1,jcelt);
-                    jcelt=std::max(1,jcelt);
-                    iceltjcelt=jcelt*nxdx + icelt;
-                    idceltktop=ktop*nxdx*nydy+jcelt*nxdx +icelt;
-                    idceltk=k*nxdx*nydy +jcelt*nxdx +icelt;
-                    utott=sqrt(wind_vel[idceltk].u*wind_vel[idceltk].u+wind_vel[idceltk].v*wind_vel[idceltk].v
-                               +wind_vel[idceltk].w*wind_vel[idceltk].w);
+		if(fabs(xcelt-xcell)<.5*ds)icelt=icel;
+		if(fabs(ycelt-ycell)<.5*ds)jcelt=jcel;
+		//mdw 7-11-2006 check added to use closest axis cell
+		icelt=std::min(nxdx-1,icelt);
+		icelt=std::max(1,icelt);
+		jcelt=std::min(nydy-1,jcelt);
+		jcelt=std::max(1,jcelt);
+		iceltjcelt=jcelt*nxdx + icelt;
+		idceltktop=ktop*nxdx*nydy+jcelt*nxdx +icelt;
+		idceltk=k*nxdx*nydy +jcelt*nxdx +icelt;
+		utott=sqrt(wind_vel[idceltk].u*wind_vel[idceltk].u+wind_vel[idceltk].v*wind_vel[idceltk].v
+			   +wind_vel[idceltk].w*wind_vel[idceltk].w);
                     
-                    utott=utott+.000001;
-                    //mdw 4-16-2004 added correction for ktop+3 > nz-1
-                    if(k==ktp){
-                        if(ktop<=nzdz-1){
-                            utotktp.at(iceltjcelt)=utott;
-                            uktop.at(iceltjcelt)=wind_vel[idceltktop].u;
-                            vktop.at(iceltjcelt)=wind_vel[idceltktop].v;
-                            wktop.at(iceltjcelt)=wind_vel[idceltktop].w;
-                        }
-                        else{
-                            utotktp.at(iceltjcelt)=sqrt(ualoft*ualoft+valoft*valoft);
-                            uktop.at(iceltjcelt)=ualoft;
-                            vktop.at(iceltjcelt)=valoft;
-                            wktop.at(iceltjcelt)=0.;
-                        }
-                    }
-                    delut=sqrt(pow( (urefu.at(ik)-wind_vel[idceltk].u),2)
-                               +pow( (urefv.at(ik)-wind_vel[idceltk].v),2)
-                               +pow( (urefw.at(ik)-wind_vel[idceltk].w),2));
-                    //mdw 4-16-2004 added correction for ktop+3 > nz-1
-                    if(k!=ktp){
-                        delutz=sqrt(pow( (wind_vel[idceltk].u-zcorf.at(k)*uktop.at(iceltjcelt)),2)+
-                                    pow( (wind_vel[idceltk].v-zcorf.at(k)*vktop.at(iceltjcelt)),2)+
-                                    pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2));
-                        // mdw 4-16-2004 added proper treatment of zfo
-                        // mdw 6-10-2004 made check on centerline rather than local value
-                        if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
-                           &&delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
+		utott=utott+.000001;
+		//mdw 4-16-2004 added correction for ktop+3 > nz-1
+		if(k==ktp){
+		  if(ktop<=nzdz-1){
+		    utotktp.at(iceltjcelt)=utott;
+		    uktop.at(iceltjcelt)=wind_vel[idceltktop].u;
+		    vktop.at(iceltjcelt)=wind_vel[idceltktop].v;
+		    wktop.at(iceltjcelt)=wind_vel[idceltktop].w;
+		  }
+		  else{
+		    utotktp.at(iceltjcelt)=sqrt(ualoft*ualoft+valoft*valoft);
+		    uktop.at(iceltjcelt)=ualoft;
+		    vktop.at(iceltjcelt)=valoft;
+		    wktop.at(iceltjcelt)=0.;
+		  }
+		}
+		delut=sqrt(pow( (urefu.at(ik)-wind_vel[idceltk].u),2)
+			   +pow( (urefv.at(ik)-wind_vel[idceltk].v),2)
+			   +pow( (urefw.at(ik)-wind_vel[idceltk].w),2));
+		//mdw 4-16-2004 added correction for ktop+3 > nz-1
+		if(k!=ktp){
+		  delutz=sqrt(pow( (wind_vel[idceltk].u-zcorf.at(k)*uktop.at(iceltjcelt)),2)+
+			      pow( (wind_vel[idceltk].v-zcorf.at(k)*vktop.at(iceltjcelt)),2)+
+			      pow( (wind_vel[idceltk].w-zcorf.at(k)*wktop.at(iceltjcelt)),2));
+		  // mdw 4-16-2004 added proper treatment of zfo
+		  // mdw 6-10-2004 made check on centerline rather than local value
+		  if((2.*deluc.at(ik)/ m_util_ptr->qpBuildoutData.buildings[i].weff )<(utotktp.at(iceltjcelt)/(ht[i]+zfo[i])) 
+		     &&delutz>.2*zcorf.at(k)*utotktp.at(iceltjcelt)){
                             
-                            if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
-                                ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
-                                elzg.at(idceltk)=ht[i]+zfo[i];
-                                upvpg=0.;
-                                upwpg=-ctau13*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                upsqg=cusq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                vpsqg=cvsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                vpwpg=0.;
-                                wpsqg=cwsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
-                                ustarg.at(idceltk)=ustargz.at(idceltk);
-                                rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                            }
-                        }
-                        else{
-                            // We use the vertical gradient as dominant if it is sharper than the horizontal
-                            cosl=wind_vel[idceltk].u/utott;
-                            sinl=wind_vel[idceltk].v/utott;
-                            duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl;
-                            // mdw 6-10-2004 made check on centerline rather than local (delut) value
-                            if(delut>.2*uref.at(k)){
-                                if(ustarg.at(idceltk)<knlc*deluc.at(ik)&&ustargz.at(idceltk)<knlc*deluc.at(ik)){
-                                    ustarg.at(idceltk)=knlc*deluc.at(ik);
+		    if(ustargz.at(idceltk)<knlc*utotktp.at(iceltjcelt)){
+		      ustargz.at(idceltk)=knlc*utotktp.at(iceltjcelt);
+		      elzg.at(idceltk)=ht[i]+zfo[i];
+		      upvpg=0.;
+		      upwpg=-ctau13*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+		      upsqg=cusq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+		      vpsqg=cvsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+		      vpwpg=0.;
+		      wpsqg=cwsq*zbrac*ustargz.at(idceltk)*ustargz.at(idceltk);
+		      ustarg.at(idceltk)=ustargz.at(idceltk);
+		      rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+		    }
+		  }
+		  else{
+		    // We use the vertical gradient as dominant if it is sharper than the horizontal
+		    cosl=wind_vel[idceltk].u/utott;
+		    sinl=wind_vel[idceltk].v/utott;
+		    duy=-deluc.at(ik)*sinl*cosu+deluc.at(ik)*sinv*cosl;
+		    // mdw 6-10-2004 made check on centerline rather than local (delut) value
+		    if(delut>.2*uref.at(k)){
+		      if(ustarg.at(idceltk)<knlc*deluc.at(ik)&&ustargz.at(idceltk)<knlc*deluc.at(ik)){
+			ustarg.at(idceltk)=knlc*deluc.at(ik);
                                     
-                                    // for eddy transport in uv we dont consider uw
-                                    float tau13=0.;
-                                    upvpg=-tau13*zbrac*((ist-1.f)/(istf-1.f))*ustarg.at(idceltk)*ustarg.at(idceltk);//check:: might be bug in QP
-                                    upwpg=0.;
-                                    // for eddy transport in uv we dont consider uw
-                                    upsqg=cusq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                    wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                    vpwpg=0.;
-                                    elzg.at(idceltk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
-                                    vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
-                                    rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                                }
-                            }
-                        }
-                        if(is==isini){
-                            for(int isin=isini+1;isin<=istinf;isin++){//do isin=isini+1,istinf{
-                                xceln=xcelt+ds*(isin-1)*cosphi;
-                                yceln=ycelt+ds*(isin-1)*sinphi;
-                                temp=(xceln-dx)/dx;
-                                iceln=nint(temp)+1; 
-                                temp=(yceln-dy)/dy;
-                                jceln=nint(temp)+1; 
-                                iceln=std::min(nxdx-1,iceln);
-                                iceln=std::max(1,iceln);
-                                jceln=std::min(nydy-1,jceln);
-                                jceln=std::max(1,jceln);
-                                int idcelnk=k*nxdx*nydy + jceln*nxdx +iceln;
-                                int idcelnktop=ktop*nxdx*nydy + jceln*nxdx +iceln;
-                                int icelnjceln=jceln*nxdx + iceln;
-                                // mdw 3/22/2004pm added new if then structure to prevent replacing non-zero
-                                // ustargs with zero ones
-                                if(ustarg.at(idceltk)>ustarg.at(idcelnk)){
-                                    ustarg.at(idcelnk)=ustarg.at(idceltk);
+			// for eddy transport in uv we dont consider uw
+			float tau13=0.;
+			upvpg=-tau13*zbrac*((ist-1.f)/(istf-1.f))*ustarg.at(idceltk)*ustarg.at(idceltk);//check:: might be bug in QP
+			upwpg=0.;
+			// for eddy transport in uv we dont consider uw
+			upsqg=cusq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			wpsqg=cvsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			vpwpg=0.;
+			elzg.at(idceltk)=0.5* m_util_ptr->qpBuildoutData.buildings[i].weff ;
+			vpsqg=cwsq*zbrac*ustarg.at(idceltk)*ustarg.at(idceltk);
+			rotate2d(idceltk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+		      }
+		    }
+		  }
+		  if(is==isini){
+		    for(int isin=isini+1;isin<=istinf;isin++){//do isin=isini+1,istinf{
+		      xceln=xcelt+ds*(isin-1)*cosphi;
+		      yceln=ycelt+ds*(isin-1)*sinphi;
+		      temp=(xceln-dx)/dx;
+		      iceln=nint(temp)+1; 
+		      temp=(yceln-dy)/dy;
+		      jceln=nint(temp)+1; 
+		      iceln=std::min(nxdx-1,iceln);
+		      iceln=std::max(1,iceln);
+		      jceln=std::min(nydy-1,jceln);
+		      jceln=std::max(1,jceln);
+		      int idcelnk=k*nxdx*nydy + jceln*nxdx +iceln;
+		      int idcelnktop=ktop*nxdx*nydy + jceln*nxdx +iceln;
+		      int icelnjceln=jceln*nxdx + iceln;
+		      // mdw 3/22/2004pm added new if then structure to prevent replacing non-zero
+		      // ustargs with zero ones
+		      if(ustarg.at(idceltk)>ustarg.at(idcelnk)){
+			ustarg.at(idcelnk)=ustarg.at(idceltk);
                                     
-                                    elzg.at(idcelnk)=elzg.at(idceltk);
-                                    ufsqgi.at(idcelnk)=ufsqgi.at(idceltk);
-                                    vfsqgi.at(idcelnk)=vfsqgi.at(idceltk);
-                                    wfsqgi.at(idcelnk)=wfsqgi.at(idceltk);
-                                    ufvfgi.at(idcelnk)=ufvfgi.at(idceltk);
-                                    ufwfgi.at(idcelnk)=ufwfgi.at(idceltk);
-                                    vfwfgi.at(idcelnk)=vfwfgi.at(idceltk);
-                                }
-                                // mdw 3/22/2004pm end of new if then structure
-                            }
-                        }
-                    }
+			elzg.at(idcelnk)=elzg.at(idceltk);
+			ufsqgi.at(idcelnk)=ufsqgi.at(idceltk);
+			vfsqgi.at(idcelnk)=vfsqgi.at(idceltk);
+			wfsqgi.at(idcelnk)=wfsqgi.at(idceltk);
+			ufvfgi.at(idcelnk)=ufvfgi.at(idceltk);
+			ufwfgi.at(idcelnk)=ufwfgi.at(idceltk);
+			vfwfgi.at(idcelnk)=vfwfgi.at(idceltk);
+		      }
+		      // mdw 3/22/2004pm end of new if then structure
+		    }
+		  }
+		}
 
-                }//   lp023
+	      }//   lp023
             }//   lp024
-        }//   lp025
-        float xpent1, ypent1;
-        int npentx,npenty,ipent1,ipent2,jpent1,jpent2,ibuild;
+	  }//   lp025
+	  float xpent1, ypent1;
+	  int npentx,npenty,ipent1,ipent2,jpent1,jpent2,ibuild;
         
-        ibuild=1;
-        switch(m_util_ptr->qpBuildoutData.buildings[i].type) {
-        case(3):
-            xpent1=xfo[i]-wti[i]*.2f-dx;
-            temp = ((.4f*wti[i])/dx); 
-            npentx=nint(temp)+1; 
-            ypent1=yfo[i]-wti[i]*.2-dy;
-            temp=((.4f*wti[i])/dy);
-            npenty=nint(temp)+1; 
-            temp = (xpent1-dx)/dx;
-            ipent1=nint(temp)+1; 
-            ipent2=ipent1+npentx;
-            temp= ((ypent1-dy)/dy);
-            jpent1=nint(temp)+1; 
-            jpent2=jpent1+npenty;
+	  std::cout << "pre building switch =====================================>" << std::endl;
+
+	  ibuild=1;
+	  switch(m_util_ptr->qpBuildoutData.buildings[i].type) {
+	    case(3):
+
+	      std::cout << "case 3 =====================================>" << std::endl;
+	      xpent1=xfo[i]-wti[i]*.2f-dx;
+	      temp = ((.4f*wti[i])/dx); 
+	      npentx=nint(temp)+1; 
+	      ypent1=yfo[i]-wti[i]*.2-dy;
+	      temp=((.4f*wti[i])/dy);
+	      npenty=nint(temp)+1; 
+	      temp = (xpent1-dx)/dx;
+	      ipent1=nint(temp)+1; 
+	      ipent2=ipent1+npentx;
+	      temp= ((ypent1-dy)/dy);
+	      jpent1=nint(temp)+1; 
+	      jpent2=jpent1+npenty;
             
-            for(int icel=ipent1;icel<=ipent2;icel++){
+	      for(int icel=ipent1;icel<=ipent2;icel++){
                 for(int jcel=jpent1;jcel<=jpent2;jcel++){
-                    for(int k=ktp;k>=0;k--){
-                        int idcelk=k*nxdx*nydy + jcel*nxdx +icel;    
-                        int iceljcel=jcel*nxdx +icel;
+		  for(int k=ktp;k>=0;k--){
+		    int idcelk=k*nxdx*nydy + jcel*nxdx +icel;    
+		    int iceljcel=jcel*nxdx +icel;
                         
-                        utot=sqrt(wind_vel[idcelk].u*wind_vel[idcelk].u+wind_vel[idcelk].v*wind_vel[idcelk].v+wind_vel[idcelk].w*wind_vel[idcelk].w);
-                        utot=utot+.000001;
+		    utot=sqrt(wind_vel[idcelk].u*wind_vel[idcelk].u+wind_vel[idcelk].v*wind_vel[idcelk].v+wind_vel[idcelk].w*wind_vel[idcelk].w);
+		    utot=utot+.000001;
                         
-                        //mdw 4-16-2004 added correction for ktop+3 > nz-1
-                        if(k==ktp){
-                            if(ktop<=nzdz){
-                                int idcelktop=ktop*nxdx*nydy + jcel*nxdx +icel;
-                                int iceljcel=jcel*nxdx +icel; 
-                                utotktp.at(iceljcel)=utot;
-                                uktop.at(iceljcel)=wind_vel[idcelktop].u;
-                                vktop.at(iceljcel)=wind_vel[idcelktop].v;
-                                wktop.at(iceljcel)=wind_vel[idcelktop].w;
-                            }
-                            else{
-                                utotktp.at(iceljcel)=sqrt(ualoft*ualoft+valoft*valoft);
-                                uktop.at(iceljcel)=ualoft;
-                                vktop.at(iceljcel)=valoft;
-                                wktop.at(iceljcel)=0.;
-                            }
-                        }
-                        if(k!=ktp && retrieveCellTypeFromArray(idcelk) != 0){
-                            // MAN 9/14/2005 pentagon courtyard nonlocal mixing fix
-                            delutz=sqrt((wind_vel[idcelk].u-uktop.at(iceljcel))*(wind_vel[idcelk].u-uktop.at(iceljcel))
-                                        +(wind_vel[idcelk].v-vktop.at(iceljcel))*(wind_vel[idcelk].v-vktop.at(iceljcel))+ 
-                                        (wind_vel[idcelk].w-wktop.at(iceljcel))*(wind_vel[idcelk].w-wktop.at(iceljcel)));
-                            if(delutz>.2*utotktp.at(iceljcel)){ // vertical dominates
-                                // end MAN 9/14/2005           
-                                if(ustargz.at(idcelk)<knlc*utotktp.at(iceljcel)){ // This value dominates over prev. buildings.
-                                    ustargz.at(idcelk)=knlc*utotktp.at(iceljcel);
-                                    elzg.at(idcelk)=ht[i]+zfo[i];
-                                    upvpg=0.;
-                                    upwpg=-ustargz.at(idcelk)*ustargz.at(idcelk);
-                                    upsqg=6.25*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                    vpsqg=(4./6.25)*upsqg;
-                                    vpwpg=0.;
-                                    wpsqg=1.69*ustargz.at(idcelk)*ustargz.at(idcelk); // align sigmas with the overall mean wind
-                                    upvpg=0.;
-                                    upwpg=-ctau13*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                    upsqg=cusq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                    vpsqg=cvsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                    vpwpg=0.;
-                                    wpsqg=cwsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk); // align sigmas with the overall mean wind
-                                    ustarg.at(idcelk)=ustargz.at(idcelk);
-                                    rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                                }
-                            }
-                        }
-                    }
-                    check1=check1+1;
+		    //mdw 4-16-2004 added correction for ktop+3 > nz-1
+		    if(k==ktp){
+		      if(ktop<=nzdz){
+			int idcelktop=ktop*nxdx*nydy + jcel*nxdx +icel;
+			int iceljcel=jcel*nxdx +icel; 
+			utotktp.at(iceljcel)=utot;
+			uktop.at(iceljcel)=wind_vel[idcelktop].u;
+			vktop.at(iceljcel)=wind_vel[idcelktop].v;
+			wktop.at(iceljcel)=wind_vel[idcelktop].w;
+		      }
+		      else{
+			utotktp.at(iceljcel)=sqrt(ualoft*ualoft+valoft*valoft);
+			uktop.at(iceljcel)=ualoft;
+			vktop.at(iceljcel)=valoft;
+			wktop.at(iceljcel)=0.;
+		      }
+		    }
+		    if(k!=ktp && retrieveCellTypeFromArray(idcelk) != 0){
+		      // MAN 9/14/2005 pentagon courtyard nonlocal mixing fix
+		      delutz=sqrt((wind_vel[idcelk].u-uktop.at(iceljcel))*(wind_vel[idcelk].u-uktop.at(iceljcel))
+				  +(wind_vel[idcelk].v-vktop.at(iceljcel))*(wind_vel[idcelk].v-vktop.at(iceljcel))+ 
+				  (wind_vel[idcelk].w-wktop.at(iceljcel))*(wind_vel[idcelk].w-wktop.at(iceljcel)));
+		      if(delutz>.2*utotktp.at(iceljcel)){ // vertical dominates
+			// end MAN 9/14/2005           
+			if(ustargz.at(idcelk)<knlc*utotktp.at(iceljcel)){ // This value dominates over prev. buildings.
+			  ustargz.at(idcelk)=knlc*utotktp.at(iceljcel);
+			  elzg.at(idcelk)=ht[i]+zfo[i];
+			  upvpg=0.;
+			  upwpg=-ustargz.at(idcelk)*ustargz.at(idcelk);
+			  upsqg=6.25*ustargz.at(idcelk)*ustargz.at(idcelk);
+			  vpsqg=(4./6.25)*upsqg;
+			  vpwpg=0.;
+			  wpsqg=1.69*ustargz.at(idcelk)*ustargz.at(idcelk); // align sigmas with the overall mean wind
+			  upvpg=0.;
+			  upwpg=-ctau13*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+			  upsqg=cusq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+			  vpsqg=cvsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+			  vpwpg=0.;
+			  wpsqg=cwsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk); // align sigmas with the overall mean wind
+			  ustarg.at(idcelk)=ustargz.at(idcelk);
+			  rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+			}
+		      }
+		    }
+		  }
+		  check1=check1+1;
                 }
                 check2=check2+1;
-            }
-            check3=check3+1;
-            break;
-        case(4):
-        case(5):
+	      }
+	      check3=check3+1;
+	      break;
+	    case(4):
+	    case(5):
             
-	  float cgamma = cos( m_util_ptr->qpBuildoutData.buildings[i].gamma * pi/180.0 );
-  	  float sgamma = sin( m_util_ptr->qpBuildoutData.buildings[i].gamma * pi/180.0 );
+	      std::cout << "case 5 =====================================>" << std::endl;
 
-	  float x0=xfo[i]+0.5*lti[i]*cgamma;
-	  float y0=yfo[i]+0.5*lti[i]*sgamma;
+	    float cgamma = cos( m_util_ptr->qpBuildoutData.buildings[i].gamma * pi/180.0 );
+	    float sgamma = sin( m_util_ptr->qpBuildoutData.buildings[i].gamma * pi/180.0 );
+
+	    float x0=xfo[i]+0.5*lti[i]*cgamma;
+	    float y0=yfo[i]+0.5*lti[i]*sgamma;
             
-	  float x1=xfo[i]+0.5*wti[ibuild]*sgamma;
-	  float y1=yfo[i]-0.5*wti[ibuild]*cgamma;
+	    float x1=xfo[i]+0.5*wti[ibuild]*sgamma;
+	    float y1=yfo[i]-0.5*wti[ibuild]*cgamma;
 
-	  float x2=x1+lti[i]*cgamma;
-	  float y2=y1+lti[i]*sgamma;
-	  float x4=xfo[i]-0.5*wti[i]*sgamma;
-	  float y4=yfo[i]+0.5*wti[i]*cgamma;
-	  float x3=x4+lti[i]*cgamma;
-	  float y3=y4+lti[i]*sgamma;
+	    float x2=x1+lti[i]*cgamma;
+	    float y2=y1+lti[i]*sgamma;
+	    float x4=xfo[i]-0.5*wti[i]*sgamma;
+	    float y4=yfo[i]+0.5*wti[i]*cgamma;
+	    float x3=x4+lti[i]*cgamma;
+	    float y3=y4+lti[i]*sgamma;
 
             float temp1 = std::min(x1,x2);
             float temp2 = std::min(temp1,x3);
@@ -5362,100 +5375,111 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             int jcelmax = int(temp3/dy);
             
             for(int icel=icelmin;icel<=icelmax+1;icel++){
-                for(int jcel=jcelmin; jcel<=jcelmax+1;jcel++){
-                    float xc=(((icel)-0.5)*dx-x0)*cgamma+
-                        (((jcel)-0.5)*dy-y0)*sgamma;
-                    float yc=-(((icel)-0.5)*dx-x0)*sgamma+
-                        (((jcel)-0.5)*dy-y0)*cgamma;
-					int kk=0;
-                    for(int k=1;k<=ktp;k++){
-                        kk=k;
-                        if(zfo[i]<z.at(k))break;
-                    }
-                    int kzfo=kk;
+	      for(int jcel=jcelmin; jcel<=jcelmax+1;jcel++){
+		float xc=(((icel)-0.5)*dx-x0)*cgamma+
+		  (((jcel)-0.5)*dy-y0)*sgamma;
+		float yc=-(((icel)-0.5)*dx-x0)*sgamma+
+		  (((jcel)-0.5)*dy-y0)*cgamma;
+		int kk=0;
+		// *********************************************
+		std::cout << "initial k: " << k << std::endl;
+		for(int k=1;k<=ktp;k++){
+		  kk=k;
+		  if(zfo[i]<z.at(k))break;
+		}
+		std::cout << "ending k: " << k << std::endl;
+		// *********************************************
+		int kzfo=kk;
                     
-                    for(k=ktp;k>=kzfo;k--){ 
-                        dz=dz_array.at(k);
-                        int incourt=0;
-                        int idcelk=k*nxdx*nydy + jcel*nxdx +icel;
-                        int idcelktop=ktop*nxdx*nydy + jcel*nxdx +icel;
-                        int iceljcel=jcel*nxdx +icel;
-                        if(retrieveCellTypeFromArray(idcelk) != 0){
-                            utot=sqrt(wind_vel[idcelk].u*wind_vel[idcelk].u+wind_vel[idcelk].v*wind_vel[idcelk].v+wind_vel[idcelk].w*wind_vel[idcelk].w)+.000001f;
-                            if(m_util_ptr->qpBuildoutData.buildings[i].type == 4){
-                                if(xc > -0.5*lti[i] && xc < 0.5*lti[i] && 
-                                   yc > -0.5*wti[i] && yc < 0.5*wti[i]){
-                                    incourt=1;
-                                }
-                            }
-                            else{
-                                float rc=sqrt((xc*xc)+(yc*yc));
-                                float tc=atan2(yc,xc);
-                                if(rc < 0.25*lti[i]*wti[i]/
-                                   sqrt((pow( (0.5f*lti[i]*sin(tc)),2.f))+(pow( (0.5f*wti[i]*cos(tc)),2.f)))){
-                                    incourt=1;
-                                }
-                            }
-                        }
-                        else{
-                            continue;
-                        }
-                        //mdw 4-16-2004 added correction for ktop+3 > nz-1
-                        if(incourt == 1){
-                            if(k==ktp){
-                                if(ktop<=nz-1){
-                                    utotktp.at(iceljcel)=utot;
-                                    uktop.at(iceljcel)=wind_vel[idcelktop].u;
-                                    vktop.at(iceljcel)=wind_vel[idcelktop].v;
-                                    wktop.at(iceljcel)=wind_vel[idcelktop].w;
-                                }
-                                else{
-                                    utotktp.at(iceljcel)=sqrt(ualoft*ualoft+valoft*valoft);
-                                    uktop.at(iceljcel)=ualoft;
-                                    vktop.at(iceljcel)=valoft;
-                                    wktop.at(iceljcel)=0.;
-                                }
-                            }
-                            if(k!=ktp && retrieveCellTypeFromArray(idcelk) != 0){
-                                // MAN 9/14/2005 pentagon courtyard nonlocal mixing fix
-                                delutz=sqrt((wind_vel[idcelk].u-uktop.at(iceljcel))*(wind_vel[idcelk].u-uktop.at(iceljcel))
-                                            +(wind_vel[idcelk].v-vktop.at(iceljcel))*(wind_vel[idcelk].v-vktop.at(iceljcel))+ 
-                                            (wind_vel[idcelk].w-wktop.at(iceljcel))*(wind_vel[idcelk].w-wktop.at(iceljcel)));
-                                if(delutz>.2*utotktp.at(iceljcel)){ // vertical dominates
-                                    // end MAN 9/14/2005              
-                                    if(ustargz.at(idcelk)<knlc*utotktp.at(iceljcel)){ // This value dominates over prev. buildings.
-                                        ustargz.at(idcelk)=knlc*utotktp.at(iceljcel);
-                                        elzg.at(idcelk)=ht[i]+zfo[i];
-                                        upvpg=0.;
-                                        upwpg=-ustargz.at(idcelk)*ustargz.at(idcelk);
-                                        upsqg=6.25*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                        vpsqg=(4./6.25)*upsqg;
-                                        vpwpg=0.;
-                                        wpsqg=1.69*ustargz.at(idcelk)*ustargz.at(idcelk); // align sigmas with the overall mean wind
-                                        upvpg=0.;
-                                        upwpg=-ctau13*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                        upsqg=cusq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                        vpsqg=cvsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
-                                        vpwpg=0.;
-                                        wpsqg=cwsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk); // align sigmas with the overall mean wind
-                                        ustarg.at(idcelk)=ustargz.at(idcelk);
-                                        rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    check1=check1+1;
-                }
-                check2=check2+1;
+		// *********************************************
+		std::cout << ">>>> initial k: " << k << std::endl;
+		for(k=ktp;k>=kzfo;k--){ 
+		  dz=dz_array.at(k);
+		  int incourt=0;
+		  int idcelk=k*nxdx*nydy + jcel*nxdx +icel;
+		  int idcelktop=ktop*nxdx*nydy + jcel*nxdx +icel;
+		  int iceljcel=jcel*nxdx +icel;
+		  if(retrieveCellTypeFromArray(idcelk) != 0){
+		    utot=sqrt(wind_vel[idcelk].u*wind_vel[idcelk].u+wind_vel[idcelk].v*wind_vel[idcelk].v+wind_vel[idcelk].w*wind_vel[idcelk].w)+.000001f;
+		    if(m_util_ptr->qpBuildoutData.buildings[i].type == 4){
+		      if(xc > -0.5*lti[i] && xc < 0.5*lti[i] && 
+			 yc > -0.5*wti[i] && yc < 0.5*wti[i]){
+			incourt=1;
+		      }
+		    }
+		    else{
+		      float rc=sqrt((xc*xc)+(yc*yc));
+		      float tc=atan2(yc,xc);
+		      if(rc < 0.25*lti[i]*wti[i]/
+			 sqrt((pow( (0.5f*lti[i]*sin(tc)),2.f))+(pow( (0.5f*wti[i]*cos(tc)),2.f)))){
+			incourt=1;
+		      }
+		    }
+		  }
+		  else{
+		    continue;
+		  }
+		  //mdw 4-16-2004 added correction for ktop+3 > nz-1
+		  if(incourt == 1){
+		    if(k==ktp){
+		      if(ktop<=nz-1){
+			utotktp.at(iceljcel)=utot;
+			uktop.at(iceljcel)=wind_vel[idcelktop].u;
+			vktop.at(iceljcel)=wind_vel[idcelktop].v;
+			wktop.at(iceljcel)=wind_vel[idcelktop].w;
+		      }
+		      else{
+			utotktp.at(iceljcel)=sqrt(ualoft*ualoft+valoft*valoft);
+			uktop.at(iceljcel)=ualoft;
+			vktop.at(iceljcel)=valoft;
+			wktop.at(iceljcel)=0.;
+		      }
+		    }
+		    if(k!=ktp && retrieveCellTypeFromArray(idcelk) != 0){
+		      // MAN 9/14/2005 pentagon courtyard nonlocal mixing fix
+		      delutz=sqrt((wind_vel[idcelk].u-uktop.at(iceljcel))*(wind_vel[idcelk].u-uktop.at(iceljcel))
+				  +(wind_vel[idcelk].v-vktop.at(iceljcel))*(wind_vel[idcelk].v-vktop.at(iceljcel))+ 
+				  (wind_vel[idcelk].w-wktop.at(iceljcel))*(wind_vel[idcelk].w-wktop.at(iceljcel)));
+		      if(delutz>.2*utotktp.at(iceljcel)){ // vertical dominates
+			// end MAN 9/14/2005              
+			if(ustargz.at(idcelk)<knlc*utotktp.at(iceljcel)){ // This value dominates over prev. buildings.
+			  ustargz.at(idcelk)=knlc*utotktp.at(iceljcel);
+			  elzg.at(idcelk)=ht[i]+zfo[i];
+			  upvpg=0.;
+			  upwpg=-ustargz.at(idcelk)*ustargz.at(idcelk);
+			  upsqg=6.25*ustargz.at(idcelk)*ustargz.at(idcelk);
+			  vpsqg=(4./6.25)*upsqg;
+			  vpwpg=0.;
+			  wpsqg=1.69*ustargz.at(idcelk)*ustargz.at(idcelk); // align sigmas with the overall mean wind
+			  upvpg=0.;
+			  upwpg=-ctau13*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+			  upsqg=cusq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+			  vpsqg=cvsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk);
+			  vpwpg=0.;
+			  wpsqg=cwsq*zbrac*ustargz.at(idcelk)*ustargz.at(idcelk); // align sigmas with the overall mean wind
+			  ustarg.at(idcelk)=ustargz.at(idcelk);
+			  rotate2d(idcelk,cosphi,sinphi,upsqg,upvpg,vpsqg,wpsqg,upwpg,vpwpg);
+			}
+		      }
+		    }
+		  }
+		}
+		std::cout << ">>>> ending k: " << k << std::endl;
+		// *********************************************
+		check1=check1+1;
+	      }
+	      check2=check2+1;
             }
             check3=check3+1;
-        }
-        check=check+1;
-        
-         
-    }//for loop for buildings for non-local mixing ends
+	  }
+	  check=check+1;
     
+         
+	}//for loop for buildings for non-local mixing ends
+      }
+    
+    // Pete
+
     // Following code is for local mixing-Balli -06/14/09
     // calculate distance to ground and walls if within 2 cells
     float zbrac=0.;
@@ -5585,6 +5609,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 else{
 		  if(retrieveCellTypeFromArray(id) != 0){
 		    // potential problem if kp1 is greater than index bounds...
+		    std::cout << "wind_vel[ " << kp1 << " ] = (" << wind_vel[kp1].u << ", " << wind_vel[kp1].v << ", " << wind_vel[kp1].w << ")" << std::endl;
                         utotu=sqrt(wind_vel[kp1].u*wind_vel[kp1].u+wind_vel[kp1].v*wind_vel[kp1].v+wind_vel[kp1].w*wind_vel[kp1].w);
                         utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v*+wind_vel[id].w*wind_vel[id].w);
                         if(fabs(dutotdzi.at(id))>1.e-06 && retrieveCellTypeFromArray(id)!=8 && dzm.at(id)>2.*dz){
