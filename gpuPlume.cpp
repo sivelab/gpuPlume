@@ -206,12 +206,14 @@ int main(int argc, char** argv)
       if (util->readInput( quicInputFile ) == false)
 	{
 	  std::cerr << "Could not open or parse input file: \"" << argv[1] << "\"\nExiting." << std::endl;
+	  argParser.printUsage();
 	  exit(EXIT_FAILURE);
 	}
     }
   else 
     {
       std::cerr << "Need to provide QUIC .proj file for opening. Exiting." << std::endl;
+      argParser.printUsage();
       exit(EXIT_FAILURE);
     }
   
