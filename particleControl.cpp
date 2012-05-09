@@ -3985,6 +3985,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 	//Therefore following few lines do not effect the final solution at all
 	// phi will be calculated again by taking into account the actual wind angle at each building.
 
+	std::cout << "degrees --------------------------> " << m_util_ptr->quMetParamData.quSensorData.direction.degrees() << std::endl;
 	float phi = m_util_ptr->quMetParamData.quSensorData.direction.degrees() - theta;
 	// Was -->> float phi = 270.-theta;
 
@@ -5609,7 +5610,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 else{
 		  if(retrieveCellTypeFromArray(id) != 0){
 		    // potential problem if kp1 is greater than index bounds...
-		    std::cout << "wind_vel[ " << kp1 << " ] = (" << wind_vel[kp1].u << ", " << wind_vel[kp1].v << ", " << wind_vel[kp1].w << ")" << std::endl;
+		    // std::cout << "wind_vel[ " << kp1 << " ] = (" << wind_vel[kp1].u << ", " << wind_vel[kp1].v << ", " << wind_vel[kp1].w << ")" << std::endl;
                         utotu=sqrt(wind_vel[kp1].u*wind_vel[kp1].u+wind_vel[kp1].v*wind_vel[kp1].v+wind_vel[kp1].w*wind_vel[kp1].w);
                         utot=sqrt(wind_vel[id].u*wind_vel[id].u+wind_vel[id].v*wind_vel[id].v*+wind_vel[id].w*wind_vel[id].w);
                         if(fabs(dutotdzi.at(id))>1.e-06 && retrieveCellTypeFromArray(id)!=8 && dzm.at(id)>2.*dz){
@@ -5981,7 +5982,11 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     upwp=-ctau13*zbrac*ustarz.at(id)*ustarz.at(id); // -tau13
                     upvp=0.;
                     vpwp=0.;
-                    xloc=1.;
+
+		    // Turn off non-local mixing by setting xloc to 0
+                    // xloc=1.;
+		    xloc = 0.0;
+
                     if(ustarz.at(id)>xloc*ustarg.at(id)){
                         if(rcl<0. && zi.at(k)<.99*h){
                             u3psq=u3psq+.6*(ustarz.at(id)*ustarz.at(id))*pow( (-h*rcl),(2.f/3.f));
