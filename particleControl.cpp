@@ -3985,7 +3985,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 	//Therefore following few lines do not effect the final solution at all
 	// phi will be calculated again by taking into account the actual wind angle at each building.
 
-	float phi = m_util_ptr->quMetParamData.quSensorData.direction - theta;
+	float phi = m_util_ptr->quMetParamData.quSensorData.direction.degrees() - theta;
 	// Was -->> float phi = 270.-theta;
 
 	phi=phi*pi/180.;
@@ -6687,7 +6687,7 @@ float ParticleControl::sign(const float &A,const float &B){
 void ParticleControl::rotu3psq(const int &id,const float &u3psq,const float &utot,const float &upvp,const float &upwp
 							   ,const float &vpwp,const float &v3psq,const float &w3psq,float &ufsqb,float &wfsqb,float &vfsqb
 							   ,float &ufvf,float &ufwf,float &vfwf){
-    //this subroutine rotates the fluctuating quanitities back into the normal
+    // this subroutine rotates the fluctuating quanitities back into the normal
     // coordinate sytem
 								   
     ufsqb=u3psq*alph1ij.at(id)*alph1ij.at(id)+utot*utot*alph1ij.at(id)*alph1ij.at(id)+2.*upvp*alph1ij.at(id)*alph2ij.at(id) 
