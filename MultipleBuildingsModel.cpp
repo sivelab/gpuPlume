@@ -7,7 +7,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 
-#define USE_PATHFBO
+// #define USE_PATHFBO
 
 #ifdef GEN_PNG_IMAGES
 #include "PNGImage.h"
