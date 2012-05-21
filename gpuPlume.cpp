@@ -555,9 +555,6 @@ void display(void)
 
   Timer_t displayStart = plume_clock->tic();    
 
-  plume->pe[curr]->emit = true;
-  plume->pe[curr]->releaseType = onePerKeyPress;
-
   quitSimulation = plume->display();
 
   Timer_t displayEnd = plume_clock->tic();    

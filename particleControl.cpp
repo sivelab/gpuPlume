@@ -3985,9 +3985,11 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 	//Therefore following few lines do not effect the final solution at all
 	// phi will be calculated again by taking into account the actual wind angle at each building.
 
-	std::cout << "degrees --------------------------> " << m_util_ptr->quMetParamData.quSensorData.direction.degrees() << std::endl;
-	float phi = m_util_ptr->quMetParamData.quSensorData.direction.degrees() - theta;
+	std::cout << "degrees --------------------------> " << m_util_ptr->quMetParamData.quSensorData.direction << std::endl;
+	// float phi = m_util_ptr->quMetParamData.quSensorData.direction.degrees() - theta;
+	float phi = m_util_ptr->quMetParamData.quSensorData.direction - theta;
 	// Was -->> float phi = 270.-theta;
+	// phi = 270.0;  ???
 
 	phi=phi*pi/180.;
 	float cosphi=cos(phi);
@@ -4248,9 +4250,22 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 		  ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
                 }
                  
+		// Changes made to match the Windows 5.51 version of
+		// gpuplume, in which turbulence seems to work better
+		// at least for wind angles of 270 degrees.  It
+		// appears that lr and lfr are swtiched in these
+		// versions.  So, we're modifying to match the windows version.
+		// -Pete
+
                 //!mdw 7-05-2006 made changes to xcul & ycul - formerly used .5 dx
-                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upper limit of the eddie
-                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;
+
+		// Was the following in Linux:
+                // xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upper limit of the eddie
+                // ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;
+		// Modified to match windows implementation below:
+                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upper limit of the eddie
+                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;
+
                 xcul=std::max(xcul,0.f);
                 xcul=std::min(xcul,dx*(nxdx-1));
                 ycul=std::max(ycul,0.f);
@@ -4269,9 +4284,22 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 		  xcu=xcb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*cosphi;// ! (upstream)
 		  ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
                 }
+
+		// Changes made to match the Windows 5.51 version of
+		// gpuplume, in which turbulence seems to work better
+		// at least for wind angles of 270 degrees.  It
+		// appears that lr and lfr are swtiched in these
+		// versions.  So, we're modifying to match the windows version.
+		// -Pete
                 //!mdw 7-05-2006 made changes to xcul & ycul - formerly used .5 dx
-                xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upstream limit on the front cavity
-                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;// !
+
+		// Was the following in Linux
+                // xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upstream limit on the front cavity
+                // ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;// !
+		// Modified to match windows implementation
+		xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upstream limit on the front cavity
+                ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;// !		
+
                 xcul=std::max(xcul,0.f);
                 xcul=std::min(xcul,dx*(nxdx-1));
                 ycul=std::max(ycul,0.f);
@@ -4394,9 +4422,22 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 		ycu=ycb.at(i)-(.5*m_util_ptr->qpBuildoutData.buildings[i].leff+0.1*dx)*sinphi;// !
 	      }
 	      //! end MAN 9/15/2005
+
+		// Changes made to match the Windows 5.51 version of
+		// gpuplume, in which turbulence seems to work better
+		// at least for wind angles of 270 degrees.  It
+		// appears that lr and lfr are swtiched in these
+		// versions.  So, we're modifying to match the windows version.
+		// -Pete
+
 	      //! mdw 7-05-2006 eliminated .5 dx  or .5 dy in favor of dx & dy
-	      xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upper limit of the eddie
-	      ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;
+	      // Was the following in Linux:
+	      // xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upper limit of the eddie
+	      // ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;
+	      // Modified to match windows implementation
+	      xcul=xcu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upper limit of the eddie
+	      ycul=ycu-(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;	      
+
 	      xcul=std::max(xcul,0.f);
 	      xcul=std::min(xcul,dx*(nxdx-1));
 	      ycul=std::max(ycul,0.f);
@@ -4417,8 +4458,21 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 	      }
 	      //! end MAN 9/15/2005
                 
-	      xcul=xcu+(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upstream limit on the front cavity
-	      ycul=ycu+(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;// !
+		// Changes made to match the Windows 5.51 version of
+		// gpuplume, in which turbulence seems to work better
+		// at least for wind angles of 270 degrees.  It
+		// appears that lr and lfr are swtiched in these
+		// versions.  So, we're modifying to match the windows version.
+		// -Pete
+
+	      // Was the following in linux:
+	      // xcul=xcu+(m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*cosphi;// ! get upstream limit on the front cavity
+	      // ycul=ycu+(m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*sinphi;// !
+	      // Modified to match the windows implementation:
+	      xcul=xcu+(m_util_ptr->qpBuildoutData.buildings[i].lfr+dx)*cosphi;// ! get upstream limit on the front cavity
+	      ycul=ycu+(m_util_ptr->qpBuildoutData.buildings[i].lfr+dy)*sinphi;// !
+
+
 	      xcul=std::max(xcul,0.f);
 	      xcul=std::min(xcul,dx*(nxdx-1));
 	      ycul=std::max(ycul,0.f);
@@ -4510,6 +4564,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 
             }
             //! mdw 7-05-2006 changed from .5 dx or .5 dy to dx & dy to be consistent with nint
+	    // Apparently, this is supposed to be lr as it matches the windows implementation... ??? -Pete
             xcdl=xcd+(3.*m_util_ptr->qpBuildoutData.buildings[i].lr+dx)*zkfac*cosphi;// ! calculate the x,y limit of the wake as a function of height
             ycdl=ycd+(3.*m_util_ptr->qpBuildoutData.buildings[i].lr+dy)*zkfac*sinphi;// !
             xcdl=std::min(xcdl,dx*(nxdx));
@@ -4554,7 +4609,19 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
             isf=nint(temp)+1;// ! setup limits of calculations (for do loops) (along cneterline down)  
             temp=sup/ds;
             isfu=nint(temp)+1;//  ! (along centerline up) 
-            if(m_util_ptr->qpBuildoutData.buildings[i].lr < 0.f)isfu=0;
+
+	    
+                 
+		// Changes made to match the Windows 5.51 version of
+		// gpuplume, in which turbulence seems to work better
+		// at least for wind angles of 270 degrees.  It
+		// appears that lr and lfr are swtiched in these
+		// versions.  So, we're modifying to match the windows version.
+		// -Pete
+	    // Was the following under Linux:
+            // if(m_util_ptr->qpBuildoutData.buildings[i].lr < 0.f)isfu=0;
+	    // Modified to match windows implementation:
+            if(m_util_ptr->qpBuildoutData.buildings[i].lfr < 0.f)isfu=0;
             
             //!mdw 4-16-2004 added correction for ktop+3 > nz-1
             
@@ -5985,7 +6052,9 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 
 		    // Turn off non-local mixing by setting xloc to 0
                     // xloc=1.;
-		    xloc = 0.0;
+		    // 
+		    // Changed per suggestion from Bugs's Evernote slides: 4/25/12
+		    xloc = 1.0;
 
                     if(ustarz.at(id)>xloc*ustarg.at(id)){
                         if(rcl<0. && zi.at(k)<.99*h){
