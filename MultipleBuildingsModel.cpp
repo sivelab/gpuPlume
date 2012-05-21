@@ -102,7 +102,7 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   sun_azimuth = util->sun_azimuth;
   sun_altitude = util->sun_altitude;
 
-  m_searchForRogues = true;
+  m_searchForRogues = false;
 }
 
 MultipleBuildingsModel::~MultipleBuildingsModel()
@@ -912,7 +912,7 @@ int MultipleBuildingsModel::display(){
       if(util->offscreenRender == false && (!osgPlume))
 	glutSwapBuffers();
 
-      usleep(2000);
+      // usleep(2000);
     }
   else{
     FramebufferObject::Disable();
