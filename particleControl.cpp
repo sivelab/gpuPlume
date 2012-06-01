@@ -3539,11 +3539,12 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
   float rcl = m_util_ptr->qpParamData.rcl;
   float z0 = m_util_ptr->qpParamData.z0;
   float h = m_util_ptr->qpParamData.boundaryLayerHeight; //Boundary Layer Height
-    
+  
     //Balli: declaring few constants
+   //NLM: non-local mixing
     const float kkar = 0.4f;           //von karman constant
     const float pi   = 4.f*atan(1.0f);
-    const float knlc   = 0.113f;         
+    const float knlc   = 0.113f;      //non-local mixing constant   
     const float ctau13 = 1.f;           
     const float cusq   = 2.5f*2.5f;     
     const float cvsq   = 2.f*2.f;         
@@ -3575,8 +3576,8 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     // std::vector<float> gamma, atten, Sx,Sy, weff, leff, lfr, lr
     
     //Balli : Vectors needs to be resized before they are  used otherwise they sometime give runtime errors
-    eleff.resize(nxnynz,0.0);// efective length scale-initialized with zero values.
-    ustarg.resize(nxnynz,0.0);
+    eleff.resize(nxnynz,0.0); // efective turbulent length scale-initialized with zero values.
+    ustarg.resize(nxnynz,0.0); // ustarg is a non-local stress velocity scale, horizontal direction - see Williams et al. 2004
 
     // Rather than re-read QP_buildout.inp here, we instead use the
     // information previously obtained frmo the quicloaders used by
@@ -4038,7 +4039,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 	vktop.resize(nxnynz);
 	wktop.resize(nxnynz);
 	deluc.resize(nxnynz);
-	ustargz.resize(nxnynz);
+	ustargz.resize(nxnynz); //for NLM -  non-local stress velocity scale in the vertical direction
 	elzg.resize(nxnynz,(nxdx+1.)*dx);// initialized it with a value similar to QP
 	utotcl1.resize(nxnynz);
 	utotmax.resize(nxnynz);
@@ -4078,6 +4079,8 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 	      Bs=wti[i];
 	      BL=ht[i];
             }
+// erp 5/20/2010
+// The coefficients here are from Wilson 1979 ASHRAE paper
             float Rscale = ((pow(Bs,(2.f/3.f)))*(pow(BL,(1.f/3.f))));
             float temp=std::max(.22f*Rscale,.11f*wti[i]);
             float zclim  =std::max(temp,.11f*lti[i]);
