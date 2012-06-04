@@ -1,3 +1,9 @@
+Pete - 06/01/12
+
+* Check emitter state to make sure correct number of particles is
+   being emitted.  --> 
+* Get libsivelab reading in 5.51 files as well as 5.72 file sets
+
 Add in time varying flow field/temperature changes.
     --> equilibrium/steady state
 

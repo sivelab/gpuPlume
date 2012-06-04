@@ -226,8 +226,6 @@ void ParticleControl::multipleBuildingsAdvect(bool odd, GLuint windField, GLuint
       //setRandomTexCoords();
       float f1 = Random::uniform() * twidth;
       float f2 = Random::uniform() * theight;
-      //output << t1 << "\n";
-      //output << t2 << "\n";
 
       glUniform2fARB(uniform_randomTexCoordOffset, f1, f2);
     }
@@ -3510,7 +3508,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
     
   //Balli: Substracting 1 from nzdz as it is increased by 1  after reading from QU_simparams.inp in Util.cpp
   // This is no longer true... we need to make sure we treat the variable correctly.
-  // nzdz=nzdz-1;
+  nzdz=nzdz-1;
   std::string s;
 
   float nxnynz=nxdx*nydy*nzdz;
@@ -3986,7 +3984,6 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
 	//Therefore following few lines do not effect the final solution at all
 	// phi will be calculated again by taking into account the actual wind angle at each building.
 
-	std::cout << "degrees --------------------------> " << m_util_ptr->quMetParamData.quSensorData.direction << std::endl;
 	// float phi = m_util_ptr->quMetParamData.quSensorData.direction.degrees() - theta;
 	float phi = m_util_ptr->quMetParamData.quSensorData.direction - theta;
 	// Was -->> float phi = 270.-theta;
@@ -6054,11 +6051,9 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                     vpwp=0.;
 
 		    // Turn off non-local mixing by setting xloc to 0
-                    // xloc=1.;
+                    xloc=1.;
 		    // 
 		    // Changed per suggestion from Bugs's Evernote slides: 4/25/12
-		    xloc = 1.0;
-
                     if(ustarz.at(id)>xloc*ustarg.at(id)){
                         if(rcl<0. && zi.at(k)<.99*h){
                             u3psq=u3psq+.6*(ustarz.at(id)*ustarz.at(id))*pow( (-h*rcl),(2.f/3.f));

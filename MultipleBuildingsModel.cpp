@@ -2,10 +2,10 @@
 #include "MultipleBuildingsModel.h"
 #include "glErrorUtil.h"
 #include <fstream>
-#include<cstring>
-#include<sstream>
-#include<stdlib.h>
-#include<stdio.h>
+#include <cstring>
+#include <sstream>
+#include <cstdlib>
+#include <cstdio>
 
 // #define USE_PATHFBO
 
@@ -21,6 +21,8 @@
 #include <tchar.h>
 
 #endif
+
+long cba_simIterCount;
 GLfloat* int_buffer;
 FILE * fp; 
 std::ofstream outputFile;
@@ -92,11 +94,23 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
 
   mbaTimer = new Timer(true);
 
-  std::string str1=util->quicFilesPath+"QU_deposition.dat";
+  // /////////////////////////////////////////////////////////////
+  //
+  // This code was used to output the QU_deposition.dat files by
+  // communicating data from the shader through the FBO Attachment #7.
+  // We are now using this to verify shader computed and used data.
+  //
+  // Due to historical use (via Andy Norgren), we use the
+  // color_by_advect_terms boolean to enable/disable the writing of
+  // this data.
+  //
+  // std::string str1=util->quicFilesPath+"QU_deposition.dat";
+  cba_simIterCount = 0;
+  // std::string str1=util->quicFilesPath+"QP_ShaderOutput.bin";  
   // std::cout << "Attempting to open deposition file for writing: \"" << str1 << "\"." << std::endl;
-
+  // outputFile.open(str1.c_str(), std::ios::out | std::ios::binary);
   //outputFile.open(str1.c_str(),std::ios::out);
-  fp=fopen(str1.c_str(),"wb");
+  // fp=fopen(str1.c_str(),"wb");
 
   // Set the default sun angle's
   sun_azimuth = util->sun_azimuth;
@@ -107,8 +121,8 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
 
 MultipleBuildingsModel::~MultipleBuildingsModel()
 {
-  fclose(fp);
-  //outputFile.close();
+  // fclose(fp);
+  // outputFile.close();
   
   // Preform cleanup for the shadow map.
   shadowFBO->Unattach(GL_DEPTH_ATTACHMENT_EXT);
@@ -492,21 +506,42 @@ int MultipleBuildingsModel::display(){
 	}    
 
 
-#if 0
       if(color_by_advect_terms){
-	int_buffer = new GLfloat[ twidth * theight * 4 ];
-	glReadBuffer(GL_COLOR_ATTACHMENT7_EXT);
-	glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, int_buffer); 
-	for(int i = 3; i <= (theight*twidth*4); i+=4){
-	  //If particle has been reflected
-	  if(int_buffer[i] == 2.0){
+
+	// open the file for writing:
+	std::ostringstream ostr;
+	ostr << util->quicFilesPath << "QP_ShaderOutput_" << cba_simIterCount << ".bin";
+	std::cout << "Writing Shader Output to " << ostr.str() << std::endl;
 	
+	outputFile.open(ostr.str().c_str(), std::ios::out | std::ios::binary);
+
+	// Allocate an array to hold the data output from the 
+	// shader.
+	int arrSize = twidth * theight * 4;
+	int_buffer = new GLfloat[ arrSize ];
+
+	// Data is coming out on the 7th attachment on the fbo
+	glReadBuffer(GL_COLOR_ATTACHMENT7_EXT);
+
+	// This call copies data from device to host memory
+	glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, int_buffer); 
+
+	outputFile.write((char*)&arrSize, sizeof(arrSize));
+	outputFile.write((char*)int_buffer, arrSize * sizeof(float));
+
+	// for(int i = 3; i <= (theight*twidth*4); i+=4)
+	// {
+	    //If particle has been reflected
+	    // if(int_buffer[i] == 2.0){
+
 	    //Get the x,y,z position of the particle
-	    float x = int_buffer[i-3];
-	    float y = int_buffer[i-2];
-	    float z = int_buffer[i-1];
+	//float x = int_buffer[i-3];
+	//float y = int_buffer[i-2];
+	//float z = int_buffer[i-1];
+	//float w = int_buffer[i];
+
 	    //fwrite(x,sizeof(x),1,fp);
-	    fprintf(fp,"%f %f %f\n",x,y,z);
+	    // fprintf(fp,"%f %f %f\n",x,y,z);
 	    //outputFile<<float(x)<<"\t"<<float(y)<<"\t"<<float(z)<<"\n";
 
 	    /*char* ch=new char[10];
@@ -518,11 +553,13 @@ int MultipleBuildingsModel::display(){
 	      outputFile.write(ch,sizeof(ch));
 	      outputFile.write(ch,sizeof(ch)); 
 	      outputFile.write(ch,sizeof(ch));*/
-	  }
-	}    
+	    // }
+	// }    
+
 	delete [] int_buffer;
+	outputFile.close();
+	cba_simIterCount++;
       }
-#endif
  
     ////////////////////////////////////////////////////////////
     // Get Position for Streams
