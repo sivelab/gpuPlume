@@ -618,7 +618,9 @@ void main(void)
 
 	// output partcle specific computation
 	float memory = -.5*coeps*(lam11*u1+lam13*w1)*dt;
-	color = vec4(dudet, dvdet, dwdet, vrel);
+
+	// Modify this to output different sim variables.
+	color = vec4(duran, dvran, dwran, coeps);
 
 	// if relative velocity > 4.0*sigun
 	if(vrel>4.0*sigu && (ivrelch==0 || vrel>100.))
@@ -983,6 +985,10 @@ void main(void)
   //    }
   //  }
   //  else{
+
+  // Test to determine if output is working:
+  // color = vec4(3.1459, 1.6180339887, 6.022, 6.626);
+
     if(pos.a <= 0.0 && (!(life_time <= 0.0))){
       gl_FragData[0] = vec4(100.0, 100.0, 100.0, life_time+1.0);
       gl_FragData[1] = vec4(prmCurr, 1.0);

@@ -511,7 +511,7 @@ int MultipleBuildingsModel::display(){
 	// open the file for writing:
 	std::ostringstream ostr;
 	ostr << util->quicFilesPath << "QP_ShaderOutput_" << cba_simIterCount << ".bin";
-	std::cout << "Writing Shader Output to " << ostr.str() << std::endl;
+	//std::cout << "Writing Shader Output to " << ostr.str() << std::endl;
 	
 	outputFile.open(ostr.str().c_str(), std::ios::out | std::ios::binary);
 
@@ -526,8 +526,9 @@ int MultipleBuildingsModel::display(){
 	// This call copies data from device to host memory
 	glReadPixels(0, 0, twidth, theight, GL_RGBA, GL_FLOAT, int_buffer); 
 
-	outputFile.write((char*)&arrSize, sizeof(arrSize));
-	outputFile.write((char*)int_buffer, arrSize * sizeof(float));
+	int N = twidth * theight;
+	outputFile.write((char*)&N, sizeof(N));
+	outputFile.write((char*)int_buffer, N * 4 * sizeof(float));
 
 	// for(int i = 3; i <= (theight*twidth*4); i+=4)
 	// {
