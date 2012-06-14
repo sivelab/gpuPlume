@@ -70,7 +70,10 @@ MultipleBuildingsModel::MultipleBuildingsModel(Util* u){
   createImages = false;
   quitSimulation = false;
   drawIsoSurface = false;
-  color_by_advect_terms = true;
+
+  // Set to false to not output extra Shader Data
+  color_by_advect_terms = false;
+
   //stream = new StreamLine(twidth,theight,nx,ny,nz);
   
   //Set whether to reuse particles or not
