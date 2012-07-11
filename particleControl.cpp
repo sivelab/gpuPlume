@@ -3542,7 +3542,8 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
    //NLM: non-local mixing
     const float kkar = 0.4f;           //von karman constant
     const float pi   = 4.f*atan(1.0f);
-    const float knlc   = 0.113f;      //non-local mixing constant   
+    //    const float knlc   = 0.113f;      //non-local mixing constant   
+    const float knlc   = 0.01f;      //non-local mixing constant   
     const float ctau13 = 1.f;           
     const float cusq   = 2.5f*2.5f;     
     const float cvsq   = 2.f*2.f;         
