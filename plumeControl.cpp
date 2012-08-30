@@ -15,7 +15,7 @@ PlumeControl::~PlumeControl(){}
 
 void PlumeControl::init(bool){}
 
-int PlumeControl::display()
+int PlumeControl::display(long int seedValue)  ///value being passed over to print within the concentration file 
 { 
   return 1;
 }

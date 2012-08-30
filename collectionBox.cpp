@@ -329,7 +329,7 @@ void CollectionBox::outputConcStd(std::string file, std::string id, double avera
   // The format of the output file has been changed to work directly
   // with matlab. -Pete
 
-  output << id << "_average_time = " << averagingTime << ";\n";
+  output <<"s"<< id << "_average_time = " << averagingTime << ";\n";
 
   output << "% The following array contains the locations of the\n";
   output << "% collection box cells in X, Y, and Z followed by the \n";
@@ -337,8 +337,11 @@ void CollectionBox::outputConcStd(std::string file, std::string id, double avera
   if (id == "")
     output << "concentration = [\n";
   else 
-    output << id << "_conc = [\n";
-
+   {
+//    output <<"s"<< id << "_conc = [\n";  ///fast change
+	output <<"s"<< id << " = [\n";
+        
+}
   for(int k=0; k < numBox_z; k++)
     for(int i=0; i < numBox_y; i++)
       for(int j=0; j < numBox_x; j++)

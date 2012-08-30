@@ -327,7 +327,7 @@ void MultipleBuildingsModel::init(bool OSG)
 int imgCounter = 0;
 bool img_notDone = true;
 
-int MultipleBuildingsModel::display(){
+int MultipleBuildingsModel::display(long int seedValue){
   
   // Timer_t displayStart = mbaTimer->tic();    
 
@@ -655,41 +655,94 @@ int MultipleBuildingsModel::display(){
 
       // output matlab code to remove the collections boxes in the
       // emitter and buildings
+      std::ostringstream xfostring("");     /// These strings should contain
+      std::ostringstream yfostring("");     /// all the buildings corresponding 
+      std::ostringstream widthstring("");   ///  xfo , yfo , widht , length
+      std::ostringstream lengthstring("");  ///  as a set of values Matlab format
+       xfostring<<"[";
+      yfostring<<"[";
+      widthstring<<"[";
+      lengthstring<<"[";
+
+
+      for(unsigned int i = 0 ;i<util->quBuildingData.buildings.size();i++)
+	{
+	  xfostring<<" "<<util->quBuildingData.buildings[i].xfo;
+	  yfostring<<" "<<util->quBuildingData.buildings[i].yfo;
+	  widthstring<<" "<<util->quBuildingData.buildings[i].width;
+	  lengthstring<<" "<<util->quBuildingData.buildings[i].length;
+	}
+      xfostring<<"];";
+      yfostring<<"];";
+      widthstring<<"];";
+      lengthstring<<"];";
 
       std::ostringstream cStringId;
-      cStringId << util->output_id << "_conc";
+      //cStringId <<"s"<< util->output_id << "_conc"; ///fast change
+
+      cStringId<<"s"<<util->output_id;
 
       std::ofstream mfunc_output;
       mfunc_output.open(util->output_file.c_str(), std::ios::app);
+      
+      std::ostringstream image_name;
+      std::string temp_name =util->output_file;
+      image_name<<temp_name.substr(0,temp_name.find('.'));
+      // int temp_temp;
+      //  std::cerr<<image_name.str()<<std::endl;
+      //      std::cin>>temp_temp;
 
-  mfunc_output << "x=" << cStringId.str() << "(:,1);" << std::endl;
-  mfunc_output << "y=" << cStringId.str() << "(:,2);" << std::endl;
-  mfunc_output << "z=" << cStringId.str() << "(:,3);" << std::endl;
-  mfunc_output << "con=" << cStringId.str() << "(:,4);" << std::endl;
+  mfunc_output<<"seedValue="<<seedValue<<"; "<<"\t%%%this is the seedValue from gpuPlume  long int seedVal = (long)time(0) % (long)getpid();"<<std::endl;
+  mfunc_output <<"data="<<cStringId.str() <<";"<<std::endl;
+  mfunc_output <<"Bldsize="<<util->quBuildingData.buildings.size()<<";"<<std::endl;
+  mfunc_output<<"Xfo="<<xfostring.str()<<std::endl;
+  mfunc_output<<"Yfo="<<yfostring.str()<<std::endl;
+  mfunc_output<<"Width="<<widthstring.str()<<std::endl;
+  mfunc_output<<"Length="<<lengthstring.str()<<std::endl;
+  
+  mfunc_output<<"[aa bb] = size(data); \n x = unique(data(:,1)); \n y = unique(data(:,2));\n z = unique(data(:,3)); \n nx = length(x); \n ny = length(y);"<<std::endl;
+  mfunc_output<<"for zht = 1:length(z)  %% select the z-height at which you want concentration contours "<<std::endl;
+  mfunc_output<<"\tcc=1;\n\tconc_vector_zht=0;"<<std::endl;
+  mfunc_output<<"\tfor ii = 1:aa "<<std::endl;
+  mfunc_output<<"\t    if data(ii,3) == z(zht,:)"<<std::endl;
+  mfunc_output<<"\t        conc_vector_zht(cc,1) = data(ii,4);"<<std::endl;
+  mfunc_output<<"\t        cc=cc+1;"<<std::endl;
+  mfunc_output<<"\t    end"<<std::endl;
+  mfunc_output<<"\tend"<<std::endl;
+  mfunc_output<<"\tconc_matrix_zht=0; "<<std::endl;
 
-  mfunc_output << "xUni=unique(x);" << std::endl;
-  mfunc_output << "yUni=unique(y);" << std::endl;
-  mfunc_output << "zUni=unique(z);" << std::endl;
-  mfunc_output << "xLen = length(xUni);" << std::endl;
-  mfunc_output << "yLen = length(yUni);" << std::endl;
-  mfunc_output << "zLen = length(zUni);" << std::endl;
-  mfunc_output << "[X Y] = meshgrid(xUni, yUni);" << std::endl;
+  mfunc_output<<"\tconc_matrix_zht = reshape(conc_vector_zht,nx,ny)';"<<std::endl;
+  mfunc_output<<"\tfigure(zht)"<<std::endl;
+  mfunc_output<<"\th = pcolor(x,y,log10(conc_matrix_zht));"<<std::endl;
+  mfunc_output<<"\tset(h,'edgecolor','none');"<<std::endl;
+  mfunc_output<<"\tshading interp;"<<std::endl;
+  mfunc_output<<"\thh=colorbar;"<<std::endl;
+  mfunc_output<<"\tset(get(hh,'ylabel'),'string','log10(Concentration)','fontsize',20);"<<std::endl;
+  mfunc_output<<"\tset(gcf,'color','w');"<<std::endl;
+  mfunc_output<<"\tset(gcf,'visible','off'); %%this is to make sure the image is not displayed"<<std::endl;
+  mfunc_output<<"\txlabel('$x$','interpreter','latex','fontsize',20,'color','k'); "<<std::endl;
+  mfunc_output<<"\tylabel('$y$','interpreter','latex','fontsize',20,'color','k');"<<std::endl;
+  mfunc_output<<"\tcaxis([-8 3.5]);"<<std::endl;
+  mfunc_output<<"\tstring = strcat('log10(Concentration) Contours; Horizontal x-yplane; Elevation z = ',num2str(z(zht,:)));"<<std::endl;
+  mfunc_output<<"\th=title(string,'fontsize',12);"<<std::endl;
+  mfunc_output<<"\taxis equal;"<<std::endl;
+  mfunc_output<<"\thold on "<<std::endl;
+
+  mfunc_output<<"\tfor ii = 1:Bldsize %%%% plot as many buildings as there are in the domain"<<std::endl;
+  mfunc_output<<"\t    xvalues = [Xfo(ii) Xfo(ii)+Length(ii) Xfo(ii)+Length(ii) Xfo(ii)];"<<std::endl;
+  mfunc_output<<"\t    yvalues = [Yfo(ii)-(Width(ii) / 2) Yfo(ii)-(Width(ii) / 2) Yfo(ii)+(Width(ii) / 2) Yfo(ii)+(Width(ii) / 2)];"<<std::endl;
+  mfunc_output<<"\t    fill(xvalues,yvalues,[0.8 0.8 0.6]);"<<std::endl;
+  mfunc_output<<"\t    hold on"<<std::endl;
+  mfunc_output<<"\tend"<<std::endl;
+  mfunc_output<<"\tfilename = sprintf('"<<cStringId.str() << "_zht=%05.1f.png',  z(zht,:));"<<std::endl;
+  mfunc_output <<"\tprint('-dpng', filename);" << std::endl;
+  mfunc_output<<"end"<<std::endl;
+  // mfunc_output<<"quit"<<std::endl; ////this is to get rid of the matlab so that it closes after running this 
+ 
+
+  
 
 
-  // only care about first three layers for now
-  mfunc_output << "for i=1:3" << std::endl;
-  mfunc_output << "fid = figure;" << std::endl;
-  mfunc_output << "concSlice=con(z==zUni(i));" << std::endl;
-  mfunc_output << "C=reshape(concSlice,xLen,yLen);" << std::endl;
-  mfunc_output << "pcolor(C')" << std::endl;
-  mfunc_output << "colorbar;" << std::endl;
-  mfunc_output << "title(['Concentration - Z = ',num2str(zUni(i)),'m'])" << std::endl;
-  mfunc_output << "set(gcf,'color','w')" << std::endl;
-
-  mfunc_output << "filename = sprintf('" << cStringId.str() << "_%02d.png', i);" << std::endl;
-  mfunc_output << "print('-dpng', filename);" << std::endl;
-
-  mfunc_output << "end" << std::endl;
 
       mfunc_output.close();
     }

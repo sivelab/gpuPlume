@@ -755,7 +755,8 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
       switch(qpSourceData.sources[sourceId].geometry)
 	{
 	  // these are all treated as a sphere...
-	  case qpSource::SPHERICAL_SHELL:
+	
+  	case qpSource::SPHERICAL_SHELL:
 	  case qpSource::CYLINDER:
 	  case qpSource::EXPLOSIVE:
 	  case qpSource::AREA:
@@ -768,8 +769,7 @@ bool Util::readQUICBaseFiles( std::string& QUICFilesPath )
 	    
 	    rate[sourceId] = 800.0;
 	    break;
-
-	  case qpSource::LINE:
+	case qpSource::LINE:
 	    petype[sourceId] = 2;
 	    
 	    xpos[sourceId] = qpSourceData.sources[sourceId].points[0].x;

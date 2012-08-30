@@ -41,7 +41,7 @@ class PlumeControl{
   //PlumeControl(Util*);
 
   virtual void init(bool); 
-  virtual int display();
+  virtual int display(long int );  ///value being passed over to print within the concentration file 
   virtual void setupTextures();
   virtual void setupEmitters();
   virtual void swapPauseMode();

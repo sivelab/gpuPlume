@@ -82,10 +82,11 @@ void CmdOptionInterpreter::parse()
       std::cout << "COMMAND LINE OVERRIDE: using concentration output file: " << m_utilPtr->output_file << std::endl;
     }
 
-  tmpString = "";
-  if (m_argParser->isSet("concId", tmpString))
+  tmpInt = 0;
+  if (m_argParser->isSet("concId", tmpInt))
     {
-      m_utilPtr->output_id = tmpString;
+      
+      m_utilPtr->output_id =boost::lexical_cast<std::string>(tmpInt);
       std::cout << "COMMAND LINE OVERRIDE: using concentration id = " << m_utilPtr->output_id << std::endl;
     }
 

@@ -38,6 +38,7 @@
 #define PBUFFER_HEIGHT 1024
 
 // Variables to hold timing array and record timings
+long int seedVal;
 long timing_count = 0;
 bool compute_timings = false;
 long timing_N;
@@ -249,7 +250,10 @@ int main(int argc, char** argv)
   }
 #endif
 
-  long int seedVal = (long)time(0) % (long)getpid();
+  seedVal = (long)time(0) % (long)getpid();///making this global variable to avoid passing it to different things
+  // int temp_pause;
+  // std::cerr<<"the seedValue-------------------- "<<seedVal<<std::endl;
+  //std::cin>>temp_pause;
   Random random_gen( seedVal );
 
   plume = new MultipleBuildingsModel(util);
@@ -258,8 +262,12 @@ int main(int argc, char** argv)
   RenderContext rcx;
 #endif // __linux__
 
+  std::cerr<<"checking parameter util "<<std::endl;
+  std::cerr<<util->offscreenRender<<std::endl;
+  std::cerr<<"DID IT enter "<<std::endl;
   if (util->offscreenRender == false)
     {
+      std::cerr<<"SHOULD NOT ENTER THIS ************************************"<<std::endl;
       glutInitDisplayMode( GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE );
       glutInit(&argc, argv);
 
@@ -555,7 +563,7 @@ void display(void)
 
   Timer_t displayStart = plume_clock->tic();    
 
-  quitSimulation = plume->display();
+  quitSimulation = plume->display(seedVal); // ///value being passed over to print within the concentration file  TODO change this to seedValue which we have to 
 
   Timer_t displayEnd = plume_clock->tic();    
   // std::cout << "Display Time: " << plume_clock->deltam(displayStart, displayEnd) << " ms." << std::endl;  
