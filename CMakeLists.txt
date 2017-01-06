@@ -145,4 +145,3 @@ target_link_libraries (gpuPlume ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 target_link_libraries (gpuPlume png)
 target_link_libraries (gpuPlume z)
 
-add_subdirectory (populationSampleOpt)
