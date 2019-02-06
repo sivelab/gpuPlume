@@ -17,7 +17,6 @@
 
 #include <string.h>
 
-#if 0
 #if defined(__linux)
     #include <unistd.h>
     #include <linux/sockios.h>
@@ -39,7 +38,6 @@
     #include <unistd.h>
 #else 
     #error Teach me how to build on this system
-#endif
 #endif
 
 #include "broadcaster.h"

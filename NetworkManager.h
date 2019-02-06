@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <unistd.h>
 
 #include "broadcaster.h"
 #include "receiver.h"

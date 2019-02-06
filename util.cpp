@@ -140,10 +140,11 @@ bool Util::readInput(std::string file){
   std::ifstream in;
   in.open(file.c_str(),std::ios::in);
 
-  if(in == NULL) 
+  if(in.fail()) 
     {
       // bad input file
-      return false;
+        std::cerr << "Cannot open " << file << std::endl;
+        return false;
     }
 
   // Check to see if the input file is a project file.  If it is, then
@@ -225,7 +226,7 @@ bool Util::readInput(std::string file){
 #endif
      
       gpuPlumeSettings_in.open(gpuPlumeSettings_filename.c_str(),std::ios::in);
-      if (gpuPlumeSettings_in == NULL) 
+      if (gpuPlumeSettings_in.fail()) 
 	{
 	  // bad input filename
 #ifdef WIN32

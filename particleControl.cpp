@@ -2926,7 +2926,11 @@ void ParticleControl::addBuildingsInWindField(GLuint cellType){
   std::ifstream in;
   in.open(path.c_str(),std::ios::binary|std::ios::in);
     	
-  if(in == NULL) std::cout << "input file didn't open" << std::endl;
+  if(in.fail()) {
+      std::cout << "Settings/QU_celltype.dat file didn't open" << std::endl;
+      exit(EXIT_FAILURE);
+  }
+  
     
   char line[1024];
 
@@ -5648,7 +5652,7 @@ void ParticleControl::nonLocalMixing(GLuint windField,GLuint lambda, GLuint tau_
                 eleff.at(id)=dzm.at(id);
                 if(retrieveCellTypeFromArray(id)==8)eleff.at(id)=elcanopy*std::min(1.,(dzm.at(id)-z0)/(.3*hgtveg.at(ij)))/kkar;
                 int kdif=k-1;
-                eleff.at(id)=std::max(zm.at(k)-hgt.at(ij)*pow( (hgt.at(ij)/zm.at(k)),m_roof),0.0);
+                eleff.at(id)=std::max(zm.at(k)-hgt.at(ij)*pow( (hgt.at(ij)/zm.at(k)),m_roof),0.0f);
                 if(zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f)>0.f)
                     eleff.at(id)=std::min(eleff.at(id),zi.at(k)-std::max((hgtveg.at(ij)-elcanopy/kkar),0.f));
                 if(retrieveCellTypeFromArray(id)==8)eleff.at(id)=elcanopy*std::min(1.,(zi.at(k)-z0)/(.3*hgtveg.at(ij)))/kkar;
